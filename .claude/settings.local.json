@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm -v)",
+      "Bash(npm -v)",
+      "Bash(npm view *)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(curl -s -o /tmp/home.html -w \"status=%{http_code} bytes=%{size_download}\\\\n\" http://localhost:3000/)",
+      "PowerShell(Get-Process *)",
+      "PowerShell(Stop-Process *)",
+      "Bash(curl -s -o /dev/null -w \"status=%{http_code}\\\\n\" http://localhost:3000/)",
+      "Bash(curl -s -o /dev/null -w \"page=%{http_code}\\\\n\" http://localhost:3000/)",
+      "Bash(python3 -c ' *)",
+      "Bash(node -e \"console.log\\(JSON.stringify\\(require\\('./node_modules/eslint-config-next/package.json'\\).exports,null,1\\)\\)\")",
+      "Bash(npm uninstall *)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\('devDeps:', Object.keys\\(p.devDependencies\\).join\\(', '\\)\\)\")",
+      "Bash(curl -s -o /dev/null -w \"localhost:3000 -> %{http_code}\\\\n\" http://localhost:3000/)",
+      "Bash(mkdir -p archive)",
+      "Bash(mv 06-homepage-direction.md 07-the-central-idea.md 08-the-transformation.md 09-homepage-chapters-v2.md archive/)",
+      "Bash(curl -s http://localhost:3000/)",
+      "Bash(curl -s -o /dev/null -w \"status=%{http_code} time_total=%{time_total}s\\\\n\" http://localhost:3000/?hour=dusk)",
+      "Bash(sed -i 's/--seq-hold: 1000ms;/--seq-hold: 800ms;/' src/app/globals.css)",
+      "Bash(sed -i 's/setTimeout\\(settle,9600\\);/setTimeout\\(settle,10400\\);/' src/app/layout.tsx)",
+      "Bash(node -e ' *)",
+      "PowerShell(Get-ChildItem \"D:\\\\STUDIO\\\\public\\\\media\\\\hero\\\\video\" | Select-Object Name, @{N='MB';E={[math]::Round\\($_.Length/1MB,2\\)}}, LastWriteTime | Sort-Object LastWriteTime | Format-Table -AutoSize)"
+    ]
+  }
+}

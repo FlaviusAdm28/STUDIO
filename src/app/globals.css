@@ -1,0 +1,914 @@
+/*
+  Chapter One — Version 1
+  Opening sequence only. Everything below the opening is a placeholder.
+
+  Three rules hold everywhere in this file.
+
+  - Opacity is the only thing that animates. Nothing travels, scales, blurs or splits.
+    `04-visual-language.md` §7 — motion exists to make change comprehensible, and the
+    only change in this sequence is light arriving.
+  - One curve. There is no second curve anywhere.
+  - Type is composed inside the photograph, not laid on top of the screen.
+    `04-visual-language.md` §5 — a frame is chosen, not inherited. So the frame is a real
+    box of the footage's own ratio, and every word is positioned relative to that box.
+*/
+
+:root {
+  /* The one curve. Slow to start, long to settle, no character of its own. */
+  --curve: cubic-bezier(0.32, 0, 0.24, 1);
+
+  /*
+    Light arriving on the photograph. The slowest thing in the sequence, and lengthened so
+    that it is still arriving when the identity begins — the name emerges inside the light
+    rather than after it.
+  */
+  --reveal-image: 3200ms;
+  --reveal-title: 1600ms;
+  --reveal-line: 1200ms;
+  --reveal-quiet: 1000ms;
+
+  /*
+    Multiplier on every duration in the opening. The script advances its clock by the
+    reciprocal, so this is the single place the sequence's pace is set.
+  */
+  --haste: 1;
+
+
+  --ground: #000;
+  /*
+    An opacity ladder rather than three arbitrary greys, and the top of it is deliberately
+    not white. The footage's own brightest highlights measure 246–247, so pure white type
+    would be the brightest thing on screen and would read as laid on top of the image. At
+    0.92 the title sits inside the photograph's own range instead of above it. Each step
+    down is roughly 0.15, which is enough to rank the three levels and little enough that
+    no single one of them looks faded.
+  */
+  --speech: rgba(255, 255, 255, 0.92);
+  --aside: rgba(255, 255, 255, 0.62);
+  --murmur: rgba(255, 255, 255, 0.52);
+
+  /* Undecided. `open-decisions.md` §7 is still open, so nothing here pretends otherwise. */
+  --voice: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --data: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--ground);
+  color: var(--speech);
+  font-family: var(--voice);
+  -webkit-font-smoothing: antialiased;
+}
+
+/*
+  A bright scrollbar beside a black frame is the one thing in the opening that announces
+  a website. The visitor keeps the ability to leave whenever they want — the track just
+  stops being the brightest object on screen.
+*/
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+  /*
+    The opening is a viewport-width element; without this its bleed adds a sideways scroll.
+    `clip` rather than `hidden` on purpose — `hidden` makes the root a scroll container, and a
+    scroll container breaks `position: sticky` in every descendant, which is what pins the hero
+    while it becomes Chapter II. `clip` trims the overflow without becoming scrollable.
+  */
+  overflow-x: clip;
+}
+
+/* ---------- The shot ---------- */
+
+/*
+  One frame, held. The whole shot happens inside a single pinned viewport — the hero, the light
+  leaving it, the marker, the statement — so nothing ever scrolls past anything and
+  there is no section boundary to notice. `04-visual-language.md` §2: a ground change is the
+  slowest thing in the system and nothing else moves during one. Here nothing else moves at all.
+
+  `--pin` is the only place the shot's *physical* length is set. The script reads it back and
+  divides its beat map by it, so this number alone decides how much scrolling the sequence costs —
+  and the choreography inside it is untouched by the change. At 140vh the whole shot is about four
+  and a half wheel gestures; the ratios between its beats are identical at any value.
+
+  The defaults are the first frame: the hero whole, nothing over it, nothing else present. So the
+  page paints correctly before the scroll driver has run once. Without scripting the whole shot
+  is laid out flat instead — see the noscript block in page.tsx.
+*/
+:root {
+  --pin: 392vh;
+  --dusk: 0;
+  --veil: 1;
+  --marker: 0;
+  --statement: 0;
+  --i1: 0;
+  --i2: 0;
+  --i3: 0;
+  --i4: 0;
+  --warmth: 0;
+  --dawn: 0;
+  --close: 0;
+  --out1: 1;
+  --out2: 1;
+  --stop: 1;
+  --tm: 0;
+  --swap: 0;
+  --mark3: 0;
+  /* A step, not a ramp: which of the two identical markers is the real one. */
+  --handoff: 0;
+
+  /*
+    Where the chapter marker rests, and how small it becomes. Generous room around it — it is an
+    orientation mark, and the space is what stops it reading as a heading.
+  */
+  /*
+    Insets included, because `viewport-fit: cover` puts the page under the status bar and the notch —
+    without them the marker sits at roughly 51px on a phone, which is inside that furniture.
+  */
+  --mark-x: max(clamp(1.75rem, 5vw, 4.5rem), env(safe-area-inset-left, 0px));
+  --mark-y: calc(clamp(2rem, 6vh, 4rem) + env(safe-area-inset-top, 0px));
+  --mark-size: 0.9375rem;
+
+  /*
+    Act III. Warm, low chroma, high lightness — paper rather than screen. Not white, which is a
+    surface with nothing in it, and not beige, which is yellow enough to read as a colour choice.
+    This is the tone of a catalogue held under gallery light.
+
+    The ink is a warm near-black for the same reason. Pure black on ivory reads as a screenshot of
+    a document; a warm one reads as printed.
+  */
+  --paper: #f4f1e9;
+  --ink: rgba(24, 23, 20, 0.9);
+  /*
+    The marker is quieter than the words it came from. It orients; it does not speak.
+    0.65 rather than 0.55: at eleven pixels the lighter value measured 3.83:1 on paper, under the
+    4.5:1 that text this size needs. This reads 5.15:1 and is still plainly the quietest thing here.
+  */
+  --ink-quiet: rgba(24, 23, 20, 0.65);
+}
+
+/*
+  A thumb is not a wheel. A wheel notch moves about 100px, so 140vh is roughly fifteen deliberate
+  steps; a flick on a touch screen carries 800 to 2000px of momentum, which would take the whole
+  shot in one gesture and the visitor would never see the dissolve, the marker or the statement
+  arrive. Touch therefore gets a longer runway for the identical choreography — the script divides
+  its beat map by this number, so every ratio inside the shot is unchanged and only the distance
+  differs. Keyed to the pointer rather than to width, because a large tablet has the same thumb.
+*/
+@media (pointer: coarse) {
+  :root {
+    --pin: 588vh;
+  }
+}
+
+.film {
+  position: relative;
+  height: calc(100dvh + var(--pin));
+}
+
+/*
+  Viewport width, not content width, so the cards centre on exactly the axis the hero title
+  centres on — the hero is a 100vw element, and a card that inherits its position has to be
+  measured against the same box. Six pixels, but the whole point of the card is that it lands
+  where the title was.
+*/
+.stage {
+  position: sticky;
+  top: 0;
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--ground);
+}
+
+/*
+  Dawn, in two stages, for the same reason the dusk had two: a single cross-fade from black to a light
+  neutral passes through a flat mid-grey, which reads as a screen dimming rather than as light
+  arriving. Measured at the midpoint it was rgb(129,128,124) — dead centre of neutral.
+
+  Warmth comes up first and lightness second, so the path runs black → warm shadow → warm light →
+  ivory and never touches neutral grey. That is also the order it happens in outside: the sky gets
+  warm before it gets bright.
+
+  Chroma stays low throughout. `04-visual-language.md` §3 — saturated colour arrives from the
+  material, never from the interface. This is a change in light, not a sunrise painted on.
+*/
+.dawn-warmth {
+  position: absolute;
+  inset: 0;
+  background: #3a2f26;
+  opacity: var(--warmth);
+  pointer-events: none;
+}
+
+/*
+  The light itself. Above the footage and above everything Act II said, but beneath Act III's own
+  words — so the light covers the dark rather than the dark being switched off.
+
+  No transition of its own: it tracks scroll exactly, so going back up takes the night with it.
+*/
+.dawn {
+  position: absolute;
+  inset: 0;
+  background: var(--paper);
+  opacity: var(--dawn);
+  pointer-events: none;
+}
+
+/* ---------- Chapter III ---------- */
+
+/*
+  The studio. The film is over, so the pacing changes with it: nothing is pinned, nothing is driven by
+  scroll position, nothing performs. Blocks arrive by being scrolled to and then stay.
+
+  Act III does not return to black — `04-visual-language.md` §2, a change of ground is an event, and
+  going back would spend it twice.
+
+  The marker gets a margin of its own and the text begins to the right of it. Sharing one left rule
+  read well until the page scrolled: a fixed marker and a moving column on the same axis put "III
+  Studio" straight through the middle of "built for moments". A running head needs somewhere to stand
+  that the text never enters, which is what the margin of a book is for.
+*/
+:root {
+  --rule: calc(var(--mark-x) + 7.5rem);
+}
+.chapter-three {
+  /* So the marker has something to be absolute against when it stops being fixed. */
+  position: relative;
+  display: grid;
+  gap: clamp(8rem, 22vh, 16rem);
+  padding-block: clamp(8rem, 22vh, 16rem);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* Arrival. One opacity transition, once, and never again. */
+[data-reveal] {
+  opacity: 0;
+  transition: opacity 1100ms var(--curve);
+}
+
+[data-reveal][data-shown='true'] {
+  opacity: 1;
+}
+
+.three-opening {
+  padding-inline: var(--rule);
+}
+
+.three-statement {
+  margin: 0;
+  max-width: 26ch;
+  font-size: clamp(2rem, 5.4vw, 4.75rem);
+  font-weight: 300;
+  line-height: 1.12;
+  letter-spacing: -0.012em;
+}
+
+.three-statement span {
+  display: block;
+}
+
+/*
+  The showcases. The visual runs to the edge of the page rather than sitting in a container — no card,
+  no border, no frame. The text keeps the chapter's left rule; the whitespace on the other side of it
+  is the composition, not a gap left over.
+*/
+.showcase {
+  display: grid;
+  grid-template-columns: 42fr 58fr;
+  align-items: center;
+  gap: clamp(2rem, 5vw, 5rem);
+}
+
+.showcase--reverse {
+  grid-template-columns: 58fr 42fr;
+}
+
+/*
+  No `max-width` on this element. It carries the padding, and with `box-sizing: border-box` a max-width
+  here is the *outer* width — so a 42ch cap minus a 192px rule left the column 144px wide and broke
+  "We don't build websites." across three lines. The measure belongs on the text itself, where nothing
+  is subtracted from it.
+*/
+.showcase-text {
+  padding-inline-start: var(--rule);
+}
+
+/* Reversed, the text is on the right and the marker's margin is not its concern. */
+.showcase--reverse .showcase-text {
+  padding-inline-start: 0;
+  padding-inline-end: var(--mark-x);
+}
+
+.showcase-lead {
+  margin: 0;
+  max-width: 26ch;
+  font-size: clamp(1.375rem, 2.5vw, 2.125rem);
+  font-weight: 300;
+  line-height: 1.25;
+  letter-spacing: -0.008em;
+}
+
+.showcase-body {
+  margin: clamp(1.25rem, 2.5vh, 2rem) 0 0;
+  max-width: 38ch;
+  font-size: clamp(1rem, 1.25vw, 1.1875rem);
+  font-weight: 400;
+  line-height: 1.65;
+  color: var(--ink-quiet);
+}
+
+/*
+  A moving photograph, and a still one. Both are simply the media — object-fit and nothing else.
+*/
+.showcase-visual {
+  position: relative;
+  aspect-ratio: 2 / 1;
+  overflow: hidden;
+  background: rgba(24, 23, 20, 0.04);
+}
+
+.showcase-visual video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/*
+  Stacked below 900px, and each keeps its own source order — so the alternation of text-then-image and
+  image-then-text survives the collapse instead of flattening into a column of identical blocks.
+*/
+@media (max-width: 900px) {
+  :root {
+    --rule: var(--mark-x);
+  }
+
+  .showcase,
+  .showcase--reverse {
+    grid-template-columns: 1fr;
+    gap: clamp(2rem, 6vh, 3.5rem);
+  }
+
+  .showcase-text,
+  .showcase--reverse .showcase-text {
+    padding-inline: var(--rule);
+  }
+}
+
+/* ---------- The marker, once it belongs to the page ---------- */
+
+/*
+  Fixed, so it holds its corner while Chapter III is read. Identical in every respect to the word that
+  became it — same coordinates, same size, weight, tracking and ink — because the handoff between them
+  is a step and any difference would be a jump.
+*/
+.marker {
+  position: fixed;
+  left: var(--mark-x);
+  top: var(--mark-y);
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7em;
+  margin: 0;
+  font-size: var(--mark-size);
+  line-height: 1.25;
+  color: var(--ink-quiet);
+  opacity: var(--handoff);
+  pointer-events: none;
+}
+
+.marker-numeral {
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  margin-right: -0.1em;
+}
+
+.marker-label {
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+/*
+  No margin to spare on a phone, so there is nowhere for a fixed marker to stand that the text does not
+  also need. It stops being an overlay and sits at the head of the chapter instead, scrolling with it —
+  a running head printed on the page rather than held over it. The alternative is fifteen pixels of type
+  sitting permanently on top of the reading column, which is worse than a marker that goes by.
+
+  This has to come after the rules above rather than with the rest of the narrow-screen block: same
+  specificity, and the later declaration wins. Placed earlier it was silently overridden.
+*/
+@media (max-width: 900px) {
+  .marker {
+    position: absolute;
+    top: clamp(2.5rem, 8vh, 5rem);
+  }
+}
+
+/*
+  Both cards occupy the same centred frame and never share it — one leaves before the other
+  arrives. Separate layers so neither can affect the other's position.
+*/
+.card {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  /* In landscape on a notched phone the inset is wider than the margin, so it wins. */
+  padding-left: max(6vw, env(safe-area-inset-left, 0px));
+  padding-right: max(6vw, env(safe-area-inset-right, 0px));
+  text-align: center;
+  pointer-events: none;
+}
+
+/*
+  The chapter marker. Set in the studio's own voice, uppercased and tracked wide the way a running
+  head or a chapter line is tracked.
+
+  Small enough to sit beneath the statement's 56px without competing with it, and at the same
+  brightness as everything else that speaks quietly here — it arrives rather than announces.
+
+  `line-height: 1` so the box hugs the glyphs and the centring is the glyphs' centring, which is
+  what puts it on exactly the axis the hero title sat on.
+*/
+.card-marker {
+  margin: 0;
+  font-family: var(--voice);
+  /*
+    1.6vw rather than 1.15vw so the marker reaches its full size by laptop width instead of only at
+    1920. At 1.15vw a 1440 laptop got 16.6px while a 1920 desktop got 22px — the same chapter card
+    reading differently on two ordinary desktops. Phone and tablet are unchanged at 15px.
+  */
+  font-size: clamp(0.9375rem, 1.6vw, 1.375rem);
+  font-weight: 400;
+  letter-spacing: 0.34em;
+  /* The tracking adds space after the last letter; pull it back so the word stays centred. */
+  text-indent: 0.34em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--aside);
+  opacity: var(--marker);
+}
+
+/*
+  Wide enough that the authored lines survive. At 22ch the first line was itself wrapping, which
+  turned two composed lines into three accidental ones — the measure was fighting the break.
+  The size tracks viewport width so both lines hold from 360px up.
+*/
+.card-statement {
+  margin: 0;
+  max-width: 32ch;
+  font-size: clamp(1.5rem, 4.6vw, 3.5rem);
+  font-weight: 300;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+  color: var(--speech);
+  opacity: var(--statement);
+}
+
+/*
+  The four occasions. Smaller than the statement they follow, because they are a cadence rather than
+  a claim, and each one is a complete thought that needs no measure beyond its own line.
+*/
+.card-occasion {
+  margin: 0;
+  font-size: clamp(1.25rem, 3.4vw, 2.5rem);
+  font-weight: 300;
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+  color: var(--speech);
+}
+
+.card-occasion[data-occasion='1'] {
+  opacity: var(--i1);
+}
+
+.card-occasion[data-occasion='2'] {
+  opacity: var(--i2);
+}
+
+.card-occasion[data-occasion='3'] {
+  opacity: var(--i3);
+}
+
+.card-occasion[data-occasion='4'] {
+  opacity: var(--i4);
+}
+
+/* Act III's first words. Ink on paper, and the only thing in the frame. */
+.card-close {
+  margin: 0;
+  max-width: 32ch;
+  font-size: clamp(1.5rem, 4.6vw, 3.5rem);
+  font-weight: 300;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  opacity: var(--close);
+}
+
+/* Each part leaves at its own moment, so each carries its own departure. */
+.close-lead,
+.close-tail {
+  display: block;
+}
+
+.close-lead {
+  opacity: var(--out1);
+}
+
+.close-another {
+  opacity: var(--out2);
+}
+
+/*
+  The word that becomes the marker.
+
+  This is the one element in the piece that travels, and it earns it: `04-visual-language.md` §7 says
+  motion exists to make change comprehensible, and what changes here is what the word is *for*. It
+  stops being the end of a sentence and becomes an orientation mark. Nothing else on the site moves,
+  because nothing else changes purpose.
+
+  The travel is measured, not authored — `--mx`, `--my` and `--ms` are the distance and the reduction
+  from the word's own natural position to the corner, computed from the live layout so they stay
+  correct at any viewport. `transform-origin: left top` is what makes the two agree: the scale shrinks
+  the box toward its own top-left, and the translate then puts that corner exactly on the anchor.
+*/
+.mark {
+  display: inline-block;
+  position: relative;
+  transform-origin: left top;
+  transform: translate(calc(var(--mx, 0px) * var(--tm)), calc(var(--my, 0px) * var(--tm)))
+    scale(calc(1 + (var(--ms, 1) - 1) * var(--tm)));
+  /* Handed over to the fixed marker the instant it arrives. */
+  opacity: calc(1 - var(--handoff));
+  will-change: transform;
+}
+
+/* `chapter` and `Studio` share one slot, left aligned, so the settle is in place rather than beside. */
+.mark-word {
+  opacity: calc(1 - var(--swap));
+}
+
+/*
+  `Studio` already carries the marker's colour, weight and tracking, so the settle from a light word in
+  a sentence to a medium one in a label happens inside the same cross-fade as the word itself. One
+  change the eye can miss, rather than three it cannot.
+
+  The values are in `em`, so they survive being scaled down with the parent and land at exactly the
+  intended size in the corner.
+*/
+.mark-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--ink-quiet);
+  opacity: var(--swap);
+}
+
+/* The period goes early in the move — it belongs to the sentence, not to the marker. */
+.mark-stop {
+  opacity: var(--stop);
+}
+
+/*
+  The marker's slot, in the corner. One horizontal line: the numeral, then the word.
+
+  A flex row rather than two absolutely placed elements, because the word has to land *after* the
+  numeral and the numeral's width is a font metric, not a number anyone should be writing down. The
+  anchor is a zero-sized item that simply sits where the row puts it, and the script measures it.
+
+  `line-height` matches the sentence's 1.25 so the numeral's box is the same height as the landed
+  word's box — tops align, and therefore so do the baselines.
+*/
+.mark-slot {
+  position: absolute;
+  left: var(--mark-x);
+  top: var(--mark-y);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7em;
+  font-size: var(--mark-size);
+  line-height: 1.25;
+  pointer-events: none;
+}
+
+.mark-anchor {
+  width: 0;
+  height: 0;
+  visibility: hidden;
+}
+
+/*
+  The numeral. It does not travel — it is an annotation, so it may simply arrive, and it arrives only
+  once the word is almost home.
+
+  Tracking is 0.10em rather than the label's, because three bare vertical strokes need to group into a
+  numeral; at wider values they separate into unrelated marks. The negative right margin takes back
+  the space letter-spacing adds after the final stroke, so the gap to the word is the gap that was
+  asked for rather than the gap plus a stray sidebearing.
+*/
+.mark-numeral {
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  margin-right: -0.1em;
+  color: var(--ink-quiet);
+  opacity: calc(var(--mark3) * (1 - var(--handoff)));
+}
+
+/*
+  Authored line breaks. §4 — in a statement, where the line ends is part of the composition.
+
+  Scoped to direct children on purpose. This was `.card-close span`, which reached every span inside
+  the sentence — including the travelling word and its period — and forced them to `display: block`,
+  putting the full stop on its own line. Act III's own lines are declared by name in
+  `.close-lead, .close-tail`, so nothing here needs to reach for them.
+*/
+.card-statement > span {
+  display: block;
+}
+
+.opening {
+  position: relative;
+  display: grid;
+  place-items: center;
+  /*
+    Viewport width, not container width. `width: 100%` stops at the content box and leaves
+    the scrollbar's gutter uncovered — an eleven pixel black strip down the right edge on
+    every screen. The footage bleeds under the scrollbar instead.
+  */
+  width: 100vw;
+  /*
+    Dynamic viewport height. `svh` is the viewport with the mobile toolbars showing, so the
+    moment they retract the screen grows and the hero no longer reaches the bottom.
+  */
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--ground);
+}
+
+/*
+  The frame fills the viewport at every size. The footage crops rather than letterboxes —
+  it is never allowed to leave a black border on any screen, so the image is what the
+  visitor meets rather than a box containing it.
+*/
+.frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.footage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* Scales until both axes are covered, then centres and clips. It cannot letterbox. */
+  object-fit: cover;
+  object-position: center;
+  opacity: 0;
+  transition: opacity calc(var(--reveal-image) * var(--haste)) var(--curve);
+}
+
+.footage[data-lit='true'] {
+  opacity: 1;
+}
+
+/*
+  The dark coming up over the footage. No transition of its own: it tracks scroll exactly, so
+  moving back up takes the light back with it. Anything eased here would lag the hand.
+*/
+.dusk {
+  position: absolute;
+  inset: 0;
+  background: var(--ground);
+  opacity: var(--dusk);
+  pointer-events: none;
+}
+
+/* Everything the hero says. Faded as one thing by the dissolve. */
+.veil {
+  position: absolute;
+  inset: 0;
+  opacity: var(--veil);
+  pointer-events: none;
+}
+
+/*
+  The timestamp. Dead centre, which is free only because it lives while the room is
+  still dark. It arrives first, leaves once, and never returns.
+*/
+.moment {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85em;
+  font-family: var(--data);
+  opacity: 0;
+  transition: opacity calc(var(--reveal-quiet) * var(--haste)) var(--curve);
+  pointer-events: none;
+}
+
+.moment[data-present='true'] {
+  opacity: 1;
+}
+
+.moment-time {
+  font-size: 0.8125rem;
+  letter-spacing: 0.2em;
+  color: var(--aside);
+  font-variant-numeric: tabular-nums;
+}
+
+.moment-caption {
+  font-size: 0.75rem;
+  letter-spacing: 0.24em;
+  color: rgba(255, 255, 255, 0.52);
+}
+
+/*
+  The identity is the visual centre, and it takes the exact place the timestamp occupied —
+  so the studio's name arrives where the visitor's own moment was. The title's optical
+  centre sits at 50%; the second level hangs beneath it without moving it.
+*/
+.identity {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  pointer-events: none;
+}
+
+.identity-title {
+  margin: 0;
+  font-size: clamp(2.25rem, 6.6vw, 6rem);
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--speech);
+  opacity: 0;
+  transition: opacity calc(var(--reveal-title) * var(--haste)) var(--curve);
+}
+
+.identity-title[data-present='true'] {
+  opacity: 1;
+}
+
+/*
+  Hung beneath the title rather than placed in the flow, so the title is at its intended
+  height during the seconds it is alone and nothing moves when the line arrives.
+  `05-storyboard.md` Beat 0 — a layout that shifts is a failure mode.
+*/
+/*
+  The second level of the identity, not a caption. It is larger, brighter and tracked more
+  tightly than an annotation would be, and it sits closer to the title than the title sits
+  to the interface — so the two read as one thing with two levels, and the interface reads
+  as something else entirely.
+*/
+.identity-line {
+  position: absolute;
+  /* Measured in the title's terms, not its own, or a small line sets its own distance. */
+  top: calc(100% + clamp(1.625rem, 2.4vw, 3rem));
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 88vw;
+  margin: 0;
+  font-size: clamp(1.5rem, 1.95vw, 1.875rem);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.78);
+  opacity: 0;
+  transition: opacity calc(var(--reveal-line) * var(--haste)) var(--curve);
+}
+
+.identity-line[data-present='true'] {
+  opacity: 1;
+}
+
+/*
+  Arrives last, and outside the frame wherever there is room, so the interface is never
+  part of the photograph. `04-visual-language.md` §10.
+*/
+.ways {
+  position: absolute;
+  /*
+    Clear of the home indicator, and pulled back by the anchors' own padding so the words sit
+    exactly where they sat before that padding existed.
+  */
+  bottom: calc(clamp(1.75rem, 4.5vh, 3rem) + env(safe-area-inset-bottom, 0px) - 0.8125rem);
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: clamp(1.75rem, 4.5vw, 3.5rem);
+  opacity: 0;
+  transition: opacity calc(var(--reveal-quiet) * var(--haste)) var(--curve);
+  pointer-events: none;
+}
+
+.ways[data-present='true'] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/*
+  Tracking comes down as the size goes up. At 12px the wide 0.16em was doing the work of
+  making three small words feel deliberate; at 13px it starts costing word recognition,
+  which is the opposite of readable.
+*/
+/*
+  The words are 19px tall, which is a fine size to read and a poor thing to hit with a thumb — under
+  the 24px WCAG minimum and nowhere near the 44px touch guideline. The padding takes the hit area to
+  45px without moving a single pixel of type: it is vertical only, so the horizontal rhythm is
+  untouched, and `.ways` subtracts it back from its own offset.
+*/
+.ways a {
+  padding-block: 0.8125rem;
+  font-size: 0.9rem;
+  letter-spacing: 0.12em;
+  color: var(--murmur);
+  text-decoration: none;
+  transition: color 240ms var(--curve);
+}
+
+.ways a:hover,
+.ways a:focus-visible {
+  color: var(--speech);
+}
+
+.ways a:focus-visible {
+  outline: 1px solid var(--aside);
+  outline-offset: 0.5rem;
+}
+
+/*
+  Somebody who wants to move faster gets the same sequence on a faster clock.
+  `03-design-principles.md` §2 — we decide the order, they decide the pace.
+
+  Every duration in the opening is multiplied by `--haste`, and the script advances its own
+  clock by exactly the reciprocal. So the fades keep their proportions to each other and to
+  the gaps between them: nothing overlaps that did not overlap before, and no step is
+  skipped. The choreography is identical — only its mapping to real seconds changes.
+*/
+.opening[data-hasted='true'] {
+  /* The reciprocal of HASTE in the script. These two numbers must move together. */
+  --haste: 0.645;
+}
+
+/*
+  Portrait crops hard — a 2:1 frame on a tall screen keeps only the central slice of its
+  width. The identity stays at the centre; only its size changes, because 6.6vw of a narrow
+  viewport would leave the title too small to be the centre of anything.
+*/
+@media (orientation: portrait) {
+  .identity-title {
+    font-size: clamp(2rem, 10vw, 4rem);
+  }
+
+  /*
+    Scaled by viewport width rather than pinned to a floor. A fixed size wraps this sentence
+    to two lines somewhere — 21px broke at 360px, 20px still broke at 320px — and a wrapped
+    subordinate line stops being a line and becomes a block. Tracking the width means it
+    never wraps at any size and still grows on every phone wide enough to carry it.
+  */
+  .identity-line {
+    font-size: clamp(1.1875rem, 5.4vw, 1.6875rem);
+  }
+}
+
+/*
+  Reduced motion is the same choreography on a faster clock — not a version with steps
+  taken out. One multiplier does it, matching `REDUCED` in the script.
+*/
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --haste: 0.45;
+  }
+
+  .opening[data-hasted='true'] {
+    --haste: 0.29;
+  }
+}

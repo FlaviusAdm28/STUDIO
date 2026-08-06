@@ -13,27 +13,31 @@
     box of the footage's own ratio, and every word is positioned relative to that box.
 */
 
+/*
+  No motion value is declared in this file. Every duration, curve, multiplier and scroll-driven
+  property it uses is generated from `src/motion/story.ts` and rendered into the document by
+  `layout.tsx`. They are only ever *read* here.
+
+    --curve                          the one curve
+
+    --fade-timestamp                 one per narrative beat that fades, named for the beat.
+    --fade-video                     Nothing is shared between them: --fade-timestamp and
+    --fade-chapter-one               --fade-navigation are both 1000ms and are two separate
+    --fade-subtitle                  properties, because moving one must never move the other.
+    --fade-navigation
+    --fade-studio-blocks
+    --fade-nav-hover
+
+    --haste                          the multiplier on Chapter I's durations
+    --pin                            how much scrolling the story costs
+    --veil, --dusk, --marker, --i1 … the shot itself, rewritten every frame by the driver
+
+  That is the point: a stylesheet and the story cannot hold two different opinions about the same
+  number if only one of them declares it. To retime anything, edit `story.ts`.
+  `docs/development/02-motion-system.md`.
+*/
+
 :root {
-  /* The one curve. Slow to start, long to settle, no character of its own. */
-  --curve: cubic-bezier(0.32, 0, 0.24, 1);
-
-  /*
-    Light arriving on the photograph. The slowest thing in the sequence, and lengthened so
-    that it is still arriving when the identity begins — the name emerges inside the light
-    rather than after it.
-  */
-  --reveal-image: 3200ms;
-  --reveal-title: 1600ms;
-  --reveal-line: 1200ms;
-  --reveal-quiet: 1000ms;
-
-  /*
-    Multiplier on every duration in the opening. The script advances its clock by the
-    reciprocal, so this is the single place the sequence's pace is set.
-  */
-  --haste: 1;
-
-
   --ground: #000;
   /*
     An opacity ladder rather than three arbitrary greys, and the top of it is deliberately
@@ -93,37 +97,16 @@ html {
   there is no section boundary to notice. `04-visual-language.md` §2: a ground change is the
   slowest thing in the system and nothing else moves during one. Here nothing else moves at all.
 
-  `--pin` is the only place the shot's *physical* length is set. The script reads it back and
-  divides its beat map by it, so this number alone decides how much scrolling the sequence costs —
-  and the choreography inside it is untouched by the change. At 140vh the whole shot is about four
-  and a half wheel gestures; the ratios between its beats are identical at any value.
+  `--pin` is the only place the shot's *physical* length is set — `pin` in `src/motion/scroll.ts`.
+  The driver reads it back and divides its beat map by it, so that number alone decides how much
+  scrolling the sequence costs, and the choreography inside it is untouched by the change.
 
-  The defaults are the first frame: the hero whole, nothing over it, nothing else present. So the
-  page paints correctly before the scroll driver has run once. Without scripting the whole shot
-  is laid out flat instead — see the noscript block in page.tsx.
+  The shot's own properties, and their values on the first frame, are generated from the timeline
+  rather than written down — so the frame the page paints before the driver has run once cannot
+  drift from the frame the timeline says it should be. Without scripting the whole shot is laid out
+  flat instead — see the noscript block in page.tsx.
 */
 :root {
-  --pin: 392vh;
-  --dusk: 0;
-  --veil: 1;
-  --marker: 0;
-  --statement: 0;
-  --i1: 0;
-  --i2: 0;
-  --i3: 0;
-  --i4: 0;
-  --warmth: 0;
-  --dawn: 0;
-  --close: 0;
-  --out1: 1;
-  --out2: 1;
-  --stop: 1;
-  --tm: 0;
-  --swap: 0;
-  --mark3: 0;
-  /* A step, not a ramp: which of the two identical markers is the real one. */
-  --handoff: 0;
-
   /*
     Where the chapter marker rests, and how small it becomes. Generous room around it — it is an
     orientation mark, and the space is what stops it reading as a heading.
@@ -155,22 +138,16 @@ html {
 }
 
 /*
-  A thumb is not a wheel. A wheel notch moves about 100px, so 140vh is roughly fifteen deliberate
-  steps; a flick on a touch screen carries 800 to 2000px of momentum, which would take the whole
-  shot in one gesture and the visitor would never see the dissolve, the marker or the statement
-  arrive. Touch therefore gets a longer runway for the identical choreography — the script divides
-  its beat map by this number, so every ratio inside the shot is unchanged and only the distance
-  differs. Keyed to the pointer rather than to width, because a large tablet has the same thumb.
-*/
-@media (pointer: coarse) {
-  :root {
-    --pin: 588vh;
-  }
-}
+  `--origin` is where the shot starts, and it is zero unless the visitor scrolled during the opening.
 
+  Adding it here is what guarantees the shot always has its whole runway: however far somebody flicked
+  while the opening was still playing, there is a full `--pin` of scrolling left beneath them. It also
+  means they can never reach the bottom of the page while the opening is running, which would otherwise
+  leave the shot with nowhere to play. See `scroll-stage.tsx`.
+*/
 .film {
   position: relative;
-  height: calc(100dvh + var(--pin));
+  height: calc(100dvh + var(--pin) + var(--origin, 0px));
 }
 
 /*
@@ -249,10 +226,15 @@ html {
   color: var(--ink);
 }
 
-/* Arrival. One opacity transition, once, and never again. */
+/*
+  Arrival. One opacity transition, once, and never again.
+
+  Deliberately outside the `--haste` system: the film is over by here, so there is no sequence left
+  for a visitor to hurry and nothing for a multiplier to keep in proportion.
+*/
 [data-reveal] {
   opacity: 0;
-  transition: opacity 1100ms var(--curve);
+  transition: opacity var(--fade-studio-blocks) var(--curve);
 }
 
 [data-reveal][data-shown='true'] {
@@ -680,7 +662,7 @@ html {
   object-fit: cover;
   object-position: center;
   opacity: 0;
-  transition: opacity calc(var(--reveal-image) * var(--haste)) var(--curve);
+  transition: opacity calc(var(--fade-video) * var(--haste)) var(--curve);
 }
 
 .footage[data-lit='true'] {
@@ -722,7 +704,7 @@ html {
   gap: 0.85em;
   font-family: var(--data);
   opacity: 0;
-  transition: opacity calc(var(--reveal-quiet) * var(--haste)) var(--curve);
+  transition: opacity calc(var(--fade-timestamp) * var(--haste)) var(--curve);
   pointer-events: none;
 }
 
@@ -769,7 +751,7 @@ html {
   white-space: nowrap;
   color: var(--speech);
   opacity: 0;
-  transition: opacity calc(var(--reveal-title) * var(--haste)) var(--curve);
+  transition: opacity calc(var(--fade-chapter-one) * var(--haste)) var(--curve);
 }
 
 .identity-title[data-present='true'] {
@@ -801,7 +783,7 @@ html {
   letter-spacing: 0.04em;
   color: rgba(255, 255, 255, 0.78);
   opacity: 0;
-  transition: opacity calc(var(--reveal-line) * var(--haste)) var(--curve);
+  transition: opacity calc(var(--fade-subtitle) * var(--haste)) var(--curve);
 }
 
 .identity-line[data-present='true'] {
@@ -825,7 +807,7 @@ html {
   justify-content: center;
   gap: clamp(1.75rem, 4.5vw, 3.5rem);
   opacity: 0;
-  transition: opacity calc(var(--reveal-quiet) * var(--haste)) var(--curve);
+  transition: opacity calc(var(--fade-navigation) * var(--haste)) var(--curve);
   pointer-events: none;
 }
 
@@ -851,7 +833,8 @@ html {
   letter-spacing: 0.12em;
   color: var(--murmur);
   text-decoration: none;
-  transition: color 240ms var(--curve);
+  /* Interface feedback, not narrative — so it answers, and it is not multiplied by `--haste`. */
+  transition: color var(--fade-nav-hover) var(--curve);
 }
 
 .ways a:hover,
@@ -862,20 +845,6 @@ html {
 .ways a:focus-visible {
   outline: 1px solid var(--aside);
   outline-offset: 0.5rem;
-}
-
-/*
-  Somebody who wants to move faster gets the same sequence on a faster clock.
-  `03-design-principles.md` §2 — we decide the order, they decide the pace.
-
-  Every duration in the opening is multiplied by `--haste`, and the script advances its own
-  clock by exactly the reciprocal. So the fades keep their proportions to each other and to
-  the gaps between them: nothing overlaps that did not overlap before, and no step is
-  skipped. The choreography is identical — only its mapping to real seconds changes.
-*/
-.opening[data-hasted='true'] {
-  /* The reciprocal of HASTE in the script. These two numbers must move together. */
-  --haste: 0.645;
 }
 
 /*
@@ -896,19 +865,5 @@ html {
   */
   .identity-line {
     font-size: clamp(1.1875rem, 5.4vw, 1.6875rem);
-  }
-}
-
-/*
-  Reduced motion is the same choreography on a faster clock — not a version with steps
-  taken out. One multiplier does it, matching `REDUCED` in the script.
-*/
-@media (prefers-reduced-motion: reduce) {
-  :root {
-    --haste: 0.45;
-  }
-
-  .opening[data-hasted='true'] {
-    --haste: 0.29;
   }
 }

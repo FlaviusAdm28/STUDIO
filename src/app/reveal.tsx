@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { studioBlocks } from '@/motion'
 
 /**
  * Chapter III arrives by being scrolled to, not by being animated at.
@@ -48,8 +49,8 @@ export default function Reveal() {
           seen.unobserve(block)
         }
       },
-      /* A little short of the bottom edge, so a block is already arriving rather than already here. */
-      { rootMargin: '0px 0px -12% 0px', threshold: 0.01 },
+      /* `story.ts` → `afterTheFilm.studioBlocks`, with the fade it pairs with. */
+      { rootMargin: studioBlocks.rootMargin, threshold: studioBlocks.threshold },
     )
 
     blocks.forEach((block) => seen.observe(block))

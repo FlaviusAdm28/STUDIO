@@ -10,6 +10,7 @@ implementing anything; they are not optional context.
 | Document | Standing |
 |---|---|
 | `docs/development/01-validation.md` | **Mandatory.** How work is finished. Consult before starting, satisfy before reporting complete. |
+| `docs/development/02-motion-system.md` | **Mandatory before touching motion.** Every timing is a per-beat object in `src/motion/story.ts`, relative to the beat before it. Nothing in a component or stylesheet. |
 | `docs/brand/01-vision.md` … `05-storyboard.md` | **Locked.** Never modify. Every design decision must be defensible from a line in one of them. |
 | `docs/design/decisions.md` | Running log. Add an entry for any decision worth tracing, including the ones that turned out wrong. |
 | `docs/brand/open-decisions.md` | Unanswered questions. The typeface is still one of them. |
@@ -30,9 +31,17 @@ implementing anything; they are not optional context.
 ## Where things live
 
 - `content/site.ts` — all language. Never hardcode words in a component.
-- `src/app/opening.tsx` — the hero. Its own clock, in beats, accelerated on visitor intent.
-- `src/app/scroll-stage.tsx` — the Chapter I → II shot. Scroll position is the only input.
-- `src/app/globals.css` — one curve, opacity only, `--pin` sets the shot's physical length.
+- `src/motion/story.ts` — the storyboard. One object per narrative beat, stating its *relationship*
+  to the beat before it; only anchors carry an absolute. `timeline.ts` resolves it. Never hardcode a
+  duration, delay, easing or threshold anywhere else, and never write an absolute you could derive.
+  Timings are per-beat and never shared; easing and mechanism are shared and never per-beat.
+  `globals.css` reads these values and declares none.
+- `src/app/opening.tsx` — the hero. Its own clock, accelerated in proportion to how hard the visitor
+  scrolls. **The opening is mandatory**: scrolling hurries it and can never skip it. It publishes
+  `data-opening` on the root to say whether it is still running.
+- `src/app/scroll-stage.tsx` — the Chapter I → II shot. Driven by `scrollY - origin`, where the origin
+  is fixed the moment the opening finishes — so scrolling during the intro cannot arrive underneath it.
+- `src/app/globals.css` — one curve, opacity only. The curve and `--pin` come from `src/motion`.
 - `public/media/hero/video/` — footage. H.264 in a QuickTime container; Chrome plays it only when
   handed the bytes without a `type` hint.
 

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { site } from '@content'
+import { beat, chapterOneStory, cues, maxAdvance, pace, rates, schedule, type Beat } from '@/motion'
 
 /**
  * The opening sequence.
@@ -9,19 +10,28 @@ import { site } from '@content'
  * Every arrival is a change in light rather than a movement. Nothing travels, nothing
  * scales, nothing is revealed letter by letter. `04-visual-language.md` §7.
  *
- *   0  the ground, alone
- *   1  the timestamp
- *   2  light begins to enter the frame
- *   3  the timestamp leaves, and never returns
- *   4  the identity
- *   5  the photograph begins to move
- *   6  the line — triggered by the footage itself, not by a stopwatch
- *   7  the interface, last
+ * This file is the sequencer and nothing else — it decides *whether* a beat has arrived and
+ * lets CSS decide what that looks like. Every number the sequence runs on is authored in
+ * `src/motion/story.ts` as an anchor or a relationship, and resolved into the absolute `cues`
+ * below by `src/motion/timeline.ts`. There are no timings here, by design.
+ * `docs/development/02-motion-system.md`.
  *
- * The footage was measured rather than guessed, and the sequence is built around what it
- * actually is: 2880 × 1440, a 2:1 frame, 12.121s long, and palindromic. A landscape to
- * 2.0s, a dissolve up finishing at 2.4s, the brighter shot to 9.8s, then a dissolve back
- * down to the landscape for the last two seconds.
+ * ## The opening is mandatory
+ *
+ * Scrolling cannot skip it. It can only make it run faster, and the faster the hand moves the
+ * faster it runs — but every beat still happens, in order, and none of them is ever crossed
+ * invisibly. Three things together are what make that true rather than hoped for:
+ *
+ *   - **The clock's rate follows the scroll speed.** Not a switch between two speeds — a
+ *     continuous ramp from natural pace up to `pace.urgent`, so the sequence answers the hand.
+ *   - **`maxAdvance` bounds what one frame may add.** Derived from the closest two beats ever
+ *     get, so however fast the clock runs, two of them can never fall due in the same frame.
+ *   - **The shot does not begin until this is over.** `data-opening` on the root says so, and
+ *     `scroll-stage.tsx` holds Chapter II at its first frame until it reads `done`. The page
+ *     still scrolls the whole time — nothing is frozen, nothing is swallowed, nothing jumps.
+ *
+ * Only the *rate* is ever affected. With no interaction at all the sequence is unchanged, to the
+ * millisecond.
  */
 
 /*
@@ -31,94 +41,11 @@ import { site } from '@content'
 */
 const FOOTAGE = '/media/hero/video/hero_demo4.mov'
 
-const BLACK = 0
-const TIMESTAMP = 1
-const LIGHT = 2
-const TIMESTAMP_OUT = 3
-const MOTION = 4
-const IDENTITY = 5
-const LINE = 6
-const INTERFACE = 7
-
-/**
- * Where the dissolve finishes and the second shot is fully established, in seconds of the
- * footage's own time. Measured frame by frame — luminance rises from 76.1 to 88.4 between
- * 1.95s and 2.40s, then holds flat.
- *
- * This is a guard, not a trigger. The footage passes it at roughly 4500ms, before the gate
- * below, so the gate is what admits the line. Its only job is to make it impossible for the
- * line to land on the first shot if the footage starts late or stalls.
- */
-const SECOND_SHOT_AT = 2.4
-
-/** Milliseconds from mount. One place, so the sequence can be read as a whole. */
-const AT_TIMESTAMP = 400
-const AT_LIGHT = 1600
-const AT_TIMESTAMP_OUT = 2100
-const AT_MOTION = 2100
-const AT_IDENTITY = 3100
-
-const SCHEDULE: ReadonlyArray<readonly [number, number]> = [
-  [TIMESTAMP, AT_TIMESTAMP],
-  [LIGHT, AT_LIGHT],
-  [TIMESTAMP_OUT, AT_TIMESTAMP_OUT],
-  [MOTION, AT_MOTION],
-  [IDENTITY, AT_IDENTITY],
-]
-
-/**
- * The shape of the front of the sequence, and why these numbers:
- *
- *   1600  light begins arriving, and keeps arriving until 4800
- *   2100  the footage rolls — 500ms after the light, so the image is alive as it is lit
- *   2100  the timestamp begins leaving, and is gone by 3100
- *   3100  the identity begins the instant the timestamp has gone, with no pause between
- *         them. Its whole fade sits inside the light's arrival, so the name comes up with
- *         the first landscape rather than after it.
- *   4700  the identity settles
- *
- * The line is then admitted by the footage rather than by this clock: it waits for the
- * dissolve at 3.6s of the footage's own time, which falls at roughly 5700ms, so the second
- * level arrives with the second shot.
- */
-const LINE_NOT_BEFORE = 4900
-
-/** If the footage never plays at all, the sequence still completes. */
-const LINE_REGARDLESS = 12000
-
-/* Long enough that the interface is plainly a separate thing from the identity. */
-const AFTER_LINE = 1800
-
-/**
- * How much faster the remaining choreography runs once the visitor asks for it. Every step
- * still happens, in order, with all its intervals in proportion — the clock speeds up, the
- * sequence does not change.
- *
- * 1.55 rather than 1.8, because hurrying also releases the footage gate on the line, and
- * that removes about 750ms of waiting on top of the faster clock. At 1.8 the compound effect
- * reached 2.3× for a visitor interacting late in the sequence. At 1.55 the observed speed-up
- * stays between 1.7× and 2.0× wherever the interaction lands.
- */
-const HASTE = 1.55
-
-/** Reduced motion: the same sequence on a clock that runs faster still. */
-const REDUCED = 0.45
-
-/**
- * The most virtual time a single frame may add, in milliseconds.
- *
- * Without this the clock is only as smooth as the main thread. A stall — a background tab,
- * a slow decode, another tab hogging the CPU — stops the frame loop, and the next frame
- * arrives with a delta of seconds. The clock leaps, and several steps become due at once:
- * measured in one such stall, the light, the identity and the line all arrived in the same
- * millisecond. The order held, but three steps appearing together is a skip as far as anyone
- * watching is concerned.
- *
- * Capping the step means a stall pauses the sequence instead of fast-forwarding it. Somebody
- * who leaves the tab and comes back sees the choreography from where it stopped, which is
- * the whole point of having one.
- */
-const MAX_STEP = 50
+/*
+  Named locally so the comparisons below read as the sequence rather than as property access.
+  These are the imported beats, not a second copy of them.
+*/
+const { BLACK, TIMESTAMP, LIGHT, TIMESTAMP_OUT, MOTION, IDENTITY, LINE, INTERFACE } = beat
 
 function localTime(): string {
   return new Intl.DateTimeFormat([], {
@@ -139,6 +66,7 @@ export default function Opening() {
   const [arrival, setArrival] = useState<string>('')
 
   const video = useRef<HTMLVideoElement | null>(null)
+  const shell = useRef<HTMLDivElement | null>(null)
 
   /**
    * The sequence runs on its own clock rather than on wall time, and interaction changes
@@ -147,9 +75,20 @@ export default function Opening() {
    * played faster. Nothing is ever revealed out of turn.
    */
   const elapsed = useRef(0)
-  const rate = useRef(1)
-  const base = useRef(1)
+  const rate = useRef<number>(rates.base)
+  const base = useRef<number>(rates.base)
   const lineAt = useRef<number | null>(null)
+
+  /**
+   * Whether the visitor has asked to move on at all, by any means.
+   *
+   * Separate from the rate, which now moves continuously: the footage gate on the subtitle needs to
+   * know that somebody is waiting, and a rate that has eased back down after a flick would say no.
+   */
+  const urged = useRef(false)
+
+  /** Smoothed scroll speed, in pixels per millisecond. What the clock's rate is drawn from. */
+  const drive = useRef(0)
 
   const roll = useCallback(() => {
     const el = video.current
@@ -163,31 +102,84 @@ export default function Opening() {
    * and not fewer steps. `03-design-principles.md` §2 — we decide the order, they decide
    * the pace — and the condition that everyone gets a composed version rather than the
    * same thing with parts removed.
+   *
+   * This is the floor for any single expression of intent — a click, a key, a touch. Scrolling goes
+   * further than this on its own, in proportion to how fast the hand is moving.
    */
   const hurry = useCallback(() => {
-    if (rate.current !== base.current) return
-    rate.current = base.current * HASTE
+    urged.current = true
     setHasted(true)
   }, [])
 
   useEffect(() => {
     /* Reduced motion is the same choreography on a faster clock, not a different one. */
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    base.current = reduced ? 1 / REDUCED : 1
-    if (rate.current === 1) rate.current = base.current
+    base.current = reduced ? rates.reduced : rates.base
+    if (rate.current === rates.base) rate.current = base.current
+
+    /*
+      The shot reads this. It holds Chapter II at its first frame while the opening runs, so scrolling
+      hurries the opening instead of arriving underneath it. Set before the first frame, so there is no
+      window in which the shot believes it is free.
+    */
+    const root = document.documentElement
+    root.dataset.opening = 'running'
 
     let previous = performance.now()
+    let seen = window.scrollY
+    let published = ''
     let raf = 0
 
     const tick = (now: number) => {
-      elapsed.current += Math.min(now - previous, MAX_STEP) * rate.current
+      /*
+        Two caps, and they do different jobs. `maxStep` bounds the real time one frame may contribute,
+        so a stall pauses the sequence rather than fast-forwarding it. `maxAdvance` bounds the virtual
+        time it may add once the rate is applied, so a fast clock can never make two beats due in the
+        same frame. Neither binds at natural pace — see `maxAdvance`'s note in `timeline.ts`.
+      */
+      const step = Math.min(now - previous, pace.maxStep)
       previous = now
+
+      /*
+        How hard the hand is moving, smoothed. Raw per-frame deltas are impulses rather than a velocity
+        — a wheel arrives in notches and a phone reports nothing between momentum samples — so the
+        clock is drawn from an average that also eases back down when the hand stops.
+      */
+      const y = window.scrollY
+      const moved = Math.abs(y - seen)
+      seen = y
+      if (step > 0) {
+        drive.current = drive.current * pace.settle + (moved / step) * (1 - pace.settle)
+      }
+
+      /*
+        The rate. A single intent puts a floor under it; scrolling raises it in proportion to speed, up
+        to `pace.urgent`. Whichever asks for more wins, so a click during a flick never slows anything.
+      */
+      const urge = Math.min(drive.current / pace.urgentAt, 1)
+      const scrolling = 1 + urge * (pace.urgent - 1)
+      const intent = urged.current ? pace.haste : 1
+      rate.current = base.current * Math.max(intent, scrolling)
+
+      /*
+        CSS divides every Chapter I duration by this, so the fades keep their proportion to the gaps
+        between them at any rate. A transition already running is unaffected by a change here — which
+        is what we want: each beat fades at the rate that was current when it began.
+      */
+      const haste = (1 / rate.current).toFixed(3)
+      if (haste !== published) {
+        published = haste
+        shell.current?.style.setProperty('--haste', haste)
+      }
+
+      elapsed.current += Math.min(step * rate.current, maxAdvance)
       const t = elapsed.current
 
-      let target = BLACK
-      for (const [value, ms] of SCHEDULE) if (t >= ms) target = value
+      /* Typed as a beat rather than a number, so nothing but a real beat can be assigned here. */
+      let target: Beat = BLACK
+      for (const [value, ms] of schedule) if (t >= ms) target = value
 
-      if (target >= IDENTITY && t >= LINE_NOT_BEFORE) {
+      if (target >= IDENTITY && t >= cues.subtitle) {
         const el = video.current
         /*
           The footage gate holds the line back until the second shot at normal pace, which
@@ -196,22 +188,34 @@ export default function Opening() {
           the line is measurably more legible over the first shot than the second anyway.
         */
         const footageReady =
-          rate.current !== base.current ||
-          t >= LINE_REGARDLESS ||
+          urged.current ||
+          t >= chapterOneStory.subtitle.arrivesRegardlessAt ||
           el === null ||
           el.error !== null ||
-          (el.paused && t > AT_MOTION + 2500) ||
-          el.currentTime >= SECOND_SHOT_AT
+          (el.paused && t > cues.motion + chapterOneStory.subtitle.stallGrace) ||
+          el.currentTime >= chapterOneStory.subtitle.waitsForFootageAt
         if (footageReady) {
           if (lineAt.current === null) lineAt.current = t
           target = LINE
         }
       }
-      if (lineAt.current !== null && t >= lineAt.current + AFTER_LINE) target = INTERFACE
+      /* Measured from when the subtitle actually landed, not from when it was scheduled. */
+      if (lineAt.current !== null && t >= lineAt.current + cues.interfaceAfterSubtitle) {
+        target = INTERFACE
+      }
 
       setBeat((current) => (target > current ? target : current))
       if (target >= TIMESTAMP) setArrival((current) => (current === '' ? localTime() : current))
       if (target >= MOTION) roll()
+
+      /*
+        And the shot is released — once the interface has finished arriving, not when it began. A
+        visitor already scrolling hard would otherwise fade the navigation out through the veil while it
+        was still fading in, and never see the beat at all.
+      */
+      if (lineAt.current !== null && t >= lineAt.current + cues.introDoneAfterSubtitle) {
+        root.dataset.opening = 'done'
+      }
 
       raf = window.requestAnimationFrame(tick)
     }
@@ -229,6 +233,8 @@ export default function Opening() {
     return () => {
       window.cancelAnimationFrame(raf)
       intent.forEach((event) => window.removeEventListener(event, hurry))
+      /* Never leave the shot held by a sequencer that no longer exists. */
+      root.dataset.opening = 'done'
     }
   }, [hurry, roll])
 
@@ -241,7 +247,7 @@ export default function Opening() {
   const timestampPresent = beat >= TIMESTAMP && beat < TIMESTAMP_OUT
 
   return (
-    <div className="opening" data-hasted={hasted}>
+    <div className="opening" ref={shell} data-hasted={hasted}>
       <div className="frame">
         {/*
           Muted, and it stays muted — `04-visual-language.md` §8, sound never starts on its

@@ -24,7 +24,14 @@
       "Bash(sed -i 's/--seq-hold: 1000ms;/--seq-hold: 800ms;/' src/app/globals.css)",
       "Bash(sed -i 's/setTimeout\\(settle,9600\\);/setTimeout\\(settle,10400\\);/' src/app/layout.tsx)",
       "Bash(node -e ' *)",
-      "PowerShell(Get-ChildItem \"D:\\\\STUDIO\\\\public\\\\media\\\\hero\\\\video\" | Select-Object Name, @{N='MB';E={[math]::Round\\($_.Length/1MB,2\\)}}, LastWriteTime | Sort-Object LastWriteTime | Format-Table -AutoSize)"
+      "PowerShell(Get-ChildItem \"D:\\\\STUDIO\\\\public\\\\media\\\\hero\\\\video\" | Select-Object Name, @{N='MB';E={[math]::Round\\($_.Length/1MB,2\\)}}, LastWriteTime | Sort-Object LastWriteTime | Format-Table -AutoSize)",
+      "Bash(curl -s http://localhost:3007/ -o page.html)",
+      "Bash(node ./node_modules/typescript/bin/tsc src/motion/easings.ts src/motion/timings.ts src/motion/scroll.ts src/motion/transitions.ts src/motion/index.ts --outDir /c/Users/35191/AppData/Local/Temp/claude/D--STUDIO/88073c6d-fb33-436f-9d37-1bd253e1dcb9/scratchpad/mc --module commonjs --target es2022 --moduleResolution node --strict)",
+      "Bash(node /d/STUDIO/node_modules/typescript/bin/tsc /d/STUDIO/src/motion/easings.ts /d/STUDIO/src/motion/timings.ts /d/STUDIO/src/motion/scroll.ts /d/STUDIO/src/motion/transitions.ts --outDir /c/Users/35191/AppData/Local/Temp/claude/D--STUDIO/88073c6d-fb33-436f-9d37-1bd253e1dcb9/scratchpad/mc --module commonjs --target es2022 --moduleResolution node --strict)",
+      "Bash(node *)",
+      "Bash(python3 -)",
+      "mcp__ide__getDiagnostics",
+      "Bash([ -f \"$L\" ])"
     ]
   }
 }

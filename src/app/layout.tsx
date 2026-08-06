@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { site } from '@content'
+import { motionCss } from '@/motion'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -43,6 +44,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <script dangerouslySetInnerHTML={{ __html: BEGIN_AT_THE_BEGINNING }} />
+
+        {/*
+          Every motion value in the project, carried from `src/motion` into CSS. `globals.css`
+          declares none of them and only reads them, so this is the sole definition of each — see
+          `docs/development/02-motion-system.md`.
+
+          `precedence` hoists it into the head rather than leaving it in the body, so `--pin` and
+          the rest resolve on the first paint. Left in the body it would be parsed after the
+          browser was already entitled to paint, and `.film`'s height depends on `--pin`.
+        */}
+        <style
+          href="chapter-one-motion"
+          precedence="high"
+          dangerouslySetInnerHTML={{ __html: motionCss() }}
+        />
+
         {children}
       </body>
     </html>

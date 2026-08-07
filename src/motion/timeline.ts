@@ -19,13 +19,15 @@
  *
  * ## What is asserted, and why
  *
- * Three things in the piece are true by intention rather than by construction, so they are checked in
+ * Several things in the piece are true by intention rather than by construction, so they are checked in
  * development rather than trusted:
  *
  *   - the timestamp has cleared the frame at the exact instant the identity arrives. Both sides are
  *     authored — one as an anchor, one as a hold — so nothing structural keeps them equal.
  *   - every gap is positive. Chaining makes overlap impossible *while that holds*, and a negative
  *     offset is the one way back to two beats sharing a frame.
+ *   - the two offsets measured *backwards* — the numeral's arrival and Chapter III's opening — cannot
+ *     reach back past the beat they belong to.
  *   - the whole shot fits inside `BEATS`, so a ripple edit cannot push the tail of the shot past the
  *     end of the pinned frame where nobody would ever see it.
  *
@@ -37,6 +39,7 @@
  * constraint when positions were absolute, and the chain removed it rather than guarding it.
  */
 
+import { smoothstep, unsmoothstep } from './easings'
 import {
   BEATS,
   afterTheFilm,
@@ -183,6 +186,14 @@ const travelTo = r(travelFrom + shot.chapterTravels.fade)
 const iiiFrom = r(travelTo - shot.iiiStudio.beforeTravelEnds)
 const iiiTo = r(iiiFrom + shot.iiiStudio.fade)
 
+/*
+  Chapter III's first page comes into existence *while* the word travels, so the two share an instant:
+  the emergence starts exactly where the travel starts. Its end is solved rather than authored — the
+  range whose smoothstep passes `litWhenTheMarkerLands` at the moment the marker lands.
+*/
+const emergeFrom = travelFrom
+const emergeTo = r(emergeFrom + (iiiTo - emergeFrom) / unsmoothstep(shot.studioEmerges.litWhenTheMarkerLands))
+
 const duskFirst: Span = { from: shot.blackTransition.at, to: r(shot.blackTransition.at + shot.blackTransition.fade) }
 const duskRestFrom = r(duskFirst.to + shot.blackTransition.bridge)
 
@@ -220,6 +231,12 @@ export const spans = {
   })(),
   iiiStudio: { from: iiiFrom, to: iiiTo } as Span,
 
+  /**
+   * Chapter III's first page coming into existence under the travelling word. Starts with the travel;
+   * outlasts the pinned frame on purpose, because what it drives is the page below it.
+   */
+  studioEmerges: { from: emergeFrom, to: emergeTo } as Span,
+
   /** Where the travelling word hands over to the fixed marker. A step, not a ramp. */
   handoffAt: iiiTo,
 
@@ -229,8 +246,53 @@ export const spans = {
 
 /* ──────────────────────────── Chapter III, and the interface ──────────────────────────── */
 
-export const studioBlocks = afterTheFilm.studioBlocks
+export const studioBlocks = {
+  ...afterTheFilm.studioBlocks,
+
+  /**
+   * What the observer is actually given.
+   *
+   * Derived from `arrivesShortOf` rather than written beside it, because `chapterThree` below places
+   * Chapter III's opening so that this margin is crossed at a chosen beat of the shot. The observer's
+   * threshold and that placement are two numbers that must agree, so only one of them is authored.
+   */
+  rootMargin: `0px 0px -${r(afterTheFilm.studioBlocks.arrivesShortOf * 100)}% 0px`,
+} as const
+
 export const navHover = afterTheFilm.navHover
+
+/**
+ * Where Chapter III begins, expressed against the frame the marker lands in.
+ *
+ * The film's last frame is held for the whole of `pin`, and Chapter III used to start underneath its
+ * bottom edge — so the marker landed in the corner and the visitor then scrolled through a viewport
+ * and a half of empty paper before the first thing the marker introduced could begin to arrive.
+ * `story.chapterThreeStands` closes that by pulling Chapter III back **into** the last frame, far
+ * enough that its first page is a composed frame at the instant the marker arrives.
+ *
+ * Fractions rather than lengths, because the distance depends on `pin` — longer for a thumb than for a
+ * wheel — and CSS is where the two meet. `transitions.ts` states them against `var(--pin)`, so they
+ * follow the pointer without either side knowing the other's numbers.
+ *
+ * The arithmetic, once: at beat `b` the top of Chapter III sits `100vh + pin · (1 − b/BEATS) − overlap`
+ * below the top of the viewport. Set `b` to the handover and that expression to `stands · 100vh`, and
+ * the overlap falls out. The same expression evaluated at the handover *is* `stands`, which is why the
+ * marker's own reach-back is that and nothing more.
+ */
+export const chapterThree = {
+  /** How far down the frame the page's top edge is when the marker lands. The authored value. */
+  standsAt: shot.chapterThreeStands.atFrameFraction,
+
+  /** The pinned part of the reach-back: how far the shot still has to run when the marker lands. */
+  overlapOfPin: r(1 - iiiTo / BEATS),
+
+  /**
+   * How lit the page actually is when the marker lands, and how much of its rise is left — resolved,
+   * so the checks below can hold the brief to its own numbers rather than trusting the range.
+   */
+  litWhenTheMarkerLands: r(smoothstep((iiiTo - emergeFrom) / (emergeTo - emergeFrom))),
+  rise: shot.studioEmerges.rise,
+} as const
 
 /**
  * Chapter I's clocked beats in the order they are due, for the sequencer to walk.
@@ -304,6 +366,46 @@ if (process.env.NODE_ENV !== 'production') {
       'iiiStudio starts before the travel does.',
       `beforeTravelEnds is ${shot.iiiStudio.beforeTravelEnds} but the travel only lasts ` +
         `${shot.chapterTravels.fade} beats, so the marker would arrive before the word set off.`,
+    )
+  }
+
+  /*
+    The whole point of the emergence is that it is *unfinished* when the marker lands — the mark unveils
+    the page rather than announcing a finished one. Both ends of that are worth holding: lit enough to
+    have plainly begun, and not so lit that there is nothing left to settle.
+
+    The range is solved from `litWhenTheMarkerLands`, so this normally cannot fail — it fails if the
+    travel is retimed such that the solved range would have to start before the travel does, or if the
+    authored value leaves the band the brief asked for.
+  */
+  if (chapterThree.litWhenTheMarkerLands < 0.6 || chapterThree.litWhenTheMarkerLands > 0.8) {
+    complain(
+      'Chapter III is the wrong amount lit when the marker lands.',
+      `it resolves to ${chapterThree.litWhenTheMarkerLands} and the brief asks for 0.6 to 0.8. ` +
+        `Set studioEmerges.litWhenTheMarkerLands inside that band — it is solved for exactly, so the ` +
+        `authored value is the resolved one unless the travel moved under it.`,
+    )
+  }
+
+  /*
+    It has to begin inside the pinned frame, because what it is synchronised with — the word setting off
+    for the corner — happens there. Its *end* may be outside, and is: that is the composition settling
+    into a page the visitor is already reading, which is why `spans.endsAt` does not include it.
+  */
+  if (spans.studioEmerges.from < 0 || spans.studioEmerges.from > BEATS) {
+    complain(
+      'Chapter III starts emerging outside the pinned frame.',
+      `it begins at ${spans.studioEmerges.from} beats and the frame is ${BEATS} long, so the visitor ` +
+        `would never see it start — and it is meant to start in the instant the word sets off.`,
+    )
+  }
+
+  if (spans.studioEmerges.to <= spans.handoffAt) {
+    complain(
+      'Chapter III finishes emerging before the marker lands.',
+      `it ends at ${spans.studioEmerges.to} and the marker lands at ${spans.handoffAt}. The page is ` +
+        `meant to still be arriving as the mark arrives; finishing first makes the mark an announcement ` +
+        `rather than an unveiling.`,
     )
   }
 

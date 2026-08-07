@@ -55,3 +55,15 @@ What happens next:
 ## The exit
 
 > What happens once deserves more than information.
+
+## Removed from Chapter III — the second showcase's copy
+
+Written for a Chapter III that was a set of alternating showcase blocks. Entry 45 replaced that with one
+experience studied in depth, so there is no longer a second block for it to sit in. Kept here because it
+is the only copy on this project drafted from `01-vision.md` rather than given in the brief, and because
+the thought is still true and may find a home in Beat 5.
+
+> One occasion. One arrival.
+
+> Attention is what turns a moment into one, and it has to be given a year early, on purpose, by
+> somebody. That is most of the work.

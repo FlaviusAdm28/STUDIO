@@ -31,7 +31,10 @@
       "Bash(node *)",
       "Bash(python3 -)",
       "mcp__ide__getDiagnostics",
-      "Bash([ -f \"$L\" ])"
+      "Bash([ -f \"$L\" ])",
+      "Bash(npx prettier *)",
+      "Bash(grep -c '\";$' src/app/reveal.tsx)",
+      "Bash(grep -c '\";$\\\\|\";' src/app/page.tsx)"
     ]
   }
 }

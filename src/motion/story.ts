@@ -321,6 +321,59 @@ export const shotStory = {
    * stack two 0.65-alpha inks and darken the marker for a frame. Drives `--handoff`.
    */
   iiiStudio: { beforeTravelEnds: 0.1, fade: 0.2 },
+
+  /**
+   * Where Chapter III's opening composition **stands** when the marker lands, as a fraction of the
+   * frame from the top.
+   *
+   * Not a fade — a distance, and the only one the composition needs. Chapter III is pulled back into
+   * the film's last frame far enough that its first page is a composed frame at the moment the marker
+   * arrives in the corner: at 0.2 the statement's top is a fifth of the way down and the plate is
+   * three-quarters inside the frame beneath it.
+   *
+   * It has to be here rather than with the rest of Chapter III, because it is measured against a beat
+   * of the *shot* — where the page has reached by the time the marker lands. `timeline.ts` turns it
+   * into two lengths, one for the page and one for the marker's landing corner, from this, `pin` and
+   * `BEATS`, so no viewport distance is written down anywhere.
+   *
+   * **This is the value that puts the plate in the same frame as the statement**, which
+   * `05-storyboard.md` Beat 2 forbids — see `decisions.md` §44. Lowering it toward 0.8 restores Beat 2
+   * and empties the frame again; the brief asked for the opposite, on purpose.
+   */
+  chapterThreeStands: { atFrameFraction: 0.2 },
+
+  /**
+   * Chapter III's first page coming into existence, underneath the travelling word.
+   *
+   * The chapter mark does not announce the Studio after the fact — it *unveils* it. So this begins in
+   * the same instant the word sets off for the corner, and it is still arriving when the word gets
+   * there: `litWhenTheMarkerLands` is what was actually decided, and `timeline.ts` solves the curve
+   * backwards for the range that produces it. Raise it and the page is further along when the marker
+   * arrives; the range shortens to suit, and the start stays welded to the travel.
+   *
+   * It is the one beat that deliberately outlasts the pinned frame. Everything else in the shot has to
+   * finish inside `BEATS` or its tail is a beat nobody sees; this one drives the page *below* the pin,
+   * which keeps scrolling, so its tail is the composition settling into a page the visitor is already
+   * reading. `timeline.ts` checks it starts inside the pin and that it cannot finish before the marker
+   * lands.
+   *
+   * Drives `--studio` and `--settle`.
+   */
+  studioEmerges: {
+    /** How lit the page is at the instant the marker lands. The brief's number, and the only one. */
+    litWhenTheMarkerLands: 0.75,
+
+    /**
+     * How far it rises into place, in pixels — the settle.
+     *
+     * The one place in the piece where something other than the travelling word moves, and it is this
+     * small because it is not meant to be seen as movement. Note what a scroll-driven offset costs:
+     * spread across the emergence it works out at a fraction of a pixel per viewport-hundredth of
+     * scroll, so it reads as the page settling rather than as an entrance. `decisions.md` §44 has the
+     * measurement, and zero is a legitimate value for it.
+     */
+    rise: 8,
+  },
 } as const
 
 /* ═════════════════════════ Chapter III, and the interface ═════════════════════════
@@ -337,9 +390,29 @@ export const afterTheFilm = {
    */
   studioBlocks: {
     fade: 1100,
-    /** A little short of the bottom edge, so a block is already arriving rather than already here. */
-    rootMargin: '0px 0px -12% 0px',
-    threshold: 0.01,
+
+    /**
+     * How far short of the bottom edge a page begins arriving, as a fraction of the viewport — so a
+     * page is already on its way in rather than already here.
+     *
+     * A number rather than the `rootMargin` string it used to be, because `timeline.ts` builds the
+     * string from it. It governs every page except the first: that one is unveiled by the film rather
+     * than scrolled to, so it is a beat — `studioEmerges` — and this only decides when its footage is
+     * allowed to start loading.
+     */
+    arrivesShortOf: 0.12,
+
+    /**
+     * Zero, so that `arrivesShortOf` is the *whole* answer to when a block arrives.
+     *
+     * It was 0.01, which sounds like nothing and is not: a ratio threshold is a fraction of the
+     * block's own area, so the taller the block the further past the line it has to travel before it
+     * counts as arriving. Chapter III's opening became a whole page rather than one paragraph and the
+     * trigger slid 1.4vh later with it, which also put it 0.025 beats out of step with the overlap
+     * derived from the same number. At zero the trigger is the top edge crossing the line and nothing
+     * else, whatever the block turns out to be.
+     */
+    threshold: 0,
   },
 
   /**

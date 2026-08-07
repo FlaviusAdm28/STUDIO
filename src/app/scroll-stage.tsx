@@ -38,7 +38,9 @@ import { BEATS, PRECISION, track } from '@/motion'
  *     straight on into Chapter II.
  *   - The shot keeps its full runway. `--origin` is added to the pinned height, so however far the
  *     visitor scrolled during the opening there is always a whole shot's worth of scrolling left
- *     below them — and they can never reach the bottom while the opening is still running.
+ *     below them — and they can never reach the bottom while the opening is still running. It is also
+ *     where the page below the film begins, which is why it is written *exactly* the moment the origin
+ *     stops moving; see `anchor`.
  *
  * The cost is a stretch of scroll above the shot that does nothing, for a visitor who scrolled a
  * long way during the opening and then scrolls back up. What they find there is the hero, held at
@@ -123,16 +125,27 @@ export default function ScrollStage() {
       follows the visitor down the page, so there is always a full shot's worth of scrolling beneath
       them — they cannot reach the bottom and find the shot with no room left to play in.
 
-      Rounded up to whole viewports rather than tracked to the pixel. This is the one value in the system
-      that changes the document's *height*, so writing it costs a layout of the whole page rather than a
-      paint — and the moment it would be written most often is a hard flick during the opening, which is
-      the worst possible moment to be relaying out. Rounding up keeps the guarantee (the value is always
-      at least the scroll position, so there is always a full `--pin` beneath) while relaying out once
-      per viewport travelled instead of once per frame.
+      **While it is still moving** it is rounded up to whole viewports rather than tracked to the pixel.
+      This is the one value in the system that changes the document's *height*, so writing it costs a
+      layout of the whole page rather than a paint — and the moment it would be written most often is a
+      hard flick during the opening, which is the worst possible moment to be relaying out. Rounding up
+      keeps the guarantee (the value is always at least the scroll position, so there is always a full
+      `--pin` beneath) while relaying out once per viewport travelled instead of once per frame.
+
+      **Once the shot's origin is fixed it is written exactly**, and that matters rather than being
+      tidiness. The rounded value can exceed the real origin by nearly a viewport, and the film's height
+      is where the page below it starts — so anything positioned against a beat of the shot would be that
+      far out for a visitor who scrolled during the opening. Chapter III's overlap is exactly that, and
+      a hand-driven replay found it: the shot's origin was 1111px and `--origin` said 1974px, which put
+      the chapter 87vh lower than the beat it is placed against and handed the dead moment straight back.
+
+      Exact is also *more* correct about the guarantee, not less: at `scrollY === origin` there is then
+      precisely one `--pin` left beneath. Rounding was only ever a way to avoid relaying out on a value
+      that changed every frame, and this one has stopped changing.
     */
-    const anchor = (px: number) => {
+    const anchor = (px: number, exact = false) => {
       const vh = window.innerHeight
-      const next = `${Math.ceil(px / vh) * vh}px`
+      const next = `${exact ? px : Math.ceil(px / vh) * vh}px`
       if (written.get('--origin') === next) return
       written.set('--origin', next)
       root.style.setProperty('--origin', next)
@@ -155,7 +168,7 @@ export default function ScrollStage() {
       } else {
         if (origin === null) {
           origin = y
-          anchor(y)
+          anchor(y, true)
         } else if (y < origin) {
           /*
             Scrolling back up above where the shot began, which only happens to somebody who scrolled a
@@ -168,7 +181,7 @@ export default function ScrollStage() {
             all", which is the answer they would expect.
           */
           origin = y
-          anchor(y)
+          anchor(y, true)
         }
         s = Math.max(0, y - origin) / window.innerHeight / perBeat
       }

@@ -364,6 +364,548 @@ lands with the second shot as the original brief asked.
 percentile of ordinary playback (0.80) and marginally cleaner than the 0.72 my trimmed seam
 achieved. The measurement was worth keeping; the machinery was not.
 
+## 45 — Chapter III becomes a publication: the manifesto holds, the work goes by
+
+Chapter III was two alternating showcase blocks, which is a portfolio's shape. It is now one editorial
+spread: the studio's own voice in a column that does not move, and one experience studied a step at a
+time in the column beside it.
+
+**Traced to:** `04-visual-language.md` §5 — *asymmetry by default; an asymmetric composition has
+direction, it tells the eye where to go first* — and §6, *sequence is composition: the same two images in
+the other order are a different meaning*. A grid of projects has no sequence and therefore no meaning to
+compose. Also `05-storyboard.md` §8 Beat 3: *one project, not a grid, not a carousel*, and the visitor
+gets *a fragment of the actual experience* rather than a picture of a screen — which is why the steps are
+named screens of one thing rather than thumbnails of many.
+
+### The shape
+
+```
+III Studio  ·  fixed                 SELECTED WORK
+                                     Wedding Experience
+Digital experiences
+built for moments                    Homepage      ▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+that only happen once.               Timeline      ▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+                                     Gallery       ▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+We don't build websites.             RSVP          ▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+We create digital experiences        Countdown     ▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+that become part of the              Mobile        ▓▓▓▓▓
+memory itself.                       Final screen  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+       ↑ sticky                      Open experience →
+                                     IV Future Chapters
+```
+
+42/58 in the work's favour; the plates run to the right edge of the page. The manifesto sticks below the
+marker **on the marker's own left edge**, so the running head and the voice under it read as one block —
+which is what buys the measure that lets the positioning sentence keep its three authored lines in half a
+page. It is 52px there rather than 76px, and in a two-column chapter it cannot be the largest thing on
+the page; see the cost below.
+
+### It scales by appending, and nothing here is invented
+
+`site.three.work.experiences` is a list of one. A second — an exhibition, an artist, a hotel — is an entry
+in that array: no new component, no new stylesheet rule, no new motion value. The one line that decides
+what belongs to the film's unveiling and what is scrolled to is `unveiled(e === 0 && i === 0)` in
+`page.tsx`, so the second experience arrives like any other page automatically.
+
+There are no invented projects standing in to make the chapter look fuller. There are also no invented
+screenshots: **five of the seven frames are empty**, and that is the honest state of a studio with one
+project. An empty frame is the faint field the plates already used — no border, no icon, no skeleton —
+because in a publication a reserved plate is a plate to come. Two are filled with footage already in the
+repository and are stand-ins to be read as such, the same disclosure entry 41 made.
+
+The frame carries the shape and the clipping; whatever goes inside is told to fill it. So swapping a held
+video frame for a real screenshot, or a screenshot for a live embed, is a change to one line of
+`content/site.ts` and to nothing else — which is what "almost no redesign" had to mean.
+
+**`frame` is per step.** `04-visual-language.md` §5 forbids reshaping an image to fit the space it lands
+in, so `Mobile` declares a phone's ratio and is sized by height rather than stretched across a column it
+was never composed for.
+
+### The call to action is composed and inert
+
+`opens: null`, so it renders as a `<p>` with `aria-disabled`, no hover and no pointer. A link to nowhere
+is worse than a line that has plainly not been wired up. Give it a URL and it becomes an `<a>` on the same
+line of markup. The mark is `content: '→' / ''` — generated because it is a mark and not a word, with the
+alt-text syntax keeping it out of the accessible name.
+
+### The ending sits in the work column, and that is load-bearing twice
+
+`IV / Future Chapters / Some stories haven't been written yet.` — typography and nothing else. It is the
+*work* that has run out, not the studio, so it belongs to the column that tells the story, with the
+manifesto still beside it. Delete `four` from `content/site.ts` and it goes.
+
+It is also what makes the sticky manifesto safe, and that deserves recording because **the first version
+of this layout shipped entry 41's second bug straight back**. With the ending as a sibling *after* the
+two-column grid, the manifesto released at the end of the grid and its text scrolled directly through the
+fixed marker — screenshotted reading `WSetdioln't build websites.`. I had removed `--rule` from that
+column on the reasoning that a sticky column never moves. It moves once, at the very end, and once is
+enough.
+
+`--rule` was not the fix: at the 900px breakpoint a 42% column minus a 192px rule leaves 171px of
+measure, which no statement survives. Putting the ending *inside* the work column was, because the
+manifesto's container then reaches the bottom of the document and sticky can only release after the last
+scrollable pixel. Measured at the very bottom of the page: **25.7px of clearance at 2133 wide and 21.8px
+at 1440**, with the manifesto still stuck. The condition is written on `.manifesto` in `globals.css` —
+anything appended after `.studio` must be shorter than about 39vh, and the chapter's bottom padding is
+22vh.
+
+### The cost, and it is the same locked line as §44
+
+The work is in the same frame as the positioning sentence, and that sentence is now 52px rather than
+76px. `05-storyboard.md` §8 Beat 2 asks for it *alone on the screen, at a size that makes it the only
+thing there*, and forbids it being *softened by a second sentence explaining the first* — which is what
+the manifesto's own second line is, three lines below it. A two-column chapter with a permanent manifesto
+cannot honour any of that. It is the brief's direction, deliberately, and it still wants a changed line in
+`05-storyboard.md` or an exception recorded against it.
+
+Also removed: the second showcase's copy, *"One occasion. One arrival."* and the paragraph under it. It is
+in `copy-drafts.md` — the only copy on this project drafted rather than given, and still true.
+
+### Validation
+
+Four viewports. 2133 × 987 and 1440 × 900 two-column with the manifesto sticky, statement 52 / 37.4px
+holding three authored lines, plates 1189 × 743 / 795 × 497 bleeding to the page edge, phone frames
+310 × 672 / 283 × 612. 767 × 1028 and 390 × 844 single column with the manifesto static, statement back to
+41.5 / 32px on the full measure, plates bleeding both edges at 757 × 473 / 379 × 237 and the phone frame
+not bleeding — a phone screen shown edge to edge stops reading as a phone screen. No horizontal overflow
+anywhere; the document runs 1059–1181vh.
+
+The film is bit-identical, re-swept at eleven beats: `--dusk` still 0.8053 at 0.46. The emergence still
+welds to the travel — `--tm` and `--studio` both leave zero between 6.09 and 6.10 — and still resolves to
+**0.7515 lit when the mark lands**, with the first plate 69% in frame. Reversal exact. No-JS layout
+checked with the `noscript` sheet in its real cascade position: one column, manifesto static and lit,
+`transform: none`, marker at its corner, no overlap with the flat film. Typecheck, lint and build clean;
+none of the seven `[motion]` assertions fires.
+
+**A bug worth recording for the shape of it.** `.step-plate[data-frame='phone']` had `aspect-ratio`,
+`max-height` and `width: auto` — and computed to **0 × 0**. `max-height` is not a definite size, so there
+was nothing for the ratio to resolve against, and the frame vanished in exactly the state most frames are
+in: empty. A definite `height` fixes it. Any frame sized only by a ratio and a maximum will disappear the
+moment it has no content.
+
+**Not verified:** a real phone, for the reasons in entry 42. And I reformatted `page.tsx` with `prettier`
+before checking that this repository has no prettier config — it does not, so the defaults rewrote the
+whole file to double quotes and semicolons. Re-run with `--single-quote --no-semi --print-width 110`,
+which reproduces the file's own style; the diff confirms the film's markup came back untouched. Worth a
+config file if formatting is ever run again.
+
+**Worth your eye, and it is not a code question:** five empty frames over about five viewports of
+scrolling. The architecture is right and the assets are yours to supply — but if that reads as unfinished
+rather than reserved, cutting the step list in `content/site.ts` to the two that have plates is a
+one-line edit, and the rest can go back as the screenshots arrive.
+
+## 44 — The mark unveils the Studio while it travels
+
+Entries 42 and 43 put Chapter III's first page in the right place and made it arrive as one thing, and it
+still read as two events in sequence: the mark finishes, then the Studio begins. The brief for this one is
+that they are **one movement** — the page comes into existence underneath the word, from the instant the
+word sets off, and it is still arriving when the word gets there.
+
+**Traced to:** `04-visual-language.md` §7 — *motion exists to make change comprehensible*, and the change
+being made comprehensible here is a single one: the film becoming the publication. Two changes narrated
+one after another describe two events, which is what the last two versions did.
+
+### The mechanism had to change, and it reverses §43's reasoning
+
+The page's arrival is now a **beat of the shot** — `story.studioEmerges`, driven by scroll position — not
+an `IntersectionObserver` and a duration.
+
+That is a straight reversal of entry 43, which chose the observer deliberately so that a visitor who
+stopped would have the page arrive *to* them. It cannot survive this brief: "the exact moment the word
+begins travelling" and "60–80% visible by the time the mark lands" are both statements about scroll
+position, and a duration cannot honour either — at a slow scroll it would finish long before the mark
+landed, at a fast one long after. Only position can be welded to position.
+
+What that buys, beyond the sync: **the reversal is now exact.** Every value retraces, sampled at eight
+beats up and down — which the observer version could never do, because a shown-once fade cannot un-show
+while the page it belongs to sits inside the film's own frame.
+
+What it costs, stated plainly: stopping mid-travel now holds a partially-lit page instead of having it
+complete on its own. That is the trade the brief asks for, and it is the same trade every other beat in
+the shot already makes.
+
+### The choreography, measured
+
+Desktop, 2133 × 987, `pin.fine`. `--tm` is the travel, `--studio` the page's light:
+
+```
+beat    --tm     lit    plate in frame   statement top
+6.09    0.000   0.000        0%              68.2vh     the word sets off
+6.30    0.196   0.076       15%              56.3vh
+6.50    0.579   0.252       34%              45.1vh
+6.70    0.919   0.484       53%              33.6vh
+6.83    1.000   0.639       65%              26.2vh     the word is home
+6.93    1.000   0.751       74%              20.6vh     the mark lands
+7.34    1.000   1.000      100%              −2.6vh     settled
+```
+
+`--studio` and `--tm` both leave zero in the same hundredth of a beat — 0.0000 at 6.08 and 6.09, 0.0002
+and 0.0005 at 6.10. They are welded, not merely adjacent.
+
+**75.1% lit and 74% of the plate in frame when the mark lands**, against the 60–80% asked for, and the
+same at every viewport: 75.1 / 75.2 / 75.3 / 75.2 with the plate at 75 / 96 / 100 / 100% in frame.
+
+### One authored number, solved backwards
+
+`litWhenTheMarkerLands: 0.75` is the only number in it. The range that produces it is arithmetic —
+`unsmoothstep` in `easings.ts` inverts the one curve, so `timeline.ts` can solve for the end of a range
+whose start is welded to the travel. Not a second curve: the same one, read the other way. Retime the
+travel and the range re-solves; the brief's number stays the authored one, and an assertion holds it in
+the 0.6–0.8 band.
+
+It is also the one beat in the piece that deliberately **outlasts the pinned frame**, ending at 7.34 of
+7. Everything else has to finish inside `BEATS` or its tail is a beat nobody sees; this one drives the
+page *below* the pin, which keeps scrolling, so its tail is the composition settling into something the
+visitor is already reading. `spans.endsAt` excludes it, and two checks hold what matters instead: it
+starts inside the frame, and it cannot finish before the mark lands.
+
+### Where the page had to be, and what that broke
+
+`chapterThreeStands.atFrameFraction: 0.2` — when the mark lands, the page's top edge has reached a fifth
+of the way down the frame. That resolves to a reach-back of **84vh on a wheel and 86vh on a thumb**, up
+from 27vh, so Chapter III is now physically present under the film's last frame from about **beat 5.5**.
+
+It is invisible there because `--studio` is zero until the word sets off; its paper over the frame's paper
+was already invisible. But its *box* is not: measured, the clearance between Chapter III's top edge and
+the travelling word narrows to **7vh at beat 6.22 on a 2133-wide screen and 6vh at 1440** — and Chapter
+III is a later sibling of `.film`, so it paints over it. The word would be clipped by the page it is
+supposed to be unveiling, at some viewport, on some retiming.
+
+`.card-act-three` and `.mark-slot` now carry `z-index: 1`. The card has no background, so only its ink
+rises above the page — which is exactly the relationship asked for, and below `.marker`'s 2 so the landed
+mark still sits on top of both. It cost two declarations and it removes the clearance question entirely
+rather than leaving 6vh of luck in it.
+
+### The 8px rise, and what a scroll-driven offset is actually worth
+
+It is there, as directed: `studioEmerges.rise: 8`, on the same curve and the same range as the light.
+Measured across the emergence, the offset closes 5.98px → 4.13px over 110px of scroll — about **1.7px
+per wheel notch at the curve's steepest**, and 8px total across 690px.
+
+That is below the threshold at which anyone will see it as movement, which is what "the movement should
+almost disappear" asks for, and it is worth being clear that this is the ceiling rather than a tuning
+choice: any scroll-driven offset is spread over a scroll distance two orders of magnitude larger than
+itself. The felt movement in this transition is the page rising 47vh under the visitor's hand while it
+lights — the 8px is a rounding error on top of it. Zero is a legitimate value for `rise`, and if the
+transform's cost ever matters (it makes the page a stacking context and a compositor layer for the sake
+of those 8px) that is the number to set.
+
+### The cost, and it is a locked line
+
+**The plate and its copy are now in the same frame as the positioning sentence when the mark lands.**
+`05-storyboard.md` §8 Beat 2 says that sentence is *alone on the screen, at a size that makes it the only
+thing there*, and lists as a **must not** being *softened by a subheading, a button, or a second sentence
+explaining the first* — which is what "We don't build websites. We create digital experiences that become
+part of the memory itself." is.
+
+Entry 43 refused this trade for that reason and composed the page to be read *down* instead. This brief
+asks for the opposite explicitly and by number, and asking for the plate to be 60–80% visible at the
+landing **is** asking for it to share the frame. It is built as asked, and it is a departure from a locked
+document rather than an implementation decision — so it wants either a line changed in `05-storyboard.md`
+or an accepted exception recorded against it. `chapterThreeStands.atFrameFraction` is the whole lever:
+raise it toward 0.8 and Beat 2 is restored, along with the empty frame entries 42 and 43 were closing.
+
+### Validation
+
+Four viewports and both pins: 2133 × 987, 1440 × 891, 767 × 1028, and a true 390 × 844 in an iframe with
+`--pin` forced to its coarse value. Reach-back 84 / 83.9 / 84 / 85.9vh, stands 20vh everywhere, lit
+0.751–0.753 at the landing, 1.98–1.99px of rise left, marker left edge exact against the landed word at
+every size. Word clearance measured at 7 / 6 / 9.6 / 14.6vh — and no longer load-bearing. No horizontal
+overflow.
+
+Reversal exact at eight beats. The film re-swept at sixteen beats: every driven property identical to the
+values before this change, `--dusk` still 0.8053 at 0.46. The first plate is asked for at beat 5.74,
+0.35 beats before the emergence begins; the second page's still is still untouched at `readyState 0` when
+Chapter III opens. Two reveal targets became one plus one emergence. No-JS layout checked with the
+`noscript` sheet in its real cascade position — margin 0, page at opacity 1 with `transform: none`, marker
+at its corner. Typecheck, lint and build clean; none of the seven `[motion]` assertions fires. Driven by
+hand with a real wheel from the first frame.
+
+**A capture artifact worth recording, because it looks exactly like a defect.** A screenshot taken while
+a smooth scroll is still running composites several frames, and the landing frame came back with `III
+Studio` doubled and offset — which is precisely what a broken pixel-identical handover would look like. At
+rest the two are 1.0/0.0 opacity and occupy the same box to the hundredth of a pixel. Screenshot after the
+scroll settles, or measure.
+
+**Not verified:** a real phone, for the reasons in entry 42.
+
+## 43 — A page arrives once, as a whole
+
+Entry 42 put Chapter III's opening on screen at the right moment and left it opening the wrong way. The
+statement arrived, then a scroll, then the plate arrived, then its copy — three things appearing in
+turn, which is how a landing page opens. Chapters I and II are cinematic because nothing in them
+announces itself separately; Chapter III announced itself three times.
+
+**Traced to:** `04-visual-language.md` §7 — *motion exists to make change comprehensible, and it has no
+other job* — and, in the same section, *things move the way things move: with weight, in a direction,
+once.* Only one thing had changed here: the chapter had arrived. So there is one arrival, and the
+elements inside it do not each get their own. Also §5 — *emptiness is an instrument rather than what is
+left over*, and *scale is currency: a large moment is only large beside restrained ones*, which is the
+argument for the second half of this entry.
+
+### The model: one arrival per page, not per element and not per chapter
+
+Chapter III is a publication, so the unit is a **page**. A page comes into existence as one thing when
+the visitor turns to it, and everything on it — statement, plate, copy — is already there.
+
+The statement and the first plate are now one `data-reveal`, so they are one page. The second showcase
+already was one (its plate and its copy share a reveal), so it is the next page. That is the whole
+change, and the model scales: Beats 4, 5 and 6 will each be a page, and each will arrive once.
+
+Not one reveal for the whole chapter, which was the other candidate. It reads well at today's length
+and stops meaning anything at tomorrow's — a 2000vh document revealed on a single 1100ms fade is
+indistinguishable from having no arrival at all, and it would also mean nothing could ever be lazily
+loaded per page again.
+
+### What the visitor sees now
+
+The mark lands. The page it introduces is already coming into existence — all of it, at one rate. The
+plate is 23.1vh below the fold at that moment, so by the time it is reached it is simply *there*, at
+full opacity, sliding up. Nothing arrives on the way down the page.
+
+The composition was tightened to match, because one reveal is not enough on its own — the two halves
+still had to look like one page:
+
+- **Two intervals instead of one.** `--within-page` (9vh) inside a page, `--between-pages` (22vh)
+  between them. One interval used everywhere groups nothing, which is why every block read as its own
+  section. Nothing was widened; the inner one was tightened, and that is what makes the outer one mean
+  something. Measured 88px against 217.3px on desktop, 76px against 185.8px on a phone.
+- **A shared top line.** Inside the opening page the copy starts where the plate starts instead of being
+  centred against it. Centred, the left column read statement — long silence — copy, and the copy
+  floated. Now there is one horizontal line at the head of the plate, and the gap from the statement's
+  last line to the copy's first is `--within-page` exactly: one line, one interval, one page. The
+  showcase further down keeps its centring, because it is two elements in a row and centring is what
+  makes them a row.
+
+### The movement was measured and declined
+
+The direction allowed 8–12px. It is not there, and the reason is a number rather than a preference.
+
+There is one curve, so a translate would share the fade's curve and duration — which means the offset
+is spent in exact proportion to the opacity. Measured, on a 10px translate:
+
+```
+opacity   px still to travel
+0.003     4.34
+0.026     3.72
+0.074     2.57
+0.154     1.54
+0.261     0.86
+0.322     0.63
+```
+
+Nine of the ten pixels are gone before the element reaches 8% opacity. By the point it is legible on
+paper it has 0.86px left. The movement happens in the dark: it would cost the rule that `globals.css`
+opens with — nothing travels — and buy something unobservable. To be *seen* it would have to be slower
+than the fade or on a second curve, and a second curve needs a line in a locked document.
+
+There is also a structural reason. With one reveal per page, the fade runs while only the top of the
+page is on screen — so a translate would move the statement and nothing else, which is precisely the
+fade-up headline the direction asked to avoid, and it contradicts *already there and simply revealed*.
+
+### The threshold was hiding a coupling
+
+`studioBlocks.threshold` was `0.01` and is now `0`. A ratio threshold is a fraction of the *block's own
+area*, so a taller block has to travel further past the line before it counts as arriving: making the
+opening a whole page slid its trigger 1.4vh later and put it 0.025 beats out of step with the overlap
+derived from the same number. At zero the trigger is the top edge crossing the line and nothing else,
+whatever the block turns out to be. Measured after: the reveal fires at beat **6.732–6.736** at every
+viewport and both pins, against 6.73 intended, and it no longer depends on the block's height.
+
+### What is deliberately not done
+
+**The statement and the plate are not in one frame.** A magazine opening spread — statement upper-left,
+plate lower-right, both at once — is the strongest version of "one composition" and it is not allowed
+here: `05-storyboard.md` Beat 2 requires the positioning sentence to be *alone on the screen, at a size
+that makes it the only thing there* and explicitly forbids it being softened by *a second sentence
+explaining the first*, which is exactly what "We don't build websites. We create digital experiences
+that become part of the memory itself." is. So this is one composition read **down** the page: the
+statement holds its own frame, and the page continues. If that trade should go the other way, it is a
+change to a locked document and not an implementation decision.
+
+### Validation
+
+Four viewports and both pins: 2133×987, 1440×891, 767×1028, and a true 390×844 in an iframe. Two reveal
+targets everywhere. Fires at 6.732–6.736. Intervals 88/217.3, 80.2/196, 88/226.4, 76/185.8 — the ratio
+holds between 2.4 and 2.6 at every size. Plate 55.5% of the viewport on desktop and bleeding to the page
+edge, 97–99% when stacked; statement 76/76/41.5/32px and three authored lines everywhere; shared top
+line exact where the layout is two columns; the whole opening page fits one frame on a phone at 62.2vh.
+No horizontal overflow. Typecheck, lint and build clean, no `[motion]` assertion fires.
+
+The film is untouched and re-swept: every driven property still lands on the storyboard, reversal
+retraces exactly through the handover, and the second page is unchanged — still centred, still 55.5%,
+still bleeding left, its held frame still at 1.2s and paused. No-JS layout checked with the `noscript`
+sheet in its real cascade position. Driven by hand with a real wheel from the first frame.
+
+**Not verified:** a real phone, for the reasons in entry 42.
+
+**One thing to watch as content lands.** The second page still arrives when it is reached, which is
+correct under the model above but means the chapter has two arrivals rather than one. On a phone the
+opening page is short enough (62.2vh) that the next page's plate can be in the same frame while it
+fades. Once Beats 4–6 exist and the pages are longer that stops being possible; if it reads badly
+before then, the answer is a longer `--between-pages` on narrow screens rather than another reveal
+rule.
+
+## 42 — Chapter III begins inside the film's last frame
+
+The word travelled into the corner and became `III Studio`, and then the visitor scrolled through a
+viewport and a half of empty paper before Chapter III said anything. The transition read as finished
+and the chapter read as not yet started.
+
+**Traced to:** `05-storyboard.md` §8 Beat 0 — *arrive somewhere, not into a blank page*, and *the
+visitor never sees a blank page filling in*. Written about load, but it is a standard about arriving,
+and arriving in a chapter is arriving. Also §4 rule 4 — *nothing is banked*: one friction and the
+person is back at Arrival — which is the worst possible thing to spend at §4 rule 5's hinge. And §4
+rule 7 — *where a moment's edges fall is an implementation decision, always* — which is the licence
+for moving that edge.
+
+### What was measured first
+
+Desktop, 2133 × 987, `--pin: 392vh`:
+
+```
+3775px   beat 6.83   the word is home in the corner
+3830px   beat 6.93   III Studio is handed over to the fixed marker
+4090px               the earliest a pixel of Studio text could be on screen   +26.3vh
+4209px               the earliest its fade could even begin                   +38.3vh
+```
+
+Two causes, and neither of them was the shot. The frame is held for the whole of `--pin` while the
+shot finishes a hundredth of it short of the end, so Chapter III started beneath the bottom edge of a
+frame with nothing left in it — and then paid 22vh of its own top padding before its first line, and
+another 12vh before the observer would look at it.
+
+### The fix is spatial, and it is one number
+
+**Chapter III now starts inside the film's last frame rather than beneath it.** `--three-overlap` is a
+negative top margin on `.chapter-three`, and its top padding is gone — the opening's distance from the
+film is one number now, and a padding underneath the overlap would have been a second opinion about
+the same gap.
+
+`story.chapterThreeOpens.beforeTheMarkerLands: 0.2` is the whole editorial statement: *Chapter III
+begins arriving as the word begins becoming the mark.* Everything else is arithmetic, done in
+`timeline.ts`: at beat `b` the chapter's top edge sits `100vh + pin · (1 − b/BEATS)` below the top of
+the viewport, and the observer fires when a block's top reaches `(1 − arrivesShortOf) · 100vh`. Equate
+them and the overlap falls out — 27.1vh on a wheel, 34.7vh on a thumb, from one declaration that reads
+`--pin` and therefore follows the pointer.
+
+Measured: `.three-opening`'s top crosses the observer's line at beat **6.734** at every viewport
+tested, against 6.73 intended. Nothing about the shot's timing moved, and `--dusk` still reads
+**0.8053** at beat 0.46 — the value recorded in entry 39.
+
+**`arrivesShortOf: 0.12` replaced the `rootMargin` string.** The observer's threshold and the overlap
+are two numbers that have to agree, so one of them is authored and `timeline.ts` builds the string.
+
+### Why the observer keeps the arrival, and does not become a beat
+
+A scroll-driven fade would put a guaranteed opacity on the screen at the handover, which is tempting,
+and it is the wrong instrument. The complaint was *the visitor has to keep scrolling before anything
+appears*. With a duration, a visitor who stops at the handover has the statement arrive **to** them; a
+scroll-driven one would freeze at whatever fraction they stopped at and ask them to keep working for
+it. `02-motion-system.md` is also explicit that Chapter III does not perform, and a flick past a
+scroll-driven fade would make it snap rather than fade.
+
+So the handover frame is: the mark in the corner, the statement's first lines low in the frame at
+**9–14%** and rising on their own. Deliberate wheel pace, frozen and photographed at four viewports.
+
+### The overlap is invisible, and that is measurable
+
+Chapter III's paper now covers the bottom of the film's last frame. It cannot be seen, because the
+region it covers is already ivory — `--dawn` reaches 1 at beat 4.83 — and holds no ink at all by then:
+the sentence is gone, `--out1` and `--out2` are 0, and the travelling word is up in the corner.
+
+At the beat the band first enters the frame, the lowest visible ink clears it by **72.6 to 91.8vh**
+across every viewport and both pins. The word is 62–91% of the way to the corner by then.
+
+### A third defect, found by hand and not by arithmetic
+
+The overlap measured perfectly and then failed completely for a visitor who scrolled during the
+opening — which is most of them. Wheeling hard on arrival and then carrying on gave `--origin: 1974px`
+while the shot's real origin was 1111px, so Chapter III sat **87vh lower than the beat it is placed
+against** and the dead moment came straight back, in full.
+
+`--origin` is rounded *up* to whole viewports, and the reason is good: it is the one value that changes
+the document's height, so writing it costs a layout of the whole page, and the moment it is written most
+often is a hard flick. But the film's height is also *where the page below it begins*, so a value that
+can overshoot by nearly a viewport cannot be what anything positional is measured from.
+
+**It is now rounded while it is still moving and written exactly the moment the origin is fixed.** That
+is one extra layout, on a value that was already being written, at the instant it stops changing — and
+it is *more* correct about the guarantee it exists for, not less: at `scrollY === origin` there is then
+precisely one `--pin` left beneath, rather than up to one more. Measured after the fix: origin
+1112.22px exact, the crossing beat 6.737 — identical to the untouched case — and 3872.9px of pin left
+beneath a 3869px pin.
+
+Worth recording as a method note, not just a fix. Every number in the first pass was right, and the
+feature did not work. `01-validation.md` says to drive it by hand; this is what that gate is for.
+
+### The phone had a second defect, and the overlap exposed it
+
+On a phone the marker is `absolute` rather than `fixed` — entry 41, correctly: there is no spare margin
+on a phone, and fifteen pixels of type permanently over the reading column is worse than a marker that
+goes by. But it sat at the *head of the chapter*, a whole viewport below the corner the word had just
+travelled to. **The handover is a step, and a step between two different places is a jump**: on a
+phone `III Studio` vanished at the handover and reappeared later somewhere else.
+
+With the chapter pulled up, it would have been worse — the marker would have landed on top of the
+arriving statement, both on the same left rule. So the marker now stands where it arrived:
+`top: calc(var(--mark-y) - var(--three-handover))`, the same reach-back arithmetic at the handover's
+own beat. Measured at 390 × 844: the marker's left edge is exact to the hundredth of a pixel against
+the landed word, at both pins. `05-storyboard.md` §9 — *every beat is judged on a phone before it is
+judged anywhere else.*
+
+**It still only lives for about 8vh of scroll before the page carries it off.** That is entry 41's
+decision, not a new one, and it is now continuous rather than teleported. Whether a phone should keep a
+running head at all is a separate question and still open.
+
+### One residual, honestly
+
+The marker's landing is exact only where the CSS viewport height is a whole number of CSS pixels. The
+driver measures a beat in `window.innerHeight`, which Chrome rounds to an integer, while every length
+here is fractional `vh` — so on a fractionally-scaled display the two disagree by
+`0.99 · pin · frac(vh)`, bounded at **3.9px on a wheel and 5.9px on a thumb**, and zero on any integer
+viewport height. Measured 2.9px on this machine at 0.9 device scale, and predicted 3.45px minus 0.54px
+of `scrollTo` rounding — fully accounted for.
+
+It is pre-existing and wider than this: because the pin is written in `vh` and beats are counted in
+`innerHeight`, the shot and the pinned frame disagree by the same fraction everywhere, and on a mobile
+browser whose toolbar makes `dvh` smaller than `vh` that disagreement is **percentage points, not
+pixels** — which would leave real dead pinned scroll at the end of the shot on a phone. It could not be
+tested here and was not changed here: making the driver measure a beat the way CSS measures a length
+retimes the whole shot's mapping and needs its own validation pass. Recorded so it is not rediscovered.
+
+### Validation
+
+Four viewports, both pins. 2133 × 987 and 1440 × 891 (marker `fixed`, landing pixel-exact against the
+slot at both), 767 × 1028, and a true 390 × 844 driven inside an iframe because the window here cannot
+be resized below ~614 CSS px. Overlap 27.1vh at `pin.fine` and 34.7vh at `pin.coarse`; the crossing
+beat 6.731–6.737 everywhere; the statement's top at the handover 71.5–77vh; the chapter's internal gaps
+unchanged at exactly `clamp(8rem, 22vh, 16rem)` — the grid's rhythm never entered into it, because the
+box that moved is the chapter, not a row inside it.
+
+Eighteen driven properties swept at 34 beats against the storyboard: every one lands where it should,
+including the values entry 39 recorded. Reversal retraces exactly. Showcases unchanged, visual still
+55.5% of the viewport and bleeding to the edge, media still lazy. No horizontal overflow anywhere.
+Typecheck, lint and build clean, and no `[motion]` assertion fires. The no-JS layout checked with the
+`noscript` sheet in its real cascade position: margin 0, marker at `--mark-y`, no overlap with the flat
+film.
+
+Driven by hand with a real wheel, including the three cases that only exist for someone in a hurry:
+flicking hard during the opening still hurries the opening rather than skipping it and still leaves the
+shot on its first frame; carrying on from there now lands the overlap on the same beat as a visitor who
+waited; and scrolling back up above the origin still collapses the stretch of scroll that did nothing,
+exactly, with the geometry unchanged.
+
+**Not verified:** a real phone. iOS Safari and Android Chrome cannot be driven from here, so the
+retracting-toolbar case above is reasoning and not measurement, and the 390 × 844 frame is an iframe
+with a desktop pointer and no safe-area insets.
+
+**Worth a human eye:** whether the statement arriving at 9–14% is *enough* at the moment the mark
+lands, or whether it wants to be plainly legible there. That is the one judgement in this entry a
+number cannot settle, and the lever is a single value — `chapterThreeOpens.beforeTheMarkerLands`, which
+cannot exceed `iiiStudio.fade` without the chapter beginning before the mark that introduces it, and
+`timeline.ts` says so if it does.
+
 ## 41 — Chapter III: the studio
 
 The film ends and a publication begins. Nothing here is pinned, nothing is driven by scroll position,

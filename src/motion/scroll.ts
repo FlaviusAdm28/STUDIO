@@ -66,6 +66,14 @@ export const track: Track = [
 
   /* A step, not a ramp — see `story.iiiStudio`. */
   ['--handoff', (s) => (s >= spans.handoffAt ? 1 : 0)],
+
+  /*
+    Chapter III's first page, coming into existence under the travelling word. `--studio` is its light;
+    `--settle` is how much of its rise is still to come, so CSS multiplies rather than subtracts. Both
+    read the same range, because they are one movement — see `story.studioEmerges`.
+  */
+  ['--studio', (s) => rise(s, spans.studioEmerges)],
+  ['--settle', (s) => fall(s, spans.studioEmerges)],
 ]
 
 /**

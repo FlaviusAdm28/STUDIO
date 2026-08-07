@@ -30,7 +30,8 @@ implementing anything; they are not optional context.
 
 ## Where things live
 
-- `content/site.ts` — all language. Never hardcode words in a component.
+- `content/site.ts` — all language, and Chapter III's structure. The work is a list of experiences;
+  appending one is an entry there and nothing else. Never hardcode words in a component.
 - `src/motion/story.ts` — the storyboard. One object per narrative beat, stating its *relationship*
   to the beat before it; only anchors carry an absolute. `timeline.ts` resolves it. Never hardcode a
   duration, delay, easing or threshold anywhere else, and never write an absolute you could derive.
@@ -41,7 +42,8 @@ implementing anything; they are not optional context.
   `data-opening` on the root to say whether it is still running.
 - `src/app/scroll-stage.tsx` — the Chapter I → II shot. Driven by `scrollY - origin`, where the origin
   is fixed the moment the opening finishes — so scrolling during the intro cannot arrive underneath it.
-- `src/app/globals.css` — one curve, opacity only. The curve and `--pin` come from `src/motion`.
+- `src/app/globals.css` — one curve, opacity only. The curve, `--pin`, and the two distances that place
+  Chapter III inside the film's last frame all come from `src/motion`; nothing here declares them.
 - `public/media/hero/video/` — footage. H.264 in a QuickTime container; Chrome plays it only when
   handed the bytes without a `type` hint.
 

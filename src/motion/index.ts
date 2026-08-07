@@ -41,10 +41,19 @@ export {
 export type { Beat } from './story'
 
 /* Resolved absolutes. Read these; never write them down. */
-export { cues, spans, schedule, studioBlocks, navHover, closestBeats, maxAdvance } from './timeline'
+export {
+  cues,
+  spans,
+  schedule,
+  studioBlocks,
+  navHover,
+  chapterThree,
+  closestBeats,
+  maxAdvance,
+} from './timeline'
 export type { Span, Cue } from './timeline'
 
-export { easings, clamp01, smoothstep } from './easings'
+export { easings, clamp01, smoothstep, unsmoothstep } from './easings'
 export type { Easing } from './easings'
 
 export { rise, fall, show, track, PRECISION } from './scroll'

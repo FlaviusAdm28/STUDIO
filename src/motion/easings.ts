@@ -45,3 +45,16 @@ export const clamp01 = (x: number): number => (x < 0 ? 0 : x > 1 ? 1 : x)
  * this and switching sections, and it costs one multiplication.
  */
 export const smoothstep = (x: number): number => x * x * (3 - 2 * x)
+
+/**
+ * The scroll curve, run backwards: the progress at which `smoothstep` reaches a given value.
+ *
+ * Not a second curve — the same one, solved for its input. It exists so that a beat can be authored
+ * by the thing that was actually decided rather than by the number that produces it. Chapter III's
+ * opening is the case: what was decided is *three-quarters lit when the marker lands*, and the range
+ * that yields it is arithmetic. `02-motion-system.md`: if you had to do arithmetic to write the
+ * number, write the arithmetic's input instead.
+ *
+ * The closed form of the depressed cubic `3x² − 2x³ = v`. Exact, not iterated.
+ */
+export const unsmoothstep = (v: number): number => 0.5 - Math.sin(Math.asin(1 - 2 * clamp01(v)) / 3)

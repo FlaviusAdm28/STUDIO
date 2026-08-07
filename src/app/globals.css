@@ -30,6 +30,10 @@
 
     --haste                          the multiplier on Chapter I's durations
     --pin                            how much scrolling the story costs
+    --three-overlap                  how far Chapter III reaches back into the film's last frame
+    --three-stands                   how far down that frame its first page has reached
+    --settle-by                       how far that page rises into place
+    --studio, --settle               its light and its rise, rewritten every frame by the driver
     --veil, --dusk, --marker, --i1 … the shot itself, rewritten every frame by the driver
 
   That is the point: a stylesheet and the story cannot hold two different opinions about the same
@@ -215,13 +219,48 @@ html {
 */
 :root {
   --rule: calc(var(--mark-x) + 7.5rem);
+
+  /*
+    The chapter's two intervals, and they have to be different sizes.
+
+    Space is the only thing that groups a layout with no borders, no cards and no rules, and one
+    interval used everywhere groups nothing — every block reads as its own section, which is exactly
+    how the chapter used to open. `04-visual-language.md` §5: emptiness is an instrument rather than
+    what is left over, and scale is currency — a large interval is only large beside a restrained one.
+
+    So the distance inside a page is plainly less than the distance between pages, and the between
+    value is the one that was already here. Nothing was widened; one interval was tightened, which is
+    what makes the other one mean something.
+  */
+  --between-pages: clamp(8rem, 22vh, 16rem);
+  --within-page: clamp(2.5rem, 9vh, 5.5rem);
 }
+
+/*
+  It begins *inside* the film's last frame, and far enough inside that the mark unveils it.
+
+  The pinned frame is held for the whole of `--pin` and the shot finishes a hundredth of it short of the
+  end, so Chapter III used to start under the bottom edge of a frame with nothing left in it — the mark
+  landed and then the visitor scrolled through empty paper. `--three-overlap` reaches back far enough
+  that by the instant the marker lands the page's top edge has arrived at `--three-stands`, a fifth of
+  the way down the frame, with its plate composed in the frame beneath it. `story.chapterThreeStands`,
+  resolved against `--pin` so it is the same beat of the shot on a wheel and on a thumb.
+
+  Nothing about the film's timing changes. What changes is that Chapter III is *there*, under the last
+  frame, from about beat 5.5 onward — and invisible until the word sets off, because its light is
+  `--studio` and that is zero until then. Its paper over the frame's paper is invisible by itself
+  (`--dawn` reaches 1 at beat 4.83), and the film's last words paint above it — see `.card-act-three`.
+
+  There is no top padding, on purpose. The page's distance from the film is one number, and a padding
+  underneath the overlap would be a second opinion about the same gap.
+*/
 .chapter-three {
   /* So the marker has something to be absolute against when it stops being fixed. */
   position: relative;
+  margin-top: calc(-1 * var(--three-overlap));
   display: grid;
-  gap: clamp(8rem, 22vh, 16rem);
-  padding-block: clamp(8rem, 22vh, 16rem);
+  gap: var(--between-pages);
+  padding-block: 0 var(--between-pages);
   background: var(--paper);
   color: var(--ink);
 }
@@ -241,16 +280,88 @@ html {
   opacity: 1;
 }
 
-.three-opening {
-  padding-inline: var(--rule);
+/*
+  What the film reveals rather than the observer: the manifesto, and the first step of the work.
+
+  Its light is `--studio` and its rise is `--settle`, both driven by scroll position across
+  `story.studioEmerges` — so it comes into existence in the same instant the word sets off for the
+  corner, and it is still arriving when the word gets there. No transition and no duration: it tracks the
+  hand exactly, so it runs backwards as exactly as it runs forwards, which a shown-once observer could
+  not do while the composition sits inside the film's own frame.
+
+  The rise is the only thing besides the travelling word that moves anywhere in the piece, and it is
+  eight pixels across the whole emergence — a fraction of a pixel per viewport-hundredth of scroll. It is
+  the page settling into place rather than an entrance, and `story.studioEmerges.rise` is where it lives.
+*/
+[data-emerges] {
+  opacity: var(--studio);
+  transform: translateY(calc(var(--settle) * var(--settle-by)));
 }
 
+/* ---------- The studio: what it is, beside what it made ---------- */
+
+/*
+  Two columns that behave differently, which is the whole composition. The manifesto is the studio's own
+  voice and it does not move; the work goes by beside it. `04-visual-language.md` §5 — asymmetry by
+  default, and a composition with direction tells the eye where to go first.
+
+  42/58 in the work's favour, and the work runs to the right edge of the page rather than sitting in a
+  container. The gutter between them is the only thing separating the two, which is what makes the
+  whitespace the composition rather than a gap left over.
+*/
+.studio {
+  display: grid;
+  grid-template-columns: 42fr 58fr;
+  align-items: start;
+  gap: clamp(2rem, 4vw, 4.5rem);
+}
+
+/*
+  It holds still.
+
+  Sticky rather than fixed, so it belongs to the chapter and cannot outlive it. It sticks *below* the
+  marker, on the marker's own left edge, so the two read as one block: the running head, and the voice
+  under it.
+
+  **That shared edge is only safe because it never scrolls past the marker, and that is a structural
+  guarantee rather than a hope.** `--rule` exists precisely to keep a moving column out of a fixed
+  marker's way — entry 41's second bug — and a sticky column moves once, at the very end, when its
+  container runs out. Which it cannot do here while anything is visible: the ending lives inside the work
+  column, so this column's container reaches the bottom of the document, and sticky would only release
+  after the last scrollable pixel. Measured below at every viewport.
+
+  The condition, so it is not broken by accident: whatever sits after `.studio` inside `.chapter-three`
+  must be shorter than `100dvh − (sticky offset + this column's height)`, about 39vh today. The chapter's
+  bottom padding is 22vh, so there is room; a full-height block appended after `.studio` would put the
+  manifesto through the marker again, and the fix would be to move it inside the work column too.
+
+  Using `--mark-x` rather than `--rule` is what pays for the measure: the statement holds its three
+  authored lines in half a page only because it gets that 7.5rem back.
+
+  It must not animate again after it arrives. Nothing here reads `--fade-studio-blocks`; the only thing
+  that ever happens to it is the emergence, once.
+*/
+.manifesto {
+  position: sticky;
+  top: calc(var(--mark-y) + clamp(2.25rem, 4.5vh, 3.5rem));
+  display: grid;
+  gap: var(--within-page);
+  padding-inline-start: var(--mark-x);
+}
+
+/*
+  Sized to its column rather than to the page. At 5.4vw the positioning sentence needed 800px of measure
+  and a 42% column at laptop width has 530px, so its three authored lines became five accidental ones —
+  `04-visual-language.md` §4, where the line ends is part of the composition, so the measure has to serve
+  the break rather than the reverse. It is no longer the largest thing on the page, and in a two-column
+  chapter it cannot be; see `decisions.md` §45 on what that costs.
+*/
 .three-statement {
   margin: 0;
-  max-width: 26ch;
-  font-size: clamp(2rem, 5.4vw, 4.75rem);
+  max-width: 22ch;
+  font-size: clamp(1.75rem, 2.6vw, 3.25rem);
   font-weight: 300;
-  line-height: 1.12;
+  line-height: 1.14;
   letter-spacing: -0.012em;
 }
 
@@ -258,67 +369,130 @@ html {
   display: block;
 }
 
-/*
-  The showcases. The visual runs to the edge of the page rather than sitting in a container — no card,
-  no border, no frame. The text keeps the chapter's left rule; the whitespace on the other side of it
-  is the composition, not a gap left over.
-*/
-.showcase {
-  display: grid;
-  grid-template-columns: 42fr 58fr;
-  align-items: center;
-  gap: clamp(2rem, 5vw, 5rem);
-}
-
-.showcase--reverse {
-  grid-template-columns: 58fr 42fr;
-}
-
-/*
-  No `max-width` on this element. It carries the padding, and with `box-sizing: border-box` a max-width
-  here is the *outer* width — so a 42ch cap minus a 192px rule left the column 144px wide and broke
-  "We don't build websites." across three lines. The measure belongs on the text itself, where nothing
-  is subtracted from it.
-*/
-.showcase-text {
-  padding-inline-start: var(--rule);
-}
-
-/* Reversed, the text is on the right and the marker's margin is not its concern. */
-.showcase--reverse .showcase-text {
-  padding-inline-start: 0;
-  padding-inline-end: var(--mark-x);
-}
-
-.showcase-lead {
+.manifesto-lead {
   margin: 0;
-  max-width: 26ch;
-  font-size: clamp(1.375rem, 2.5vw, 2.125rem);
+  max-width: 24ch;
+  font-size: clamp(1.125rem, 1.4vw, 1.5rem);
   font-weight: 300;
-  line-height: 1.25;
-  letter-spacing: -0.008em;
+  line-height: 1.3;
+  letter-spacing: -0.006em;
 }
 
-.showcase-body {
-  margin: clamp(1.25rem, 2.5vh, 2rem) 0 0;
-  max-width: 38ch;
-  font-size: clamp(1rem, 1.25vw, 1.1875rem);
+.manifesto-body {
+  margin: clamp(0.875rem, 1.6vh, 1.25rem) 0 0;
+  max-width: 34ch;
+  font-size: clamp(0.9375rem, 1vw, 1.0625rem);
   font-weight: 400;
   line-height: 1.65;
   color: var(--ink-quiet);
 }
 
+/* ---------- The work ---------- */
+
+.work {
+  display: grid;
+  gap: var(--within-page);
+}
+
 /*
-  A moving photograph, and a still one. Both are simply the media — object-fit and nothing else.
+  A running label for the half of the chapter that changes, in the same voice as the chapter marker —
+  small, tracked, quiet. It orients; it does not speak.
 */
-.showcase-visual {
+.work-label {
+  margin: 0;
+  font-size: var(--mark-size);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+}
+
+/*
+  Two intervals again, and for the same reason as the pages above: the head and the call to action belong
+  tightly to the experience, and the steps are a page apart from each other.
+*/
+.experience {
+  display: grid;
+  gap: var(--within-page);
+}
+
+.experience-steps {
+  display: grid;
+  gap: var(--between-pages);
+}
+
+/*
+  The name of the thing being studied. Larger than the label above it and smaller than the manifesto
+  beside it — `04-visual-language.md` §5, scale is currency, and this is not the loudest thing here.
+*/
+.experience-title {
+  margin: 0;
+  font-size: clamp(1.5rem, 2vw, 2.5rem);
+  font-weight: 300;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+/*
+  One step. Its name, and the frame that holds it.
+
+  A `figure` because that is what it is: a plate with a caption. The caption is above the plate rather
+  than under it, because it is a heading for what follows in a sequence rather than a note about a
+  picture already seen.
+*/
+.step {
+  display: grid;
+  gap: clamp(0.75rem, 1.4vh, 1.125rem);
+  margin: 0;
+}
+
+.step-name {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+}
+
+/*
+  The frame, and it is the only thing here that is load-bearing for the future.
+
+  It carries the shape and the clipping; whatever goes inside is told to fill it. So a held video frame
+  today, a real screenshot tomorrow and a live embed after that are the same composition, the same rule
+  and no redesign — swap the element, not the layout.
+
+  Empty, it is the faint field the plates already used. In a publication a reserved plate is a plate to
+  come, and that is an honest state for a studio with one project. It is not a placeholder graphic: no
+  border, no icon, no skeleton.
+
+  The shape is per step, not inherited — `04-visual-language.md` §5, an image is never reshaped to fit
+  the space it lands in, so a phone screen gets a phone's frame and is capped by height rather than
+  stretched across a column it was never composed for.
+*/
+.step-plate {
   position: relative;
-  aspect-ratio: 2 / 1;
   overflow: hidden;
   background: rgba(24, 23, 20, 0.04);
 }
 
-.showcase-visual video {
+.step-plate[data-frame='screen'] {
+  aspect-ratio: 16 / 10;
+}
+
+/*
+  The height is definite and the width follows from the ratio, not the other way round. `max-height` is
+  not a definite size, so with an empty frame and `width: auto` there was nothing for `aspect-ratio` to
+  resolve against and the plate computed to 0 × 0 — a frame that vanished exactly when it had no asset in
+  it, which is the state most of them are in.
+*/
+.step-plate[data-frame='phone'] {
+  aspect-ratio: 390 / 844;
+  height: 68vh;
+  width: auto;
+  justify-self: start;
+}
+
+.step-plate video {
   display: block;
   width: 100%;
   height: 100%;
@@ -326,23 +500,147 @@ html {
 }
 
 /*
-  Stacked below 900px, and each keeps its own source order — so the alternation of text-then-image and
-  image-then-text survives the collapse instead of flattening into a column of identical blocks.
+  The call to action, and it belongs to the experience rather than to the page.
+
+  Inert until there is something to open: `[aria-disabled]` is the state of a control that is composed and
+  not yet wired, and it gets no hover and no pointer, so it never promises a click it cannot honour. The
+  mark is generated rather than written into the copy because it is a mark and not a word — `content`'s
+  alt-text syntax keeps it out of the accessible name.
+*/
+.experience-open {
+  justify-self: start;
+  margin: 0;
+  font-size: clamp(1rem, 1.15vw, 1.1875rem);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+  text-decoration: none;
+  transition: color var(--fade-nav-hover) var(--curve);
+}
+
+.experience-open::after {
+  content: '→' / '';
+  margin-inline-start: 0.6em;
+}
+
+a.experience-open:hover,
+a.experience-open:focus-visible {
+  color: var(--ink-quiet);
+}
+
+.experience-open[aria-disabled='true'] {
+  color: var(--ink-quiet);
+  cursor: default;
+}
+
+/* ---------- The ending ---------- */
+
+/*
+  Not a shortfall — an ending. There is one experience, so the chapter says so instead of padding itself
+  out with invented ones, and it says it in typography and nothing else.
+
+  It sits on the manifesto's own left edge rather than in the work's column, because it is the chapter
+  closing rather than another thing the chapter contains.
+*/
+.future {
+  /* The work column's own interval is `--within-page`; this makes the total a page instead. */
+  margin-top: calc(var(--between-pages) - var(--within-page));
+  display: grid;
+  gap: clamp(1rem, 2vh, 1.75rem);
+}
+
+.future-numeral {
+  margin: 0;
+  font-size: var(--mark-size);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--ink-quiet);
+}
+
+.future-label {
+  margin: 0;
+  font-size: clamp(1.5rem, 2.6vw, 3.25rem);
+  font-weight: 300;
+  line-height: 1.14;
+  letter-spacing: -0.012em;
+}
+
+.future-lines {
+  margin: 0;
+  max-width: 28ch;
+  font-size: clamp(1rem, 1.15vw, 1.1875rem);
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--ink-quiet);
+}
+
+.future-lines span {
+  display: block;
+}
+
+/*
+  ---------- Narrow screens: one column, composed for it ----------
+
+  Not the desktop layout made smaller. The manifesto stops holding still and becomes the introduction you
+  read once; the work follows it as a vertical stack, one step at a time, full width. `05-storyboard.md`
+  §9 — beats are re-composed rather than reflowed, and the same story arrives in fewer screens.
+
+  A two-column chapter at this width would be two narrow columns, which is the one thing it must not be.
 */
 @media (max-width: 900px) {
   :root {
     --rule: var(--mark-x);
   }
 
-  .showcase,
-  .showcase--reverse {
+  .studio {
     grid-template-columns: 1fr;
-    gap: clamp(2rem, 6vh, 3.5rem);
+    gap: var(--between-pages);
   }
 
-  .showcase-text,
-  .showcase--reverse .showcase-text {
-    padding-inline: var(--rule);
+  .manifesto {
+    position: static;
+    padding-inline-start: 0;
+  }
+
+  /*
+    Full width, and one measure for the whole column — the manifesto is being read rather than glanced at
+    beside something else, so it takes the size it had before there were two columns.
+  */
+  .three-statement {
+    max-width: 26ch;
+    font-size: clamp(2rem, 5.4vw, 4.75rem);
+  }
+
+  .manifesto-lead {
+    max-width: 26ch;
+    font-size: clamp(1.375rem, 4vw, 1.75rem);
+  }
+
+  .manifesto-body {
+    max-width: 38ch;
+    font-size: clamp(1rem, 2.6vw, 1.125rem);
+  }
+
+  .studio {
+    padding-inline: var(--mark-x);
+  }
+
+  /* The plates bleed to both edges instead, because on a phone the page has no margin to spare. */
+  .step-plate {
+    margin-inline: calc(-1 * var(--mark-x));
+  }
+
+  /*
+    The phone frame does not bleed — a phone screen shown edge to edge stops reading as a phone screen.
+    It keeps its height cap so the column's width never decides how tall it is: at 767 that is a 310px
+    plate and at 390 a 273px one, which is a phone either way rather than a column-wide slab.
+  */
+  .step-plate[data-frame='phone'] {
+    margin-inline: 0;
+  }
+
+  .experience-title {
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
   }
 }
 
@@ -382,9 +680,16 @@ html {
 
 /*
   No margin to spare on a phone, so there is nowhere for a fixed marker to stand that the text does not
-  also need. It stops being an overlay and sits at the head of the chapter instead, scrolling with it —
-  a running head printed on the page rather than held over it. The alternative is fifteen pixels of type
-  sitting permanently on top of the reading column, which is worse than a marker that goes by.
+  also need. It stops being an overlay and sits on the page instead, scrolling with it — a running head
+  printed on the page rather than held over it. The alternative is fifteen pixels of type sitting
+  permanently on top of the reading column, which is worse than a marker that goes by.
+
+  But it has to *land* before it goes by. The handover from the travelling word is a step, and a step is
+  invisible only if the two are in the same place: an absolute marker sitting at the head of the chapter
+  was a whole viewport below the corner the word had just travelled to, so on a phone "III Studio"
+  vanished at the handover and reappeared later somewhere else. `--three-stands` is how far down the
+  frame Chapter III's top edge has reached by then, so subtracting it puts the marker exactly at the
+  corner it arrived in — and then the page carries it away, which is what it is supposed to do here.
 
   This has to come after the rules above rather than with the rest of the narrow-screen block: same
   specificity, and the later declaration wins. Placed earlier it was silently overridden.
@@ -392,7 +697,7 @@ html {
 @media (max-width: 900px) {
   .marker {
     position: absolute;
-    top: clamp(2.5rem, 8vh, 5rem);
+    top: calc(var(--mark-y) - var(--three-stands));
   }
 }
 
@@ -484,6 +789,23 @@ html {
 
 .card-occasion[data-occasion='4'] {
   opacity: var(--i4);
+}
+
+/*
+  The film's last words, held above Chapter III.
+
+  Chapter III now reaches back into this frame — it is a later sibling of `.film`, so by default it paints
+  over everything in it, and the band of paper it brings arrives while the sentence is still coming apart
+  and the word is still at the centre. Measured, the clearance between the band's top edge and the
+  travelling word narrows to about 5vh around beat 6.25 on a wide screen and to nothing on a short one:
+  the word would be clipped by a page that is meant to be emerging *underneath* it.
+
+  One declaration fixes it, because the card has no background of its own — only its ink rises above the
+  page, which is exactly the relationship the brief asks for. Below `.marker`'s 2, so the landed mark
+  still sits on top of both.
+*/
+.card-act-three {
+  z-index: 1;
 }
 
 /* Act III's first words. Ink on paper, and the only thing in the frame. */
@@ -579,6 +901,12 @@ html {
   position: absolute;
   left: var(--mark-x);
   top: var(--mark-y);
+  /*
+    The same layer as the word it belongs beside — see `.card-act-three`. The numeral is always well clear
+    of Chapter III's top edge in practice, so this is not fixing a visible fault; it is keeping the two
+    halves of one mark in one layer, so a retiming cannot separate them.
+  */
+  z-index: 1;
   display: flex;
   align-items: flex-start;
   gap: 0.7em;

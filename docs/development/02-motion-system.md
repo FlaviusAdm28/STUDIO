@@ -124,8 +124,14 @@ thing; a beat of scroll has no duration. `1600` in Chapter I has nothing to do w
 down. If you want a millisecond value below the Chapter I section, the design has changed, and that is
 a brief rather than an edit.
 
-Chapter III is on neither. It is an `IntersectionObserver` and one duration — the film is over, and a
-publication does not perform.
+Chapter III is on neither, **except its first page**. Every page after the first is an
+`IntersectionObserver` and one duration — the film is over, and a publication does not perform.
+
+The first page is part of the film: it comes into existence under the travelling word, from the instant
+the word sets off, so the mark unveils the Studio rather than announcing it afterwards. That is two
+statements about scroll *position* — welded to the travel's start, three-quarters lit when the mark lands
+— and a duration cannot honour either, so it is a beat in beats like everything else in the shot, and it
+reverses exactly. `decisions.md` §44, which also records what that trade costs.
 
 ## The shapes
 
@@ -171,15 +177,28 @@ Every one is an object in `story.ts`, in narrative order. ⚓ marks an anchor.
 | `chapterTravels` | "chapter" travels to the corner | `alone: 0.41`, `fade: 0.74` | `--tm` |
 | `periodLeaves` | The period leaves early | `afterTravelStarts: 0.08` | `--stop` |
 | `iiiStudio` | "III" arrives, the word becomes "Studio" | `beforeTravelEnds: 0.1` | `--swap`, `--mark3`, `--handoff` |
-| `studioBlocks` | Chapter III's blocks arriving | `fade` + observer | `--fade-studio-blocks` |
+| `chapterThreeStands` | Where Chapter III's first page has reached when the mark lands | `atFrameFraction: 0.2` | `--three-overlap`, `--three-stands` |
+| `studioEmerges` | That page coming into existence under the travelling word | `litWhenTheMarkerLands: 0.75` | `--studio`, `--settle` |
+| `studioBlocks` | Chapter III's *other* pages arriving — one per page | `fade` + observer | `--fade-studio-blocks` |
 | `navHover` | The navigation answering a cursor | `fade` | `--fade-nav-hover` |
 
 Plus three things that are not beats: `pace` (the haste multipliers), `pin` (how much scrolling the
 story costs), and `BEATS` (how long the shot is allowed to be).
 
-`iiiStudio` is the one offset that runs **backwards** — from the end of the travel, because the point
-is that the numeral arrives while the word is nearly home. `timeline.ts` checks it cannot reach back
-past the travel's start.
+`iiiStudio` is the one offset that runs **backwards** — from the end of the travel, because the point is
+that the numeral arrives while the word is nearly home. `timeline.ts` checks it cannot reach back past
+the travel's start.
+
+`chapterThreeStands` is the one beat that resolves into a **distance rather than an opacity**. It says
+how far down the frame Chapter III's first page has reached by the time the mark lands, and
+`timeline.ts` turns that into two lengths — the reach-back for the whole chapter and the marker's
+landing corner — with the pinned part stated as a fraction of `--pin`, so one declaration is correct on
+a wheel and on a thumb. Nothing about the shot's timing depends on it; see `decisions.md` §42 and §44.
+
+`studioEmerges` is the one beat that deliberately **ends outside the pinned frame**. Everything else has
+to fit inside `BEATS` or its tail is a beat nobody sees; this one drives the page *below* the pin, which
+keeps scrolling. Its start is welded to the travel's start and its end is solved from
+`litWhenTheMarkerLands` — the one number that was actually decided — by inverting the curve.
 
 ## The opening is mandatory
 
@@ -246,9 +265,12 @@ still fading in, and never see the beat.
   frame however far the visitor got, and their next gesture carries straight on into Chapter II.
 - `--origin` is added to `.film`'s height, so there is always a full `--pin` of scrolling beneath the
   visitor. They cannot reach the bottom while the opening is running and find the shot with no room
-  left to play in. It is rounded up to whole viewports, because it is the one value that changes the
-  document's *height* — writing it costs a layout of the whole page, and the moment it would be
-  written most often is a hard flick, which is the worst moment to be relaying out.
+  left to play in. **While it is still moving** it is rounded up to whole viewports, because it is the
+  one value that changes the document's *height* — writing it costs a layout of the whole page, and the
+  moment it would be written most often is a hard flick, which is the worst moment to be relaying out.
+  **Once the origin is fixed it is written exactly**, because the film's height is where the page below
+  it begins: anything placed against a beat of the shot — `chapterThreeStands` is — would otherwise be up
+  to a viewport out for a visitor who scrolled during the opening. `decisions.md` §42.
 - Scrolling back up above the origin brings it down with you, so the stretch of scroll that did
   nothing collapses behind you. That is free of visual consequence by construction: above the origin
   the shot is already at its first frame, so moving the origin cannot change a value.
@@ -266,7 +288,9 @@ worse somewhere the compiler cannot see.
 |---|---|
 | The timestamp is gone exactly when the identity arrives | Both sides are authored — one anchor, one hold — so nothing structural keeps them equal. Change `timestamp.hold` and you get a gap or an overlap where the handover should be seamless. |
 | Every gap is positive | A negative `after` is the one route back to two beats sharing a frame the act was composed to keep empty. |
-| `iiiStudio` cannot reach back past the travel's start | It is the one offset measured backwards, so it is the one that can place a beat before its parent. |
+| `iiiStudio` cannot reach back past the travel's start | It is measured backwards, so it can place a beat before its parent. |
+| Chapter III is 0.6–0.8 lit when the mark lands | The brief's own band. The range is solved for it, so this only fails if the travel moves under it or the authored value leaves the band. |
+| `studioEmerges` starts inside the frame and ends after the mark lands | Its start is what makes the mark an unveiling rather than an announcement; its end being *later* is what leaves something to settle. |
 | The shot fits inside `BEATS` | A ripple edit can push the tail of the shot past the end of the pinned frame, where nobody would ever see it. |
 | Two Chapter I cues are never close enough for hurrying to show them together | `maxAdvance` cannot go below `pace.maxStep` without slowing the natural pace, so if a third of the closest gap is smaller than that, the no-skip guarantee weakens. Widen the gap, or lower `pace.urgent`. |
 
@@ -319,7 +343,10 @@ Holds and gaps are the two halves of Chapter II's rhythm, and both are now one n
 | Lengthen the bridge (the page turn) | `blackTransition.bridge` and `chapterTwoMarker.hold` |
 | Make the cream transition slower | `creamTransition.lightFade` |
 | Give "chapter" longer alone at the centre | `chapterTravels.alone` |
-| Make Chapter III's blocks arrive sooner | `studioBlocks.rootMargin` |
+| Move where Chapter III's first page stands when the mark lands | `chapterThreeStands.atFrameFraction` — the reach-back follows. Raising it toward 0.8 restores `05-storyboard.md` Beat 2; see `decisions.md` §44 |
+| Change how lit that page is when the mark lands | `studioEmerges.litWhenTheMarkerLands` — the range re-solves around it |
+| Change how far it rises into place | `studioEmerges.rise`, in pixels. Zero is legitimate — read §44 first |
+| Make Chapter III's other pages arrive sooner | `studioBlocks.arrivesShortOf` |
 | Change how much scrolling the story costs | `pin.fine` / `pin.coarse` — retimes nothing |
 | Change the floor for a click or a keypress | `pace.haste` — CSS follows automatically |
 | Change how fast a hard scroll may make the opening | `pace.urgent` — and read the note on 4 |
@@ -334,6 +361,7 @@ set it to.
 ```ts
 easings.DEFAULT   // cubic-bezier(0.32, 0, 0.24, 1) — for anything timed in milliseconds
 smoothstep        // x * x * (3 - 2 * x)            — for anything timed in scroll position
+unsmoothstep      // the same curve, solved for its input — not a second curve
 ```
 
 **Easing is shared, and there is one curve.** `globals.css` opens by saying so and
@@ -345,6 +373,10 @@ This is the one place the system deliberately refuses variety. There is no `SMOO
 separate `CINEMATIC` — offering curves that nothing is allowed to use is how a ban becomes a trap for
 whoever reads the module next. **Adding a curve needs a line in a locked document and an entry in
 `decisions.md`.**
+
+`unsmoothstep` is not a third entry in that list. It is `smoothstep` read the other way, so that a beat
+can be authored by the thing that was decided — *three-quarters lit when the mark lands* — instead of by
+the range that happens to produce it. Nothing eases with it; it only resolves a range.
 
 The two that exist are two because they are different mechanisms, not different voices. A CSS
 transition eases between two states over a duration. A scroll-driven value has no duration — it is
@@ -376,8 +408,17 @@ there is no default to write down and none to forget.
 should move with it, it is a relationship. If it should stay exactly where it is, it is an anchor — and
 that is a claim worth a comment explaining why.
 
-**To Chapter III:** add `data-reveal` to the block. The observer picks it up and the existing fade
-applies.
+**To Chapter III:** add `data-reveal` to the **page**, not to the elements on it. The observer picks it
+up and the existing fade applies.
+
+A page is the unit here, because Chapter III is a publication: it comes into existence as one thing when
+the visitor turns to it, and the statement, plate and copy on it do not each get their own arrival. Three
+reveals for one page is three answers to `04-visual-language.md` §7's only question — *what changed?* —
+when the answer is one: the chapter arrived. `decisions.md` §43.
+
+The first page is the exception and carries `data-emerges` instead: the film reveals that one, as a beat
+of the shot, so `Reveal` only watches it in order to know when to start loading its footage. Nothing else
+should ever need that attribute — it exists because that page is inside the film's own frame.
 
 Before adding anything, the question `04-visual-language.md` §7 asks: has the *meaning* changed? If
 nothing has changed in meaning, nothing moves. And `01-validation.md`: if a reviewer can name the
@@ -401,6 +442,15 @@ Everything currently derived rather than written down:
   publishes `1 / rate`.
 - **The shot's eighteen first-frame values.** The track evaluated at zero, not eighteen defaults
   maintained by hand.
+- **The observer's `rootMargin`.** `studioBlocks.arrivesShortOf` is a number, and the string is built
+  from it — because the same number decides where Chapter III's opening sits. The observer's threshold
+  and that placement have to agree, so only one of them is authored.
+- **Where Chapter III begins, and where the marker lands on a phone.** Both come from
+  `100vh + pin · (1 − b/BEATS)` evaluated at the handover, so both are derived from
+  `chapterThreeStands` rather than two viewport distances somebody measured once at one screen size.
+- **The end of Chapter III's emergence.** Solved from `litWhenTheMarkerLands` by inverting the curve —
+  `unsmoothstep` — because what was decided is how lit the page is when the mark lands, and the range
+  that produces it is arithmetic. Retime the travel and it re-solves.
 
 **Two numbers that must agree: one is computed. Two numbers that merely happen to match: leave them
 alone.** Telling those apart is the whole judgement this system asks of you. Where it genuinely cannot

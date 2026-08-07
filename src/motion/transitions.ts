@@ -19,7 +19,7 @@
 
 import { easings } from './easings'
 import { chapterOneStory as one, pin, rates } from './story'
-import { navHover, studioBlocks } from './timeline'
+import { chapterThree, navHover, studioBlocks } from './timeline'
 import { PRECISION, track } from './scroll'
 
 /**
@@ -33,6 +33,9 @@ import { PRECISION, track } from './scroll'
  * Three decimal places reproduces the four values this replaced — 1, 0.645, 0.45, 0.29 — exactly.
  */
 const haste = (rate: number): string => (1 / rate).toFixed(3)
+
+/** A fraction of the viewport, as a `dvh` length — the unit `.film`'s own height is built from. */
+const ofFrame = (fraction: number): string => `${Math.round(fraction * 1e6) / 1e4}dvh`
 
 /**
  * One property per beat that fades. Constant, or switched by a media query.
@@ -60,6 +63,26 @@ const settings: ReadonlyArray<readonly [string, string]> = [
   ['--haste', haste(rates.base)],
 
   ['--pin', pin.fine],
+
+  /*
+    Where Chapter III begins — inside the film's last frame rather than beneath it, so the mark unveils
+    the page it introduces instead of announcing an empty one. `story.chapterThreeStands`.
+
+    Distances, not durations. `--three-stands` is where the page's top edge has reached by the time the
+    marker lands; `--three-overlap` is how far back that puts the whole chapter, and it carries the
+    `--pin` term so it follows the pointer when the runway is longer for a thumb.
+  */
+  ['--three-stands', ofFrame(chapterThree.standsAt)],
+  [
+    '--three-overlap',
+    `calc(100dvh + var(--pin) * ${chapterThree.overlapOfPin} - var(--three-stands))`,
+  ],
+
+  /*
+    How far Chapter III's first page rises into place as it comes into existence. A constant; `--settle`
+    from the track says how much of it is still to come. `story.studioEmerges.rise`.
+  */
+  ['--settle-by', `${chapterThree.rise}px`],
 
   /*
     Where the shot starts, in pixels. Zero until the visitor scrolls during the opening; the driver

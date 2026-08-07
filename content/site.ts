@@ -73,27 +73,94 @@ export const site = {
   /**
    * Chapter III. The storytelling has finished; this is the studio.
    *
-   * The opening statement is `02-positioning.md` §1 verbatim, broken into three authored lines —
-   * `04-visual-language.md` §4, in a statement where the line ends is part of the composition.
-   *
-   * The showcase copy is deliberately temporary. It exists so that layout, measure and rhythm can be
-   * judged against real sentences rather than greeked text, and it is drawn from the locked documents
-   * so it is at least in the right voice while it waits to be replaced.
+   * Two halves that behave differently. The **manifesto** is what the studio is, and it does not move:
+   * on a wide screen it holds the left column while the work goes by beside it. The **work** is one
+   * experience studied in depth, a step at a time — not a portfolio, not a grid, and not a set of
+   * alternating sections. `decisions.md` §45.
    */
   three: {
-    statement: ['Digital experiences', 'built for moments', 'that only happen once.'] as const,
+    /**
+     * The manifesto. The positioning sentence is `02-positioning.md` §1 verbatim in three authored
+     * lines — `04-visual-language.md` §4, in a statement where the line ends is part of the
+     * composition — and the two lines under it were given in the brief and are kept verbatim.
+     */
+    manifesto: {
+      statement: ['Digital experiences', 'built for moments', 'that only happen once.'] as const,
+      lead: 'We don’t build websites.',
+      body: 'We create digital experiences that become part of the memory itself.',
+    },
 
-    showcases: [
-      {
-        /** Given in the brief as an example, and kept verbatim. */
-        lead: 'We don’t build websites.',
-        body: 'We create digital experiences that become part of the memory itself.',
-      },
-      {
-        /** Drafted from `01-vision.md` — attention given in advance, deliberately, by someone. */
-        lead: 'One occasion. One arrival.',
-        body: 'Attention is what turns a moment into one, and it has to be given a year early, on purpose, by somebody. That is most of the work.',
-      },
-    ] as const,
+    /**
+     * The work.
+     *
+     * `experiences` is a list on purpose, and it is a list of one. Appending the second — an
+     * exhibition, an artist, a hotel — is an entry in this array and nothing else: no new component,
+     * no new stylesheet rule, no new motion value. That is the whole architecture, and it is why there
+     * are no invented projects sitting here to make the page look fuller than the studio is.
+     */
+    work: {
+      /** Above the first experience. A running label for the half of the chapter that changes. */
+      label: 'Selected Work',
+
+      experiences: [
+        {
+          title: 'Wedding Experience',
+
+          /**
+           * Where the live experience opens. `null` until it exists — the call to action is then
+           * composed but not clickable, which is honest, where a link to nowhere would not be.
+           */
+          opens: null,
+          cta: 'Open experience',
+
+          /**
+           * The experience, a step at a time. Each step is a named frame; `plate` is what fills it.
+           *
+           * `frame` is the *shape* the step needs and is chosen per step rather than inherited —
+           * `04-visual-language.md` §5. A phone screen in a landscape frame is a reshaped image, which
+           * that section forbids outright, so `Mobile` declares its own.
+           *
+           * `plate: null` is an honest empty frame: the composition exists and the asset does not.
+           * Five of the seven are that today. The two that are filled are the footage already in this
+           * repository and are **stand-ins, to be read as stand-ins** — the same disclosure entry 41
+           * made about the held frame it used. Replacing any of them, or swapping a screenshot for a
+           * live embed, is a change to this line and to nothing else.
+           */
+          steps: [
+            {
+              name: 'Homepage',
+              frame: 'screen',
+              plate: { kind: 'motion', src: '/media/hero/video/hero_demo2.mov' },
+            },
+            { name: 'Timeline', frame: 'screen', plate: null },
+            {
+              name: 'Gallery',
+              frame: 'screen',
+              /** A held frame of the hero's own footage, so a still costs nothing to show. */
+              plate: { kind: 'still', src: '/media/hero/video/hero_demo4.mov', at: 1.2 },
+            },
+            { name: 'RSVP', frame: 'screen', plate: null },
+            { name: 'Countdown', frame: 'screen', plate: null },
+            { name: 'Mobile', frame: 'phone', plate: null },
+            { name: 'Final screen', frame: 'screen', plate: null },
+          ],
+        },
+      ],
+    },
+  },
+
+  /**
+   * The ending, and it is deliberately an ending rather than a shortfall.
+   *
+   * There is one experience, so the chapter closes by saying so instead of padding itself out. Typography
+   * and nothing else — no illustration, no device, no invitation.
+   *
+   * **Remove this key and the section stops rendering.** That is the intended way for it to go: when
+   * there is a second experience it has stopped being true, and nothing else needs touching.
+   */
+  four: {
+    numeral: 'IV',
+    label: 'Future Chapters',
+    lines: ['Some stories', 'haven’t been written yet.'] as const,
   },
 } as const

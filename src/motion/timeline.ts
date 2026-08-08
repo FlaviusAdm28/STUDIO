@@ -165,6 +165,24 @@ export const maxAdvance: number = Math.max(pace.maxStep, Math.min(200, closestBe
 const marker = cue(shot.chapterTwoMarker.at, shot.chapterTwoMarker)
 const statement = cue(r(marker.gone + shot.everyUnforgettableMoment.after), shot.everyUnforgettableMoment)
 
+/*
+  `CHAPTER II` becoming `II Philosophy`, entirely inside the marker's hold — so it is measured from
+  `marker.enter.to`, the instant the mark has finished arriving, and nothing about it can move the
+  statement or anything after it.
+
+  The numeral's start is solved rather than authored: `unsmoothstep` gives the progress at which the
+  word's fade has reached `numeralSetsOffWhenWordIs`, which is the overlap that was actually decided.
+*/
+const becomes = shot.chapterTwoBecomesPhilosophy
+const wordFrom = r(marker.enter.to + becomes.whole)
+const wordTo = r(wordFrom + becomes.wordLeaves)
+
+const numeralFrom = r(wordFrom + becomes.wordLeaves * unsmoothstep(becomes.numeralSetsOffWhenWordIs))
+const numeralTo = r(numeralFrom + becomes.numeralTravels)
+
+const topicFrom = r(numeralTo + becomes.topicAfterNumeral)
+const topicTo = r(topicFrom + becomes.topicFade)
+
 const wedding = cue(r(statement.gone + shot.wedding.after), shot.wedding)
 const exhibition = cue(r(wedding.gone + shot.exhibition.after), shot.exhibition)
 const artist = cue(r(exhibition.gone + shot.artist.after), shot.artist)
@@ -212,6 +230,18 @@ export const spans = {
   },
 
   marker,
+
+  /**
+   * The mark rewriting itself. Three overlapping ranges and one blur depth, all inside `marker`'s hold.
+   *
+   * `becomesBlur` is a distance rather than a fade, which is why it rides on the word's own range
+   * instead of having one of its own: the word loses focus *as* it goes, not afterwards.
+   */
+  becomesWordLeaves: { from: wordFrom, to: wordTo } as Span,
+  becomesNumeralTravels: { from: numeralFrom, to: numeralTo } as Span,
+  becomesTopicArrives: { from: topicFrom, to: topicTo } as Span,
+  becomesBlur: becomes.blur,
+
   statement,
   wedding,
   exhibition,
@@ -336,6 +366,8 @@ if (process.env.NODE_ENV !== 'production') {
     back to the overlap the chain was built to prevent, and it is an easy typo.
   */
   const gaps: ReadonlyArray<readonly [string, number]> = [
+    ['chapterTwoBecomesPhilosophy.whole', becomes.whole],
+    ['chapterTwoBecomesPhilosophy.topicAfterNumeral', becomes.topicAfterNumeral],
     ['everyUnforgettableMoment.after', shot.everyUnforgettableMoment.after],
     ['wedding.after', shot.wedding.after],
     ['exhibition.after', shot.exhibition.after],
@@ -355,6 +387,48 @@ if (process.env.NODE_ENV !== 'production') {
           `the act was composed to keep empty.`,
       )
     }
+  }
+
+  /*
+    Three things about the mark rewriting itself, none of them true by construction.
+
+    The overlap first: the numeral sets off from a point solved inside the word's fade, so it is only an
+    overlap while that fraction is inside the range. At 0 the numeral leads and at 1 the pause is back —
+    both are legal arithmetic and neither is the gesture.
+
+    Then the other end of it: the word has to be *completely* gone by the time the numeral arrives, or
+    the frame that is meant to read `II` alone still has a ghost of `CHAPTER` beside it.
+
+    And last, all of it has to fit inside the marker's hold with the finished mark standing still at the
+    end of it. This is the one that a ripple edit breaks silently — the transformation is measured from
+    the marker's own arrival, so shortening the hold shortens the stillness and nothing else complains.
+  */
+  if (becomes.numeralSetsOffWhenWordIs <= 0 || becomes.numeralSetsOffWhenWordIs >= 1) {
+    complain(
+      'The mark does not overlap itself.',
+      `numeralSetsOffWhenWordIs is ${becomes.numeralSetsOffWhenWordIs}. Outside 0 to 1 there is no ` +
+        `overlap at all: the numeral either leads the word out or waits for it, and the transformation ` +
+        `reads as fade, pause, move, appear. The brief asks for 0.7 to 0.8.`,
+    )
+  }
+
+  if (numeralTo < wordTo) {
+    complain(
+      'The word is still there when the numeral arrives.',
+      `the word is gone at ${wordTo} and the numeral lands at ${numeralTo}. Raise numeralTravels above ` +
+        `${r(wordTo - numeralFrom)} so the numeral is alone in the frame the moment it settles.`,
+    )
+  }
+
+  const stillness = r(marker.exit.from - topicTo)
+  if (stillness < shot.everyUnforgettableMoment.hold) {
+    complain(
+      'II Philosophy does not stand still long enough.',
+      `it finishes at ${topicTo} and the marker starts leaving at ${marker.exit.from} — ${stillness} ` +
+        `beats of stillness, against the ${shot.everyUnforgettableMoment.hold} the statement after it ` +
+        `gets. A mark has to be a mark before it leaves. Lengthen chapterTwoMarker.hold, or shorten the ` +
+        `transformation.`,
+    )
   }
 
   /*

@@ -8,7 +8,7 @@ export const site = {
   title: 'Chapter One',
 
   /** Arrives with the second shot of the footage. */
-  openingLine: 'The digital chapter begins here.',
+  openingLine: 'Where moments become digital.',
 
   /**
    * Beneath the timestamp. Deliberately not a city — the sentence notes that the
@@ -32,9 +32,21 @@ export const site = {
    * and flagged rather than quietly changed.
    */
   two: {
-    /** The chapter marker. Uppercased in CSS rather than here, so it is read normally. */
-    marker: 'Chapter II',
-    statement: ['Every unforgettable moment', 'has another chapter.'] as const,
+    /**
+     * The chapter marker, in the three parts it is made of, because it does not stay one thing:
+     * `Chapter II` becomes `II Philosophy` while the visitor scrolls. The word leaves, the numeral
+     * moves to where the whole mark was centred, and the topic arrives beside it.
+     *
+     * `word` is uppercased in CSS rather than here, so it is read normally. `topic` is not — it is
+     * set the way `mark.label` is, because by then the mark is speaking in the same voice as the one
+     * in Chapter III's corner: a numeral and a name, not a running head.
+     */
+    marker: {
+      word: 'Chapter',
+      numeral: 'II',
+      topic: 'Philosophy',
+    },
+    statement: ['Every unforgettable moment', 'deserves an experience.'] as const,
 
     /**
      * Four occasions, one at a time, on a tighter cadence than the statement before them. Concrete

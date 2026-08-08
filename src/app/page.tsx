@@ -42,6 +42,14 @@ export default function Home() {
           .card { position: static; padding: 22vh 8vw; }
           .card-marker, .card-statement, .card-occasion, .card-close { opacity: 1 !important; }
           .close-lead, .close-another, .mark-word, .mark-stop { opacity: 1 !important; }
+          /*
+            No scroll, so the mark cannot rewrite itself. It reads as the chapter line it starts as,
+            which is the same answer the travelling word gets below: the initial form, whole, and the
+            part that only exists after a transformation left out rather than stacked on top of it.
+          */
+          .card-marker-word { opacity: 1 !important; filter: none !important; }
+          .card-marker-mark { transform: none !important; }
+          .card-marker-topic { display: none !important; }
           .mark { transform: none !important; }
           .mark-label { display: none !important; }
           .mark-slot { display: none !important; }
@@ -69,9 +77,24 @@ export default function Home() {
         <div className="stage">
           <Opening />
 
-          {/* Every card is centred in the same frame, and no two of them ever share it. */}
+          {/*
+            Every card is centred in the same frame, and no two of them ever share it.
+
+            The marker is in three parts because it does not stay one thing: `CHAPTER II` becomes
+            `II Philosophy` while the visitor scrolls. `word` and the numeral are in normal flow, so
+            the card centres `CHAPTER II` exactly as it always did and the resting frame is unchanged.
+            `topic` hangs off the numeral's own right edge, out of flow — which is what keeps it from
+            widening the line it is not part of yet, and what makes the numeral's travel measurable
+            from the layout rather than authored.
+          */}
           <div className="card" aria-hidden="true">
-            <p className="card-marker">{site.two.marker}</p>
+            <p className="card-marker">
+              <span className="card-marker-word">{site.two.marker.word}</span>{' '}
+              <span className="card-marker-mark">
+                {site.two.marker.numeral}
+                <span className="card-marker-topic">{site.two.marker.topic}</span>
+              </span>
+            </p>
           </div>
 
           <div className="card">

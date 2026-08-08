@@ -109,6 +109,55 @@ export default function ScrollStage() {
     }
     survey()
 
+    /**
+     * How far the chapter numeral has to move, measured rather than authored.
+     *
+     * `CHAPTER II` becomes `II Philosophy`, and the two have to be centred on the same axis or the mark
+     * appears to slide sideways as well as rewrite itself. Nothing about that distance can be written
+     * down: `Philosophy` is much wider than `Chapter`, by a different amount at every size, and it is
+     * set at a different tracking again — so the honest answer is the rendered one.
+     *
+     * Both compositions are measured by their **ink**, not by their boxes. Tracked-out type carries a
+     * trailing letter-space after its last glyph, which is half a tracking unit of phantom width on the
+     * right of each line; centring the boxes would centre that phantom and put both lines visibly left
+     * of where they belong. The stylesheet already solves this for the resting line with `text-indent`,
+     * and the same subtraction is what makes the moved line agree with it.
+     *
+     * The reference is the resting line's own optical centre rather than the card's, so this asks only
+     * "where is `CHAPTER II` centred" and never has to know how the card centred it — the safe-area
+     * padding, the measure, the viewport all stay the stylesheet's business.
+     *
+     * `--mknum` is forced to 0 first, for the same reason `survey` forces `--tm`: the element being
+     * measured is the element being transformed, and its natural position is only observable untransformed.
+     */
+    const surveyMark = () => {
+      const line = document.querySelector<HTMLElement>('.card-marker')
+      const chapter = document.querySelector<HTMLElement>('.card-marker-word')
+      const numeral = document.querySelector<HTMLElement>('.card-marker-mark')
+      const topic = document.querySelector<HTMLElement>('.card-marker-topic')
+      if (line === null || chapter === null || numeral === null || topic === null) return
+
+      root.style.setProperty('--mknum', '0')
+      written.delete('--mknum')
+
+      /* The phantom width on the right of each line: whatever tracking its last element carries. */
+      const trail = (el: HTMLElement) => {
+        const px = parseFloat(getComputedStyle(el).letterSpacing)
+        return Number.isFinite(px) ? px : 0
+      }
+
+      const from = chapter.getBoundingClientRect()
+      const mark = numeral.getBoundingClientRect()
+      const name = topic.getBoundingClientRect()
+
+      /* `CHAPTER II` as it rests, and `II Philosophy` as it would sit if the numeral never moved. */
+      const resting = (from.left + mark.right - trail(numeral)) / 2
+      const rewritten = (mark.left + name.right - trail(topic)) / 2
+
+      root.style.setProperty('--mk', `${(resting - rewritten).toFixed(2)}px`)
+    }
+    surveyMark()
+
     let frame = 0
 
     /**
@@ -202,6 +251,7 @@ export default function ScrollStage() {
     const onResize = () => {
       price()
       survey()
+      surveyMark()
       onScroll()
     }
 

@@ -2083,3 +2083,92 @@ document that grows while a flick is in flight. That is the one thing to check o
 flicking hard when the opening releases will see Chapter I's words go in roughly one frame. That is the
 shot behaving as authored rather than a defect of this change, and widening it is a storyboard decision
 rather than a fix. Flagged because it is the one moment where "seamless" is doing real work.
+
+## 32 — `CHAPTER II` rewrites itself into `II Philosophy`
+
+*8 August 2026. A brief, and a distance nobody is allowed to write down.*
+
+**What was asked.** The Chapter II marker should stop being a chapter line and become the chapter's
+name, as one continuous scroll-driven gesture: the word fades and softens, the numeral sets off *while
+the word is still going*, it settles, and the topic arrives beside it. Explicitly not fade → pause →
+move → appear. No scroll lock, no clock, no second easing, no bounce.
+
+**Traced to** `04-visual-language.md` §7 — motion exists to make change comprehensible. §299's argument
+for the one travelling word applies here at a smaller scale and for the same reason: what changes is
+what the mark is *for*. It stops numbering the chapter and starts naming it, so the word that only
+numbered it leaves. That is the second element in the piece permitted to move, and the last.
+
+**The overlap is the decision; the offset is arithmetic.** `numeralSetsOffWhenWordIs: 0.76` says the
+numeral leaves when the word is three-quarters gone. It is *not* a delay: the fade is a smoothstep, so
+76% faded is 68.1% of the way through the range, and `unsmoothstep` solves for it — the same trick, and
+the same reason, as `litWhenTheMarkerLands` in §44. Authoring the delay instead would have meant writing
+0.1635 in the storyboard and having it silently become the wrong overlap the first time the fade moved.
+
+Measured at the midpoint of the overlap: word 0.148, blur 2.98px, numeral 0.023 — a soft ghost of
+`CHAPTER` with `II` just under way. Below about 0.6 the two read as a cross-fade; at 1.0 the pause the
+brief forbids comes back.
+
+**No overshoot, and none simulated.** `--mknum` is the shared smoothstep, which has zero slope at both
+ends, so the numeral arrives at rest for free. A spring would have been a second curve, which
+`easings.ts` exists to refuse.
+
+**The blur is 3.5px and rides the word's own range.** Not a separate beat — one range driving opacity
+and focus together, so a retiming cannot separate them. At a 15–22px marker that is about a sixth of
+the cap height: the letterforms soften and nothing is ever a blur you would name. It rises
+monotonically rather than peaking at the midpoint, because reversed it should read as the word coming
+*into* focus as it arrives.
+
+**The distance is measured, and this is the part worth remembering.** `Philosophy` is far wider than
+`Chapter`, by a different amount at every size, and it is set at 0.06em against the marker's 0.34em. The
+brief said not to reuse the old distance blindly, and there is no distance to reuse — so
+`scroll-stage.tsx` reads the live layout and derives the one offset that puts `II Philosophy` centred
+exactly where `CHAPTER II` was, publishing it as `--mk`.
+
+Both compositions are measured by their **ink**, not their boxes. Tracked-out type carries a trailing
+letter-space after its last glyph, and centring the boxes centres that phantom instead — which is the
+same fault `.card-marker`'s `text-indent` already corrects for the resting line, so the moved line has
+to make the same subtraction or the two disagree by half a tracking unit. The reference is the resting
+line's own optical centre rather than the card's, so the measurement never has to know how the card
+centred anything: safe-area padding, measure and viewport all stay the stylesheet's business. Measured,
+at three widths: resting centre, final centre and card centre agree to 0.1px.
+
+`--track` is now named on `.card-marker` because three declarations have to agree about 0.34em, and one
+of them is a gap measured from the far side of it. The topic's gap is `calc(0.7em - var(--track))`, so
+the ink between numeral and name is 0.7em — the same gap `.mark-slot` puts between `III` and `Studio`,
+because it is the same relationship one chapter earlier.
+
+**It costs no scroll.** The whole transformation is 0.714 beats inside the marker's existing 1.0 hold,
+which leaves 0.286 of stillness — a longer breath than the statement that follows gets (0.28). The shot
+already ended at 6.93 of `BEATS: 7`, so there was no room to lengthen anything, and nothing downstream
+moved: 15 positions swept across the full shot, every other value identical.
+
+Three new checks, because none of it is true by construction: the overlap fraction is inside its range,
+the word is *completely* gone by the time the numeral lands, and the finished mark stands still at least
+as long as the statement's hold. The third is the one a ripple edit breaks silently — the transformation
+is measured from the marker's own arrival, so shortening the hold shortens only the stillness and
+nothing else would complain.
+
+**Verified.** Replayed from the first frame. Landmarks in beats against the storyboard, twice, identical:
+marker lit 0.460 (0.46), word leaves 0.604 (0.60), numeral sets off 0.767 (0.7635), word gone 0.840
+(0.84), numeral lands 0.963 (0.9635), topic 1.017 → 1.176 (1.0135 → 1.1735), marker leaves 1.462 (1.46).
+
+- **Reversal is exact.** 23 positions forward, the same 23 backwards: zero differences to four decimals.
+  It is a pure function of scroll position, so this is construction rather than luck.
+- **Stopping holds the frame.** Held at the overlap and again mid-travel, six samples over 1.5s each:
+  no value moved. There is no clock to keep running.
+- **Widths.** 2133×987, 1440×876, 767×876 and a forced 390-wide frame at the phone's own 6vw padding.
+  `--mk` re-surveys on resize (−153.06px at 22px type, −104.40px at 15px); both compositions centred and
+  inside the measure at every size, one line throughout, no document overflow.
+- Typecheck, lint and build clean; no `[motion]` complaints on load.
+
+**Not verified.** iOS Safari, as ever. Also the true 1920×1080 viewport: this environment's Chrome sits
+at 90% page zoom, so "1920" renders as a 2133 CSS viewport, and Chrome will not size a window below 555
+CSS px — hence the forced narrow frame rather than a real 390 one. The marker's type is at its clamp
+floor of 15px at both 767 and 390, which is what the narrow case actually turns on, and its cap of 22px
+at both 1440 and 2133.
+
+**Honest note.** `Philosophy` is title case at 0.06em rather than more tracked-out capitals, because by
+the end of the gesture the mark is saying the same kind of thing as `III Studio` in Chapter III's corner
+— a numeral and a name. Ten letters at 0.34em would be nearly twice the width of the line they belong to
+and would read as a banner. The brief wrote it that way too. It is still a change of voice mid-line, and
+if it ever reads as two typefaces arguing, the fix is the tracking, not the gesture.

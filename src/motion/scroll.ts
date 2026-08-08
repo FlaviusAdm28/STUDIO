@@ -46,6 +46,22 @@ export const track: Track = [
   ],
 
   ['--marker', (s) => show(s, spans.marker)],
+
+  /*
+    `CHAPTER II` rewriting itself into `II Philosophy`, inside the marker's own hold. Three independent
+    functions of position, which is what makes it one continuous gesture forwards *and* backwards: there
+    is no state to unwind, so scrolling back up interpolates the same three numbers the other way.
+
+    `--mkblur` is the word losing focus as it goes, so it rides the *same* range as its own opacity
+    rather than having one of its own — one range, two properties, and therefore no way for the softening
+    and the fading to drift apart under a retiming. It is a distance rather than a fade, so CSS gives it
+    its unit; see `story.chapterTwoBecomesPhilosophy.blur`.
+  */
+  ['--mkword', (s) => fall(s, spans.becomesWordLeaves)],
+  ['--mkblur', (s) => spans.becomesBlur * rise(s, spans.becomesWordLeaves)],
+  ['--mknum', (s) => rise(s, spans.becomesNumeralTravels)],
+  ['--mktopic', (s) => rise(s, spans.becomesTopicArrives)],
+
   ['--statement', (s) => show(s, spans.statement)],
 
   ['--i1', (s) => show(s, spans.wedding)],

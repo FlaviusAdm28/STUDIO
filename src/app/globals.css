@@ -737,13 +737,89 @@ a.experience-open:focus-visible {
   */
   font-size: clamp(0.9375rem, 1.6vw, 1.375rem);
   font-weight: 400;
-  letter-spacing: 0.34em;
+  /*
+    Named because three declarations need to agree about it, and one of them is a gap measured from the
+    far side of it. Stated once, so they cannot drift.
+  */
+  --track: 0.34em;
+  letter-spacing: var(--track);
   /* The tracking adds space after the last letter; pull it back so the word stays centred. */
-  text-indent: 0.34em;
+  text-indent: var(--track);
   text-transform: uppercase;
   line-height: 1;
   color: var(--aside);
   opacity: var(--marker);
+  /* So `topic` has something to hang off, and so the parts stay one line at any size. */
+  position: relative;
+  white-space: nowrap;
+}
+
+/*
+  The mark rewriting itself: `CHAPTER II` → `II Philosophy`.
+
+  The same argument as `.mark` further down, at a smaller scale and for the same reason — what changes
+  is what the mark is *for*. It stops being a chapter line and becomes the chapter's name, so the word
+  that only numbered it leaves and the word that names it arrives. `04-visual-language.md` §7: motion
+  exists to make change comprehensible.
+
+  Three properties across three overlapping ranges, and nothing else. No scale, no rotation, no
+  overshoot: `--mknum` is the shared smoothstep, which has zero slope at both ends, so the numeral
+  arrives at rest without a spring being simulated to fake it.
+*/
+.card-marker-word {
+  opacity: var(--mkword, 1);
+  /*
+    The word loses focus rather than simply dimming. A pure opacity fade on tracked-out capitals reads
+    as a light going off; softening the letterforms as they go reads as something leaving. The driver
+    writes the distance — `story.chapterTwoBecomesPhilosophy.blur` is where the 3.5px is argued.
+
+    `display: inline-block` because a filter on an inline box that could wrap has no defined single box
+    to filter. It cannot wrap here, and this says so structurally rather than relying on it.
+  */
+  display: inline-block;
+  filter: blur(calc(var(--mkblur, 0) * 1px));
+}
+
+/*
+  The numeral, and the only thing in Chapter II that moves.
+
+  `--mk` is measured, not authored: `scroll-stage.tsx` reads the live layout and computes the one
+  offset that puts `II Philosophy` optically centred exactly where `CHAPTER II` was centred. It cannot
+  be a number in this file — `Philosophy` is far wider than `Chapter`, by a different amount at every
+  size, and the marker's own tracking makes the optical centre and the box centre different things.
+*/
+.card-marker-mark {
+  display: inline-block;
+  position: relative;
+  transform: translateX(calc(var(--mk, 0px) * var(--mknum, 0)));
+  will-change: transform;
+}
+
+/*
+  `Philosophy`, arriving beside the numeral once it is at rest.
+
+  Absolute, off the numeral's right edge, so it is not part of the line while the line is still
+  `CHAPTER II` — the resting composition is unchanged by its presence, and the numeral's travel can be
+  measured with it already in place.
+
+  Set the way `.marker-label` is rather than as more tracked-out capitals: by this point the mark is
+  saying the same kind of thing as `III Studio` in Chapter III's corner — a numeral and a name. Ten
+  letters at 0.34em would be nearly twice the width of the line it belongs to and would read as a
+  banner. `em` throughout, so it holds at every size the marker takes.
+
+  The gap is the corner mark's own: `.mark-slot` puts 0.7em of ink between `III` and `Studio`, and this
+  is the same relationship one chapter earlier, so it is the same number. `left: 100%` lands past the
+  numeral's *trailing tracking*, not past its last glyph, so `--track` is subtracted — otherwise the gap
+  would be 0.34em wider here than there while claiming to be the same.
+*/
+.card-marker-topic {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  margin-left: calc(0.7em - var(--track));
+  text-transform: none;
+  letter-spacing: 0.06em;
+  opacity: var(--mktopic, 0);
 }
 
 /*

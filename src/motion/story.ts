@@ -218,6 +218,72 @@ export const shotStory = {
   chapterTwoMarker: { at: 0.28, fadeIn: 0.18, hold: 1.0, fadeOut: 0.14 },
 
   /**
+   * `CHAPTER II` becoming `II Philosophy`, inside the marker's own hold.
+   *
+   * One gesture, not four: the word goes, the numeral sets off **while it is still going**, and the
+   * topic arrives beside the numeral once it is at rest. The overlap is the whole reason this reads as
+   * a mark being rewritten rather than as fade-out, pause, move, appear — so `numeralSetsOffWhenWordIs`
+   * is stated as *how far gone the word is*, not as a delay, and `timeline.ts` solves the curve
+   * backwards for the moment that produces it. The same trick as `litWhenTheMarkerLands`, and for the
+   * same reason: what was decided is the overlap, and the offset is arithmetic.
+   *
+   * The whole transformation is 0.714 beats, which leaves 0.286 of the hold with `II Philosophy`
+   * standing still — a longer breath than the statement that follows gets (0.28), and deliberately so:
+   * the mark has to be a mark before it is allowed to leave. Nothing here lengthens the marker, so
+   * nothing downstream moves.
+   *
+   * Drives `--mkword`, `--mknum` and `--mktopic`.
+   */
+  chapterTwoBecomesPhilosophy: {
+    /** How long `CHAPTER II` stands whole, once it has finished arriving, before anything changes. */
+    whole: 0.14,
+
+    /** How long the word takes to leave. Opacity and a blur together — see `blur`. */
+    wordLeaves: 0.24,
+
+    /**
+     * How much of the word's departure has happened when the numeral sets off. The overlap.
+     *
+     * At 0.76 the word is three-quarters gone and unmistakably going, which is late enough that the
+     * numeral's move reads as a consequence of it and early enough that the two are plainly one
+     * gesture. Below about 0.6 they read as a cross-fade; at 1.0 the pause comes back.
+     */
+    numeralSetsOffWhenWordIs: 0.76,
+
+    /**
+     * How long the numeral takes to reach its place. Longer than the rest of the word's departure, so
+     * the word is completely gone well before the numeral arrives — `timeline.ts` asserts it rather
+     * than trusting the arithmetic.
+     *
+     * The distance is not here, and is not authored anywhere: `scroll-stage.tsx` measures where the
+     * numeral would have to be for `II Philosophy` to be centred exactly where `CHAPTER II` was, from
+     * the live layout. Philosophy is a great deal wider than Chapter, and by a different amount at
+     * every size — so the one honest answer is the rendered one. Drives `--mk`.
+     */
+    numeralTravels: 0.2,
+
+    /**
+     * How far the word blurs as it goes, in pixels at its worst.
+     *
+     * Not an effect — the word is *losing focus* rather than dissolving, which is what stops a pure
+     * opacity fade reading as a light being switched off. 3.5px at a marker of 15–22px is about a
+     * sixth of the cap height: enough that the letterforms soften, little enough that it is never a
+     * blur anybody would name. Above about 6px it becomes a decorative effect, which
+     * `04-visual-language.md` §7 does not allow.
+     */
+    blur: 3.5,
+
+    /**
+     * How long after the numeral has settled before the topic arrives. Small on purpose — long enough
+     * that the numeral is established first, short enough that this is still the same gesture.
+     */
+    topicAfterNumeral: 0.05,
+
+    /** How long the topic takes to arrive. Opacity only; it does not move, because it is already home. */
+    topicFade: 0.16,
+  },
+
+  /**
    * "Every unforgettable moment / has another chapter."
    *
    * `after` is the wait on black once the marker has gone — the silence that separates the page turn

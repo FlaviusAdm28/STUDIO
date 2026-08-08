@@ -2172,3 +2172,69 @@ the end of the gesture the mark is saying the same kind of thing as `III Studio`
 — a numeral and a name. Ten letters at 0.34em would be nearly twice the width of the line they belong to
 and would read as a banner. The brief wrote it that way too. It is still a change of voice mid-line, and
 if it ever reads as two typefaces arguing, the fix is the tracking, not the gesture.
+
+## 33 — The marker window grows; the gesture inside it does not
+
+*8 August 2026. A retiming, and the reason it is three numbers rather than one.*
+
+**What was asked.** More breathing room before `CHAPTER II` rewrites itself — explicitly *not* by raising
+`chapterTwoBecomesPhilosophy.whole` on its own, and without shortening the transformation or the pause
+before the statement.
+
+**Why `whole` alone is the wrong edit, precisely.** The transformation is chained off the marker's
+*arrival* (`marker.enter.to + whole`), and the marker's departure is chained off its *hold*. So `whole`
+buys breathing room by spending the stillness at the far end — the 0.286 beats that §32 argued
+`II Philosophy` needs before it is allowed to leave — and at `whole: 0.28` alone that stillness would
+have fallen to 0.146, half of it. `hold` alone has the opposite fault: it extends the stillness and buys
+no breathing room at all. **Adding the same number to both is what lengthens the window.** Both now say
+so in `story.ts`, because it is not visible from either one.
+
+Δ = 0.14: `whole` 0.14 → 0.28, `hold` 1.00 → 1.14. The gesture is untouched — every part of it is stated
+as a proportion of the part before it, so `wordLeaves`, `numeralSetsOffWhenWordIs`, `numeralTravels`,
+`topicAfterNumeral` and `topicFade` all keep their values and the word-to-topic span stays 0.5735 beats.
+Measured, before and after: 0.573 both times.
+
+`whole: 0.28` is the statement's hold, which is the shortest thing in the act that reads as standing
+still. At 0.14 the mark had about one wheel notch between finishing its arrival and beginning to leave,
+which read as the transformation being the point of the beat rather than something that happens to a mark
+you have already read. It is now 152px of hand travel rather than 77px.
+
+**The runway, and why 7.14.** The shot ended at 6.93 of `BEATS: 7` — 0.07 of slack — so Δ pushed the tail
+to 7.07 and the fit assertion is what caught it. `BEATS` is a ceiling and raising it retimes nothing, but
+it is not free either, and the reason is worth recording: `chapterThree.overlapOfPin` is
+`1 − endsAt/BEATS`, so the slack between the tail and the ceiling *is* how far Chapter III reaches back
+under the film's last frame. At 7.14 that reach-back stays 0.009804 of `pin` against 0.01 before — 0.08vh,
+nothing. At a rounder 7.25 it would have become 0.0248 and pulled Chapter III about 6vh further up into a
+frame this brief did not ask to recompose. A snug ceiling, and the assertion is what makes snug safe.
+
+The one real cost: the shot's beats share a fixed runway, so each now costs 392/7.14 rather than 392/7
+viewport-hundredths. Two per cent less, across everything. That is what buys the longer window out of the
+whole film instead of asking the visitor to scroll further for it, and `pin` is untouched — total scroll
+is unchanged.
+
+**Verified.** Replayed from the first frame at 1417×986. Landmarks in beats, measured against authored:
+marker lit 0.462 (0.46), word leaves 0.743 (0.74), numeral sets off 0.905 (0.9035), word gone 0.979
+(0.98), numeral lands 1.105 (1.1035), topic 1.156 → 1.315 (1.1535 → 1.3135), marker leaves 1.603 (1.60),
+statement 1.866 (1.86). Sampling granularity is 2px ≈ 0.0037 beats.
+
+- Breathing room 0.281, gesture 0.572, stillness 0.288 — the first doubled, the other two unmoved.
+- Overlap still 0.688 of the word's fade (the word 76.9% gone), travel 0.199, topic gap 0.052, topic fade
+  0.159, blur 3.5px, word gone before the numeral lands.
+- **Reversal exact**: 27 positions forward and backwards, zero differences.
+- **Stopping holds**, five samples each: inside the new breathing room (`CHAPTER II` whole, blur 0,
+  nothing moving), inside the overlap, mid-travel, and on the finished mark.
+- Rest of the film unchanged across 15 positions: dusk to its 0.82 depth, statement, occasions, dawn,
+  the closing sentence, the travel, and the handoff to `III Studio` at 7.07. `--three-overlap` resolves to
+  `calc(100dvh + 392vh * 0.009804 - 20dvh)`.
+- Typecheck, lint and build clean; no `[motion]` complaints on load.
+
+**Not verified.** iOS Safari. Also the true 1920×1080 viewport, for the reason §32 gives — this Chrome
+runs at 90% page zoom. This change is a retiming in beats and viewport-independent by construction, and
+the four widths §32 measured are unaffected by it.
+
+**A measurement trap worth writing down, since it cost two runs.** The driver fixes the shot's origin on
+its first *scroll-triggered* frame after the opening, not when `data-opening` reads `done`. A script that
+waits for `done` and then jumps straight to y=100 donates that 100px to the origin, and every landmark
+reads ~0.19 beats late while every interval reads correctly — which looks exactly like a retiming bug and
+is not one. Prime it with a scroll at y=0 first. Harmless for a real visitor, whose first scroll event
+arrives a pixel or two in.

@@ -207,15 +207,21 @@ export const shotStory = {
   },
 
   /**
-   * ⚓ "CHAPTER II". Its hold is the bridge — a full beat over the dimmed landscape, which is what
+   * ⚓ "CHAPTER II". Its hold is the bridge — a long beat over the dimmed landscape, which is what
    * makes this a page turning rather than a section beginning. It arrives while the landscape is
    * still clearly there and the light is still going, so it belongs to Chapter I as much as to II.
    *
    * The anchor for everything below: every beat after this one is placed relative to it, in turn.
    *
+   * **`hold` and `chapterTwoBecomesPhilosophy.whole` move together, by the same amount.** The
+   * transformation is chained off this beat's arrival, so `whole` alone buys breathing room by spending
+   * the stillness at the far end, and `hold` alone extends that stillness without buying any. Adding the
+   * same number to both is what lengthens the *window* — more time before the mark rewrites itself, and
+   * the finished mark standing exactly as long afterwards. `timeline.ts` checks the far end of that.
+   *
    * Drives `--marker`.
    */
-  chapterTwoMarker: { at: 0.28, fadeIn: 0.18, hold: 1.0, fadeOut: 0.14 },
+  chapterTwoMarker: { at: 0.28, fadeIn: 0.18, hold: 1.24, fadeOut: 0.14 },
 
   /**
    * `CHAPTER II` becoming `II Philosophy`, inside the marker's own hold.
@@ -227,16 +233,30 @@ export const shotStory = {
    * backwards for the moment that produces it. The same trick as `litWhenTheMarkerLands`, and for the
    * same reason: what was decided is the overlap, and the offset is arithmetic.
    *
-   * The whole transformation is 0.714 beats, which leaves 0.286 of the hold with `II Philosophy`
-   * standing still — a longer breath than the statement that follows gets (0.28), and deliberately so:
-   * the mark has to be a mark before it is allowed to leave. Nothing here lengthens the marker, so
-   * nothing downstream moves.
+   * The gesture itself is 0.5735 beats from the word's first frame to the topic's last, and every part
+   * of it is stated below as a proportion of the part before it — so it is the one thing in this beat
+   * that does not move when the window around it is lengthened.
+   *
+   * Inside a `hold` of 1.14 that leaves `CHAPTER II` standing whole for 0.28 first, and `II Philosophy`
+   * standing still for 0.286 afterwards — the same breath at each end, and each a little longer than the
+   * statement that follows gets (0.28). The mark has to be a mark before it is allowed to leave, and it
+   * now has to be one for a while before it is allowed to change.
    *
    * Drives `--mkword`, `--mknum` and `--mktopic`.
    */
   chapterTwoBecomesPhilosophy: {
-    /** How long `CHAPTER II` stands whole, once it has finished arriving, before anything changes. */
-    whole: 0.14,
+    /**
+     * How long `CHAPTER II` stands whole, once it has finished arriving, before anything changes.
+     *
+     * The breathing room, and the only number here that is a *duration* rather than a proportion of the
+     * gesture. 0.28 rather than 0.14 because at 0.14 the mark had barely finished arriving before it
+     * began rewriting itself — about one wheel notch of scroll, which read as the transformation being
+     * the point of the beat rather than something that happens to a mark you have already read.
+     *
+     * It is the same length as the statement's hold, which is the shortest thing in the act that reads
+     * as standing still. Raise it and `chapterTwoMarker.hold` by the same amount; see that beat.
+     */
+    whole: 0.38,
 
     /** How long the word takes to leave. Opacity and a blur together — see `blur`. */
     wordLeaves: 0.24,
@@ -578,8 +598,21 @@ export const rates = {
  * Not a target the beats add up to — an assertion about them. `timeline.ts` checks that the resolved
  * shot fits, so a ripple edit that pushed the marker past the end of the pinned frame is a build-time
  * complaint rather than a beat nobody ever sees.
+ *
+ * **Raising this retimes nothing** — every ratio in the storyboard is preserved and `pin` alone decides
+ * how far the hand travels. What it does change is the price of a beat: the shot's beats share a fixed
+ * runway, so at 7.14 each one costs 392/7.14 rather than 392/7 viewport-hundredths. Two per cent less,
+ * across everything, which buys the longer marker window out of the whole film rather than asking the
+ * visitor to scroll further for it.
+ *
+ * 7.14 rather than a rounder 7.25 for one reason worth recording: the slack between the shot's tail and
+ * this ceiling is not dead frame. `chapterThree.overlapOfPin` is `1 − endsAt/BEATS`, so it is exactly how
+ * far Chapter III reaches back under the film's last frame. At 7.14 the tail lands at 7.07 and that
+ * reach-back stays 0.0098 of `pin`, against 0.0100 before — 0.08vh, which is nothing. At 7.25 it would
+ * have become 0.0248, pulling Chapter III about 6vh further up into a frame the brief did not ask to
+ * recompose. The ceiling is deliberately snug, and the assertion is what makes that safe.
  */
-export const BEATS = 7
+export const BEATS = 7.17
 
 /**
  * How much scrolling the story costs. Retimes nothing — every ratio above is preserved, and only the

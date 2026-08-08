@@ -35,7 +35,8 @@
       "Bash(npx prettier *)",
       "Bash(grep -c '\";$' src/app/reveal.tsx)",
       "Bash(grep -c '\";$\\\\|\";' src/app/page.tsx)",
-      "PowerShell(npm run *)"
+      "PowerShell(npm run *)",
+      "Bash(git diff *)"
     ]
   }
 }

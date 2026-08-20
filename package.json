@@ -2,7 +2,7 @@
   "name": "chapter-one",
   "version": "0.1.0",
   "private": true,
-  "description": "Chapter One — digital experiences built for moments that only happen once",
+  "description": "Chapter One — Where moments become digital",
   "engines": {
     "node": ">=20.9.0"
   },

@@ -27,14 +27,19 @@
     --fade-navigation
     --fade-studio-blocks
     --fade-nav-hover
+    --fade-work                      the work appearing once the fragment has painted
 
     --haste                          the multiplier on Chapter I's durations
     --pin                            how much scrolling the story costs
     --three-overlap                  how far Chapter III reaches back into the film's last frame
     --three-stands                   how far down that frame its first page has reached
-    --settle-by                       how far that page rises into place
-    --studio, --settle               its light and its rise, rewritten every frame by the driver
+    --frame-mark                     the share of the aperture the film's own mark opens
+    --studio                         that share, rewritten every frame by the driver
     --veil, --dusk, --marker, --i1 … the shot itself, rewritten every frame by the driver
+    --aframe, --adusk, --aprint …    the act, likewise
+
+  One value in this file is *composed* from two of them — `--aperture`, which adds the aperture's two
+  stages. That is arithmetic over the story's own numbers rather than a second opinion about one.
 
   That is the point: a stylesheet and the story cannot hold two different opinions about the same
   number if only one of them declares it. To retime anything, edit `story.ts`.
@@ -206,34 +211,102 @@ html {
 /* ---------- Chapter III ---------- */
 
 /*
-  The studio. The film is over, so the pacing changes with it: nothing is pinned, nothing is driven by
-  scroll position, nothing performs. Blocks arrive by being scrolled to and then stay.
+  The studio, and it is the third act of the same film rather than a publication after it.
 
-  Act III does not return to black — `04-visual-language.md` §2, a change of ground is an event, and
-  going back would spend it twice.
+  One frame, held, transformed by scroll from end to end: the device uncovered by the chapter's own mark,
+  the room going dark around it while it stays lit, the experience's own colour reaching into that dark, the
+  object crossing aside with its annotation written beside it in the same movement, that annotation becoming
+  what the studio believes, and the way out last. Nothing scrolls past anything, so there is no boundary
+  anywhere between those and nothing that reads as a section beginning.
 
-  The marker gets a margin of its own and the text begins to the right of it. Sharing one left rule
-  read well until the page scrolled: a fixed marker and a moving column on the same axis put "III
-  Studio" straight through the middle of "built for moments". A running head needs somewhere to stand
-  that the text never enters, which is what the margin of a book is for.
+  Act III does not return to black permanently — `04-visual-language.md` §2, a change of ground is an
+  event. The dark here is the *room* losing its light, over a paper frame that is still underneath it,
+  and the paper is what the chapter closes on.
+
+  Every value the act *times* is generated from `src/motion/story.ts`. This file declares the object's
+  size and where it stands, which is composition and changes with the screen, and nothing else.
 */
 :root {
-  --rule: calc(var(--mark-x) + 7.5rem);
+  /*
+    There is no `--between-pages` any more. It set the distance between the act and the chapter's closing,
+    and the closing — `IV — Future Chapters` — is gone: the act's own last frame is the ending, and what
+    follows Chapter III is the publication, which declares its own bands. `decisions.md` §54.
+  */
 
   /*
-    The chapter's two intervals, and they have to be different sizes.
+    The chapter's head margin: the band of paper the mark and its navigation stand in, and the top edge
+    of everything below them.
 
-    Space is the only thing that groups a layout with no borders, no cards and no rules, and one
-    interval used everywhere groups nothing — every block reads as its own section, which is exactly
-    how the chapter used to open. `04-visual-language.md` §5: emptiness is an instrument rather than
-    what is left over, and scale is currency — a large interval is only large beside a restrained one.
+    A margin, not a bar — `04-visual-language.md` §5, emptiness is an instrument. It carries no border,
+    no shadow and no rule, so where the ground below it is also paper it is simply page, and where the
+    frame below it is a photograph it is the margin that photograph is printed inside.
 
-    So the distance inside a page is plainly less than the distance between pages, and the between
-    value is the one that was already here. Nothing was widened; one interval was tightened, which is
-    what makes the other one mean something.
+    Its height is the mark's own position plus the mark plus a breath, so it is set by the thing it
+    holds rather than chosen. `--mark-y` is where the travelling word lands and cannot move.
   */
-  --between-pages: clamp(8rem, 22vh, 16rem);
-  --within-page: clamp(2.5rem, 9vh, 5.5rem);
+  --masthead: calc(var(--mark-y) + var(--mark-size) * 1.25 + clamp(1.25rem, 3vh, 1.75rem));
+
+  /* What is left of the viewport under it. Everything in the act is composed against this. */
+  --stage-h: calc(100dvh - var(--masthead));
+
+  /*
+    ── The work, the plate it becomes, and where the studio's type stands ────────────────────────
+    Composition rather than timing, which is why it is here and not in the motion module: these are
+    places and sizes in a frame, they change with the screen, and a media query is the only honest way
+    to say so. Nothing below is animated and nothing below is read by the driver.
+
+    **There is almost nothing left here.** §49 through §52 needed twenty declarations to place a device:
+    a screen height solved from four constraints, a ratio, a device edge, a corner radius, a hem, an
+    optical centre, a crossing distance, a lift, a column, a gap, a column's left edge, two field sizes,
+    and a band for a phone. All of it existed because the work was a small object in a large frame and
+    the frame had to be composed around it.
+
+    The work is the frame now. It needs no size, no position, no ratio and no ground — the fragment
+    composes for whatever box it is given. What is left is the two things the frame becomes: a plate on a
+    page, and the band the studio's own type stands in. `decisions.md` §53.
+  */
+
+  /*
+    ── The plate ────────────────────────────────────────────────────────────────────────────────
+    Where the film ends up once it has been printed. One scale and two margins, and between them they
+    are the whole of the register change: what appears is not a smaller picture, it is **a margin**, and
+    a margin is the difference between a film and a page.
+
+    Uniform, so the work keeps the ratio it composed itself for. Anchored top-left to the page's own
+    margin, so the plate lands on the axis the mark and the type already share and the silence collects
+    to the right and below, where a page's silence belongs.
+  */
+
+  /*
+    How much of the frame the plate keeps.
+    0.7 is legible as a contraction without becoming a thumbnail: on a 1440 × 900 screen the frame goes
+    from 1440 × 800 to 1008 × 560, which is a plate with 72 of margin on its left, 360 to its right and
+    208 below — a page, and unmistakably not a film. Above about 0.85 the margins are too narrow to read
+    as margins at all and the gesture disappears; below about 0.55 the work stops being the subject of
+    the page it is printed on.
+  */
+  --plate-scale: 0.7;
+
+  /* Its top-left corner. The left is the page's own margin exactly; the top is a breath under the head. */
+  --plate-x: var(--mark-x);
+  --plate-y: clamp(1.5rem, 4vh, 3rem);
+
+  /* And the gap between the plate's bottom edge and the one line printed under it. */
+  --plate-gap: clamp(1rem, 2.5vh, 1.75rem);
+
+  /*
+    ── The band the studio's type stands in ─────────────────────────────────────────────────────
+    The fragment declares which edge of its own composition is quiet — for this project the top, where
+    every crop from 9:19.5 to 21:9 is sky, lagoon or the far side of the basin and never a face. So the
+    type stands there, on the page's own left axis, over the work rather than beside it.
+
+    `--said-w` is a measure and it is bounded twice: 34rem so the lines never become a paragraph, and the
+    page's own two margins so a phone gets the full width it needs. The second is what binds on a phone —
+    the annotation's two lines were authored to hold at 334px and that is exactly what 390 less two
+    margins comes to.
+  */
+  --said-y: clamp(2.5rem, 12vh, 6rem);
+  --said-w: min(34rem, calc(100vw - var(--mark-x) * 2));
 }
 
 /*
@@ -242,34 +315,38 @@ html {
   The pinned frame is held for the whole of `--pin` and the shot finishes a hundredth of it short of the
   end, so Chapter III used to start under the bottom edge of a frame with nothing left in it — the mark
   landed and then the visitor scrolled through empty paper. `--three-overlap` reaches back far enough
-  that by the instant the marker lands the page's top edge has arrived at `--three-stands`, a fifth of
-  the way down the frame, with its plate composed in the frame beneath it. `story.chapterThreeStands`,
-  resolved against `--pin` so it is the same beat of the shot on a wheel and on a thumb.
+  that by the instant the marker lands the act's top edge has arrived at `--three-stands`, a fifth of
+  the way down the frame, with the device already a third uncovered in it.
+  `story.chapterThreeStands`, resolved against `--pin` so it is the same beat of the shot on a wheel and
+  on a thumb.
+
+  Those twenty viewport-hundredths are the settle, and they are the join between the two runways: the
+  shot is still what drives the composition through them — a third of the object's aperture opens inside
+  them — and the act's own beats do not start until its frame reaches the top of the viewport.
 
   Nothing about the film's timing changes. What changes is that Chapter III is *there*, under the last
-  frame, from about beat 5.5 onward — and invisible until the word sets off, because its light is
-  `--studio` and that is zero until then. Its paper over the frame's paper is invisible by itself
-  (`--dawn` reaches 1 at beat 4.83), and the film's last words paint above it — see `.card-act-three`.
+  frame, from about beat 5.5 onward — and empty until the word sets off, because the only thing in it is the
+  device and the device's aperture is `--studio`, which is zero until then. Its paper over the frame's paper
+  is invisible by itself (`--dawn` reaches 1 at beat 4.83), and the film's last words paint above it — see
+  `.card-act-three`.
 
   There is no top padding, on purpose. The page's distance from the film is one number, and a padding
   underneath the overlap would be a second opinion about the same gap.
 */
 .chapter-three {
-  /* So the marker has something to be absolute against when it stops being fixed. */
+  /* So the marker has something to be absolute against if it ever stops being fixed. */
   position: relative;
   margin-top: calc(-1 * var(--three-overlap));
-  display: grid;
-  gap: var(--between-pages);
-  padding-block: 0 var(--between-pages);
   background: var(--paper);
   color: var(--ink);
 }
 
 /*
-  Arrival. One opacity transition, once, and never again.
+  Arrival, for the one thing in Chapter III that is not part of the act. One opacity transition, once,
+  and never again.
 
-  Deliberately outside the `--haste` system: the film is over by here, so there is no sequence left
-  for a visitor to hurry and nothing for a multiplier to keep in proportion.
+  Deliberately outside the `--haste` system: the film is over by here, so there is no sequence left for
+  a visitor to hurry and nothing for a multiplier to keep in proportion.
 */
 [data-reveal] {
   opacity: 0;
@@ -281,254 +358,362 @@ html {
 }
 
 /*
-  What the film reveals rather than the observer: the manifesto, and the first step of the work.
+  **The aperture, in two stages, and the first of them belongs to the film.**
 
-  Its light is `--studio` and its rise is `--settle`, both driven by scroll position across
-  `story.studioEmerges` — so it comes into existence in the same instant the word sets off for the
-  corner, and it is still arriving when the word gets there. No transition and no duration: it tracks the
-  hand exactly, so it runs backwards as exactly as it runs forwards, which a shown-once observer could
-  not do while the composition sits inside the film's own frame.
+  `--studio` is driven across `story.studioEmerges` — the shot's runway — so it begins in the same instant
+  the word sets off for the corner and is three-quarters of the way through when the mark lands. `--aframe`
+  is the act's own range, on the act's runway. `--frame-mark` is the share the first stage takes.
 
-  The rise is the only thing besides the travelling word that moves anywhere in the piece, and it is
-  eight pixels across the whole emergence — a fraction of a pixel per viewport-hundredth of scroll. It is
-  the page settling into place rather than an entrance, and `story.studioEmerges.rise` is where it lives.
+  Adding them here is the same construction `--adusk` uses: one property, two authored moments, and
+  therefore no third range that could drift out of step with either. It is also what makes the mark an
+  *unveiling* — by the time the visitor has arrived in this frame the work is already a third uncovered, and
+  nothing stood between the chapter's head and it. `decisions.md` §44, §51, §53.
+
+  No transition and no duration anywhere in it: both stages track the hand exactly, so the whole thing runs
+  backwards as exactly as it runs forwards.
 */
-[data-emerges] {
-  opacity: var(--studio);
-  transform: translateY(calc(var(--settle) * var(--settle-by)));
-}
-
-/* ---------- The studio: what it is, beside what it made ---------- */
-
-/*
-  Two columns that behave differently, which is the whole composition. The manifesto is the studio's own
-  voice and it does not move; the work goes by beside it. `04-visual-language.md` §5 — asymmetry by
-  default, and a composition with direction tells the eye where to go first.
-
-  42/58 in the work's favour, and the work runs to the right edge of the page rather than sitting in a
-  container. The gutter between them is the only thing separating the two, which is what makes the
-  whitespace the composition rather than a gap left over.
-*/
-.studio {
-  display: grid;
-  grid-template-columns: 42fr 58fr;
-  align-items: start;
-  gap: clamp(2rem, 4vw, 4.5rem);
+:root {
+  --aperture: calc(
+    var(--frame-mark) * var(--studio) + (1 - var(--frame-mark)) * var(--aframe)
+  );
 }
 
 /*
-  It holds still.
-
-  Sticky rather than fixed, so it belongs to the chapter and cannot outlive it. It sticks *below* the
-  marker, on the marker's own left edge, so the two read as one block: the running head, and the voice
-  under it.
-
-  **That shared edge is only safe because it never scrolls past the marker, and that is a structural
-  guarantee rather than a hope.** `--rule` exists precisely to keep a moving column out of a fixed
-  marker's way — entry 41's second bug — and a sticky column moves once, at the very end, when its
-  container runs out. Which it cannot do here while anything is visible: the ending lives inside the work
-  column, so this column's container reaches the bottom of the document, and sticky would only release
-  after the last scrollable pixel. Measured below at every viewport.
-
-  The condition, so it is not broken by accident: whatever sits after `.studio` inside `.chapter-three`
-  must be shorter than `100dvh − (sticky offset + this column's height)`, about 39vh today. The chapter's
-  bottom padding is 22vh, so there is room; a full-height block appended after `.studio` would put the
-  manifesto through the marker again, and the fix would be to move it inside the work column too.
-
-  Using `--mark-x` rather than `--rule` is what pays for the measure: the statement holds its three
-  authored lines in half a page only because it gets that 7.5rem back.
-
-  It must not animate again after it arrives. Nothing here reads `--fade-studio-blocks`; the only thing
-  that ever happens to it is the emergence, once.
+  `main` keeps a position of its own. It is safe and it is cheap: `position: relative` does not make a
+  containing block for the fixed marker, and it does not make a scroll container, which is what would
+  defeat the two sticky frames.
 */
-.manifesto {
-  position: sticky;
-  top: calc(var(--mark-y) + clamp(2.25rem, 4.5vh, 3.5rem));
-  display: grid;
-  gap: var(--within-page);
-  padding-inline-start: var(--mark-x);
-}
-
-/*
-  Sized to its column rather than to the page. At 5.4vw the positioning sentence needed 800px of measure
-  and a 42% column at laptop width has 530px, so its three authored lines became five accidental ones —
-  `04-visual-language.md` §4, where the line ends is part of the composition, so the measure has to serve
-  the break rather than the reverse. It is no longer the largest thing on the page, and in a two-column
-  chapter it cannot be; see `decisions.md` §45 on what that costs.
-*/
-.three-statement {
-  margin: 0;
-  max-width: 22ch;
-  font-size: clamp(1.75rem, 2.6vw, 3.25rem);
-  font-weight: 300;
-  line-height: 1.14;
-  letter-spacing: -0.012em;
-}
-
-.three-statement span {
-  display: block;
-}
-
-.manifesto-lead {
-  margin: 0;
-  max-width: 24ch;
-  font-size: clamp(1.125rem, 1.4vw, 1.5rem);
-  font-weight: 300;
-  line-height: 1.3;
-  letter-spacing: -0.006em;
-}
-
-.manifesto-body {
-  margin: clamp(0.875rem, 1.6vh, 1.25rem) 0 0;
-  max-width: 34ch;
-  font-size: clamp(0.9375rem, 1vw, 1.0625rem);
-  font-weight: 400;
-  line-height: 1.65;
-  color: var(--ink-quiet);
-}
-
-/* ---------- The work ---------- */
-
-.work {
-  display: grid;
-  gap: var(--within-page);
-}
-
-/*
-  A running label for the half of the chapter that changes, in the same voice as the chapter marker —
-  small, tracked, quiet. It orients; it does not speak.
-*/
-.work-label {
-  margin: 0;
-  font-size: var(--mark-size);
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-quiet);
-}
-
-/*
-  Two intervals again, and for the same reason as the pages above: the head and the call to action belong
-  tightly to the experience, and the steps are a page apart from each other.
-*/
-.experience {
-  display: grid;
-  gap: var(--within-page);
-}
-
-.experience-steps {
-  display: grid;
-  gap: var(--between-pages);
-}
-
-/*
-  The name of the thing being studied. Larger than the label above it and smaller than the manifesto
-  beside it — `04-visual-language.md` §5, scale is currency, and this is not the loudest thing here.
-*/
-.experience-title {
-  margin: 0;
-  font-size: clamp(1.5rem, 2vw, 2.5rem);
-  font-weight: 300;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
-}
-
-/*
-  One step. Its name, and the frame that holds it.
-
-  A `figure` because that is what it is: a plate with a caption. The caption is above the plate rather
-  than under it, because it is a heading for what follows in a sequence rather than a note about a
-  picture already seen.
-*/
-.step {
-  display: grid;
-  gap: clamp(0.75rem, 1.4vh, 1.125rem);
-  margin: 0;
-}
-
-.step-name {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-quiet);
-}
-
-/*
-  The frame, and it is the only thing here that is load-bearing for the future.
-
-  It carries the shape and the clipping; whatever goes inside is told to fill it. So a held video frame
-  today, a real screenshot tomorrow and a live embed after that are the same composition, the same rule
-  and no redesign — swap the element, not the layout.
-
-  Empty, it is the faint field the plates already used. In a publication a reserved plate is a plate to
-  come, and that is an honest state for a studio with one project. It is not a placeholder graphic: no
-  border, no icon, no skeleton.
-
-  The shape is per step, not inherited — `04-visual-language.md` §5, an image is never reshaped to fit
-  the space it lands in, so a phone screen gets a phone's frame and is capped by height rather than
-  stretched across a column it was never composed for.
-*/
-.step-plate {
+main {
   position: relative;
-  overflow: hidden;
-  background: rgba(24, 23, 20, 0.04);
 }
 
-.step-plate[data-frame='screen'] {
-  aspect-ratio: 16 / 10;
+/* ---------- The act ---------- */
+
+/*
+  One frame, held, exactly as `.film` is — and for the same reason. The whole of Chapter III's
+  storytelling happens inside a single pinned viewport, so nothing scrolls past anything and there is
+  no section boundary to notice anywhere in it.
+
+  `--act-pin` is the only place the act's *physical* length is set — `story.actPin`. The driver reads it
+  back and divides the act's beat map by it, so that number alone decides how much scrolling the act
+  costs and the choreography inside it is untouched by the change.
+*/
+.act {
+  position: relative;
+  height: calc(100dvh + var(--act-pin));
 }
 
 /*
-  The height is definite and the width follows from the ratio, not the other way round. `max-height` is
-  not a definite size, so with an empty frame and `width: auto` there was nothing for `aspect-ratio` to
-  resolve against and the plate computed to 0 × 0 — a frame that vanished exactly when it had no asset in
-  it, which is the state most of them are in.
+  Viewport width, not container width, so the frame is the whole screen.
+
+  It stops at the head margin rather than at the top of the viewport, so the mark and its navigation are
+  never on the photograph — `decisions.md` §02, type occupies the dark part of a composition and never
+  crosses the subject of a frame, and here it never meets it at all. The pinned distance is unchanged:
+  the frame is shorter by exactly the amount it is offset, so `--act-pin` still decides the whole cost.
+
+  Paper, because paper is what the chapter is printed on and what the act begins and ends on. Everything
+  between those two moments is a layer over it.
 */
-.step-plate[data-frame='phone'] {
-  aspect-ratio: 390 / 844;
-  height: 68vh;
-  width: auto;
-  justify-self: start;
+.act-stage {
+  position: sticky;
+  top: var(--masthead);
+  width: 100vw;
+  height: var(--stage-h);
+  overflow: hidden;
+  background: var(--paper);
 }
 
-.step-plate video {
-  display: block;
+/*
+  Where `#work` is. A position and nothing else — inside a pinned frame a place in the story is a scroll
+  offset rather than an element, so this is put at that offset and `--work-at` is derived from the beat the
+  aperture finishes: the work whole, lit, alone, with nothing said about it. Never composed against; never
+  seen.
+*/
+.act-anchor {
+  position: absolute;
+  left: 0;
+  top: var(--work-at);
+  width: 0;
+  height: 0;
+}
+
+/* ---------- The work, and the frame it is ---------- */
+
+/*
+  **The film being printed.** This layer does one thing and it is the second and last transform in the
+  whole piece: it draws the frame in until it has margins and is a plate on a page.
+
+  It earns the movement on exactly the grounds `04-visual-language.md` §7 gives the first one — the word
+  `chapter` travelling into the corner. What changes is what the thing is *for*: the work stops being the
+  subject of a film and becomes a plate in a publication, and **the appearance of a margin is that
+  relationship**. §52's crossing object is gone, so the count is unchanged: two things move, and no more.
+
+  `transform-origin: top left` is what makes the translate and the scale agree — the scale shrinks the box
+  toward its own top-left corner and the translate then puts that corner on the plate's own margin, so one
+  property lands the plate exactly where `--plate-x` and `--plate-y` say. The same construction `.mark`
+  uses for the travelling word.
+
+  Scroll-driven, so it has no transition: it tracks the hand and prints backwards on the way up with no
+  state to unwind. `will-change` is deliberately absent — promoting a viewport-sized layer that holds a
+  cross-origin document for the whole life of the page is a cost paid long before the beat that needs it.
+
+  `pointer-events: none` throughout, and it is the whole of the nested-scroll answer: the fragment is
+  material, it has nothing to press and nothing to scroll, so a finger on it reaches the page underneath
+  and the page scrolls natively. Nothing is locked and no event is swallowed.
+*/
+.act-frame {
+  position: absolute;
+  inset: 0;
+  transform-origin: top left;
+  transform: translate(
+      calc(var(--plate-x) * var(--aprint)),
+      calc(var(--plate-y) * var(--aprint))
+    )
+    scale(calc(1 - (1 - var(--plate-scale)) * var(--aprint)));
+  pointer-events: none;
+}
+
+/*
+  **The aperture**, and it opens the work.
+
+  The film's own gesture turned ninety degrees — Chapter II's band opened sideways because it was a
+  landscape, and this opens vertically from the frame's own centre, so the subject arrives first and the
+  sky and the water follow it. One axis at every size: §52 had two rules for two orientations because it
+  was uncovering a portrait object, and a frame is a frame.
+
+  It is a layer of its own rather than a second property on `.act-frame`, and that is mechanical: a
+  `clip-path` is applied in its element's own coordinate space *before* that element's transform, so a clip
+  and the printing on one box would scale the clip. Nesting keeps the reveal and the contraction out of each
+  other's way.
+
+  The ground behind it is the film's own black, not paper. Before the fragment paints there is nothing to
+  see, and an aperture opening a black slit in a paper page is the gesture §49 established and the one the
+  travelling word has already started — `--studio` has opened a third of this before the visitor arrives in
+  the frame. If the fragment never arrives at all, black with white type on it is a composed alternative
+  rather than a broken one: `05-storyboard.md` §10.
+*/
+.act-shot {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--ground);
+  clip-path: inset(calc(50% * (1 - var(--aperture))) 0 calc(50% * (1 - var(--aperture))) 0);
+}
+
+/*
+  The work.
+
+  **No arithmetic and no measurement.** The iframe is the frame: the fragment is a document that composes
+  for whatever box it is given, so it is given this one at its own size and left alone. §52 needed a
+  measured viewport, a scrollbar gutter and a `ResizeObserver` because it was fitting a 390-wide document
+  into a drawn phone; a frame that composes has nothing to fit.
+
+  One fade, on the load event, and its only job is that the frame is never seen to fill in —
+  `story.afterTheFilm.work.arrives`. It is outside `--haste` on the same grounds `navHover` is: it answers
+  a network rather than continuing a sequence.
+*/
+.act-work {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  border: 0;
+  opacity: 0;
+  transition: opacity var(--fade-work) var(--curve);
+}
+
+.act-frame[data-work='here'] .act-work {
+  opacity: 1;
+}
+
+/* ---------- The light ---------- */
+
+/*
+  The light leaving the room, and coming back.
+
+  **Over the work, not around it**, and that is the whole difference from every version of this chapter
+  before it. §49 put the dark *beneath* a device so the device stayed lit; there is no device, and the dark
+  is not a way of isolating an object — it is what makes a dark part of the composition, which is the only
+  place `decisions.md` §02 allows type to stand.
+
+  Three states on one property: evening (`darkens.depth`), a trace (`deepens.depth`), and lit again on the
+  printing. No transition of its own — it tracks scroll exactly, so going back up brings the light with it.
+
+  **It lives inside the aperture** (`fragment.tsx`), so it falls on the work and on nothing else: not on the
+  chapter's paper before the aperture has opened anything, and not on the plate's margins while they are
+  being printed. One stage rather than two, because the ground beneath it is a photograph and not paper —
+  the reasoning is with the beat, in `story.actStory.darkens`.
+*/
+.act-dark {
+  position: absolute;
+  inset: 0;
+  background: var(--ground);
+  opacity: var(--adusk);
+  pointer-events: none;
+}
+
+/* ---------- What the studio says, composed into the work ---------- */
+
+/*
+  The type, standing in the quiet band of the work's own frame.
+
+  **Not a column beside it.** This is the difference between Chapter III and every version of it before
+  this one: `04-visual-language.md` §4 says type carries the moment by itself only where there is no image
+  doing work, and here there is one — so the type belongs to the image, the way the timestamp belongs to the
+  hero's photograph in Chapter I. There is no card, no gutter, no panel and no ground of its own.
+
+  On the page's own left axis (`--mark-x`), so the mark in the head margin, the annotation over the work and
+  the line printed under the plate all share one vertical. `--said-y` puts it in the band the fragment
+  declares quiet.
+
+  `--asaid` is the whole block leaving, and it multiplies through everything in it by nesting: the act's last
+  beat takes the ground back to paper and white type cannot cross a ground travelling to paper, so the words
+  go first. `decisions.md` §52 records the interpolated ink that was built and thrown away.
+
+  `pointer-events: none` — nothing here is a control.
+*/
+.act-said {
+  position: absolute;
+  left: var(--mark-x);
+  top: var(--said-y);
+  width: var(--said-w);
+  opacity: var(--asaid);
+  pointer-events: none;
 }
 
 /*
-  The call to action, and it belongs to the experience rather than to the page.
+  The work's name. It arrives as the room goes to evening and it **stays**, because the sentence after it is
+  a reading of a named thing and a frame that says it with nothing named in it is a manifesto instead.
 
-  Inert until there is something to open: `[aria-disabled]` is the state of a control that is composed and
-  not yet wired, and it gets no hover and no pointer, so it never promises a click it cannot honour. The
-  mark is generated rather than written into the copy because it is a mark and not a word — `content`'s
-  alt-text syntax keeps it out of the accessible name.
+  Quieter than the sentence beneath it, and smaller. `04-visual-language.md` §5 — scale is currency, and the
+  studio's own voice is the loudest thing in the chapter while a project title is not.
 */
-.experience-open {
-  justify-self: start;
+.act-name {
+  margin: 0 0 clamp(0.6rem, 1.4vh, 1rem);
+  font-size: clamp(1.375rem, 2.1vw, 2rem);
+  font-weight: 300;
+  line-height: 1.16;
+  letter-spacing: -0.008em;
+  color: var(--speech);
+  opacity: var(--atitle);
+}
+
+/*
+  The two things that share the space under the name, on **one grid cell** rather than stacked absolutely.
+
+  That is what makes the box as tall as the taller of them without a height being written down, so the name
+  above does not move when the sentence replaces the lines. Absolute positioning would have needed a
+  `min-height` measured once at one viewport, which is the failure mode `01-validation.md` names.
+
+  They are never in the frame together: the lines leave as the light goes down and the sentence arrives on
+  the ground that leaves behind. `timeline.ts` asserts the gap.
+*/
+.act-says {
+  display: grid;
+}
+
+.act-note,
+.act-voice {
+  grid-area: 1 / 1;
   margin: 0;
-  font-size: clamp(1rem, 1.15vw, 1.1875rem);
+}
+
+/*
+  Two authored lines: what it is, then why it was made. `04-visual-language.md` §4 — where the line ends is
+  part of the composition — so they are two spans rather than a sentence left to the measure.
+*/
+.act-note {
+  max-width: 34ch;
+  font-size: clamp(0.9375rem, 1.05vw, 1.0625rem);
   font-weight: 400;
-  letter-spacing: 0.01em;
+  line-height: 1.6;
+  color: var(--aside);
+  opacity: var(--anote);
+}
+
+.act-note span {
+  display: block;
+}
+
+/*
+  The one thing the studio says inside the film, in the space the two lines vacate, on a ground that has
+  just gone down to a trace to make room for it.
+
+  A measure stated in the sentence's own characters. It never bites on a wide frame — the band is narrower
+  than 30 characters of type this size — and it is the only thing standing between this and a 66-character
+  line, which is a caption stretched across a monitor rather than a statement.
+*/
+.act-voice {
+  max-width: 30ch;
+  font-size: clamp(1.75rem, 2.9vw, 3rem);
+  font-weight: 300;
+  line-height: 1.18;
+  letter-spacing: -0.012em;
+  color: var(--speech);
+  text-wrap: balance;
+  opacity: var(--alead);
+}
+
+/* ---------- The way out, on the paper ---------- */
+
+/*
+  The only outward action in the chapter, and it is **printed on the page** rather than offered in the film.
+
+  It arrives sixty per cent of the way through the printing, so the ground under it is nearly paper and it is
+  set in the page's own ink — which is why it could not be offered any earlier. §51 offered it over near-black
+  and §52 beside the annotation; both were inside the shot, and both meant the act ended on an offer instead
+  of on a page.
+
+  Under the plate's own left edge and one breath below it, so the plate and its line are one object on the
+  page. There is nothing to compete with it: no word on a screen, no second invitation, no duplicate verb.
+
+  The clip is the hit area. An element at zero opacity is still clickable and still in the tab order, and
+  this sits in a frame pinned for the whole act — so `--aoffer` steps at the beat the line begins to exist,
+  when its opacity is still zero. A step rather than a ramp because a ramp here would be a visible wipe
+  across a box the height of one line; `--handoff` solves the masthead's identical problem the same way.
+*/
+.act-out {
+  position: absolute;
+  left: var(--plate-x);
+  top: calc(var(--plate-y) + var(--stage-h) * var(--plate-scale) + var(--plate-gap));
+  clip-path: inset(calc((1 - var(--aoffer)) * 100%) 0 0 0);
+}
+
+.act-open {
+  margin: 0;
+  font-size: clamp(1.0625rem, 1.2vw, 1.25rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
   color: var(--ink);
   text-decoration: none;
+  opacity: var(--aopen);
   transition: color var(--fade-nav-hover) var(--curve);
 }
 
-.experience-open::after {
+/*
+  Generated because it is a mark and not a word — `content`'s alt-text syntax keeps it out of the
+  accessible name.
+*/
+.act-open::after {
   content: '→' / '';
   margin-inline-start: 0.6em;
 }
 
-a.experience-open:hover,
-a.experience-open:focus-visible {
+a.act-open:hover,
+a.act-open:focus-visible {
   color: var(--ink-quiet);
 }
 
-.experience-open[aria-disabled='true'] {
+a.act-open:focus-visible {
+  outline: 1px solid var(--ink-quiet);
+  outline-offset: 0.5rem;
+}
+
+/*
+  Inert until there is somewhere to go: `[aria-disabled]` is the state of a control that is composed and not
+  yet wired, and it gets no hover and no pointer, so it never promises a click it cannot honour.
+*/
+.act-open[aria-disabled='true'] {
   color: var(--ink-quiet);
   cursor: default;
 }
@@ -536,126 +721,161 @@ a.experience-open:focus-visible {
 /* ---------- The ending ---------- */
 
 /*
-  Not a shortfall — an ending. There is one experience, so the chapter says so instead of padding itself
-  out with invented ones, and it says it in typography and nothing else.
+  **There is no closing section under the act, and `.future` is deleted.**
 
-  It sits on the manifesto's own left edge rather than in the work's column, because it is the chapter
-  closing rather than another thing the chapter contains.
+  It set `IV — Future Chapters` in typography on paper: a numeral, a name, and two lines saying the rest had
+  not been written yet. Correct while the page ended there — the act closes on the way in, and the *work*
+  running out is worth saying once.
+
+  It is wrong now. The publication begins immediately below, so that numeral stood on the exact seam where a
+  film is supposed to be releasing into a website, announcing an absence in the voice the film had just
+  finished using. What ends the film is the act's own last frame: a plate on paper with one line under it,
+  which is an ending and does not need a second one. `decisions.md` §54.
 */
-.future {
-  /* The work column's own interval is `--within-page`; this makes the total a page instead. */
-  margin-top: calc(var(--between-pages) - var(--within-page));
-  display: grid;
-  gap: clamp(1rem, 2vh, 1.75rem);
-}
-
-.future-numeral {
-  margin: 0;
-  font-size: var(--mark-size);
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  color: var(--ink-quiet);
-}
-
-.future-label {
-  margin: 0;
-  font-size: clamp(1.5rem, 2.6vw, 3.25rem);
-  font-weight: 300;
-  line-height: 1.14;
-  letter-spacing: -0.012em;
-}
-
-.future-lines {
-  margin: 0;
-  max-width: 28ch;
-  font-size: clamp(1rem, 1.15vw, 1.1875rem);
-  font-weight: 400;
-  line-height: 1.6;
-  color: var(--ink-quiet);
-}
-
-.future-lines span {
-  display: block;
-}
 
 /*
-  ---------- Narrow screens: one column, composed for it ----------
+  ---------- Narrow screens ----------
 
-  Not the desktop layout made smaller. The manifesto stops holding still and becomes the introduction you
-  read once; the work follows it as a vertical stack, one step at a time, full width. `05-storyboard.md`
-  §9 — beats are re-composed rather than reflowed, and the same story arrives in fewer screens.
+  Two rows in the head margin, and a type scale for a frame this wide. **There is no second composition
+  any more**, and that is the largest thing §53 removed from this file: §52 needed a whole branch that
+  turned the aside into a band at the bottom of the frame, lifted the object into the space it vacated,
+  solved a hem and a lift from one floor, and re-sized the object against what was left — because a
+  portrait device beside a column does not fit a phone and had to be recomposed.
 
-  A two-column chapter at this width would be two narrow columns, which is the one thing it must not be.
+  A frame fits a phone. The fragment composes for it, the aperture opens the same way, the plate contracts
+  the same way, and the type stands in the same band on the same axis. What changes below is only how large
+  the words are, which is what a type scale is for.
 */
 @media (max-width: 900px) {
   :root {
-    --rule: var(--mark-x);
-  }
+    /*
+      The head margin carries two rows here — the mark, and the navigation under it. Four words and a
+      mark on one line come to 288px at 390 wide against 334px of measure, which is not a composition,
+      it is a row that happens to fit; at 320 it does not fit at all.
 
-  .studio {
-    grid-template-columns: 1fr;
-    gap: var(--between-pages);
-  }
-
-  .manifesto {
-    position: static;
-    padding-inline-start: 0;
-  }
-
-  /*
-    Full width, and one measure for the whole column — the manifesto is being read rather than glanced at
-    beside something else, so it takes the size it had before there were two columns.
-  */
-  .three-statement {
-    max-width: 26ch;
-    font-size: clamp(2rem, 5.4vw, 4.75rem);
-  }
-
-  .manifesto-lead {
-    max-width: 26ch;
-    font-size: clamp(1.375rem, 4vw, 1.75rem);
-  }
-
-  .manifesto-body {
-    max-width: 38ch;
-    font-size: clamp(1rem, 2.6vw, 1.125rem);
-  }
-
-  .studio {
-    padding-inline: var(--mark-x);
-  }
-
-  /* The plates bleed to both edges instead, because on a phone the page has no margin to spare. */
-  .step-plate {
-    margin-inline: calc(-1 * var(--mark-x));
+      A second line rather than a menu trigger, because a trigger is inherited chrome —
+      `04-visual-language.md` §10, nothing is inherited, and *understood before it is used*. Two lines of
+      type need no learning and nothing to open.
+    */
+    --masthead: calc(
+      var(--mark-y) + var(--mark-size) * 1.25 + 0.6rem + 1.4rem + clamp(1rem, 2.4vh, 1.5rem)
+    );
   }
 
   /*
-    The phone frame does not bleed — a phone screen shown edge to edge stops reading as a phone screen.
-    It keeps its height cap so the column's width never decides how tall it is: at 767 that is a 310px
-    plate and at 390 a 273px one, which is a phone either way rather than a column-wide slab.
+    **The name is quieter than the sentence beneath it here, and that is a recomposition rather than a
+    scale.** On a wide frame the name is 30 and the sentence 42, and the hierarchy is carried by the name
+    being the head of a block. In a band this narrow the two are in the same glance, and a project title
+    outweighing the studio's own voice is what `04-visual-language.md` §5 will not have. So the name goes
+    back to being a name above a statement: 16 at 390, 13 at 320.
   */
-  .step-plate[data-frame='phone'] {
-    margin-inline: 0;
+  .act-name {
+    font-size: clamp(1rem, 4.1vw, 1.25rem);
   }
 
-  .experience-title {
-    font-size: clamp(1.75rem, 5vw, 2.5rem);
+  /*
+    The measure serves the break rather than the reverse — `04-visual-language.md` §4. Both are sized so
+    they hold at every width down to 320: the two lines as two lines, and the sentence on two.
+  */
+  .act-note {
+    font-size: clamp(0.875rem, 3.6vw, 1rem);
+    line-height: 1.5;
+  }
+
+  .act-voice {
+    font-size: clamp(1.5rem, 7vw, 2.25rem);
+  }
+
+  .act-open {
+    font-size: 1.0625rem;
   }
 }
 
-/* ---------- The marker, once it belongs to the page ---------- */
+/*
+  ---------- A frame too short to hold much ----------
+
+  A phone held sideways, or a window dragged short: 844 × 390 leaves a stage about 290 points tall, and the
+  plate takes seven tenths of it. Everything still composes — that is what a uniform scale buys — but the
+  type has to come down with the frame, because a 42-point sentence in a 290-point frame is a poster.
+
+  Sized against the height rather than the width, for the reason the fragment's own inscription is: on a
+  frame this shape what is scarce is vertical, and a `vw` scale answers the wrong question.
+*/
+@media (max-height: 560px) and (orientation: landscape) {
+  :root {
+    --said-y: clamp(1.25rem, 8vh, 2.5rem);
+  }
+
+  .act-voice {
+    font-size: clamp(1.25rem, 6vh, 1.75rem);
+  }
+
+  .act-name {
+    font-size: clamp(0.9375rem, 3.4vh, 1.125rem);
+  }
+
+  .act-note {
+    font-size: clamp(0.8125rem, 2.6vh, 0.9375rem);
+    line-height: 1.5;
+  }
+}
+
+/* ---------- The masthead: the marker, once it belongs to the page ---------- */
 
 /*
-  Fixed, so it holds its corner while Chapter III is read. Identical in every respect to the word that
-  became it — same coordinates, same size, weight, tracking and ink — because the handoff between them
-  is a step and any difference would be a jump.
+  Chapter III's head. Not a navigation bar that arrives over the chapter — the mark the travelling word
+  became, with the page's own head margin behind it and the rest of the studio beside it.
+
+  **The band is a margin, not chrome.** No border, no rule, no shadow, no blur — `04-visual-language.md`
+  §5, margins are silence, and §10, nothing is inherited. Where the ground under it is paper it is simply
+  page; where the frame under it is a photograph it is the margin that photograph is printed inside, and
+  that is the whole of its visual separation from the content.
+
+  It exists because the alternative was measured and fails. Across the act the ground behind this corner
+  runs from paper at 241, through the two cuts' sky at 87–149, to black, and back to 97 — white type
+  reads 3.9:1 at the middle of that and dark ink 2.7:1, so there is no ink that survives a header
+  floating over it. §2 asks every element to exist lit and unlit; this one instead never leaves its own
+  ground, and `.act-stage` begins beneath it so the two never meet. `decisions.md` §47.
+
+  `--handoff` is a step, not a ramp, so there is no partial state: the band is either absent or it is the
+  head of the page. The clip is what makes that true of the *hit area* as well as the paint — an element
+  at zero opacity is still clickable, and this one is fixed over the hero for the whole film.
+
+  Opacity alone would also be wrong on the way out: there is nothing to fade to. Behind the band at the
+  handoff is the film's last frame, which is already paper (`--dawn` reached 1 at beat 4.83), so the step
+  is invisible in both directions.
+*/
+.masthead {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  /*
+    Aligned by box rather than by baseline. The mark's landing point is a coordinate the travelling word
+    is measured against, so anything that decides its position from the *other* thing on the line can
+    move it: `baseline` put it 1.12px below the anchor, which is a visible jump at the handoff.
+  */
+  align-items: flex-start;
+  gap: clamp(2rem, 4vw, 3.5rem);
+  height: var(--masthead);
+  padding: var(--mark-y) var(--mark-x) 0;
+  background: var(--paper);
+  opacity: var(--handoff);
+  clip-path: inset(calc((1 - var(--handoff)) * 100%) 0 0 0);
+}
+
+/*
+  The mark. Identical in every respect to the word that becomes it — same coordinates, same size,
+  weight, tracking and ink — because the handoff is a step and any difference would be a jump. The band's
+  padding is `--mark-x` and `--mark-y` exactly, so this sits where it always sat without knowing that it
+  is now inside something.
+
+  All that is new is that it goes somewhere: it is the way back to the top of the chapter. It is a link
+  and therefore no longer `pointer-events: none`, which is what the band's clip is for.
 */
 .marker {
-  position: fixed;
-  left: var(--mark-x);
-  top: var(--mark-y);
-  z-index: 2;
   display: flex;
   align-items: flex-start;
   gap: 0.7em;
@@ -663,8 +883,14 @@ a.experience-open:focus-visible {
   font-size: var(--mark-size);
   line-height: 1.25;
   color: var(--ink-quiet);
-  opacity: var(--handoff);
-  pointer-events: none;
+  text-decoration: none;
+  /* Interface feedback, not narrative — so it answers, and it is outside `--haste`. */
+  transition: color var(--fade-nav-hover) var(--curve);
+}
+
+.marker:hover,
+.marker:focus-visible {
+  color: var(--ink);
 }
 
 .marker-numeral {
@@ -679,25 +905,71 @@ a.experience-open:focus-visible {
 }
 
 /*
-  No margin to spare on a phone, so there is nowhere for a fixed marker to stand that the text does not
-  also need. It stops being an overlay and sits on the page instead, scrolling with it — a running head
-  printed on the page rather than held over it. The alternative is fifteen pixels of type sitting
-  permanently on top of the reading column, which is worse than a marker that goes by.
+  The rest of the studio, arriving beside the mark once it has settled — `actStory.navigation`, on the
+  act's own runway, so it cannot begin until the frame it belongs to has reached the top of the viewport.
 
-  But it has to *land* before it goes by. The handover from the travelling word is a step, and a step is
-  invisible only if the two are in the same place: an absolute marker sitting at the head of the chapter
-  was a whole viewport below the corner the word had just travelled to, so on a phone "III Studio"
-  vanished at the handover and reappeared later somewhere else. `--three-stands` is how far down the
-  frame Chapter III's top edge has reached by then, so subtracting it puts the marker exactly at the
-  corner it arrived in — and then the page carries it away, which is what it is supposed to do here.
+  Set in the mark's own voice at the mark's own size, because they are one line of the same kind of
+  thing: a numeral and a name, then four more names. Nothing here is larger, bolder or more tracked than
+  the mark it stands beside — `04-visual-language.md` §5, scale is currency, and a navigation that
+  outweighs the chapter it is navigating has spent it wrongly.
 
-  This has to come after the rules above rather than with the rest of the narrow-screen block: same
-  specificity, and the later declaration wins. Placed earlier it was silently overridden.
+  It fades once and stays. It is a pure function of position, so it is exact in reverse, and there is no
+  state anywhere that could make it perform itself again because somebody came back — §7.
+*/
+.masthead-nav {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(1.375rem, 2.4vw, 2.25rem);
+  /* The mark's own metrics, so the two boxes are the same height and share a top edge and a baseline. */
+  font-size: var(--mark-size);
+  line-height: 1.25;
+  opacity: var(--anav);
+}
+
+/*
+  The words are 15px tall, which is a fine size to read and a poor thing to hit with a thumb. The padding
+  takes each hit area past 44px without moving a pixel of type: it is vertical only, so the horizontal
+  rhythm is untouched, and it is negative-margined back out of the line's own box so the band's height is
+  still decided by the type rather than by the padding.
+*/
+.masthead-nav a {
+  padding-block: 0.8125rem;
+  margin-block: -0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--ink-quiet);
+  text-decoration: none;
+  transition: color var(--fade-nav-hover) var(--curve);
+}
+
+.masthead-nav a:hover,
+.masthead-nav a:focus-visible {
+  color: var(--ink);
+}
+
+.marker:focus-visible,
+.masthead-nav a:focus-visible {
+  outline: 1px solid var(--ink-quiet);
+  outline-offset: 0.5rem;
+}
+
+/*
+  Two rows on a narrow screen: the mark, and the navigation under it on the mark's own left edge.
+
+  Not the wide row made smaller. Four words and a mark on one line come to 288px at 390 wide against
+  334px of measure — a row that happens to fit rather than a composition — and at 320 they do not fit at
+  all. A second line rather than a menu trigger, because a trigger is inherited chrome (§10) and two
+  lines of type need no learning and nothing to open.
 */
 @media (max-width: 900px) {
-  .marker {
-    position: absolute;
-    top: calc(var(--mark-y) - var(--three-stands));
+  .masthead {
+    display: grid;
+    justify-items: start;
+    gap: 0.6rem;
+  }
+
+  .masthead-nav {
+    gap: clamp(1.125rem, 5vw, 1.75rem);
   }
 }
 
@@ -1221,6 +1493,22 @@ a.experience-open:focus-visible {
 }
 
 /*
+  The opening is mandatory: scrolling hurries it and can never skip it, and a link that jumped past it
+  would be the same skip by another route. So the words are composed and readable for the second or so
+  before the sequence releases, and they do not go anywhere yet.
+
+  Silence is not the answer to a click — `04-visual-language.md` §10, it always answers. This one is
+  answered: `pointer-events: none` lets the press reach the window, where the sequencer treats it as
+  intent and runs the rest of the opening faster. The click is received; what it buys is the end of the
+  sequence rather than the skipping of it.
+
+  Without scripting the attribute is never written, so the links work from the first frame.
+*/
+html[data-opening='running'] .ways a {
+  pointer-events: none;
+}
+
+/*
   Tracking comes down as the size goes up. At 12px the wide 0.16em was doing the work of
   making three small words feel deliberate; at 13px it starts costing word recognition,
   which is the opposite of readable.
@@ -1269,5 +1557,1384 @@ a.experience-open:focus-visible {
   */
   .identity-line {
     font-size: clamp(1.1875rem, 5.4vw, 1.6875rem);
+  }
+}
+
+/* ══════════════════════════ The publication ══════════════════════════
+
+  Everything after the film, and the whole of its design is a change of register.
+
+  `04-visual-language.md` §4: type does two jobs — **to speak** and **to disappear** — and recognising
+  them as two jobs is the decision. Chapters I to IV only ever needed the first, and `decisions.md` §03
+  said so: a few words at display size, composed inside a photograph, five times in two minutes. These
+  pages need the second. A measure, a leading, and paragraphs somebody finishes without noticing they were
+  reading. `decisions.md` §54.
+
+  Four things carry across from the film and nothing else does:
+
+    the paper       and the warm near-black ink on it. It is the same page.
+    the axis        `--mark-x`. The mark in the head margin, the studio's type over the work, the line
+                    under the plate and every label down here share one vertical.
+    the label       `--mark-size`, 500, 0.06em, `--ink-quiet` — the masthead's own voice, so a label in
+                    the margin of the essay is plainly the same kind of mark as the one in the corner.
+    the curve       `var(--curve)`, on the one thing here that answers a press.
+
+  What does not carry across: the pin, the driver, every scroll-driven property, the numerals, and the
+  scale. Nothing below is ever as loud as the film was — `04-visual-language.md` §5, scale is currency,
+  and the film has already spent it.
+
+  **There is one timing in this whole section** (`--fade-answer`) and it belongs to a question being
+  answered. Everything else is either the page arriving once (`[data-reveal]`, shared with Chapter IV's
+  closing) or it does not move at all.
+*/
+
+:root {
+  /*
+    The reading face.
+
+    `open-decisions.md` §7 is unanswered and this does not pretend otherwise: it is the system stack, the
+    same one the film speaks in, and `decisions.md` §03 deliberately left the quiet face unchosen until
+    there was real long-form material to choose it against. There is now — the essay below is it. This
+    indirection is the single place that decision lands when it is made, and it is named separately from
+    `--voice` so that answering it cannot silently retype the hero.
+  */
+  --read: var(--voice);
+
+  /*
+    The one mark the publication adds: a hairline where a section begins.
+
+    A printed rule, not a border on a component — it spans the page's own grid, it appears once per
+    section, and it is the only thing on these pages that is not type or paper. At 0.12 of the ink it
+    measures a shade under the quietest type here, which is where a rule belongs: `04-visual-language.md`
+    §5, it orders the page so that the one deliberate break in it can be read as a break.
+  */
+  --rule: rgba(24, 23, 20, 0.12);
+
+  /*
+    ── The editorial grid ────────────────────────────────────────────────────────────────────────
+    A rail and a column. The rail carries small labels the way a page carries marginal notes; the column
+    carries the type. Asymmetric by default — `04-visual-language.md` §5, an asymmetric composition has
+    direction and tells the eye where to go first — and left-aligned to the page's axis, so the silence
+    collects to the right, where a page's silence belongs.
+
+    1 : 2.3 rather than halves. At 1440 and above that is a rail of about 310 and a column of about 715,
+    which is a margin wide enough to hold a two-word label at the mark's size without the label wrapping,
+    and narrow enough that it reads as a margin rather than as the first of two columns.
+  */
+  --cols: minmax(0, 1fr) minmax(0, 2.3fr);
+  --rail-gap: clamp(1.75rem, 4vw, 4rem);
+
+  /*
+    How wide the whole thing is allowed to get, and the measure inside it.
+
+    Two separate limits on purpose. `--page-w` bounds the *composition*, so display type can use the full
+    column; `--measure` bounds the *reading*, and it is stated in the prose's own characters so it is the
+    same measure at every size. 62 characters is inside the comfortable band for a paragraph somebody is
+    expected to finish; the column is wider than that, which is what leaves the prose looking set rather
+    than justified to its container.
+  */
+  --page-w: 68rem;
+  --measure: 62ch;
+
+  /*
+    About is wider, because half of it is a photograph and a picture has no measure to stay inside. 84rem
+    puts the image at 659 across on a 1440 screen — 51% of the spread, and a plate with presence rather than
+    an illustration beside a column.
+  */
+  --about-w: 84rem;
+
+  /*
+    The reading size and its leading, declared **once** because two places set type to be read: the prose in
+    the method, the questions and Contact, and the narrative in About. Two clamps would be two opinions about
+    the same decision, and the narrow branch below only has to change one of them.
+  */
+  --read-size: clamp(1.0625rem, 1.15vw, 1.1875rem);
+  --read-leading: 1.72;
+
+  /* A label and the type it belongs to, then one part and the next. Two gaps, never confused. */
+  --label-gap: clamp(0.7rem, 1.6vh, 1.1rem);
+  --part-gap: clamp(2.25rem, 5.5vh, 3.75rem);
+
+  /*
+    ── The rhythm, and it is a decrescendo ───────────────────────────────────────────────────────
+    The silence above each section, and it gets smaller as the page goes on: the film ends into the
+    largest band on the site, the essay opens in a generous one, the method is tighter, the questions are
+    tighter still, and Contact takes a breath back because it is the resolution rather than more of the
+    list.
+
+    `05-storyboard.md` §3 is the argument: everything before Recognition earns attention and everything
+    after it spends attention, so the closer the visitor gets to writing, the less should stand between
+    them and it. The page becomes more immediate by becoming denser, not faster.
+  */
+  /*
+    `--band-turn` is gone with the sentence it held. The band above About is now the **whole** of the
+    distance between the film and the publication, so it is the largest one here and it is the only thing
+    marking the seam: `03-design-principles.md` §3, a pause is allowed to be the entire design of a moment.
+
+    It is measured against what is already above it rather than chosen: the act's last frame leaves about
+    130px of paper below the line under the plate before its box ends, so 9rem here puts a little over 270px
+    of silence between the film's last words and About's rule at 1440. That is a rest, not a gap.
+  */
+  --band-open: clamp(5.5rem, 14vh, 9rem);
+  --band-mid: clamp(4rem, 10vh, 7rem);
+  --band-tight: clamp(3.25rem, 8vh, 5.5rem);
+  --band-close: clamp(4.5rem, 12vh, 8rem);
+}
+
+/*
+  The same paper the film was printed on, and the same ink. There is no second ground here — a change of
+  ground is an event (`04-visual-language.md` §2) and the film has already spent both of the ones it gets:
+  black for the evening, paper for the studio. What follows is not a new place; it is the same page, plainly
+  printed. `decisions.md` §01 — the studio speaks in plain light, permanently.
+*/
+.publication {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/*
+  One section of the publication.
+
+  Left-aligned to the axis and bounded, so it never becomes a column of type stretched across a monitor.
+  The band above it is a variable rather than a value, because the rhythm down the page is the composition
+  — see `--band-turn` and the four below it.
+
+  `padding-bottom: 0`: the distance between two sections is **one** band, declared by the section below,
+  so there is never a gap made of two paddings that have to be kept in agreement. The last one closes
+  itself.
+
+  `scroll-margin-top` is the sticky head. Every destination in the masthead lands here, and without it the
+  first thing a visitor sees on arriving is the section's own rule underneath a band of fixed paper.
+*/
+.page {
+  display: grid;
+  row-gap: var(--part-gap);
+  max-width: calc(var(--page-w) + var(--mark-x) * 2);
+  padding: var(--band, var(--band-mid)) var(--mark-x) 0;
+  scroll-margin-top: var(--masthead);
+}
+
+.page-asked {
+  --band: var(--band-tight);
+}
+
+/*
+  Contact, and the end of the document. The one section that closes itself, because there is nothing below
+  it to declare the gap — and the tail is deliberately shorter than the band above the exit line, so the
+  page ends rather than trailing off.
+*/
+.page-last {
+  --band: var(--band-close);
+  padding-bottom: clamp(3.5rem, 9vh, 6rem);
+}
+
+/*
+  Where a section begins. A printed rule, spanning the page's own width, and the first one on the site is
+  the fold: above it the page was a film, below it it is a publication.
+
+  `<hr>` because that is what it is — a thematic break — rather than a `::before` on a heading, which would
+  make the mark a property of the type instead of a feature of the page.
+*/
+.page-rule {
+  margin: 0;
+  border: 0;
+  height: 1px;
+  background: var(--rule);
+}
+
+/*
+  A label in the rail and the type it belongs to, beside it.
+
+  A grid of its own rather than two items placed into the section's grid. That is what lets the gap between
+  a label and its own prose (`--label-gap`) and the gap between one part and the next (`--part-gap`) be two
+  numbers that cannot become each other when the page narrows and the rail moves above the text.
+*/
+.page-part {
+  display: grid;
+  grid-template-columns: var(--cols);
+  column-gap: var(--rail-gap);
+  row-gap: var(--label-gap);
+}
+
+/*
+  The masthead's own voice, at the masthead's own size, in the page's quietest ink.
+
+  Identical metrics on purpose: the mark in the corner, the four words beside it and every label in these
+  margins are the same kind of mark, so they are set the same way. It is also what keeps the labels from
+  reading as headings — `04-visual-language.md` §5, scale is currency, and a label spends none.
+
+  Headings in the document sense (`h2`, `h3`), so the page has a structure a screen reader can move through
+  while the composition stays a margin note.
+*/
+.page-label {
+  margin: 0;
+  font-size: var(--mark-size);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 1.25;
+  color: var(--ink-quiet);
+  /* The label sits with the first line of its prose rather than on the prose's cap height. */
+  padding-top: 0.15em;
+}
+
+/*
+  A section's opening statement. Authored lines — `04-visual-language.md` §4, where the line ends is part
+  of the composition — at the largest size the publication uses for a heading and well below the film's
+  56px. The film asserts; this introduces.
+
+  32ch, and it is a floor rather than a preference: the longest line in either statement is 29 characters,
+  and a measure that cannot hold it turns a composition into an accident. It was 24ch and did exactly that
+  at 1440 — see `about.lead`. The column is wider than this again, so the limit is the one doing the work.
+*/
+.page-lead {
+  margin: 0;
+  max-width: 32ch;
+  font-size: clamp(1.5rem, 2.6vw, 2.5rem);
+  font-weight: 300;
+  line-height: 1.2;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+}
+
+.page-lead span {
+  display: block;
+}
+
+/*
+  Type that disappears. The first of it in the project, and the whole reason `--read` exists.
+
+  17 to 19 pixels at a leading of 1.72 and a measure of 62 characters. Reading is the floor, not the goal
+  (§4): the size is a reading size before it is a compositional one, the leading is open enough for a
+  paragraph of five lines, and the measure is stated in characters so it holds at every viewport rather
+  than at the one it was set on.
+*/
+.prose {
+  font-family: var(--read);
+  font-size: var(--read-size);
+  line-height: var(--read-leading);
+  color: var(--ink);
+}
+
+.prose p {
+  margin: 0;
+  max-width: var(--measure);
+}
+
+/*
+  Paragraph to paragraph, in the prose's own ems rather than in the page's rhythm — a paragraph break is a
+  property of the type, and it should stay proportional to the leading when the size changes.
+*/
+.prose p + p {
+  margin-top: 1.15em;
+}
+
+/*
+  `.page-pull` is gone. It set *We create digital experiences that become part of the memory itself* at
+  display size across both columns, as the one deliberate break in the grid — and it read as a motto over a
+  paragraph. The sentence is now the last clause of About's narrative, where it is the conclusion of an
+  argument rather than a claim standing on its own. `decisions.md` §54.
+
+  Which leaves the publication with **no break in its grid at all**, and that is the stronger position:
+  About does not sit in the grid, so it cannot break it. One composition for the three sections that are
+  type, and one composition for the section that has a photograph in it.
+*/
+
+/*
+  A section's last line — the consequence, or the admission. Set in the reading face at a size between the
+  prose and the statement, in the quiet ink, so it reads as the studio dropping its voice rather than as a
+  second heading.
+*/
+.page-close {
+  margin: 0;
+  max-width: 34ch;
+  font-family: var(--read);
+  font-size: clamp(1.0625rem, 1.35vw, 1.375rem);
+  line-height: 1.5;
+  color: var(--ink-quiet);
+}
+
+/* The line under a label that is not prose and not a statement — the questions' own note. */
+.page-note {
+  margin: 0;
+  max-width: 46ch;
+  font-family: var(--read);
+  font-size: clamp(1rem, 1.1vw, 1.0625rem);
+  line-height: 1.6;
+  color: var(--ink-quiet);
+}
+
+/* ---------- About: the room, and one narrative ---------- */
+
+/*
+  **The one section of the publication with material in it, and therefore the one without a rail.**
+
+  The other three are type, so they use the label-and-column grid. Here half the composition is a
+  photograph of the room the work is made in, and a margin full of small labels beside a picture would be
+  furniture. What About keeps is the axis, the paper and the label; everything else is its own.
+
+  It is also **wider** than the type sections. `--page-w` is 68rem because that is where a measure stops
+  being a measure; a photograph has no measure, and the picture has to be able to hold its half of the
+  frame — at 1440 the spread runs 1280 and the image is 659 across, which is 51% of it and inside the 45–55
+  the composition was asked for.
+
+  `opacity: 1` and no transition: the section deliberately does **not** fade as a block. Its three parts
+  arrive in order — the room, then the mark, then the words — and the page-level reveal would fade the whole
+  thing in underneath that. Same observer and same attribute; the children carry it.
+*/
+.about {
+  --band: var(--band-open);
+  max-width: calc(var(--about-w) + var(--mark-x) * 2);
+  opacity: 1;
+  transition: none;
+}
+
+/*
+  Slightly more than half to the photograph, top-aligned, with a gap wide enough that the two are separate
+  objects rather than a caption beside a picture. `04-visual-language.md` §5 — asymmetry by default, and the
+  eye is given the room first because the room is the subject and the words are a reading of it.
+*/
+.about-spread {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  column-gap: clamp(2.5rem, 5vw, 5rem);
+  align-items: start;
+}
+
+/*
+  The photograph, and the frame is the file's own 3:2 — `04-visual-language.md` §5, a frame is chosen and
+  then held, and this one was chosen by whoever made the picture. It is never re-cropped to fit a column, at
+  any width.
+
+  The ratio is declared rather than left to the image so the box exists before the bytes do: nothing shifts
+  when it lands, which is `05-storyboard.md` §6's condition on Beat 0 applied to a page six screens down.
+
+  The ground behind it is the **film's own black**, and it is doing two jobs. A dark plate on paper is
+  exactly what the act ends as, so the publication's first page and the film's last frame are the same kind
+  of object. And if the image is slow or never arrives, what stands there is a composed dark rectangle with
+  the studio's account of itself beside it, rather than a hole — `05-storyboard.md` §10.
+
+  No border, no radius, no shadow and no card. It is a photograph printed on a page.
+*/
+.about-frame {
+  margin: 0;
+  aspect-ratio: 3 / 2;
+  background: var(--ground);
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(var(--about-settle));
+  transition:
+    opacity var(--fade-about-image) var(--curve),
+    transform var(--fade-about-image) var(--curve);
+}
+
+.about-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/*
+  One narrative, with nothing labelled inside it. The label is the section's name; the sentence under it is
+  the first line of the story rather than a heading over it, which is why it is larger than the paragraphs
+  and set in the same voice as them.
+
+  Margins rather than a `row-gap`, because the distance from the label to the first line and the distance
+  from one paragraph to the next are different relationships: the first is the page's rhythm, the second is
+  the type's, so the second is stated in the type's own ems and stays proportional when the size changes.
+*/
+.about-words {
+  display: grid;
+  align-content: start;
+}
+
+.about-label {
+  margin: 0;
+}
+
+.about-opening {
+  margin: clamp(0.85rem, 2vh, 1.3rem) 0 0;
+  font-size: clamp(1.1875rem, 1.7vw, 1.5rem);
+  font-weight: 300;
+  line-height: 1.4;
+  letter-spacing: -0.006em;
+  color: var(--ink);
+  /*
+    Two lines of even length rather than a full line and the word `repeat.` on its own, which is what the
+    measure gives it at 1440. The line breaks are not authored here — this is a sentence, not a composed
+    statement — so the browser is asked to make them even instead. Nothing else in the publication needs
+    this, because nothing else in it is display type set to an inherited width.
+  */
+  text-wrap: balance;
+}
+
+.about-text {
+  margin: 1.15em 0 0;
+  font-family: var(--read);
+  font-size: var(--read-size);
+  line-height: var(--read-leading);
+  color: var(--ink);
+}
+
+/*
+  **The arrival**, and it is the only composed one in the publication: the room, then the mark, then the
+  words, one after another, over about two and a fifth seconds. `story.afterTheFilm.about` holds every
+  number and `timeline.ts` resolves the three delays from one `step` — nothing here declares a duration.
+
+  The photograph is the one thing that moves, 14px from below (`--about-settle`), so its arrival has a
+  direction and reads as a picture being set down rather than switched on. The label and the words are
+  opacity alone: three elements each drifting upward is the generic scroll reveal this exists instead of.
+  Under `prefers-reduced-motion` the settle is zero and the order is unchanged — see `transitions.ts`.
+
+  Each block takes its delay from a variable so the cadence is one line of CSS per block and the numbers all
+  come from one place. `nth-of-type` over the paragraphs: the opening sentence is the first, the narrative
+  is the second and third.
+*/
+.about-label,
+.about-opening,
+.about-text {
+  opacity: 0;
+}
+
+.about-label {
+  transition: opacity var(--fade-about-label) var(--curve) var(--in-about-label);
+}
+
+.about-opening,
+.about-text {
+  transition: opacity var(--fade-about-words) var(--curve) var(--in, 0ms);
+}
+
+.about-words p:nth-of-type(1) {
+  --in: var(--in-about-words-1);
+}
+
+.about-words p:nth-of-type(2) {
+  --in: var(--in-about-words-2);
+}
+
+.about-words p:nth-of-type(3) {
+  --in: var(--in-about-words-3);
+}
+
+.about[data-shown='true'] .about-frame {
+  opacity: 1;
+  transform: none;
+}
+
+.about[data-shown='true'] .about-label,
+.about[data-shown='true'] .about-opening,
+.about[data-shown='true'] .about-text {
+  opacity: 1;
+}
+
+/*
+  ---------- About, recomposed ----------
+
+  The room above the words, and it stacks earlier than the rest of the publication — at 1080 rather than
+  900. Measured: below about 1080 the right-hand column falls under 424px, which is 50 characters of reading
+  type, and a narrative set 46 characters wide beside a picture is a caption. So the spread gives up at the
+  width where its second column stops being a measure, and the photograph takes the full width instead,
+  where it is the strongest thing on the screen.
+
+  The words then take the publication's own measure rather than the full width, so the narrative is read at
+  the same length here as everywhere else on the page.
+*/
+@media (max-width: 1080px) {
+  .about-spread {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: clamp(1.5rem, 4vh, 2.5rem);
+  }
+
+  .about-words {
+    max-width: var(--measure);
+  }
+}
+
+/* ---------- The method: the studio's questions, in a space ---------- */
+
+/*
+  **The one held frame in the publication, and the only place on the site where type is spatial.**
+
+  Everything else after the film is a page. This is a frame: one viewport, held for `--method-pin`, in which
+  four questions surface out of a depth, twelve considerations accumulate at their own distances, and then all
+  twelve converge into the point the questions stood on — which is where the answer comes forward.
+  `decisions.md` §55.
+
+  The material is type, space and motion, and there is nothing else in it: no photograph, no rule, no panel,
+  no line drawn between anything. A network of connecting lines would be a diagram, and a diagram explains a
+  method rather than performing one.
+
+  **Two divisions of labour, both the project's own.** Every *timing* is `story.methodStory` and is only read
+  here. Every *position* is declared here and nowhere else, because where a word stands in a frame is
+  composition and it changes with the screen — the same division `--plate-x` and the act's own type are under.
+
+  There is exactly one arithmetic composition in this file (`--mspread`), which subtracts the convergence from
+  one, the way `--aperture` adds the two halves of the act's own reveal.
+*/
+
+.method {
+  position: relative;
+  height: calc(100dvh + var(--method-pin));
+  /*
+    The band between the essay and the frame, and it is a **margin** rather than the padding the pages use:
+    padding is inside the box, and this box's height is the pinned distance itself — a padding here would
+    quietly shorten the runway by whatever the band was. `--band-mid` is the publication's own interval, so
+    the frame arrives on the same rhythm every other section does.
+
+    Without it the visitor read About's last line and the method's label 16px apart, because the frame's own
+    top is empty paper and its label sits at the very top of it.
+  */
+  margin-top: var(--band-mid);
+}
+
+/*
+  The frame. It begins below the head margin for the reason `.act-stage` does — the mark and its navigation
+  are never over the composition — and it is exactly the same height, so the two held frames on this site are
+  the same box.
+
+  `perspective` is what makes the section spatial rather than layered, and `perspective-origin` is set to the
+  focus: the point the questions stand on, the point the considerations recede toward, and the point they all
+  come back to. So the space itself is oriented around the one place the section resolves, and a word placed
+  further back is drawn closer to it — depth and meaning are the same axis here.
+
+  `overflow: hidden` keeps a far word that strays from widening the page, and `pointer-events: none` says what
+  the section is: nothing in it is a control, and there is nothing to press.
+*/
+.method-stage {
+  position: sticky;
+  top: var(--masthead);
+  height: var(--stage-h);
+  overflow: hidden;
+  background: var(--paper);
+  perspective: var(--m-depth);
+  perspective-origin: var(--m-focus-x) var(--m-focus-y);
+  pointer-events: none;
+}
+
+:root {
+  /*
+    ── The space ─────────────────────────────────────────────────────────────────────────────────
+    How deep the frame is, and how far back a word at the far edge of the composition stands. Between them
+    they decide how strongly the space reads as a space: a word at `--m-far` is drawn at
+    `--m-depth / (--m-depth + --m-far)` of its own size, which at 1400 and 520 is 0.73 — a quarter smaller
+    than the nearest word without a single font size being changed.
+
+    1400 rather than something shorter because a tight perspective on type is a fisheye: at 600 the far words
+    are half size and visibly distorted toward the origin, which reads as an effect. This reads as distance.
+
+    **520 rather than 640, and the correction is legibility.** At 640 the farthest word was drawn at 13px and
+    measured 2.5:1 against the paper, which is atmosphere bought with reading — `03-design-principles.md`
+    names that trade and forbids it. The projection now takes 27% instead of 31%, and the type and the ink
+    were both pulled back with it: see `--m-word-fall` and `--m-ink-fall` below.
+  */
+  --m-depth: 1400px;
+  --m-far: -520px;
+
+  /*
+    **The focus.** The point the questions stand on, the point the considerations are placed relative to, and
+    the point everything converges into. On the page's own axis, because that vertical runs the whole site —
+    the mark in the head margin, the studio's type over the work, the line under the plate, every label in the
+    publication — and the one moment this section resolves belongs on it.
+
+    38% down the frame rather than the middle: it leaves room for four considerations above the questions and
+    six below, and it puts the answer where a page's first line sits rather than at its centre.
+    `04-visual-language.md` §5 — centring is reserved for the ceremonial, and this is a page.
+  */
+  --m-focus-x: var(--mark-x);
+  --m-focus-y: 38%;
+
+  /*
+    How much of the field's spread the frame can take, per axis. One at any ordinary size; they are only ever
+    lowered, and only for a frame too short to hold the composition — a phone on its side. Cheaper and more
+    honest than a third coordinate table: the layout is unchanged and it is simply drawn nearer the axis.
+  */
+  --m-xfit: 1;
+  --m-yfit: 1;
+
+  /*
+    How far a question travels in z as it arrives and leaves. It surfaces out of the space and sinks back into
+    it, which is the whole reason the questions are not a cross-fade: at 300 the movement is about a tenth of
+    the question's own size, which is enough to read as depth and not enough to read as a zoom.
+  */
+  --m-ask-z: -300px;
+
+  /*
+    The considerations. One size and one ink at the front of the space, and how much of each is lost by the
+    time a word is at the back — so a word's distance decides its scale twice over: once in the type, once in
+    the projection. Everything else about a word is its four authored numbers.
+
+    **Both falls are small, and that is measured rather than restrained.** The projection is already doing
+    most of the recession, so the type only has to lean the same way: 26px at the front and 17px at the back
+    once projected. The ink matters more — this near-black on this paper loses contrast fast, and the first
+    version's range (0.9 → 0.41) put the farthest word at 2.5:1. 0.9 → 0.6 measures 4.4:1, which is the floor
+    for type this size, and it is still the same distance the studio's own `--ink` → `--ink-quiet` covers.
+    Depth here is carried by scale, position and turn, and only leaned on by ink.
+  */
+  --m-word: 1.625rem;
+  --m-word-fall: 0.125rem;
+  --m-ink: 0.9;
+  --m-ink-fall: 0.3;
+}
+
+/*
+  How much of the composition is still spread out. One minus the convergence, and it multiplies every offset
+  in the field — so twelve words collapse toward the focus on twelve different vectors from a single number,
+  and nothing is animated individually. `story.methodStory.converge`.
+*/
+.method-stage {
+  --mspread: calc(1 - var(--mgather));
+}
+
+/*
+  A group: one question and the three considerations it brings. It exists so the DOM can hold the reading
+  order — question, then what the studio hears — while the stylesheet places everything.
+
+  `preserve-3d` is load-bearing: without it this layer would flatten its children into a single plane and the
+  perspective would be lost. And it must never be given an opacity, a filter or an overflow of its own, each
+  of which forces the same flattening. That is why the convergence multiplies each word's own opacity instead
+  of fading a wrapper.
+*/
+.mgroup {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+/* The section's name, held at the head of the frame on the page's axis. The only thing here that never moves. */
+.method-label {
+  position: absolute;
+  left: var(--mark-x);
+  top: clamp(0.5rem, 2vh, 1.5rem);
+}
+
+/*
+  A question, and the invitation before it — the same element, because the invitation is the first of them.
+
+  On the axis at the focus, and it surfaces: one range drives both the opacity and the distance, so the
+  question comes forward out of the space as it arrives and returns into it as it goes. `1 - value` is the
+  second reading of the same number, which is why there is no second beat for the movement.
+
+  `--ask` is set per question so the shared rule can read whichever cue belongs to it.
+*/
+.mask {
+  position: absolute;
+  left: var(--m-focus-x);
+  top: var(--m-focus-y);
+  margin: 0;
+  max-width: 20ch;
+  font-size: clamp(1.5rem, 2.6vw, 2.375rem);
+  font-weight: 300;
+  line-height: 1.16;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+  text-wrap: balance;
+  opacity: var(--ask);
+  transform: translateZ(calc(var(--m-ask-z) * (1 - var(--ask))));
+}
+
+.mask[data-ask='0'] {
+  --ask: var(--minvite, 1);
+}
+
+.mask[data-ask='1'] {
+  --ask: var(--mq1, 0);
+}
+
+.mask[data-ask='2'] {
+  --ask: var(--mq2, 0);
+}
+
+.mask[data-ask='3'] {
+  --ask: var(--mq3, 0);
+}
+
+.mask[data-ask='4'] {
+  --ask: var(--mq4, 0);
+}
+
+/*
+  A consideration. Everything about how it looks and where it stands comes from **four authored numbers** and
+  its own arrival:
+
+    --wx, --wy   where it stands, as an offset from the focus. In `vw` and `vh`, so the composition holds its
+                 proportions at every width rather than being a set of pixel coordinates for one screen.
+    --wd         how far away it is, 0 at the front and 1 at the back. It drives three things at once — the
+                 distance in z, the type size and the ink — so a word cannot be far away and loud.
+    --wr         how far it is turned. Every word is rotated slightly **toward the focus**, which is what
+                 makes the space read as one space with a subject rather than as scattered type.
+    --wo         which of the twelve arrivals is its own.
+
+  The transform is one line and it does the whole of the choreography: each offset is multiplied by
+  `--mspread`, so as the convergence runs the word travels to the focus, comes forward with everything else,
+  and turns square to the frame as it arrives. Then it goes out.
+
+  Opacity is the word's own arrival multiplied by what is left of the field, rather than a fade on a wrapper,
+  because a wrapper with an opacity would flatten the perspective — see `.mgroup`.
+*/
+.mword {
+  position: absolute;
+  left: var(--m-focus-x);
+  top: var(--m-focus-y);
+  font-size: calc(var(--m-word) - var(--wd) * var(--m-word-fall));
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.004em;
+  white-space: nowrap;
+  color: rgba(24, 23, 20, calc(var(--m-ink) - var(--wd) * var(--m-ink-fall)));
+  opacity: calc(var(--wo, 0) * var(--mspread));
+  transform: translate3d(
+      calc(var(--wx) * var(--m-xfit) * var(--mspread)),
+      calc(var(--wy) * var(--m-yfit) * var(--mspread)),
+      calc(var(--wd) * var(--m-far) * var(--mspread))
+    )
+    rotateY(calc(var(--wr) * var(--mspread)));
+}
+
+/*
+  ── The composition ───────────────────────────────────────────────────────────────────────────
+  Twelve considerations, in the order the four questions bring them. This table is the whole layout of the
+  section and it is meant to be tuned here, by eye, in one place.
+
+    1–3    Time · Place · Light            the moment
+    4–6    People · Names · Distance       who will be standing there
+    7–9    Silence · Pace · Colour         what it should feel like
+    10–12  Detail · Photographs · Memory   what should remain
+
+  Three things are true of it on purpose. Each question brings one near word, one at mid distance and one at
+  the back, so the space gains depth with every question rather than filling front to back. Nothing sits
+  within about a third of the frame's width of the focus, because that is where the questions and then the
+  answer stand. And the far words are authored **further out** than they are drawn: the projection pulls
+  everything toward the perspective origin in proportion to its distance, so a word at `--wd: 0.9` lands at
+  roughly 70% of the `--wx` written here.
+*/
+.mword[data-w='1'] {
+  --wx: 27vw;
+  --wy: -19vh;
+  --wd: 0.14;
+  --wr: -4deg;
+  --wo: var(--mw1);
+}
+
+.mword[data-w='2'] {
+  --wx: 53vw;
+  --wy: -9vh;
+  --wd: 0.44;
+  --wr: -7deg;
+  --wo: var(--mw2);
+}
+
+.mword[data-w='3'] {
+  --wx: 100vw;
+  --wy: -25vh;
+  --wd: 0.84;
+  --wr: -10deg;
+  --wo: var(--mw3);
+}
+
+.mword[data-w='4'] {
+  --wx: 17vw;
+  --wy: 17vh;
+  --wd: 0.1;
+  --wr: -3deg;
+  --wo: var(--mw4);
+}
+
+.mword[data-w='5'] {
+  --wx: 43vw;
+  --wy: 27vh;
+  --wd: 0.48;
+  --wr: -6deg;
+  --wo: var(--mw5);
+}
+
+.mword[data-w='6'] {
+  --wx: 82vw;
+  --wy: 37vh;
+  --wd: 0.88;
+  --wr: -9deg;
+  --wo: var(--mw6);
+}
+
+.mword[data-w='7'] {
+  --wx: 37vw;
+  --wy: 6vh;
+  --wd: 0.22;
+  --wr: -5deg;
+  --wo: var(--mw7);
+}
+
+.mword[data-w='8'] {
+  --wx: 19vw;
+  --wy: -30vh;
+  --wd: 0.56;
+  --wr: -4deg;
+  --wo: var(--mw8);
+}
+
+.mword[data-w='9'] {
+  --wx: 108vw;
+  --wy: 11vh;
+  --wd: 0.92;
+  --wr: -11deg;
+  --wo: var(--mw9);
+}
+
+/*
+  The last group is ordered against the pattern on purpose: `Detail` is the far one and `Memory` the near.
+  Not for the joke — because `Memory` is the last consideration to arrive before everything converges, and
+  the last word in the frame before the answer should not be the faintest thing in it.
+*/
+.mword[data-w='10'] {
+  --wx: 70vw;
+  --wy: 31vh;
+  --wd: 0.9;
+  --wr: -9deg;
+  --wo: var(--mw10);
+}
+
+.mword[data-w='11'] {
+  --wx: 44vw;
+  --wy: -31vh;
+  --wd: 0.55;
+  --wr: -6deg;
+  --wo: var(--mw11);
+}
+
+.mword[data-w='12'] {
+  --wx: 26vw;
+  --wy: 34vh;
+  --wd: 0.16;
+  --wr: -3deg;
+  --wo: var(--mw12);
+}
+
+/* ---------- The resolution ---------- */
+
+/*
+  Where the section arrives, and it stands exactly where the questions stood — the focus, on the axis. That
+  is the argument in one decision: the place the studio was asking from is the place the answer appears, and
+  everything in the frame has just travelled into it.
+
+  `preserve-3d` for the reason `.mgroup` has it: the answer comes forward in z, so this layer must not
+  flatten. No opacity of its own, for the same reason.
+*/
+.mresolve {
+  position: absolute;
+  left: var(--m-focus-x);
+  top: var(--m-focus-y);
+  /*
+    Sized by its widest line rather than by a measure. A `ch` limit here is measured in the *wrapper's* font
+    size, not in the answer's, which is how the first version of this box came out 224px wide and broke both
+    the answer and the two authored lines into wraps — the exact failure `01-validation.md` names. The
+    fallback keeps it inside the page's own margins on the narrowest frame.
+  */
+  width: max-content;
+  max-width: calc(100vw - var(--mark-x) * 2);
+  transform-style: preserve-3d;
+}
+
+/*
+  **The answer, coming forward out of the point everything collapsed into.**
+
+  The same construction the questions use, at three times the distance: it arrives from `--m-ask-z * 3` and
+  comes to rest square in the frame. So the twelve considerations converge into a point and the answer
+  emerges from that point, in the same movement, on one range — which is the difference between a resolution
+  and a heading appearing on paper.
+
+  The largest type in the publication and still smaller than anything the film said.
+*/
+.mresolve-answer {
+  margin: 0;
+  /* One line, at every width: 15 characters needs 357px at 50px and 185 at the 26px a 320 frame gives. */
+  white-space: nowrap;
+  font-size: clamp(2rem, 3.4vw, 3.125rem);
+  font-weight: 300;
+  line-height: 1.08;
+  letter-spacing: -0.014em;
+  color: var(--ink);
+  opacity: var(--manswer, 0);
+  transform: translateZ(calc(var(--m-ask-z) * 3 * (1 - var(--manswer, 0))));
+}
+
+/*
+  And the two authored lines under it, once the answer has landed. Opacity only: the movement is over, and
+  this is the sentence that explains what just happened rather than part of it happening.
+*/
+.mresolve-lines {
+  margin: clamp(0.75rem, 1.8vh, 1.25rem) 0 0;
+  font-size: clamp(1.125rem, 1.5vw, 1.5rem);
+  font-weight: 300;
+  line-height: 1.34;
+  letter-spacing: -0.006em;
+  color: var(--ink-quiet);
+  opacity: var(--mlines, 0);
+}
+
+.mresolve-lines span {
+  display: block;
+}
+
+/*
+  ---------- The method, recomposed ----------
+
+  **At 700 rather than at 900, which is where the rest of the publication turns.** That is not an
+  inconsistency, it is the difference between what the two compositions need: a rail needs a *measure* beside
+  it and gives up when the second column falls under 50 characters, and a field needs *width* and gives up
+  when there is no width left to place anything in. Measured at 768 — a tablet held upright — the wide field
+  spans 234 to 683 of the frame and reads as a space; the column reaches 300 and leaves the right half of the
+  frame empty. So the tablet keeps the space and the phone gets the column.
+
+  **Not the wide composition scaled down.** A frame this narrow cannot hold a word 92vw to the right of the
+  axis, and the type that reads as *distance* at 1440 reads as *small* at 390 — so the space is rebuilt rather
+  than shrunk: shallower, tighter, and taller than it is wide.
+
+  Four decisions, and each answers something the wide version could take for granted.
+
+  The **depth is halved** (`--m-far`), and the perspective with it. A phone's frame is a third of the width,
+  so a word at 0.9 distance would be drawn at 11px if the space stayed as deep — legible on paper and not on
+  a phone held outdoors. At 300 against a 1000 perspective the farthest word is 15px at 5:1, and the type
+  barely falls at all with distance because there is no room left for it to.
+
+  The **focus moves up** to 30%, because the composition now needs more room below the axis than above it:
+  the frame is tall, and a question with three lines of wrap needs the space under it.
+
+  The **offsets are re-authored**, not scaled: x from 4 to 52vw and y from −17 to +30vh, which is a column
+  rather than a field. What was a wide space with a deep middle becomes a narrow one with a long fall.
+
+  And the **near/far spread narrows** (`--m-word-fall`, `--m-ink-fall`), because at these sizes a word two
+  thirds the size of its neighbour stops being distant and starts being a footnote.
+*/
+@media (max-width: 700px) {
+  :root {
+    --m-depth: 1000px;
+    --m-far: -300px;
+    --m-focus-y: 30%;
+    --m-ask-z: -180px;
+    --m-word: 1.25rem;
+    --m-word-fall: 0.06rem;
+    --m-ink-fall: 0.26;
+  }
+
+  .mask {
+    font-size: clamp(1.25rem, 5.6vw, 1.5rem);
+    max-width: 15ch;
+  }
+
+  .mresolve-answer {
+    font-size: clamp(1.625rem, 7.4vw, 2.25rem);
+  }
+
+  .mresolve-lines {
+    font-size: clamp(1rem, 4.4vw, 1.1875rem);
+  }
+
+  /*
+    ── The narrow composition ────────────────────────────────────────────────────────────────
+    Twelve words on a frame a third as wide and, once the head margin is taken, two thirds as tall. It is
+    laid out as a **column with a gap in it** rather than a field: four considerations above the question's
+    own line and eight below, and nothing at all in the band the question occupies — `y` between −4 and
+    +9vh, which is where two lines of it stand at this size. The wide composition can leave that band clear
+    by going wide; here there is no wide to go.
+
+    The vertical is used to its edge on purpose. The focus sits at 30% of the frame, so there is roughly
+    twice as much room below the axis as above it, and the offsets say so: −19 to −6 above, +13 to +46
+    below. The first draft of this table used −18 to +34 and left the bottom fifth of the frame empty while
+    crowding four words into 90px at the top.
+  */
+  .mword[data-w='1'] {
+    --wx: 30vw;
+    --wy: -19vh;
+    --wd: 0.16;
+    --wr: -3deg;
+  }
+
+  .mword[data-w='2'] {
+    --wx: 4vw;
+    --wy: -14vh;
+    --wd: 0.5;
+    --wr: -2deg;
+  }
+
+  .mword[data-w='3'] {
+    --wx: 46vw;
+    --wy: -9vh;
+    --wd: 0.86;
+    --wr: -6deg;
+  }
+
+  .mword[data-w='4'] {
+    --wx: 6vw;
+    --wy: 13vh;
+    --wd: 0.12;
+    --wr: -2deg;
+  }
+
+  .mword[data-w='5'] {
+    --wx: 34vw;
+    --wy: 14vh;
+    --wd: 0.5;
+    --wr: -5deg;
+  }
+
+  .mword[data-w='6'] {
+    --wx: 8vw;
+    --wy: 33vh;
+    --wd: 0.9;
+    --wr: -3deg;
+  }
+
+  .mword[data-w='7'] {
+    --wx: 18vw;
+    --wy: 24vh;
+    --wd: 0.2;
+    --wr: -4deg;
+  }
+
+  .mword[data-w='8'] {
+    --wx: 32vw;
+    --wy: 39vh;
+    --wd: 0.54;
+    --wr: -4deg;
+  }
+
+  .mword[data-w='9'] {
+    --wx: 52vw;
+    --wy: 21vh;
+    --wd: 0.92;
+    --wr: -6deg;
+  }
+
+  .mword[data-w='10'] {
+    --wx: 45vw;
+    --wy: 31vh;
+    --wd: 0.9;
+    --wr: -5deg;
+  }
+
+  .mword[data-w='11'] {
+    --wx: 14vw;
+    --wy: -6vh;
+    --wd: 0.55;
+    --wr: -3deg;
+  }
+
+  .mword[data-w='12'] {
+    --wx: 12vw;
+    --wy: 46vh;
+    --wd: 0.16;
+    --wr: -2deg;
+  }
+}
+
+/*
+  ---------- A frame too short to hold a space ----------
+
+  A phone held sideways, or a window dragged short. The vertical is what is scarce, so the field is flattened
+  toward the axis rather than allowed to run off the top and bottom of the frame: every offset in `vh` is
+  already proportional, but at 400px of height ±34vh is the whole frame, so the focus moves to the middle and
+  the type comes down with the frame. Sized against the height, because a `vw` scale answers the wrong
+  question here — the same correction the act's own type carries.
+*/
+@media (max-height: 560px) and (orientation: landscape) {
+  :root {
+    --m-focus-y: 44%;
+    /*
+      The field is drawn nearer the axis rather than re-authored. At 844 × 390 the frame is 291 tall and the
+      focus sits 128 into it, so the narrow table's +46vh would put the last word 16px past the bottom edge —
+      clipped rather than composed. 0.55 brings the whole spread inside it and keeps every relationship in it.
+    */
+    --m-xfit: 0.72;
+    --m-yfit: 0.55;
+
+    /*
+      Both axes, and x is only in it because of what the line below does: a shallower space compresses less
+      toward the origin, so the farthest word — authored at 108vw for a wide frame — landed 6px past the
+      right edge once the depth came in. 0.72 puts it at 602 of 844.
+    */
+
+    /*
+      And the space is made shallower with the type, for the reason it is on a phone held upright: the
+      projection and the type were both taking a share, and at 17px of base the farthest word came out at
+      12.1px — below the floor this file holds everywhere else. 260 of depth and a fall of almost nothing
+      puts it at 14.7px, and the ink is pulled back with it so the same word reads 5.4:1 rather than 4.4.
+    */
+    --m-far: -260px;
+    --m-word: 1.125rem;
+    --m-word-fall: 0.05rem;
+    --m-ink-fall: 0.24;
+  }
+
+  .mask {
+    font-size: clamp(1.25rem, 5vh, 1.75rem);
+  }
+
+  .mresolve-answer {
+    font-size: clamp(1.5rem, 6vh, 2rem);
+  }
+
+  .mresolve-lines {
+    font-size: clamp(0.9375rem, 3vh, 1.125rem);
+  }
+}
+
+/* ---------- The questions ---------- */
+
+/*
+  The change of register, made structural: the rows leave the rail and run the full width of the page,
+  flush to the axis, separated by the same hairline the sections are. Nothing here is composed to be looked
+  at — it is a list somebody scans, and the design of it is that there is almost none.
+*/
+.asked {
+  display: grid;
+}
+
+.ask {
+  border-top: 1px solid var(--rule);
+}
+
+.ask:last-child {
+  border-bottom: 1px solid var(--rule);
+}
+
+/*
+  The question, and the control. `04-visual-language.md` §10 — understood before it is used, nothing
+  inherited, and it always answers: a native `<summary>`, so it opens on the press with no script involved,
+  works before hydration and without JavaScript, and is reachable from the keyboard as it is.
+
+  The padding is the hit area. At the smallest size the row is 17px of type in 2 × 15px of padding, which
+  is a shade over 47 — past the 44 a thumb needs, without a single pixel of type moving to get there.
+*/
+.ask-q {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  padding: clamp(0.95rem, 2.2vh, 1.35rem) 0;
+  font-size: clamp(1.0625rem, 1.3vw, 1.25rem);
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--ink);
+  cursor: pointer;
+  list-style: none;
+}
+
+/* The one WebKit still reads, alongside `list-style` for everything else. */
+.ask-q::-webkit-details-marker {
+  display: none;
+}
+
+/*
+  The mark. A plus that becomes a minus — two states of one glyph, drawn in CSS, with no rotation and
+  nothing to learn. `content`'s alt-text syntax keeps it out of the accessible name, where the disclosure
+  already has a state of its own.
+
+  It is the only thing that answers the cursor: the question is already in full ink, and dimming type to
+  acknowledge a hover would be an interface taking legibility back to say hello.
+*/
+.ask-q::after {
+  content: '+' / '';
+  flex: none;
+  font-size: 1.0625rem;
+  line-height: 1;
+  color: var(--ink-quiet);
+  transition: color var(--fade-nav-hover) var(--curve);
+}
+
+.ask[open] .ask-q::after {
+  content: '−' / '';
+}
+
+.ask-q:hover::after,
+.ask-q:focus-visible::after {
+  color: var(--ink);
+}
+
+.ask-q:focus-visible {
+  outline: 1px solid var(--ink-quiet);
+  outline-offset: 0.4rem;
+}
+
+/*
+  The answer.
+
+  An animation rather than a transition, and that is mechanism rather than preference: the row goes from
+  `display: none` to displayed, and a transition has nothing to interpolate from across that. The row's
+  own height is the browser's, instantly — nothing is measured, nothing is scripted, and there is no
+  height to interpolate — so the only thing that arrives is the ink.
+
+  `--fade-answer` is `story.afterTheFilm.answer`, and it is the fastest thing in the project on purpose: a
+  press must never feel slower than a hover.
+*/
+.ask-a {
+  padding-bottom: clamp(1.1rem, 2.6vh, 1.75rem);
+}
+
+.ask[open] .ask-a {
+  animation: answer var(--fade-answer) var(--curve) both;
+}
+
+@keyframes answer {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------- Contact ---------- */
+
+/*
+  The ask. The largest type in the publication, and still smaller than anything the film said.
+
+  A question rather than an instruction, so it is set as one thing with room around it and nothing under it
+  competing — `05-storyboard.md` §8 Beat 6, whose named failure mode is a headline and a button.
+*/
+.page-ask {
+  margin: 0;
+  max-width: 22ch;
+  font-size: clamp(1.75rem, 3.2vw, 3rem);
+  font-weight: 300;
+  line-height: 1.14;
+  letter-spacing: -0.014em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.write {
+  margin: 0;
+}
+
+/*
+  The way to write, and the only pressable line outside the film.
+
+  **Deliberately identical to `.act-open`**, which is the film's own one press: same size, weight,
+  tracking, ink, hover and mark. There are exactly two things on this site that can be pressed and they are
+  the same kind of offer — one leaves with the work, one starts a letter — so they are set the same way and
+  neither is dressed as a button. `04-visual-language.md` §10, nothing is inherited.
+
+  Inert while there is no address: `[aria-disabled]` is the state of a control that is composed and not yet
+  wired, and it gets no hover and no pointer, so it never promises a press it cannot honour. Same
+  construction, same reasoning as the film's way out. `content/site.ts` → `publication.contact.write`.
+*/
+.write-line {
+  font-size: clamp(1.0625rem, 1.2vw, 1.25rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  text-decoration: none;
+  transition: color var(--fade-nav-hover) var(--curve);
+}
+
+.write-line::after {
+  content: '→' / '';
+  margin-inline-start: 0.6em;
+}
+
+a.write-line:hover,
+a.write-line:focus-visible {
+  color: var(--ink-quiet);
+}
+
+a.write-line:focus-visible {
+  outline: 1px solid var(--ink-quiet);
+  outline-offset: 0.5rem;
+}
+
+.write-line[aria-disabled='true'] {
+  color: var(--ink-quiet);
+  cursor: default;
+}
+
+/*
+  The last thing on the site.
+
+  `05-storyboard.md` §3 — most people leave without acting, that is the normal outcome rather than the
+  failure case, and what they carry away is the real product of the sequence. So it is one sentence, in the
+  quiet ink, after the largest silence in the publication, and nothing under it tries to keep anybody here.
+*/
+.page-exit {
+  margin: clamp(2rem, 8vh, 5rem) 0 0;
+  max-width: 30ch;
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  font-weight: 300;
+  line-height: 1.3;
+  letter-spacing: -0.008em;
+  color: var(--ink-quiet);
+}
+
+/*
+  The imprint. The studio's name, once, at the foot of its own pages, in the voice the labels are set in —
+  a colophon rather than a footer. There is no list of links under it: the head margin has carried the
+  whole navigation since the mark landed, and repeating it at the bottom would be furniture.
+*/
+.colophon {
+  margin: clamp(1rem, 2.5vh, 1.75rem) 0 0;
+  font-size: var(--mark-size);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--ink-quiet);
+}
+
+/*
+  A part with nothing in the rail sets its one element in the text column, so the closing lines, the way to
+  write and the exit all stand on the column's axis with the prose rather than jumping back to the margin.
+
+  Stated as a minimum width because below the breakpoint there is only one column and a second one would be
+  implicit — an element asked for column 2 of a single-column grid creates the column rather than failing.
+*/
+@media (min-width: 901px) {
+  .page-part > :only-child {
+    grid-column: 2;
+  }
+}
+
+/*
+  ---------- The publication, narrowed ----------
+
+  One column, and it is a recomposition rather than a reflow: the rail moves above the type it annotates,
+  which is what a margin note does on a narrow page. `--label-gap` and `--part-gap` are what keep that
+  legible — a label sits close to its own paragraph and far from the next one, and neither distance is the
+  other. `01-validation.md`: a composition that cannot survive being narrowed is recomposed.
+
+  The type scale comes down with the frame. Every size below is stated with a `vw` term so it holds from 320
+  up rather than snapping at one width, and the prose is pinned to 17px, because a reading size is a reading
+  size and there is no viewport at which it should be 15.
+*/
+@media (max-width: 900px) {
+  :root {
+    --cols: minmax(0, 1fr);
+    /*
+      A reading size is a reading size: pinned at 17px, because there is no viewport at which it should be
+      15. Only the leading tightens, because a narrower measure needs less of it.
+    */
+    --read-size: 1.0625rem;
+    --read-leading: 1.68;
+  }
+
+  .page-lead {
+    font-size: clamp(1.375rem, 6.4vw, 1.875rem);
+  }
+
+  .page-ask {
+    font-size: clamp(1.5rem, 7.4vw, 2.25rem);
+  }
+
+  /* The standfirst comes down with the frame, and stays clearly above the paragraphs under it. */
+  .about-opening {
+    font-size: clamp(1.125rem, 4.8vw, 1.3125rem);
+  }
+
+  .page-close {
+    font-size: 1.0625rem;
+  }
+
+  .ask-q {
+    font-size: 1.0625rem;
+  }
+
+  .page-exit {
+    font-size: clamp(1.125rem, 4.6vw, 1.375rem);
   }
 }

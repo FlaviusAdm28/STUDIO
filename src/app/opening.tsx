@@ -296,9 +296,13 @@ export default function Opening() {
             </p>
           </div>
 
+          {/*
+            Three words, and where each of them goes is `content/site.ts`. Only Studio has a section to
+            reach today; About and Contact are destinations without sections, on purpose — see `where`.
+          */}
           <nav className="ways" data-present={beat >= INTERFACE} aria-hidden={beat < INTERFACE}>
-            {site.nav.map((word) => (
-              <a key={word} href={`#${word.toLowerCase()}`}>
+            {site.nav.map(({ word, to }) => (
+              <a key={word} href={`#${to}`}>
                 {word}
               </a>
             ))}

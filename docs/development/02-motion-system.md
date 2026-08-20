@@ -1,7 +1,7 @@
 # 02 — The motion system
 
 *Where every timing lives, why each beat owns its own, and why almost none of them are absolute.*
-*Version 3 · 6 August 2026 · governed by `docs/brand/` (locked)*
+*Version 4 · 13 August 2026 · governed by `docs/brand/` (locked)*
 
 ---
 
@@ -83,6 +83,8 @@ gaps after:  0.05  0.02  0.04  0.08     ← every one preserved
 ```
 src/motion/
   story.ts        THE STORYBOARD — anchors and relationships, in narrative order. Edit this.
+                  Four sections: Chapter I in milliseconds, then the shot, the act and the method in
+                  beats of their own three runways.
   timeline.ts     resolves it into absolutes, and asserts the intentions a ripple edit can break
   easings.ts      shared — the curves
   scroll.ts       shared mechanism — how a resolved range becomes a value, and the track
@@ -124,14 +126,41 @@ thing; a beat of scroll has no duration. `1600` in Chapter I has nothing to do w
 down. If you want a millisecond value below the Chapter I section, the design has changed, and that is
 a brief rather than an edit.
 
-Chapter III is on neither, **except its first page**. Every page after the first is an
-`IntersectionObserver` and one duration — the film is over, and a publication does not perform.
+### Three runways of scroll, not one
 
-The first page is part of the film: it comes into existence under the travelling word, from the instant
-the word sets off, so the mark unveils the Studio rather than announcing it afterwards. That is two
-statements about scroll *position* — welded to the travel's start, three-quarters lit when the mark lands
-— and a duration cannot honour either, so it is a beat in beats like everything else in the shot, and it
-reverses exactly. `decisions.md` §44, which also records what that trade costs.
+Beats of scroll are measured against **three** pinned frames, and they are numbered separately.
+
+| | The shot | Chapter III's act | The method |
+|---|---|---|---|
+| Storyboard | `shotStory` | `actStory` | `methodStory` |
+| Length | `BEATS` = 7.17 | `ACT_BEATS` = 3.2 | `METHOD_BEATS` = 3.8 |
+| Runway | `pin` — 392vh / 588vh | `actPin` — 176vh / 264vh | `methodPin` — 160vh / 240vh |
+| A beat costs | 54.7vh | 55.0vh | **42.1vh** |
+| Zero is | where the opening finished | where the act's frame reached the top | where the method's frame is stuck under the head margin |
+| Track | `track` | `actTrack` | `methodTrack` |
+| Written on | `:root` | `:root` | **the section** |
+
+They are separate because their lengths are decided by different things: the shot's by what it has to
+show, the act's by what it has to say, the method's by what it has to assemble.
+
+**Two of them weigh the same in the hand and the third deliberately does not.** A beat of the act costs what a
+beat of the shot costs, because it is the same film. A beat of the method costs a fifth less, because it is
+**not a chapter** — the publication is not cinema, and a held frame in it has to move faster under the hand
+than the film does or it becomes one. Its whole length is thirteen notches of a wheel. `decisions.md` §46,
+§53 and §55.
+
+The method is also the one track whose properties are **not** written to `:root`. Nothing outside its own
+frame reads them, and a root write invalidates style for the whole document — including the film and a
+cross-origin iframe. `scroll-stage.tsx` says so where it does it.
+
+**They are joined by scroll position and by exactly one value.** `studioEmerges` — a beat of the *shot* —
+opens the first `actStory.frame.opensWithTheMark` of the aperture onto the work, before the act’s frame is even
+pinned, so the chapter's mark starts uncovering its work rather than announcing it. The two stages are added
+in `globals.css` as `--aperture`. Both positions are pure functions of `scrollY`, so the join holds no state
+and reverses exactly. `decisions.md` §51.
+
+Chapter III's **closing** is on neither: an `IntersectionObserver` and one duration. The act is over by
+then, and a publication does not perform.
 
 ## The shapes
 
@@ -177,13 +206,77 @@ Every one is an object in `story.ts`, in narrative order. ⚓ marks an anchor.
 | `chapterTravels` | "chapter" travels to the corner | `alone: 0.41`, `fade: 0.74` | `--tm` |
 | `periodLeaves` | The period leaves early | `afterTravelStarts: 0.08` | `--stop` |
 | `iiiStudio` | "III" arrives, the word becomes "Studio" | `beforeTravelEnds: 0.1` | `--swap`, `--mark3`, `--handoff` |
-| `chapterThreeStands` | Where Chapter III's first page has reached when the mark lands | `atFrameFraction: 0.2` | `--three-overlap`, `--three-stands` |
-| `studioEmerges` | That page coming into existence under the travelling word | `litWhenTheMarkerLands: 0.75` | `--studio`, `--settle` |
-| `studioBlocks` | Chapter III's *other* pages arriving — one per page | `fade` + observer | `--fade-studio-blocks` |
+| `chapterThreeStands` | Where Chapter III's frame has reached when the mark lands | `atFrameFraction: 0.2` | `--three-overlap`, `--three-stands` |
+| `studioEmerges` | That frame coming into existence under the travelling word — the first third of the object's aperture | `litWhenTheMarkerLands: 0.75` | `--studio` |
+| `studioBlocks` | A page of the publication arriving | `fade`, `arrivesShortOf` + observer | `--fade-studio-blocks` |
 | `navHover` | The navigation answering a cursor | `fade` | `--fade-nav-hover` |
+| `answer` | A question in the publication opening | `fade` | `--fade-answer` |
+| `about` | **About arriving**: the room, then the mark, then the words. The one composed arrival after the film, and the photograph is the only thing that moves | `image.settle: 14`, `label.afterImage`, `words.afterLabel`, `words.step` | `--fade-about-*`, `--about-settle`, `--in-about-*` |
 
-Plus three things that are not beats: `pace` (the haste multipliers), `pin` (how much scrolling the
-story costs), and `BEATS` (how long the shot is allowed to be).
+Then Chapter III's act, on its own runway — `actStory`, in the order it happens:
+
+| Beat | What it is | Placed by | Drives |
+|---|---|---|---|
+| ⚓ `navigation` | The masthead's links arriving beside the settled mark | `at: 0.1` | `--anav` |
+| `frame` | **The aperture, and what it opens is the work** — the whole frame, uncovered vertically from its centre. Its range starts at 0 because a third of it is already open, driven by the film | `opensWithTheMark: 0.34`, `fade: 0.62` | `--aframe`, and `--aperture` with `--studio` |
+| `quiet` | **The work alone, lit, and unexplained.** A gap, not a range — the only stillness in Chapter III, and the one beat that exists to have nothing in it | `holdsWhole: 0.3` | nothing |
+| `darkens` | The room going to evening, **over** the work. One stage, because the ground beneath it is a photograph and not paper | `beginsAfterTheQuiet: 0`, `depth: 0.5`, `fade: 0.42` | `--adusk` |
+| `annotation` | The work being named inside its own frame — a name that stays and two lines that give way | `arrivesWhenDuskIs: 0.8`, `fadeIn: 0.3`, `hold: 0.26` | `--atitle` (a ramp), `--anote` (a cue) |
+| `deepens` | The room going down to a trace **as the two lines leave**. Rides the annotation's departure; has no position of its own | `depth: 0.88`, `fade: 0.34` | `--adusk` |
+| `belief` | "We don't build websites." The only thing the studio says inside the film. A ramp | `after: 0.08`, `fade: 0.24` | `--alead` |
+| `printing` | **The film being printed.** The light comes back, the frame draws in until it has margins, and what is left is a plate on paper | `afterTheBelief: 0.26`, `fade: 0.4`, `clears: 0.4` | `--aprint`, and `--adusk` and `--asaid` downward |
+| `wayOut` | "Open the full experience →" — printed on the paper, sixty per cent through the printing. The only outward action in the chapter | `whenPrintedIs: 0.6`, `fade: 0.24` | `--aopen`, `--aoffer` |
+
+Three of those offsets are solved **backwards**, and each is a place the brief asked for an *overlap*
+rather than a sequence: the mark starting the aperture, the work being named inside the darkening, and the
+way out arriving inside the printing. In each case what is authored is how far through the previous movement
+the next one starts, and `unsmoothstep` turns that into the offset — the same trick
+`numeralSetsOffWhenWordIs` uses.
+
+**One joint in the act is deliberately not an overlap.** `quiet.holdsWhole` is a real gap, and it is what
+makes the stillness before the light moves legible as stillness. `timeline.ts` asserts it, because every
+other joint is chained and a gap that goes to zero under a retiming somewhere else is silent.
+
+**One thing in the act moves, and it is the frame.** `printing` translates and scales it into a plate, and
+that supersedes §49's *nothing moves* and §51's crossing object, which is deleted. What earns it is
+`04-visual-language.md` §7 — what changes is what the thing is *for*, from the subject of a film to a plate
+in a publication, and **the appearance of a margin is that relationship**. So the count is unchanged: two
+elements transform in the whole piece, the travelling word and this. `decisions.md` §53.
+
+**The distance is deliberately not in the storyboard.** One beat drives one property; `globals.css` decides
+how far the frame draws in and where it lands (`--plate-scale`, `--plate-x`, `--plate-y`), because where a
+plate sits on a page is composition and it changes with the screen.
+
+## There is no third unit any more
+
+**There was one, and it is gone.** §50 timed the studio's two sentences in milliseconds inside the device,
+on a schedule of its own that met the act's scroll at one position. §51 put the sentences back on the page as
+beats, so **every narrative value in the whole piece is either Chapter I's clock or a beat of scroll**, and
+Chapter III is beats alone. `screenplay`, `asksAt`, `--speaks-at`, the sentinel and the observer are deleted.
+
+The distinction §50 drew was right and its conclusion was not. *A sentence being spoken happens to the
+visitor* — but what makes that true is that the sentence must not be something they have to *finish*, and the
+answer to that is a sentence short enough to read in a glance, not a clock. Four words and one line at 34px
+need no schedule. What it bought back is the order the brief actually wanted: the studio speaks **after** the
+visitor has had the work under their hand, which a schedule started by arrival could not produce.
+`decisions.md` §51.
+
+What is left in `afterTheFilm.work` is not a storyboard, and §53 cut it to two values. `fetchedWithin` is a
+**distance** — how far ahead of the viewport the fragment is requested, so that what the aperture uncovers is
+a page already there rather than one arriving. `arrives` is one **duration**, and its whole job is that the
+frame is never seen to fill in. Neither has a schedule to be synchronised with anything, and `arrives` sits
+beside the sequence for the same reason `navHover` does: it answers a load event rather than continuing a
+sequence, so it is outside `--haste`.
+
+**Everything else that used to be here is gone.** `experience.patience` and `experience.spill` existed for a
+device with a screen in it — a wait to bound and a light for the screen to throw into a room. There is no
+device, nothing is asked for and nothing is waited on: a frame that is not carrying the work is carrying the
+chapter's own ground, which `05-storyboard.md` §10 already treats as a composed alternative rather than a
+failure. `atmosphere.drift` went with the three fields it moved, and with it the only motion in the piece
+nobody asked for and the only one `prefers-reduced-motion` had to remove outright. `decisions.md` §53.
+
+Plus five things that are not beats: `pace` (the haste multipliers), `pin` and `actPin` (how much
+scrolling each frame costs), and `BEATS` and `ACT_BEATS` (how long each is allowed to be).
 
 `iiiStudio` is the one offset that runs **backwards** — from the end of the travel, because the point is
 that the numeral arrives while the word is nearly home. `timeline.ts` checks it cannot reach back past
@@ -196,9 +289,15 @@ landing corner — with the pinned part stated as a fraction of `--pin`, so one 
 a wheel and on a thumb. Nothing about the shot's timing depends on it; see `decisions.md` §42 and §44.
 
 `studioEmerges` is the one beat that deliberately **ends outside the pinned frame**. Everything else has
-to fit inside `BEATS` or its tail is a beat nobody sees; this one drives the page *below* the pin, which
+to fit inside `BEATS` or its tail is a beat nobody sees; this one drives the frame *below* the pin, which
 keeps scrolling. Its start is welded to the travel's start and its end is solved from
 `litWhenTheMarkerLands` — the one number that was actually decided — by inverting the curve.
+
+It is also the one beat that reaches **across** the two runways: it opens the first
+`actStory.frame.opensWithTheMark` of the aperture onto the work, which lives in the act’s frame. That is what
+makes the mark an unveiling of the work rather than an introduction to it — by the time the visitor's frame
+reaches the top of the viewport the work is already a third uncovered, and nothing stands between the
+chapter's head and its work. `decisions.md` §44, §46 and §51.
 
 ## The opening is mandatory
 
@@ -291,6 +390,13 @@ worse somewhere the compiler cannot see.
 | `iiiStudio` cannot reach back past the travel's start | It is measured backwards, so it can place a beat before its parent. |
 | Chapter III is 0.6–0.8 lit when the mark lands | The brief's own band. The range is solved for it, so this only fails if the travel moves under it or the authored value leaves the band. |
 | `studioEmerges` starts inside the frame and ends after the mark lands | Its start is what makes the mark an unveiling rather than an announcement; its end being *later* is what leaves something to settle. |
+| Every gap in the act is positive | Same rule as the shot's, same reason: chaining prevents overlap only while that holds. |
+| The masthead is standing whole before the room goes dark | The chapter's head assembles on the ground it belongs to. Later and it is still arriving over a frame that has already become a photograph. |
+| The act's five solved overlaps are inside 0–1 | Outside that band each of them stops being an overlap and becomes a sequence, which is the thing the act was composed not to be. |
+| The screen is lit before the object crosses | Nothing structural orders them — the screen is solved on the aperture and the crossing is chained to its end. Crossed, a black slab of glass moves aside and lights once it gets there, which reads as a panel being repositioned. |
+| **The studio does not speak before the work has been shown** | §51's own requirement, and the order the chapter turns on. `lead` is chained to the annotation and the annotation to the crossing, so a short enough crossing would put the belief on screen while the device was still a slot. |
+| The frame is four-fifths dark by the time the first white type arrives | The one assertion in the piece that is a *safety* property. Everything in the aside is white and the ground under it is paper until the room goes down. `decisions.md` §02. |
+| The act fits inside `ACT_BEATS` | As below, for the other frame. |
 | The shot fits inside `BEATS` | A ripple edit can push the tail of the shot past the end of the pinned frame, where nobody would ever see it. |
 | Two Chapter I cues are never close enough for hurrying to show them together | `maxAdvance` cannot go below `pace.maxStep` without slowing the natural pace, so if a third of the closest gap is smaller than that, the no-skip guarantee weakens. Widen the gap, or lower `pace.urgent`. |
 
@@ -343,11 +449,30 @@ Holds and gaps are the two halves of Chapter II's rhythm, and both are now one n
 | Lengthen the bridge (the page turn) | `blackTransition.bridge` and `chapterTwoMarker.hold` |
 | Make the cream transition slower | `creamTransition.lightFade` |
 | Give "chapter" longer alone at the centre | `chapterTravels.alone` |
-| Move where Chapter III's first page stands when the mark lands | `chapterThreeStands.atFrameFraction` — the reach-back follows. Raising it toward 0.8 restores `05-storyboard.md` Beat 2; see `decisions.md` §44 |
-| Change how lit that page is when the mark lands | `studioEmerges.litWhenTheMarkerLands` — the range re-solves around it |
-| Change how far it rises into place | `studioEmerges.rise`, in pixels. Zero is legitimate — read §44 first |
-| Make Chapter III's other pages arrive sooner | `studioBlocks.arrivesShortOf` |
+| Move where Chapter III's frame stands when the mark lands | `chapterThreeStands.atFrameFraction` — the reach-back follows. `decisions.md` §44 |
+| Change how lit that frame is when the mark lands | `studioEmerges.litWhenTheMarkerLands` — the range re-solves around it, and the aperture's first stage with it |
+| Give the mark longer alone before its navigation | `actStory.navigation.at` |
+| Change how the masthead's links arrive | `actStory.navigation.fade` |
+| Change how much of the aperture the chapter's mark opens | `actStory.frame.opensWithTheMark` — spent inside the settle, so it is about a fifth of a screen of scrolling however large it is |
+| Change how slowly the work is uncovered | `actStory.frame.fade` |
+| **Give the work longer alone before anything is said** | `actStory.quiet.holdsWhole` — the only stillness in the act, the frame a visitor is most likely to stop in, and where `#work` points. Short in scroll, unbounded in time |
+| Change how far the room goes down to speak over the work | `actStory.darkens.depth` — the legibility assertion will tell you if it goes too shallow, and it is measured against the fragment's own quiet band |
+| Change how long the light takes to get there | `actStory.darkens.fade` |
+| Change when the work is named inside its frame | `actStory.annotation.arrivesWhenDuskIs` — an overlap, not a delay: the room dimming and the work acquiring a name are one gesture |
+| Give the two lines longer to be read | `actStory.annotation.hold` |
+| Change how far the room goes down for the studio | `actStory.deepens.depth` — deeper than `darkens.depth` and short of 1, or the work goes out of its own frame |
+| Change how the light gets there | `actStory.deepens.fade` — it rides the two lines leaving, so this is also how long they take to go |
+| Change the silence before the studio speaks | `actStory.belief.after` |
+| Change how the sentence arrives | `actStory.belief.fade` |
+| Change the silence before the film is printed | `actStory.printing.afterTheBelief` |
+| Change how long the printing takes | `actStory.printing.fade`. **How far and to where is `globals.css`** — `--plate-scale`, `--plate-x`, `--plate-y` — because that is composition |
+| Change when the in-frame type leaves during it | `actStory.printing.clears` — a legibility number, not a rhythm one. The assertion says why |
+| Change when the way out is printed | `actStory.wayOut.whenPrintedIs` — it is ink on paper, so it cannot arrive before the ground is most of the way back |
+| Change how far ahead the fragment is fetched | `afterTheFilm.work.fetchedWithin`, in viewports. The observer's margin is derived from it |
+| Change how the work appears once it has painted | `afterTheFilm.work.arrives` |
+| Make Chapter III's closing arrive sooner | `studioBlocks.arrivesShortOf` |
 | Change how much scrolling the story costs | `pin.fine` / `pin.coarse` — retimes nothing |
+| Change how much scrolling the act costs | `actPin.fine` / `actPin.coarse` — retimes nothing |
 | Change the floor for a click or a keypress | `pace.haste` — CSS follows automatically |
 | Change how fast a hard scroll may make the opening | `pace.urgent` — and read the note on 4 |
 | Change how hard you must scroll to reach that | `pace.urgentAt`, in px/ms |
@@ -408,17 +533,37 @@ there is no default to write down and none to forget.
 should move with it, it is a relationship. If it should stay exactly where it is, it is an anchor — and
 that is a claim worth a comment explaining why.
 
-**To Chapter III:** add `data-reveal` to the **page**, not to the elements on it. The observer picks it
-up and the existing fade applies.
+**To Chapter III's act** (scroll-driven, on the act's own runway) — the same three steps as Chapter II,
+against `actStory`, `actSpans` and `actTrack`. Ask first whether the beat is really the act's: anything
+that has to happen *as the mark lands* belongs to the shot, because that is where the mark is.
 
-A page is the unit here, because Chapter III is a publication: it comes into existence as one thing when
-the visitor turns to it, and the statement, plate and copy on it do not each get their own arrival. Three
-reveals for one page is three answers to `04-visual-language.md` §7's only question — *what changed?* —
-when the answer is one: the chapter arrived. `decisions.md` §43.
+**To the method** (scroll-driven, on the third runway) — the same three steps again, against `methodStory`,
+`methodSpans` and `methodTrack`. Two things are different and both are deliberate: its properties are written
+on the **section** rather than on the root, because nothing outside its own frame reads them; and its beats
+are priced a fifth cheaper than the film's, because it is not a chapter and must not weigh like one. If a beat
+you are adding wants to be *slower* than the film, it is probably in the wrong section. `decisions.md` §55.
 
-The first page is the exception and carries `data-emerges` instead: the film reveals that one, as a beat
-of the shot, so `Reveal` only watches it in order to know when to start loading its footage. Nothing else
-should ever need that attribute — it exists because that page is inside the film's own frame.
+**To Chapter III's closing, or to the publication below it:** add `data-reveal` to the **block**, not to
+the elements in it. The observer picks it up and the existing fade applies.
+
+A page is the unit here, because what follows the act is a publication: it comes into existence as one
+thing when the visitor turns to it. Three reveals for one page is three answers to
+`04-visual-language.md` §7's only question — *what changed?* — when the answer is one: the chapter ended.
+`decisions.md` §43.
+
+**The publication has two timings and wants no more.** About, the method, the questions and Contact are
+ordinary flow: no pinned frame, no beat, no driven property. `afterTheFilm.answer` is a question opening and
+`afterTheFilm.about` is About arriving — a photograph, a mark and three blocks of words, staggered, with one
+14px settle on the picture and opacity everywhere else.
+
+Anything that wants a third should be asked §7's question first, and the two that exist are the shape of a
+good answer to it: a press *is* a change, and a section where the studio shows you the room the work is made
+in *is* a change. **Three elements each fading upward because the visitor scrolled is not** — that is the
+generic reveal, and *what changed?* there is answered by *nothing; somebody scrolled*. `decisions.md` §54.
+
+`data-emerges` is gone. It existed for one element — Chapter III's claim, which the film lit rather than the
+act — and the claim is gone with it. What the film now reveals is the object's aperture, and that is a share
+of a property (`--aperture`) rather than an element with an attribute on it. `decisions.md` §51.
 
 Before adding anything, the question `04-visual-language.md` §7 asks: has the *meaning* changed? If
 nothing has changed in meaning, nothing moves. And `01-validation.md`: if a reviewer can name the
@@ -488,10 +633,17 @@ Named so nobody adds them by pattern-matching against what a motion system usual
 - **No absolute-time storyboard.** Positions are relationships. Only anchors carry a coordinate.
 - **No blur tokens.** `globals.css` forbids blur outright — nothing blurs, so there is nothing to
   time.
-- **No scale or move duration tokens.** Exactly one element transforms: the word `chapter` travelling
-  into the corner. It is scroll-driven, so it has a range (`story.chapterTravels`) and no duration.
-  `04-visual-language.md` §7 is why it is the only one — it earns the movement because what changes is
-  what the word is *for*. Nothing else on the site changes purpose.
+- **No scale or move duration tokens.** Everything that transforms is scroll-driven, so each has a range and
+  none has a duration: the word `chapter` travelling into the corner (`story.chapterTravels`), Chapter III's
+  frame being printed into a plate (`actStory.printing`), and the method's field converging into one point
+  (`methodStory.converge`). The last of those moves twelve elements from **one** number, because each carries
+  its own offset in the stylesheet and the beat only says how much of it is left — see `decisions.md` §55.
+  The one exception is About's photograph, which is on a clock rather than on scroll, and its 14px settle is a
+  distance in `story.afterTheFilm.about` rather than a token.
+  `04-visual-language.md` §7 is why there are only two — each earns the movement because what changes is
+  what the thing is *for*: a word stops ending a sentence and becomes an orientation mark; an object stops
+  being the subject of an empty frame and becomes half of a spread. Nothing else on the site changes
+  purpose. Nothing scales, and the object's *distance* is composition (`globals.css`), not a timing.
 - **No spring or physics config.** Springs have character. See *Easing*.
 - **No stagger helper.** Chapter II's cadence is four beats with deliberately unequal holds — long,
   short, short, medium. A stagger helper would make that rhythm expressible only as a metronome, which
@@ -499,16 +651,28 @@ Named so nobody adds them by pattern-matching against what a motion system usual
 
 An empty token is not neutral. It is an invitation.
 
-## Two things outside `pace.haste`, on purpose
+## Five things outside `pace.haste`, on purpose
 
-`studioBlocks` and `navHover` are **not** multiplied by `--haste`.
+`studioBlocks`, `navHover`, `work.arrives`, `answer` and `about` are **not** multiplied by `--haste`.
 
 The film is over by Chapter III, so there is no sequence left to hurry and nothing for a multiplier to
 keep in proportion. And an interface that answered at a different speed depending on how the visitor
-scrolled two minutes earlier would be responding to the wrong thing.
+scrolled two minutes earlier would be responding to the wrong thing. `work.arrives` answers a load event,
+which is a network rather than a sequence; `answer` answers a press, in the publication, and is the fastest
+thing in the project because a press must never feel slower than a hover; `about` is an arrival on a page
+nobody is being held on, so there is nothing for a visitor to hurry past.
 
-This matches the behaviour before the system existed, where both were hardcoded and therefore outside
-it by accident. It is now outside it on purpose, and written down.
+The first two match the behaviour before the system existed, where both were hardcoded and therefore outside
+it by accident. All five are now outside it on purpose, and written down.
+
+**`about` is also the one thing `prefers-reduced-motion` changes**, and it changes a *distance*, not a beat:
+`--about-settle` goes to zero, so the photograph arrives in light instead of from below, in the same order and
+on the same clock. Everything else in the piece is opacity, and opacity is not what such a request is about.
+
+**There is nothing left for `prefers-reduced-motion` to remove.** `atmosphere.drift` was the one thing in the
+piece that moved without being asked, and it was the one exception to the rule that reduced motion is the same
+choreography on a faster clock rather than one with beats taken out. §53 deleted the fields it moved, so the
+exception is gone with them and the rule holds everywhere. `decisions.md` §53.
 
 ## Validation
 

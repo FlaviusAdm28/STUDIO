@@ -32,11 +32,17 @@ export {
   beat,
   chapterOneStory,
   shotStory,
+  actStory,
   afterTheFilm,
   pace,
   rates,
+  methodStory,
   pin,
+  actPin,
+  methodPin,
   BEATS,
+  ACT_BEATS,
+  METHOD_BEATS,
 } from './story'
 export type { Beat } from './story'
 
@@ -44,9 +50,14 @@ export type { Beat } from './story'
 export {
   cues,
   spans,
+  actSpans,
+  methodSpans,
   schedule,
   studioBlocks,
   navHover,
+  answer,
+  about,
+  work,
   chapterThree,
   closestBeats,
   maxAdvance,
@@ -56,7 +67,7 @@ export type { Span, Cue } from './timeline'
 export { easings, clamp01, smoothstep, unsmoothstep } from './easings'
 export type { Easing } from './easings'
 
-export { rise, fall, show, track, PRECISION } from './scroll'
+export { rise, fall, show, track, actTrack, methodTrack, PRECISION } from './scroll'
 export type { Track } from './scroll'
 
 export { motionCss } from './transitions'

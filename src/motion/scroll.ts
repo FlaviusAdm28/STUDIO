@@ -10,8 +10,8 @@
  */
 
 import { clamp01, smoothstep } from './easings'
-import { BEATS } from './story'
-import { type Cue, type Span, spans } from './timeline'
+import { ACT_BEATS, BEATS, METHOD_BEATS } from './story'
+import { actSpans, methodSpans, type Cue, type Span, spans } from './timeline'
 
 /** Eased rise from 0 to 1 across a range. */
 export const rise = (s: number, span: Span): number =>
@@ -84,12 +84,125 @@ export const track: Track = [
   ['--handoff', (s) => (s >= spans.handoffAt ? 1 : 0)],
 
   /*
-    Chapter III's first page, coming into existence under the travelling word. `--studio` is its light;
-    `--settle` is how much of its rise is still to come, so CSS multiplies rather than subtracts. Both
-    read the same range, because they are one movement — see `story.studioEmerges`.
+    Chapter III coming into existence under the travelling word — and what it opens is **the work**. This is
+    the first stage of the aperture; the act's own `--aframe` is the second, and `globals.css` adds them. See
+    `story.studioEmerges` and `story.actStory.frame.opensWithTheMark`.
   */
   ['--studio', (s) => rise(s, spans.studioEmerges)],
-  ['--settle', (s) => fall(s, spans.studioEmerges)],
+]
+
+/**
+ * Chapter III's act, assembled — the second pinned frame.
+ *
+ * A separate list because it is driven by a separate position: the shot's beats are measured from
+ * where the opening ended, and these from where the act's own frame reached the top of the viewport.
+ * Same mechanism, same curve, same rule that every entry is an independent function of position.
+ *
+ * One of the act's values is deliberately **not** here. The first third of the aperture is `--studio`,
+ * which belongs to the shot — it is what the travelling word unveils, so it is timed against the word
+ * rather than against this frame. See `story.studioEmerges`.
+ */
+export const actTrack: Track = [
+  /*
+    The masthead's links arriving beside the mark. The mark itself is not here — it is handed over by
+    the film, as a step, and from that instant it is simply the head of the page. `--handoff`.
+  */
+  ['--anav', (s) => rise(s, actSpans.navigation)],
+
+  /*
+    The aperture, opening vertically from the frame's own centre — the film's gesture turned ninety
+    degrees. The **second** stage of it: the mark opened the first, on the other runway, and
+    `globals.css` adds the two into `--aperture`.
+  */
+  ['--aframe', (s) => rise(s, actSpans.frame)],
+
+  /*
+    The room going to evening and then down to a trace, in two stages with the work's own name between
+    them — and then the light coming back on the printing. One property with one meaning: *how dark the
+    room is*, and by the end of the act the answer is none again.
+
+    Multiplying by the printing's fall rather than adding a third stage is what keeps that true. See
+    `story.actStory.darkens`, `deepens` and `printing`.
+  */
+  [
+    '--adusk',
+    (s) =>
+      (actSpans.dusk.depth * rise(s, actSpans.dusk.first) +
+        (actSpans.dusk.deep - actSpans.dusk.depth) * rise(s, actSpans.dusk.rest)) *
+      fall(s, actSpans.printing.all),
+  ],
+
+
+  /*
+    The work being named, off **one** range: the title arrives and stays (`--atitle`), the two lines arrive
+    and then give the space to the studio's own voice (`--anote`). See `actSpans.annotation`.
+  */
+  ['--atitle', (s) => rise(s, actSpans.title)],
+  ['--anote', (s) => show(s, actSpans.annotation)],
+
+  /* The one thing the studio says inside the film. A ramp — it arrives and it stays. */
+  ['--alead', (s) => rise(s, actSpans.belief)],
+
+  /*
+    **Whether anything the studio says is lit at all**, and it is the whole block rather than any one thing
+    in it: the name, the two lines, and the sentence. It sits on `.act-said` and every child's own opacity
+    multiplies through it by nesting.
+
+    It exists because the type has to leave *before* the paper comes back rather than through it. See
+    `story.actStory.printing.clears`.
+  */
+  ['--asaid', (s) => fall(s, actSpans.printing.clears)],
+
+  /*
+    **The printing.** The frame drawing in until it has margins and is a plate on a page — the second and
+    last thing in the whole piece that transforms, and the register change performed rather than announced.
+
+    One property for the movement; `globals.css` decides how far and to where, because where a plate sits on
+    a page is composition and it changes with the screen. `story.actStory.printing`.
+  */
+  ['--aprint', (s) => rise(s, actSpans.printing.all)],
+
+  /* The way out, printed on the paper beneath the plate. The only outward action in the chapter. */
+  ['--aopen', (s) => rise(s, actSpans.wayOut)],
+
+  /*
+    And whether it exists to be pressed. A step, because a hit area has no half state — an element at zero
+    opacity is still clickable and still in the tab order, and this one sits in a frame that is pinned for
+    the whole act. It steps at the beat the line begins to exist, when its opacity is still zero, so the
+    step cannot be seen. The same construction `--handoff` uses for the masthead.
+  */
+  ['--aoffer', (s) => (s >= actSpans.wayOut.from ? 1 : 0)],
+]
+
+/**
+ * **The method, assembled — the third held frame, and the only one outside the film.**
+ *
+ * Same mechanism, same curve, same rule that every entry is an independent function of position. Two things
+ * make it different from the two tracks above, and both are deliberate:
+ *
+ * The **questions** and the **resolution** drive one property each that `globals.css` reads *twice* — once as
+ * opacity and once as a distance in z — so a question surfaces out of the space as it arrives and sinks back
+ * into it as it leaves, on a single range. Chapter II's `--mkword` / `--mkblur` pair does the same thing with
+ * two properties; here one is enough, because the second reading is `1 - value`.
+ *
+ * The **considerations** are twelve rises with no exits. Nothing takes a word away individually: `--mgather`
+ * multiplies every offset in the field by what is left of it, so twelve elements collapse toward one point on
+ * twelve different vectors from a single number.
+ *
+ * These values are written on the **section**, not on the root — see `scroll-stage.tsx`.
+ */
+export const methodTrack: Track = [
+  ['--minvite', (s) => show(s, methodSpans.invite)],
+
+  ...methodSpans.questions.map(
+    (asked, i) => [`--mq${i + 1}`, (s: number) => show(s, asked)] as const,
+  ),
+
+  ...methodSpans.words.map((span, i) => [`--mw${i + 1}`, (s: number) => rise(s, span)] as const),
+
+  ['--mgather', (s) => rise(s, methodSpans.gather)],
+  ['--manswer', (s) => rise(s, methodSpans.answer)],
+  ['--mlines', (s) => rise(s, methodSpans.lines)],
 ]
 
 /**
@@ -100,4 +213,4 @@ export const track: Track = [
  */
 export const PRECISION = 4
 
-export { BEATS }
+export { ACT_BEATS, BEATS, METHOD_BEATS }

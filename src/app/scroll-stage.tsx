@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { BEATS, PRECISION, track } from '@/motion'
+import { ACT_BEATS, BEATS, METHOD_BEATS, PRECISION, actTrack, methodTrack, track } from '@/motion'
 
 /**
  * The shot, timed in scroll rather than seconds.
@@ -75,11 +75,68 @@ export default function ScrollStage() {
       one way this can visibly break.
     */
     let perBeat = 1
+    let perActBeat = 1
+    let perMethodBeat = 1
     const price = () => {
-      const pin = parseFloat(getComputedStyle(root).getPropertyValue('--pin'))
+      const read = (name: string) => parseFloat(getComputedStyle(root).getPropertyValue(name))
+      const pin = read('--pin')
       perBeat = (Number.isFinite(pin) ? pin / 100 : BEATS) / BEATS
+      const actPin = read('--act-pin')
+      perActBeat = (Number.isFinite(actPin) ? actPin / 100 : ACT_BEATS) / ACT_BEATS
+      const methodPin = read('--method-pin')
+      perMethodBeat = (Number.isFinite(methodPin) ? methodPin / 100 : METHOD_BEATS) / METHOD_BEATS
     }
     price()
+
+    /**
+     * Where Chapter III's act begins, in pixels down the document.
+     *
+     * The act is the second pinned frame, and its beats are measured from the moment its own top edge
+     * reaches the top of the viewport — not from the shot's origin, because its length is decided by
+     * what it has to say rather than by anything in the film.
+     *
+     * Measured rather than derived, for the same reason the word's travel is: the answer depends on
+     * `--pin`, `--origin` and the reach-back all at once, and the rendered layout already knows it.
+     * Cached rather than read every frame — a `getBoundingClientRect` in the scroll loop forces a
+     * synchronous layout of the whole document, which is the cost this driver was rewritten to avoid.
+     * It can only move when the viewport changes or when `--origin` is written, and both say so.
+     */
+    let actTop = Number.POSITIVE_INFINITY
+
+    /**
+     * Where the method's frame begins, and **where its values are written**.
+     *
+     * The method is the third held frame and the only one outside the film. Its beats are measured from the
+     * moment its own frame is stuck under the head margin, which is `.method`'s top less the sticky offset —
+     * `.method` is measured rather than the stage, because a stuck element's rect no longer reports where it
+     * came from, and a resize while the section is stuck would read the sticky offset back as its position.
+     *
+     * **Its twenty properties are written on the section rather than on the root.** Setting a custom property
+     * on `:root` invalidates style for the whole document; these are read by nothing outside this section, so
+     * writing them here keeps a frame of the method's own choreography from re-resolving the film, the
+     * publication and a cross-origin iframe along with it. The rest of the driver still writes to the root,
+     * because the shot's properties are read in both the film and Chapter III. `decisions.md` §55.
+     */
+    let methodTop = Number.POSITIVE_INFINITY
+    let methodStage: HTMLElement | null = null
+
+    const place = () => {
+      const stage = document.querySelector<HTMLElement>('.act')
+      actTop = stage === null ? Number.POSITIVE_INFINITY : stage.getBoundingClientRect().top + window.scrollY
+
+      const method = document.querySelector<HTMLElement>('.method')
+      methodStage = method === null ? null : method.querySelector<HTMLElement>('.method-stage')
+      if (method === null || methodStage === null) {
+        methodTop = Number.POSITIVE_INFINITY
+        return
+      }
+      const held = parseFloat(getComputedStyle(methodStage).top)
+      methodTop =
+        method.getBoundingClientRect().top +
+        window.scrollY -
+        (Number.isFinite(held) ? held : 0)
+    }
+    place()
 
     /**
      * The word's journey, measured rather than authored.
@@ -169,6 +226,21 @@ export default function ScrollStage() {
      */
     let origin: number | null = null
 
+    /**
+     * Where the visitor was the last time the shot looked, while the opening was still running.
+     *
+     * The origin is taken from **this** rather than from the scroll position that happens to be
+     * current when the opening is found to be over, and the difference is not pedantry. Nothing calls
+     * `read` between frames, so the first read after the opening ends is whatever event woke it — and
+     * if that event is an anchor jump to Chapter III, taking the origin there would put the shot's
+     * first frame under the visitor's feet and move Chapter III a whole film further down. Measured:
+     * a click on the hero's `Studio` in the last second of the opening left the page at 4066 with the
+     * origin set to 4065 and the chapter at 8131, having gone nowhere.
+     *
+     * Zero unless somebody scrolled, which is the case this exists to keep exact.
+     */
+    let held = 0
+
     /*
       Written whenever it changes, and added to the pinned height in CSS. While the opening runs this
       follows the visitor down the page, so there is always a full shot's worth of scrolling beneath
@@ -198,6 +270,13 @@ export default function ScrollStage() {
       if (written.get('--origin') === next) return
       written.set('--origin', next)
       root.style.setProperty('--origin', next)
+      /*
+        `--origin` is the one value that changes the document's height, so it is also the one thing
+        that can move the act. Re-measuring here rather than every frame is what keeps the layout it
+        costs rare: at most once per viewport travelled during the opening, and once when the origin
+        is finally fixed.
+      */
+      place()
     }
 
     const read = () => {
@@ -213,11 +292,12 @@ export default function ScrollStage() {
       let s = 0
       if (root.dataset.opening === 'running') {
         origin = null
+        held = y
         anchor(y)
       } else {
         if (origin === null) {
-          origin = y
-          anchor(y, true)
+          origin = held
+          anchor(held, true)
         } else if (y < origin) {
           /*
             Scrolling back up above where the shot began, which only happens to somebody who scrolled a
@@ -235,11 +315,41 @@ export default function ScrollStage() {
         s = Math.max(0, y - origin) / window.innerHeight / perBeat
       }
 
-      for (const [name, at] of track) {
-        const next = at(s).toFixed(PRECISION)
-        if (written.get(name) === next) continue
-        written.set(name, next)
-        root.style.setProperty(name, next)
+      /*
+        The act's own frame, on its own runway. Zero until its top edge reaches the top of the
+        viewport, which is a little after the mark lands in the corner — the settle in between is
+        `chapterThreeStands`, and during it the shot is still the thing driving the composition.
+
+        Two positions, one hand: both are pure functions of `scrollY`, so the join has no state in it
+        and reversing through it is the same arithmetic backwards.
+      */
+      const a = Math.max(0, y - actTop) / window.innerHeight / perActBeat
+
+      for (const [source, at] of [
+        [s, track],
+        [a, actTrack],
+      ] as const) {
+        for (const [name, value] of at) {
+          const next = value(source).toFixed(PRECISION)
+          if (written.get(name) === next) continue
+          written.set(name, next)
+          root.style.setProperty(name, next)
+        }
+      }
+
+      /*
+        The method, on its own runway and written on its own element. Three positions, one hand: each is a
+        pure function of `scrollY`, so the joins hold no state and reversing through them is the same
+        arithmetic backwards.
+      */
+      if (methodStage !== null) {
+        const m = Math.max(0, y - methodTop) / window.innerHeight / perMethodBeat
+        for (const [name, value] of methodTrack) {
+          const next = value(m).toFixed(PRECISION)
+          if (written.get(name) === next) continue
+          written.set(name, next)
+          methodStage.style.setProperty(name, next)
+        }
       }
     }
 
@@ -250,6 +360,7 @@ export default function ScrollStage() {
 
     const onResize = () => {
       price()
+      place()
       survey()
       surveyMark()
       onScroll()
@@ -272,8 +383,25 @@ export default function ScrollStage() {
         Releasing it lets the next read anchor at the top, where we have just put them.
       */
       origin = null
+      held = 0
       read()
     }
+
+    /*
+      The origin is taken the instant the opening reports it is over, rather than whenever the page next
+      happens to move.
+
+      Lazily was correct while the only way to move was to scroll. It stopped being correct the moment
+      the hero's navigation could jump to Chapter III: `--origin` is part of the film's height, so
+      rewriting it *after* a jump moves the destination out from under the visitor. Scrolled 100px during
+      the opening and then clicked `Studio`, the rounded origin (986) was replaced by the exact one (100)
+      and the chapter rose 886px — landing them 1.7 beats into an act they had asked to see the start of.
+
+      Fixed at the flip, `--origin` is exact and settled before any link can be pressed, and every
+      anchor resolves against a layout that is no longer going to change.
+    */
+    const released = new MutationObserver(read)
+    released.observe(root, { attributeFilter: ['data-opening'] })
 
     read()
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -282,6 +410,7 @@ export default function ScrollStage() {
 
     return () => {
       if (frame !== 0) window.cancelAnimationFrame(frame)
+      released.disconnect()
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onResize)
       window.removeEventListener('pageshow', rewind)

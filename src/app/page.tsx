@@ -1,27 +1,23 @@
-import { site } from '@content'
+import { site, where } from '@content'
+import WorkFragment from './fragment'
 import Opening from './opening'
+import Publication from './publication'
 import Reveal from './reveal'
 import ScrollStage from './scroll-stage'
 
 /**
- * Which of the two reveals a piece of Chapter III belongs to.
+ * The film, and then the studio's own pages.
  *
- * `data-emerges` is the composition the film unveils — it is lit by scroll position, in the instant the
- * word sets off for the corner. `data-reveal` is everything the visitor scrolls to afterwards, which
- * arrives once and stays. Only the first experience's head and its first step are the film's; a second
- * experience appended to `content/site.ts` is scrolled to like any other page, and this is the one line
- * that decides it. `decisions.md` §44 and §45.
- */
-const unveiled = (byTheFilm: boolean) => (byTheFilm ? { 'data-emerges': '' } : { 'data-reveal': '' })
-
-/**
- * One shot.
+ * **The film** is one continuous shot in two pinned frames. The hero, the light going out of it, the
+ * chapter marker over the last of the image, a wait, the statement, the dark; then the light coming back,
+ * the word travelling into the corner to become a mark, and the mark uncovering the work. Nothing ever
+ * scrolls past anything inside it, so there is no section boundary anywhere to notice, and Chapter IV is
+ * its last word: typography on paper, saying that there is one experience.
  *
- * The hero, the light going out of it, the chapter marker over the last of the image, a wait, the
- * statement. Then black, and nothing. Everything happens in a single pinned frame — nothing
- * scrolls past anything — so there is no section boundary anywhere to notice.
- *
- * Nothing follows the statement on purpose. The emptiness is the end of the shot.
+ * **Then it releases into a publication** — `publication.tsx`, in ordinary document flow, at reading size.
+ * That handover is the one thing this file composes rather than delegates, and it is composed out of three
+ * absences: no pinned frame, no numeral, and nothing that performs. What marks it is the register — the
+ * type stops speaking and starts being read. `decisions.md` §54.
  */
 export default function Home() {
   return (
@@ -55,18 +51,92 @@ export default function Home() {
           .mark-slot { display: none !important; }
           .dawn, .dawn-warmth { display: none; }
           .card-act-three { background: var(--paper); }
-          [data-reveal], [data-emerges] { opacity: 1 !important; transform: none !important; }
+          [data-reveal] { opacity: 1 !important; transform: none !important; }
           /*
             These are measured against a pinned frame that does not exist here — the shot is laid out
-            flat instead, so Chapter III simply follows it, its first page is simply there, and the
-            marker simply stands at its corner. Left in, the chapter would be pulled up through the end
-            of the film and its first page would be invisible, since nothing writes --studio without
-            scripting. (No backticks in here — this block is a template literal.)
+            flat instead, so Chapter III simply follows it and the marker simply stands at its corner.
+            Left in, the chapter would be pulled up through the end of the film and its opening frame
+            would be invisible, since nothing writes --studio without scripting. (No backticks in
+            here — this block is a template literal.)
           */
           .chapter-three { margin-top: 0; }
-          .marker { opacity: 1 !important; top: var(--mark-y); }
-          /* Nothing sticks without a scroll to stick against; one column, read down. */
-          .manifesto { position: static !important; }
+          /*
+            The head margin is a margin over a pinned frame, and there is no pinned frame here — so it
+            stops being a fixed band and becomes what it is on paper anyway: the head of the chapter,
+            printed once at the top of it. Nothing is clipped, because nothing is stepped into place.
+          */
+          .masthead { position: static; height: auto; padding: 0 var(--mark-x) 6vh;
+            opacity: 1 !important; clip-path: none !important; }
+          .masthead-nav { opacity: 1 !important; }
+          .act-anchor { position: static; display: none; }
+          /*
+            The act is one frame transformed by scroll, and here there is no scroll to transform it. So it
+            is told down the page instead: the work, what it is, what the studio says about it, the way
+            out. The same things, in the same order, without the transformation between them — never the
+            transformation with its parts removed. 05-storyboard.md §10.
+          */
+          .act { height: auto; }
+          .act-stage { position: static; width: auto; height: auto; display: grid; gap: 6vh;
+            padding: 10vh var(--mark-x); }
+          /*
+            The work as a plate on the page rather than a frame uncovered in a film. Its own ratio, at the
+            measure, with nothing over it: no aperture, no printing transform, and no light moving. The
+            fragment is not fetched without scripting, so the plate is the chapter's own ground — which
+            05-storyboard.md §10 already asks the atmosphere to degrade to. (No backticks in here — this
+            block is a template literal.)
+          */
+          .act-frame { position: static; transform: none; }
+          .act-shot { clip-path: none; aspect-ratio: 16 / 10; background: var(--ground); }
+          /*
+            The light is a narrative state and this page has one state: paper. Nothing to darken, and no
+            dark part for type to stand in — so the type is set in the page's own ink instead.
+          */
+          .act-dark { display: none; }
+          .act-said { position: static; width: auto; max-width: 34rem; opacity: 1 !important; }
+          .act-says { display: grid; gap: 3vh; }
+          .act-note, .act-voice { grid-area: auto; opacity: 1 !important; }
+          .act-name { opacity: 1 !important; }
+          .act-out { position: static; clip-path: none; }
+          .act-open { opacity: 1 !important; }
+          /* The disabled state is a more specific selector, so it has to be named to be overridden. */
+          .act-open, .act-open[aria-disabled='true'] { color: var(--ink-quiet); }
+          .act-voice, .act-name, .act-note { color: var(--ink); text-shadow: none; }
+          /*
+            The publication is ordinary flow and needs almost nothing here: its pages are covered by the
+            [data-reveal] rule above, and the questions are a native disclosure that opens without
+            scripting. Two exceptions.
+
+            The head margin is not fixed in this version, so an anchor landing must not leave room for a
+            band that is not there. (No backticks in here — this is a template literal.)
+          */
+          .page { scroll-margin-top: 0; }
+          /*
+            And About's arrival is staggered per element, gated on the attribute the observer writes — so
+            without scripting the attribute never arrives and the room, the mark and the words would all
+            stay at zero. This is the composed alternative: everything present, in order, with the
+            sequence removed rather than the content. 05-storyboard.md §10.
+          */
+          .about-frame, .about-label, .about-opening, .about-text {
+            opacity: 1 !important; transform: none !important; }
+          /*
+            And the method is a held frame driven by scroll position, so without scripting there is no frame
+            and no choreography — only the first state of it, which is a label and one line. So it is told
+            down the page instead: the invitation, then each question with what the studio hears in the
+            answer beside it, then the resolution. The same things, in the same order, with the space and
+            the convergence removed rather than the content. 05-storyboard.md §10.
+          */
+          .method { height: auto; }
+          .method-stage { position: static; height: auto; display: grid; gap: 4vh;
+            padding: 6vh var(--mark-x) 0; perspective: none; }
+          .method-label { position: static; }
+          .mgroup { position: static; display: block; }
+          .mask, .mword, .mresolve { position: static; opacity: 1 !important;
+            transform: none !important; }
+          .mask { margin: 0 0 0.75vh; }
+          .mword { display: inline-block; margin-right: 1.25em; font-size: 1.0625rem;
+            color: var(--ink-quiet); }
+          .mresolve { width: auto; }
+          .mresolve-answer, .mresolve-lines { opacity: 1 !important; transform: none !important; }
         `}</style>
       </noscript>
 
@@ -154,162 +224,149 @@ export default function Home() {
             <span className="mark-anchor" />
           </span>
         </div>
+
       </section>
 
       {/*
-        The marker, once the word has finished becoming it. Fixed rather than inside the shot, because
-        from here on it is part of the page rather than part of the animation — it stays in the corner
-        while Chapter III is read. The handoff from the travelling word is a step, not a cross-fade:
-        the two are pixel-identical, and overlapping two 0.65-alpha inks would darken the marker for a
-        frame.
-      */}
-      {/*
-        Chapter III. Editorial, not cinematic: the marker in its own margin, a great deal of whitespace,
-        and visuals that reach the edge of the page rather than sitting in containers.
+        Chapter III. The third act of the same film rather than a publication after it: one frame,
+        transformed by scroll, in the same vocabulary the first two acts used — opacity, one curve, and
+        the dark coming up over a photograph. `decisions.md` §46.
       */}
       <div className="chapter-three">
-        <p className="marker">
-          <span className="marker-numeral">{site.mark.numeral}</span>
-          <span className="marker-label">{site.mark.label}</span>
-        </p>
+        {/*
+          Chapter III's head, and it is the marker the travelling word became rather than a navigation
+          that arrives beside it.
+
+          `.marker` is exactly what it was — same coordinates, same size, weight, tracking and ink —
+          because at the instant of the handoff it has to be pixel-identical to the word that lands
+          there. The handoff is a step, not a cross-fade: overlapping two 0.65-alpha inks would darken
+          the mark for a frame. All that has changed is that the mark is now also a way back to the top
+          of the chapter, and that a band of the page's own paper stands behind it.
+
+          The band is not chrome. It is the page's head margin — `04-visual-language.md` §5, margins are
+          silence — and it exists because the frame below it becomes a photograph: measured across the
+          act, the ground behind this corner runs from paper at 241 through the plates' sky at 87–149
+          to black and back, and no single ink survives that. §2 asks every element to exist lit and
+          unlit; this one instead never leaves its own ground. `decisions.md` §47.
+
+          The links arrive after the mark has settled, on the act's own runway — `actStory.navigation`.
+        */}
+        <header className="masthead">
+          <a className="marker" href={`#${site.mark.to}`}>
+            <span className="marker-numeral">{site.mark.numeral}</span>
+            <span className="marker-label">{site.mark.label}</span>
+          </a>
+
+          <nav className="masthead-nav" aria-label={site.mark.label}>
+            {site.mark.nav.map(({ word, to }) => (
+              <a key={word} href={`#${to}`}>
+                {word}
+              </a>
+            ))}
+          </nav>
+        </header>
 
         {/*
-          Two halves that behave differently, and that is the whole idea. The manifesto is what the
-          studio is, so it does not move: on a wide screen it holds the left column while the work goes
-          by beside it. The work is what changes.
+          The act. One frame, held, and **the frame is the work** — so nothing ever scrolls past anything
+          and there is no boundary between the work arriving, the work being named, what the studio makes
+          of it, and the page it becomes. The same construction as `.film`, on a runway of its own.
 
-          One grid, so the two share a top edge and the emergence lights both of them as one thing.
+          Three layers, and the order is the choreography:
+
+            the work        the aperture opens it, the light falls on it and lifts again inside the same
+                            clip, and the printing draws the whole thing in. It is the ground. `fragment.tsx`.
+            what is said    the studio's type, composed into the work's own quiet band, above it
+            the way out     printed on the paper, once there is paper — the only thing that can be pressed
         */}
-        <div className="studio">
+        <section className="act" id={where.studio} aria-label={site.three.work.title}>
           {/*
-            The manifesto, and the first step of the work, are the composition the film unveils — see
-            `story.studioEmerges` and `decisions.md` §44. Both carry `data-emerges` rather than
-            `data-reveal`: their light is scroll position, beginning in the instant the word sets off for
-            the corner, so the mark reveals the Studio while it travels rather than announcing it after.
-
-            Everything after the first step arrives by being scrolled to, one step at a time, which is
-            what a publication does — `decisions.md` §43, a page arrives once and as a whole.
-
-            The cost, stated where it is incurred: the work is in the same frame as the positioning
-            sentence, and `05-storyboard.md` Beat 2 says that sentence is to be alone on the screen and
-            not softened by a second sentence explaining it. A two-column chapter cannot honour that. It
-            is a deliberate departure from a locked line, asked for and reaffirmed — `decisions.md` §45.
+            Where `#work` is. A place in the story rather than an element on a page: inside a pinned
+            frame the work taking the screen is a scroll offset, so the anchor is put at that offset and
+            `--work-at` is derived from the beat the aperture finishes. `transitions.ts`.
           */}
-          <div className="manifesto" data-emerges>
-            <p className="three-statement">
-              {site.three.manifesto.statement.map((line) => (
-                <span key={line}>{line}</span>
-              ))}
-            </p>
-            <div className="manifesto-voice">
-              <p className="manifesto-lead">{site.three.manifesto.lead}</p>
-              <p className="manifesto-body">{site.three.manifesto.body}</p>
-            </div>
-          </div>
+          <i className="act-anchor" id={where.work} aria-hidden="true" />
 
-          {/*
-            The work. A list of experiences, and today a list of one — appending the second is an entry
-            in `content/site.ts` and nothing else.
-          */}
-          <div className="work">
-            <p className="work-label" data-emerges>
-              {site.three.work.label}
-            </p>
-
-            {site.three.work.experiences.map((experience, e) => (
-              <section className="experience" key={experience.title} aria-label={experience.title}>
-                <h2 className="experience-title" {...unveiled(e === 0)}>
-                  {experience.title}
-                </h2>
-
-                <div className="experience-steps">
-                  {experience.steps.map((step, i) => (
-                    /*
-                    One step, one arrival. The first step of the first experience is the film's — it
-                    shares `data-emerges` with the manifesto — and every other is the observer's.
-                  */
-                    <figure className="step" key={step.name} {...unveiled(e === 0 && i === 0)}>
-                      <figcaption className="step-name">{step.name}</figcaption>
-
-                      {/*
-                      The frame is the composition; what fills it is a detail. It carries the shape and
-                      the clipping, and whatever goes inside is told to fill it — so a held frame today,
-                      a real screenshot tomorrow and a live embed after that are the same layout and the
-                      same rule. `plate: null` is the frame with nothing in it yet, which is an honest
-                      state for a studio with one project rather than a broken one.
-                    */}
-                      <div className="step-plate" data-frame={step.frame}>
-                        {step.plate !== null && step.plate.kind === 'motion' && (
-                          <video
-                            data-media="motion"
-                            src={step.plate.src}
-                            muted
-                            loop
-                            playsInline
-                            preload="none"
-                            aria-hidden="true"
-                            tabIndex={-1}
-                          />
-                        )}
-                        {step.plate !== null && step.plate.kind === 'still' && (
-                          <video
-                            data-media="still"
-                            data-frame={step.plate.at}
-                            src={step.plate.src}
-                            muted
-                            playsInline
-                            preload="none"
-                            aria-hidden="true"
-                            tabIndex={-1}
-                          />
-                        )}
-                      </div>
-                    </figure>
-                  ))}
-                </div>
-
-                {/*
-                  The call to action belongs to the experience rather than to the page. It is an anchor
-                  only once there is something to open; until then it is composed and inert, because a
-                  link to nowhere is worse than a line that plainly has not been wired up yet.
-                */}
-                {experience.opens === null ? (
-                  <p className="experience-open" aria-disabled="true" data-reveal>
-                    {experience.cta}
-                  </p>
-                ) : (
-                  <a className="experience-open" href={experience.opens} data-reveal>
-                    {experience.cta}
-                  </a>
-                )}
-              </section>
-            ))}
+          <div className="act-stage">
+            {/*
+              The work itself, and it is the whole frame. `fragment.tsx` fetches it as the chapter
+              approaches and does nothing else — the aperture, the light and the printing are all scroll,
+              and all of them are `globals.css` reading the act's own properties.
+            */}
+            <WorkFragment />
 
             {/*
-              The ending, and it belongs in this column rather than under both of them. It is the *work*
-              that has run out, not the studio — so it is the last thing the column that tells the story
-              says, with the manifesto still beside it. There is no experience after it to pretend about.
+              **What the studio says, composed into the work.** Not a column beside it: the type stands in
+              the quiet band the fragment declares, over the photograph, the way the timestamp stands
+              inside the hero's own frame in Chapter I. `decisions.md` §53.
 
-              Typography and nothing else. Remove `four` from `content/site.ts` and this goes with it,
-              which is how it is meant to leave the day it stops being true.
+              Three things and one axis. The work's **name** arrives as the room goes to evening and stays,
+              because the sentence after it is a reading of a named thing. Beneath it, one box holding two
+              things that never share a frame: the two lines that say what the work is, and then — as the
+              light goes down to a trace and takes them with it — the one sentence the studio says here.
 
-              It also keeps the manifesto out of the marker's way, and that is not a coincidence worth
-              leaving undocumented — see the comment on `.manifesto` in `globals.css`.
+              They are laid on the same grid cell rather than stacked absolutely, so the box is as tall as
+              the taller of them and the name above sits in the same place whichever is lit.
             */}
-            {'four' in site && (
-              <section className="future" data-reveal aria-label={site.four.label}>
-                <p className="future-numeral">{site.four.numeral}</p>
-                <h2 className="future-label">{site.four.label}</h2>
-                <p className="future-lines">
-                  {site.four.lines.map((line) => (
+            <div className="act-said">
+              <p className="act-name">{site.three.work.title}</p>
+
+              <div className="act-says">
+                <p className="act-note">
+                  {site.three.work.context.note.map((line) => (
                     <span key={line}>{line}</span>
                   ))}
                 </p>
-              </section>
-            )}
+
+                <p className="act-voice">{site.three.voice.lead}</p>
+              </div>
+            </div>
+
+            {/*
+              The way out, printed on the paper beneath the plate as the plate is printed. The only
+              outward action in the chapter and the only thing in it that can be pressed — there is
+              nothing to enter, because the work on screen is material and the experience is elsewhere.
+
+              An anchor only once there is somewhere to go; until then it is composed and inert, because a
+              link to nowhere is worse than a line that has plainly not been wired up yet.
+            */}
+            <div className="act-out">
+              {site.three.work.url === null ? (
+                <p className="act-open" aria-disabled="true">
+                  {site.three.work.cta}
+                </p>
+              ) : (
+                <a className="act-open" href={site.three.work.url} target="_blank" rel="noreferrer">
+                  {site.three.work.cta}
+                </a>
+              )}
+            </div>
           </div>
-        </div>
+        </section>
+
+        {/*
+          Nothing follows the act inside Chapter III, and that is the point.
+
+          `IV — Future Chapters` stood here — a numeral, a name and two lines saying that the rest has not
+          been written yet. It was an honest ending for a page that ended here, and the wrong thing entirely
+          once the studio's own pages exist: a chapter marker standing on the seam where the film is supposed
+          to be releasing into a website, announcing an absence. The act's last frame is a plate on paper
+          with one line under it, which is an ending; it does not need a second one. `decisions.md` §54.
+        */}
       </div>
+
+      {/*
+        And here the film ends.
+
+        Not with a transition into the publication — with the absence of one. Everything that made the last
+        three screens a film is simply no longer present: the frame is not pinned, no property is being
+        driven, nothing is numbered `V`, and the type is set to be read rather than looked at. The only
+        thing carried across is the axis and the paper, because it is the same page.
+
+        The mark in the head margin stays exactly where it has been since it landed — it is `position:
+        fixed`, so from here on it is doing an ordinary sticky head's job without changing to do it, and
+        every word in it now leads somewhere. `decisions.md` §54.
+      */}
+      <Publication />
     </main>
   )
 }

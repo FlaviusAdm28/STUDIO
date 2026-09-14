@@ -46,8 +46,12 @@ Four viewports, every time:
 
 - **Desktop** 1920 × 1080
 - **Laptop** 1440 × 900
-- **Tablet** ~768 wide
-- **Mobile** ~390 × 844, portrait
+- **Tablet** 768 × 1024
+- **Mobile** 390 × 844, portrait
+
+…and, since V2, a fifth that is not a validation viewport at all:
+
+- **Design reference** 1440 × 760 — the frame the approved desktop design was authored in
 
 Never assume desktop behaviour scales. It routinely does not, and the failures are structural rather
 than cosmetic — a value that caps at one width and not another, a hit area that is fine for a cursor
@@ -56,6 +60,48 @@ and unusable for a thumb, an inset that silently evaluates to zero.
 Responsive means the *intended experience* survives, not that the layout got smaller. Where a
 composition cannot survive being narrowed, it is recomposed. `04-visual-language.md` §5 is the
 authority: an image is never reshaped to fit the space it lands in.
+
+### The reference frame, and what it is not
+
+**1440 × 760 is a coordinate and composition system.** Every coordinate in
+`docs/design/v2/final-design-spec.pdf` is authored in px on it — `x196` the type margin, `x38` the
+Ledger rail, `y529` the writing line. It is **not** a required production viewport, **not** a minimum
+supported viewport, **not** a fixed browser resolution and **not** a production aspect ratio. Check
+composition against it; ship against the four above.
+
+Desktop is the visual authority for composition, hierarchy, typography intent, spacing relationships,
+transition meaning, and environment and light treatment. Where a real viewport cannot accommodate a
+desktop coordinate, size or composition, **adapt it — do not blindly preserve the geometry.**
+
+**Preserve in this order.** It is an order, not a list:
+
+| | Preserve | |
+|---|---|---|
+| 1 | narrative meaning | first, always |
+| 2 | visual hierarchy | |
+| 3 | transition mechanism | |
+| 4 | typography hierarchy | |
+| 5 | spatial relationships | |
+| 6 | exact desktop coordinates | **last** — the first thing to give when the viewport cannot hold it |
+
+Mobile adaptation is an **implementation requirement, not a new design direction.** It may not invent a
+different visual language for narrow screens, redesign a section arbitrarily, alter the approved desktop
+composition, create a second mobile concept, or drop a narrative beat to make a layout fit.
+
+Where V2 marks something **"not yet designed at any breakpoint"** — §10 names the Ledger rail, the Hero
+time and the Questions rows — **adapt conservatively from the desktop intent.** An absence of mobile
+design is not permission to invent a visual system. Preserve hierarchy, preserve anchors, preserve
+transition meaning, simplify geometry only where necessary, hold legibility and interaction.
+
+The decision and its reasoning are `docs/design/v2/implementation-reconciliation.md` **C7**, closed
+26 August 2026.
+
+### When responsive behaviour makes an implementation incomplete
+
+A correct desktop does not finish the work. **The implementation is incomplete if a narrower viewport**
+clips content, creates overlap, becomes unreadable, introduces horizontal scrolling that was not asked
+for, breaks an interaction, breaks the narrative sequence, or renders a transition meaningless. Report
+it as incomplete rather than shipping it with a note.
 
 What to check at each size: type scale and its ratios, alignment against the axes it should share,
 text wrapping — including authored line breaks, which a narrow measure will quietly undo — media
@@ -130,7 +176,9 @@ A task is complete only when all of these are true:
 
 ✓ Code quality passes — typecheck, lint, build where applicable
 ✓ Runtime behaves correctly, driven by hand
-✓ Responsive validation passes at all four viewports
+✓ Responsive validation passes at all four viewports, and the composition still reads against the
+  1440 × 760 reference frame
+✓ No narrow viewport clips, overlaps, scrolls sideways, or empties a transition of its meaning
 ✓ Interaction validation passes
 ✓ Regression validation passes
 ✓ The complete homepage has been replayed from the beginning

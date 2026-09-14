@@ -1,9 +1,32 @@
 # 02 — The motion system
 
 *Where every timing lives, why each beat owns its own, and why almost none of them are absolute.*
-*Version 4 · 13 August 2026 · governed by `docs/brand/` (locked)*
+*Version 5 · 25 August 2026 · governed by `docs/brand/` (locked) and by V2's §10 delegation*
 
 ---
+
+> ## C8 — the driving rule, decided 25 August 2026
+>
+> **Scroll owns progression. Time owns only what the visitor did not cause.**
+>
+> V2 §10 delegated this by name — *"Scroll-vs-timeline driving of each junction, and the input threshold
+> that starts it"* — and it is now settled. Three things own a clock and **nothing else may**:
+>
+> | Clock | Why |
+> |---|---|
+> | `chapterOneStory` — the Hero's arrival | Nothing has been caused yet, so time is the causal agent. Unchanged. |
+> | The Work aside — 1.30s out, 0.90s back | Visitor-caused and **off-runway**, over whatever frame is showing. |
+> | Interface response — `navHover`, `answer`, `about`, `work.arrives` | Input-caused. A press must be answered, not positioned. |
+>
+> Everything else — progression through all fourteen states — is **one continuous scroll position**.
+> Where V2 quotes seconds for a scroll-caused junction, those seconds are a **weight**: they set
+> proportion between junctions, and distance is what ships. **One progression model, never thirteen
+> timelines.** A junction is `{ from, to, verb, survivor, weight }` resolved onto that one position.
+>
+> **Two consequences for this document.** *The two units* below still holds, and is now the general rule
+> rather than a Chapter I exception: milliseconds are for what the visitor did not cause. *Three runways
+> of scroll, not one* is **superseded** — see the note on that section. Nothing here has been rebuilt;
+> this records the decision, and `docs/design/v2/implementation-reconciliation.md` C8 is the contract.
 
 ## Purpose
 
@@ -122,11 +145,27 @@ the components holds a number.
 | Runs backwards | no. A beat happens once | yes, exactly as it runs forwards |
 
 **A number must never move between the two sections.** They are not two ways of saying the same
-thing; a beat of scroll has no duration. `1600` in Chapter I has nothing to do with `1.6` further
+thing; a beat of scroll has no duration. Since C8 the boundary has a name: **milliseconds are for what
+the visitor did not cause** — arrival, the off-runway aside, and interface response. Everything that is
+progression is distance. `1600` in Chapter I has nothing to do with `1.6` further
 down. If you want a millisecond value below the Chapter I section, the design has changed, and that is
 a brief rather than an edit.
 
-### Three runways of scroll, not one
+### Three runways of scroll, not one — SUPERSEDED BY C8
+
+> **This section describes the build as it stands, and C8 has ruled that it must become one runway.**
+> The three are a *pricing* device, not a narrative one. V2 needs a survivor to cross every one of
+> thirteen junctions; today exactly one value crosses a boundary (`--frame-mark`, joining the shot and
+> the act) and it took a documented special case to do it. Thirteen would need thirteen.
+>
+> The target: **one continuous position spanning states 01 → 14**, with per-segment pricing a property
+> of that position rather than three separately measured origins, and the rule that **a runway boundary
+> may never fall inside a junction**. Files may stay separate where that is technically useful; they may
+> not hold a competing progression model. The film/publication split does not survive as a narrative
+> boundary — only as a change of register.
+>
+> **Not yet done.** It is the precondition for C4, and the collapse should be validated by *nothing
+> changing visually*. Until then, everything below is accurate and still governs edits.
 
 Beats of scroll are measured against **three** pinned frames, and they are numbered separately.
 

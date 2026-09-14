@@ -23,9 +23,10 @@ import { studioBlocks } from '@/motion'
  *
  * It used to have a second job — deciding when the act's two video plates were allowed to start costing
  * something, sixty megabytes that `05-storyboard.md` §11 would not let near the first frame. The act no
- * longer has plates: what stands in its frame is the real experience, and it is fetched on the visitor's
- * own click rather than on a scroll position, which is a stronger answer to the same rule than a sentinel
- * half way down the film ever was. `decisions.md` §49, and `experience.tsx` owns it.
+ * longer has plates, and since C5 it no longer holds the live work either — `final-design-spec.pdf` §11.1
+ * moved that into the Work aside, where it is fetched on the visitor's own press rather than on a scroll
+ * position, which is a stronger answer to the same rule than a sentinel half way down the film ever was.
+ * `decisions.md` §49, and `fragment.tsx` owns it, mounted by `ledger.tsx`.
  */
 export default function Reveal() {
   useEffect(() => {

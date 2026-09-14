@@ -34,18 +34,26 @@ import { beat, chapterOneStory, cues, maxAdvance, pace, rates, schedule, type Be
  * millisecond.
  */
 
-/*
-  H.264 in a QuickTime container. Declared with `src` and deliberately without a
-  `type="video/quicktime"` source hint — Chrome reports no support for that MIME and would
-  discard the file unplayed, where given the bytes directly it demuxes and plays it.
-*/
-const FOOTAGE = '/media/hero/video/hero_demo4.mov'
+/**
+ * **Where the footage is, and why it is not here.**
+ *
+ * The `<video>` used to be this component's own element, declared in the JSX below with the file path
+ * beside it. `final-design-spec.pdf` §11.1 makes that impossible: *"One element, mounted at the Hero,
+ * never unmounted, never re-sourced, never `display:none`"* — and an element inside the opening cannot
+ * outlive the opening. It is `environment.tsx`'s now, and its path is `site.environment.hero`.
+ *
+ * **Nothing about the sequence moved with it.** This file still lights the footage, still starts it at
+ * `MOTION`, and still gates the subtitle on it — it reaches the element instead of owning it. That is
+ * the whole of the structural change C5 makes here, and it is deliberately the smallest one that lets
+ * the video survive the frame it was born in. `implementation-reconciliation.md` C5.
+ */
+const HERO_PLATE = '.env-hero'
 
 /*
   Named locally so the comparisons below read as the sequence rather than as property access.
   These are the imported beats, not a second copy of them.
 */
-const { BLACK, TIMESTAMP, LIGHT, TIMESTAMP_OUT, MOTION, IDENTITY, LINE, INTERFACE } = beat
+const { BLACK, TIMESTAMP, LIGHT, MOTION, IDENTITY, LINE, INTERFACE } = beat
 
 function localTime(): string {
   return new Intl.DateTimeFormat([], {
@@ -56,8 +64,7 @@ function localTime(): string {
 }
 
 export default function Opening() {
-  const [beat, setBeat] = useState<number>(BLACK)
-  const [hasted, setHasted] = useState(false)
+  const [beatNow, setBeat] = useState<number>(BLACK)
 
   /**
    * Frozen at arrival. This is not a clock — it is the minute somebody got here, and a
@@ -65,8 +72,12 @@ export default function Opening() {
    */
   const [arrival, setArrival] = useState<string>('')
 
+  /**
+   * The environment's hero plate, adopted on the first frame. Not a `ref` React fills in — the element
+   * belongs to `environment.tsx` and outlives this component — but everything that reads it below is
+   * unchanged, so the sequence is written against the same thing it always was.
+   */
   const video = useRef<HTMLVideoElement | null>(null)
-  const shell = useRef<HTMLDivElement | null>(null)
 
   /**
    * The sequence runs on its own clock rather than on wall time, and interaction changes
@@ -108,10 +119,29 @@ export default function Opening() {
    */
   const hurry = useCallback(() => {
     urged.current = true
-    setHasted(true)
   }, [])
 
   useEffect(() => {
+    /*
+      Adopt the environment's hero plate. By the time an effect runs the document is committed whole, so
+      this finds the element whether `environment.tsx` mounted before or after this component — sibling
+      order in the tree decides nothing.
+
+      The metadata nudge is what it always was: it pushes the first frame into being decoded so the
+      reveal at `LIGHT` has something to reveal. It is attached here rather than declared as a prop
+      because the element is no longer this file's to declare, and it is fired immediately where the
+      metadata has already arrived — an element mounted earlier may be past the event by now.
+    */
+    const plate = document.querySelector<HTMLVideoElement>(HERO_PLATE)
+    video.current = plate
+    const nudge = () => {
+      if (plate !== null && plate.paused && plate.currentTime === 0) plate.currentTime = 0.04
+    }
+    if (plate !== null) {
+      if (plate.readyState >= 1) nudge()
+      else plate.addEventListener('loadedmetadata', nudge, { once: true })
+    }
+
     /* Reduced motion is the same choreography on a faster clock, not a different one. */
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     base.current = reduced ? rates.reduced : rates.base
@@ -169,7 +199,14 @@ export default function Opening() {
       const haste = (1 / rate.current).toFixed(3)
       if (haste !== published) {
         published = haste
-        shell.current?.style.setProperty('--haste', haste)
+        root.style.setProperty('--haste', haste)
+        /*
+          And on the hero plate, which is a sibling of this frame rather than a child of it and so cannot
+          inherit the value. One extra write on one leaf element, on the frames the rate actually changes:
+          without it the footage's own fade would keep the resting rate while every other beat sped up,
+          which is the one proportion `--haste` exists to hold.
+        */
+        plate?.style.setProperty('--haste', haste)
       }
 
       elapsed.current += Math.min(step * rate.current, maxAdvance)
@@ -213,7 +250,22 @@ export default function Opening() {
         visitor already scrolling hard would otherwise fade the navigation out through the veil while it
         was still fading in, and never see the beat at all.
       */
-      if (lineAt.current !== null && t >= lineAt.current + cues.introDoneAfterSubtitle) {
+      /*
+        Guarded, and the guard is load-bearing rather than tidiness. `tick` runs for the life of the
+        component, so writing this unconditionally set the attribute on **every frame forever** — and
+        setting an attribute to the value it already holds still produces a MutationRecord. The shot's
+        driver observes `data-opening` to take the origin the instant the opening reports it is over, so
+        it was being woken sixty times a second and forced to draw an exact frame each time. That was
+        invisible while the driver had no state; it silently defeated the input spring, which was
+        snapped back to the raw scroll position on every frame it tried to run.
+
+        The flip still happens on exactly the same frame it always did.
+      */
+      if (
+        root.dataset.opening !== 'done' &&
+        lineAt.current !== null &&
+        t >= lineAt.current + cues.introDoneAfterSubtitle
+      ) {
         root.dataset.opening = 'done'
       }
 
@@ -233,82 +285,57 @@ export default function Opening() {
     return () => {
       window.cancelAnimationFrame(raf)
       intent.forEach((event) => window.removeEventListener(event, hurry))
+      plate?.removeEventListener('loadedmetadata', nudge)
       /* Never leave the shot held by a sequencer that no longer exists. */
       root.dataset.opening = 'done'
     }
   }, [hurry, roll])
 
-  /* Nudges the first frame into being decoded so the reveal has something to reveal. */
-  const onMeta = useCallback(() => {
-    const el = video.current
-    if (el !== null && el.paused && el.currentTime === 0) el.currentTime = 0.04
-  }, [])
+  /**
+   * **The image arriving, and it is still Chapter I's beat.**
+   *
+   * `data-lit` was a prop on this file's own `<video>`; the element moved and the beat did not, so it is
+   * written on it instead. It is not the plate's *presence* — that is `--env-hero`, which the
+   * environment owns — and the two multiply by nesting, so the opening's reveal and the sequence's
+   * choice of plate can never contend for one property.
+   *
+   * Deliberately not cleared on unmount: the environment outlives the opening, and the hero it is
+   * holding has been lit since `LIGHT`.
+   */
+  useEffect(() => {
+    video.current?.setAttribute('data-lit', String(beatNow >= LIGHT))
+  }, [beatNow])
 
-  const timestampPresent = beat >= TIMESTAMP && beat < TIMESTAMP_OUT
+  /**
+   * **The arrival time, written into the frame the V2 layer composes.**
+   *
+   * §2 state 01: *"Time embedded in the plate… read once at mount."* The composition is
+   * `states.tsx`'s and the minute is this file's, so the string is put into the two nodes that carry it
+   * — the blend layer and its floor — exactly the way `data-lit` is put on a plate this file no longer
+   * owns. Frozen at arrival: a digit turning over would make it a widget asking to be watched.
+   */
+  useEffect(() => {
+    if (arrival === '') return
+    const line = `It’s ${arrival} ${site.timeCaption}.`
+    document.querySelectorAll<HTMLElement>('[data-time]').forEach((node) => {
+      node.textContent = line
+    })
+  }, [arrival])
 
-  return (
-    <div className="opening" ref={shell} data-hasted={hasted}>
-      <div className="frame">
-        {/*
-          Muted, and it stays muted — `04-visual-language.md` §8, sound never starts on its
-          own. The footage was cut to loop, so it simply loops: native `loop`, no seam
-          handling, and nothing laid over the video at the restart.
-        */}
-        <video
-          ref={video}
-          className="footage"
-          data-lit={beat >= LIGHT}
-          src={FOOTAGE}
-          onLoadedMetadata={onMeta}
-          muted
-          loop
-          playsInline
-          preload="auto"
-          aria-hidden="true"
-          tabIndex={-1}
-        />
+  /**
+   * **The beat, published.** `states.tsx` renders Chapter I's frame and this file decides when each part
+   * of it has arrived, so the beat goes on the root and the stylesheet reads it — the same division
+   * `data-opening` is already under, and the reason no timing lives in the presentation layer.
+   */
+  useEffect(() => {
+    document.documentElement.dataset.beat = String(beatNow)
+  }, [beatNow])
 
-        {/*
-          The dark that comes up over the footage as one chapter becomes the next. Driven only
-          by scroll position — see scroll-stage.tsx — and with no transition of its own, because
-          anything that eased on its own here would be a second, competing clock.
-        */}
-        <div className="dusk" aria-hidden="true" />
-
-        {/*
-          Everything the hero says, held in one layer so the dissolve can take it away without
-          touching the opening sequence's own reveal. The two multiply instead of fighting: the
-          sequence decides whether a thing has arrived, this decides how much of the hero is
-          left. Scrolling early therefore cannot leave the title fading in and out at once.
-        */}
-        <div className="veil">
-          <div className="moment" data-present={timestampPresent} aria-hidden={!timestampPresent}>
-            <span className="moment-time">{arrival}</span>
-            <span className="moment-caption">{site.timeCaption}</span>
-          </div>
-
-          <div className="identity">
-            <h1 className="identity-title" data-present={beat >= IDENTITY}>
-              {site.title}
-            </h1>
-            <p className="identity-line" data-present={beat >= LINE}>
-              {site.openingLine}
-            </p>
-          </div>
-
-          {/*
-            Three words, and where each of them goes is `content/site.ts`. Only Studio has a section to
-            reach today; About and Contact are destinations without sections, on purpose — see `where`.
-          */}
-          <nav className="ways" data-present={beat >= INTERFACE} aria-hidden={beat < INTERFACE}>
-            {site.nav.map(({ word, to }) => (
-              <a key={word} href={`#${to}`}>
-                {word}
-              </a>
-            ))}
-          </nav>
-        </div>
-      </div>
-    </div>
-  )
+  /*
+    **This component renders nothing, and that is the point.** It was the hero's composition and its
+    clock; V2 rebuilt the composition in `states.tsx`, and what is left here is every mechanism that
+    composition depends on — the mandatory opening, `data-opening`, the rate and `--haste`, the footage
+    gate, the plate's own `data-lit`, and the minute. `CLAUDE.md`: recompose the frame, keep the four.
+  */
+  return null
 }

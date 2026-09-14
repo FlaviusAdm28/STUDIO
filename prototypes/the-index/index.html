@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prototype — The Index</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300&family=Schibsted+Grotesk:wght@400&display=swap" rel="stylesheet">
+<style>
+/* ============================================================================
+   THE INDEX — prototype
+
+   One dominant idea: the sentence demotes to an epigraph, the title sets
+   properly beneath it, the plate rises beside it, and then the page writes its
+   own table of contents. The navigation is not a menu — it is the contents
+   list of the volume whose third chapter you have just been shown.
+
+   ONE HARD LEFT MARGIN GOVERNS EVERY LINE AND NEVER BREAKS.
+   ========================================================================= */
+
+:root{
+  --serif:'Cormorant Garamond', Georgia, serif;
+  --sans:'Schibsted Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --ink:#f2ece0;
+  --ink-quiet:rgb(242 236 224 / .55);
+
+  --sent: clamp(1.25rem, calc(52 / 1440 * 100vw), 4.25rem);
+  /* The epigraph has a size of its own rather than a fixed fraction of the
+     sentence — a fraction that reads at 1440 is 6px at 388. */
+  --epi: clamp(0.78rem, calc(15 / 1440 * 100vw), 1rem);
+  --title: clamp(2rem, calc(88 / 1440 * 100vw), 5.5rem);
+  --sub:   clamp(1rem, calc(27 / 1440 * 100vw), 1.7rem);
+  --list:  clamp(.95rem, calc(18 / 1440 * 100vw), 1.15rem);
+
+  --mark-x: max(clamp(1.75rem, 5vw, 4.5rem), env(safe-area-inset-left, 0px));
+  --col-w: 44%;
+}
+
+*{box-sizing:border-box}
+html{background:#000}
+body{
+  margin:0; background:#070706; color:var(--ink);
+  font-family:var(--serif); font-weight:300;
+  -webkit-font-smoothing:antialiased;
+}
+.runway{height:640vh}
+
+.stage{position:fixed; inset:0; overflow:hidden; background:#070706}
+
+/* ------------------------------------------------------- the plate, facing */
+/* The photograph is a PLATE facing a title page. It is inset, with its own
+   margin, and type never sits on it — so it is never compromised and the
+   contrast problem cannot occur. */
+.plate{
+  position:absolute;
+  right:clamp(1.5rem,4vw,3.5rem);
+  top:clamp(2rem,9vh,6rem);
+  bottom:clamp(2rem,9vh,6rem);
+  width:46%;
+  background-image:url('/media/projects/venice/venice.png');
+  background-size:cover;
+  background-position:62% 45%;
+  will-change:opacity,filter,transform;
+  transform-origin:center;
+}
+
+/* ------------------------------------------------------------- the column */
+.col{
+  position:absolute;
+  left:var(--mark-x);
+  width:var(--col-w);
+  top:50%;
+  transform:translateY(-50%);
+}
+
+/* The slot the sentence lands in. It reserves the epigraph's room in the flow
+   so the stack below never shifts when the sentence arrives. */
+.epi-slot{ height:1.5em; font-size:var(--epi) }
+
+.epigraph{
+  position:absolute; margin:0;
+  font-size:var(--sent); line-height:1.5;
+  transform-origin:0 50%;
+  white-space:nowrap;
+  color:var(--ink-quiet);
+  will-change:transform,color;
+}
+
+/* The title page. Three levels, one alignment, one family. */
+.title{
+  margin:.22em 0 0; font-size:var(--title); line-height:1.02;
+  text-transform:uppercase; letter-spacing:.055em;
+  color:var(--ink);
+}
+.subtitle{
+  margin:.62em 0 0; font-size:var(--sub); line-height:1.3;
+  color:var(--ink-quiet); letter-spacing:.005em;
+}
+
+/* The contents. Same margin, same leading — one paragraph, not five
+   components. The leader rules are the Ledger's own device: their length
+   encodes depth. */
+.contents{ margin:2.6em 0 0; padding:0; list-style:none }
+.contents li{
+  display:flex; align-items:center; gap:.9em;
+  font-family:var(--sans); font-weight:400;
+  font-size:var(--list); letter-spacing:.03em;
+  line-height:2.35;
+  color:rgb(242 236 224 / .86);
+}
+.contents .leader{
+  height:1px; background:rgb(242 236 224 / .28);
+  transform-origin:0 50%;
+}
+
+/* Everything that "sets" is revealed from its own baseline upward — the type
+   is impressed onto the page, never faded onto it. */
+.set{ will-change:clip-path,transform,opacity }
+
+/* ------------------------------------------------------------ review tools */
+.hud{
+  position:fixed; left:0; right:0; bottom:0; z-index:10;
+  font-family:var(--sans); font-size:11px; letter-spacing:.06em;
+  color:#9b958a; background:rgba(0,0,0,.72);
+  padding:7px 12px 9px; display:flex; gap:14px; align-items:center;
+  backdrop-filter:blur(6px);
+}
+.hud[hidden]{display:none!important}
+.hud .phase{color:#f2ece0; min-width:200px; text-transform:uppercase}
+.hud .p{min-width:64px}
+.hud input{flex:1; accent-color:#f2ece0}
+.hud .hint{opacity:.55}
+
+/* ------------------------------------------------------------------ narrow */
+/* Mobile is not a second design. The column simply gets narrower and the
+   plate moves from beside the type to beneath it. Nothing is dropped. */
+@media (max-width: 820px){
+  :root{ --col-w: calc(100% - var(--mark-x) * 2); --title: clamp(2rem, 11vw, 3rem) }
+  .col{ top:clamp(2rem,7vh,4rem); transform:none }
+  .plate{
+    left:var(--mark-x); right:var(--mark-x); width:auto;
+    top:auto; bottom:clamp(1.5rem,4vh,3rem); height:34vh;
+  }
+  .contents{ margin:1.8em 0 0 }
+  .contents li{ line-height:2.05 }
+}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="plate" id="plate"></div>
+
+  <div class="col" id="col">
+    <div class="epi-slot" id="epiSlot"></div>
+    <p class="epigraph" id="epigraph">Some moments deserve another chapter.</p>
+
+    <h1 class="title set" id="title">Chapter III</h1>
+    <p class="subtitle set" id="subtitle">What we actually make</p>
+
+    <ul class="contents" id="contents">
+      <li data-i="0"><span class="set">Work</span><span class="leader" style="width:52px"></span></li>
+      <li data-i="1"><span class="set">About</span><span class="leader" style="width:38px"></span></li>
+      <li data-i="2"><span class="set">Method</span><span class="leader" style="width:44px"></span></li>
+      <li data-i="3"><span class="set">Questions</span><span class="leader" style="width:30px"></span></li>
+      <li data-i="4"><span class="set">Contact</span><span class="leader" style="width:24px"></span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="runway"></div>
+
+<div class="hud" id="hud">
+  <span class="phase" id="hudPhase">—</span>
+  <span class="p" id="hudP">0.000</span>
+  <input type="range" id="scrub" min="0" max="1000" value="0">
+  <span class="hint">H hud · ←/→ step · drag to scrub</span>
+</div>
+
+<script>
+/* ===========================================================================
+   Choreography
+   =========================================================================== */
+const PH={
+  holdStatement:[0.00,0.15],
+  theSet       :[0.15,0.37],   // sentence demotes: centre → left margin, epigraph size
+  titleSets    :[0.36,0.50],
+  subtitleSets :[0.46,0.58],
+  plateRises   :[0.55,0.74],
+  holdPlate    :[0.74,0.80],
+  contentsWrite:[0.79,1.00],
+};
+let EPI_SCALE=0.30;   // recomputed per breakpoint in measure()
+
+const clamp=(v,a=0,b=1)=>v<a?a:v>b?b:v;
+const t=(p,[a,b])=>clamp((p-a)/(b-a));
+const easeInOut=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const easeOut=x=>1-Math.pow(1-x,3);
+const lerp=(a,b,x)=>a+(b-a)*x;
+
+const epiEl=document.getElementById('epigraph');
+const slotEl=document.getElementById('epiSlot');
+const colEl=document.getElementById('col');
+const titleEl=document.getElementById('title');
+const subEl=document.getElementById('subtitle');
+const plateEl=document.getElementById('plate');
+const items=[...document.querySelectorAll('.contents li')];
+
+let M=null;
+
+function measure(){
+  epiEl.style.transform='none';
+  // the epigraph's landing size is authored, not derived — so it stays legible
+  // at 388 as well as at 1440
+  const sentPx=parseFloat(getComputedStyle(epiEl).fontSize);
+  const epiPx=parseFloat(getComputedStyle(slotEl).fontSize);
+  EPI_SCALE=epiPx/sentPx;
+  const st=document.querySelector('.stage').getBoundingClientRect();
+  const slot=slotEl.getBoundingClientRect();
+  const epi=epiEl.getBoundingClientRect();
+
+  // where the sentence starts (centred over the whole stage, at full size)
+  // and where it must land (the column's first line, at epigraph size)
+  const startX=(st.width-epi.width)/2 - (epi.left-st.left);
+  const startY=st.height*0.46 - (epi.top-st.top) - epi.height/2;
+  const endX=0;
+  const endY=(slot.top-st.top)-(epi.top-st.top)
+             + (slot.height-epi.height*EPI_SCALE)/2;
+
+  M={startX,startY,endX,endY};
+}
+
+/* type is impressed onto the page: revealed from its own baseline upward */
+function setType(el,a){
+  const e=easeOut(a);
+  el.style.clipPath=`inset(${(1-e)*112}% 0 -18% 0)`;
+  el.style.transform=`translateY(${(1-e)*0.16}em)`;
+  el.style.opacity=String(Math.min(1,a*2.2));
+}
+
+function render(p){
+  if(!M) return;
+
+  /* ---- THE SET. The sentence does not leave. It DEMOTES — it becomes the
+     small line above a title, which is what a half-title does in a book. */
+  const s=easeInOut(t(p,PH.theSet));
+  const sc=lerp(1,EPI_SCALE,s);
+  epiEl.style.transform=
+    `translate(${lerp(M.startX,M.endX,s)}px, ${lerp(M.startY,M.endY,s)}px) scale(${sc})`;
+  epiEl.style.color=`rgb(242 236 224 / ${lerp(0.78,0.48,s)})`;
+
+  /* ---- the title page sets, on the margin the epigraph just arrived at */
+  setType(titleEl, t(p,PH.titleSets));
+  setType(subEl,   t(p,PH.subtitleSets));
+
+  /* ---- THE PLATE RISES. The only motion in the beat is the photograph
+     coming up — a plate being revealed opposite a title page. It is not a
+     fade from dark to light: it gains its own strength, in place. */
+  const r=easeInOut(t(p,PH.plateRises));
+  plateEl.style.opacity=String(lerp(0.10,1,r));
+  plateEl.style.filter=
+    `brightness(${lerp(0.34,1,r)}) saturate(${lerp(0.30,1,r)}) contrast(${lerp(0.92,1,r)})`;
+  plateEl.style.transform=`scale(${lerp(1.045,1,r)})`;
+
+  /* ---- THE CONTENTS WRITE. One line at a time, on the title's exact margin
+     and a regular beat — a list being read aloud, not five components
+     animating in. */
+  const c=t(p,PH.contentsWrite);
+  items.forEach((li,i)=>{
+    const a=clamp((c-i*0.145)/0.34);
+    setType(li.querySelector('.set'), a);
+    const leader=li.querySelector('.leader');
+    leader.style.transform=`scaleX(${easeOut(clamp((a-0.35)/0.65))})`;
+  });
+
+  hud(p);
+}
+
+/* --------------------------------------------------------------------- hud */
+const hudEl=document.getElementById('hud');
+const hudPhase=document.getElementById('hudPhase');
+const hudP=document.getElementById('hudP');
+const scrub=document.getElementById('scrub');
+function phaseName(p){
+  if(p<0.15) return '1 · statement holds';
+  if(p<0.37) return '2 · THE SET — sentence demotes';
+  if(p<0.50) return '3 · the title sets';
+  if(p<0.58) return '4 · the subtitle';
+  if(p<0.74) return '5 · THE PLATE RISES';
+  if(p<0.79) return '6 · hold';
+  return '7 · the contents write';
+}
+function hud(p){
+  hudPhase.textContent=phaseName(p);
+  hudP.textContent=p.toFixed(3);
+  if(document.activeElement!==scrub) scrub.value=String(Math.round(p*1000));
+}
+
+let runway=0;
+function boot(){
+  runway=document.documentElement.scrollHeight-window.innerHeight;
+  measure();
+  render(clamp(window.scrollY/runway));
+}
+window.addEventListener('scroll',()=>render(clamp(window.scrollY/runway)),{passive:true});
+window.addEventListener('resize',boot);
+window.addEventListener('load',boot);
+boot();
+
+scrub.addEventListener('input',()=>{ window.scrollTo(0,(+scrub.value/1000)*runway); });
+addEventListener('keydown',e=>{
+  if(e.key==='h'||e.key==='H'){ hudEl.hidden=!hudEl.hidden; return; }
+  const step=runway*0.004;
+  if(e.key==='ArrowRight') window.scrollTo(0,window.scrollY+step);
+  if(e.key==='ArrowLeft')  window.scrollTo(0,window.scrollY-step);
+});
+</script>
+</body>
+</html>

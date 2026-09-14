@@ -18,9 +18,12 @@
  */
 
 import { easings } from './easings'
-import { ACT_BEATS, actPin, chapterOneStory as one, methodPin, pin, rates } from './story'
-import { about, actSpans, answer, chapterThree, navHover, studioBlocks, work } from './timeline'
-import { actTrack, methodTrack, PRECISION, track } from './scroll'
+import { TIMING } from './timing'
+import { actPin, chapterOneStory as one, methodPin, pin, rates } from './story'
+import { about, answer, chapterThree, navHover, studioBlocks, work } from './timeline'
+import { actTrack, aperture, methodTrack, PRECISION, track } from './scroll'
+import { DESTINATIONS, WORK_IS_AN_ASIDE, depthOf, stateOf, states } from './spine'
+import { environmentValues } from './environment'
 
 /**
  * The multiplier CSS applies to every duration in Chapter I, for a given clock rate.
@@ -56,6 +59,31 @@ const settings: ReadonlyArray<readonly [string, string]> = [
   /* Chapter III and the interface. Deliberately outside --haste — see story.ts. */
   ['--fade-studio-blocks', `${studioBlocks.fade}ms`],
   ['--fade-nav-hover', `${navHover.fade}ms`],
+
+  /*
+    ── The Work's carousel · `TIMING.work.carousel` ────────────────────────────────────────────────
+
+    The one clock in the film, and C8 is what allows it: *time owns only what the visitor did not
+    cause.* The visitor causes their progress through the page and that stays scroll; they do not cause
+    which experience is on show. `work-experiences.tsx` argues it in full.
+
+    **The type exchanges on the film's own dip, not on a cross-fade.** `--fade-exp-out` empties the
+    outgoing word and `--fade-exp-in` fills the incoming one after `--wait-exp-in` — which is the out
+    plus the gap — so the two are never legible together. Cross-fading them held both categories
+    readable for 780ms, measured in Chrome.
+
+    **The photograph is slower and later.** The type has already changed by the time the image settles,
+    which is the only precedence in the section.
+
+    Outside `--haste`, like every other interface duration: the visitor cannot hurry an exhibition.
+  */
+  ['--fade-exp-plate', `${TIMING.work.carousel.plate}ms`],
+  ['--fade-exp-out', `${TIMING.work.carousel.type.out}ms`],
+  ['--fade-exp-in', `${TIMING.work.carousel.type.in}ms`],
+  [
+    '--wait-exp-in',
+    `${TIMING.work.carousel.type.out + TIMING.work.carousel.type.gap}ms`,
+  ],
 
   /*
     The publication's interface timing: a question answering. Outside --haste for the reason `navHover` is,
@@ -108,28 +136,31 @@ const settings: ReadonlyArray<readonly [string, string]> = [
   ['--method-pin', methodPin.fine],
 
   /*
-    Where `#work` is, as a length down the act's own runway.
+    **The Work aside.** `story.WORK_IS_AN_ASIDE` — V2 §3's fourteenth row, and the only junction on the
+    site the visitor causes rather than the film.
 
-    The navigation's destinations are places in the *story*, and inside a pinned frame a place in the
-    story is a scroll offset rather than an element — so the anchor is put at a beat and the beat is the
-    only thing authored.
+    Two durations and a scrim, and none of them belongs to a beat: the aside is not on any runway,
+    because it happens over whatever frame the visitor was already in. The way back is faster than the
+    way out on purpose — §3's t27 gives 1.30s out and 0.90s back.
 
-    **The beat the aperture finishes** — the work whole, lit, alone, and nothing yet said about it.
-    Somebody who asks for the work gets exactly that frame, which is the strongest one in the chapter and
-    the only one with nothing else in it.
+    `--aside-dim` is two stops of light removed from the film, derived rather than chosen. It is the one
+    light value written outside a state, and it changes no state's own exposure: *"the film is dimmed,
+    never replaced."*
 
-    Derived from `actSpans.frame.to`, so retiming the aperture moves the destination with it.
+    **There is no `--work-at` any more.** It put an anchor at the beat the aperture finishes, because
+    inside a pinned frame a place in the story is a scroll offset. §6 makes Work an aside rather than a
+    destination, so there is no longer anywhere to point.
   */
-  ['--work-at', `calc(var(--act-pin) * ${r(actSpans.frame.to / ACT_BEATS)})`],
+  ['--aside-out', `${WORK_IS_AN_ASIDE.out}ms`],
+  ['--aside-back', `${WORK_IS_AN_ASIDE.back}ms`],
+  ['--aside-dim', `${r(WORK_IS_AN_ASIDE.dim)}`],
 
   /*
-    The share of the aperture the **film** opens, under the travelling word — the one value that reaches
-    across the two runways. `globals.css` adds the two stages into `--aperture`, exactly the way it adds
-    `--adusk`'s two, so neither driver has to know the other exists.
-
-    `story.actStory.frame.opensWithTheMark`, and `decisions.md` §53.
+    **`--frame-mark` is gone.** It published the share of the aperture the film's own mark opens, so that
+    `globals.css` could add two runways' properties together — the one weld on the site. C4 gave the
+    sequence a single continuous position, `scroll.ts`'s `aperture` adds the two stages there, and the
+    stylesheet reads one number. Nothing about the composition changed; the arithmetic moved.
   */
-  ['--frame-mark', `${actSpans.apertureWithTheMark}`],
 
   /*
     Where Chapter III begins — inside the film's last frame rather than beneath it, so the mark unveils
@@ -161,10 +192,49 @@ const settings: ReadonlyArray<readonly [string, string]> = [
  * stylesheet, and the only thing keeping them equal to the story was that somebody had checked once.
  * Asking the story what it is at scroll position zero cannot drift.
  */
-const firstFrame = (): ReadonlyArray<readonly [string, string]> =>
-  [...track, ...actTrack, ...methodTrack].map(
+const firstFrame = (): ReadonlyArray<readonly [string, string]> => [
+  ...[...track, ...actTrack, ...methodTrack].map(
     ([name, at]) => [name, at(0).toFixed(PRECISION)] as const,
-  )
+  ),
+  /*
+    The aperture is no longer a track entry — it is one value composed from two views of `p` — so it is
+    asked for its first frame directly, for the same reason everything else here is: the page has to
+    paint correctly before the driver has run once.
+  */
+  ['--aperture', aperture(0, 0).toFixed(PRECISION)] as const,
+
+  /*
+    **The Environment at state 01**, asked for the same reason everything else here is asked: the page has
+    to paint correctly before the driver has run once, and a hero that appeared a frame late — or a plate
+    that flickered in — would be exactly the thing `05-storyboard.md` §6 Beat 0 forbids.
+
+    The placement handed in is any monotonic one, because at `p = 0` the walk lands exactly on the first
+    state and mixes nothing. What comes out is state 01's own row of §2 and cannot drift from it.
+  */
+  ...environmentValues(
+    0,
+    states.map((state, i) => ({ id: state.id, at: i })),
+    (n) => n.toFixed(PRECISION),
+  ),
+]
+
+/**
+ * The Ledger at the film's first state, asked rather than transcribed.
+ *
+ * Same reason as `firstFrame`: the driver writes these and the page has to paint before it has run
+ * once. Asking `spine.ts` what state 01 is cannot drift from what the driver will write a frame later,
+ * where a hand-kept copy of *unlit, no index, chapter I* certainly could.
+ */
+const firstState = (): ReadonlyArray<readonly [string, string]> => {
+  const at = 1
+  const { unlit, index } = stateOf(at).ledger
+  return [
+    ['--state', `${at}`],
+    ['--lunlit', unlit ? '1' : '0'],
+    ['--lindex', index ? '1' : '0'],
+    ...DESTINATIONS.map((destination, i) => [`--l${i + 1}`, `${depthOf(destination, at)}`] as const),
+  ]
+}
 
 const declare = (pairs: ReadonlyArray<readonly [string, string]>, indent: string): string =>
   pairs.map(([name, value]) => `${indent}${name}: ${value};`).join('\n')
@@ -184,6 +254,8 @@ export function motionCss(): string {
 ${declare(settings, '  ')}
 
 ${declare(firstFrame(), '  ')}
+
+${declare(firstState(), '  ')}
 }
 
 /* A thumb is not a wheel: the identical choreography over a longer runway. Both frames. */

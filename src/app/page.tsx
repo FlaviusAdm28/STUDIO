@@ -1,8 +1,10 @@
 import { site, where } from '@content'
-import WorkFragment from './fragment'
+import Environment from './environment'
+import Ledger from './ledger'
 import Opening from './opening'
 import Publication from './publication'
 import Reveal from './reveal'
+import States from './states'
 import ScrollStage from './scroll-stage'
 
 /**
@@ -32,20 +34,83 @@ export default function Home() {
         <style>{`
           .film { height: auto; }
           .stage { position: static; height: auto; }
-          .footage, .identity-title, .identity-line, .ways { opacity: 1 !important; }
-          .ways { pointer-events: auto !important; }
-          .moment { opacity: 0 !important; }
+          .env-hero { opacity: 1 !important; }
+          /*
+            The V2 state layer is one held frame driven by scroll, and here there is no scroll to drive
+            it. So it is told down the page instead: the hero as it ends, then the chapter, then the
+            thesis, then the three occasions — the same things in the same order, with the transformation
+            between them removed rather than the content. 05-storyboard.md §10.
+          */
+          .v2 { position: static; height: auto; display: grid; gap: 8vh;
+            padding: 18vh 8vw; background: #050504; }
+          .v2-scrim, .v2-dark { display: none; }
+          .v2-time, .v2-title, .v2-sub, .v2-of, .v2-numeral, .v2-topic, .v2-thesis, .v2-stack {
+            position: static; transform: none !important; opacity: 1 !important; }
+          .v2-time { width: auto; height: auto; text-align: left; }
+          .v2-time span { position: static; }
+          .v2-time-blend { display: none; }
+          .v2-time-floor { color: rgba(255,246,230,.66); }
+          .v2-title { white-space: normal; font-size: clamp(2rem, 9vw, 5rem); }
+          /*
+            The survivor is a device of the transformation and there is no transformation here, so it
+            stands down: the ghost stops being a spacer and says the word itself, which is what puts
+            Chapter One back on one line. Without this the vehicle is still absolutely positioned —
+            against whatever ancestor is left positioned once the stage goes static — and it lands as a
+            second, stray Chapter over the top of the page.
+          */
+          .v2-ghost { visibility: visible; }
+          .v2-word { display: none; }
+          /*
+            State 06's survivor stands down the same way, and for the same reason.
+
+            The sentence and the word that escapes it have the identical construction: a hidden ghost
+            holding the word's place in the line, and an absolutely positioned vehicle that carries
+            the word — and the numeral's slot — out of it. With no scroll there is no escape to
+            perform, so the vehicle is removed and the ghost says the word: the line reads
+            "Some moments deserve another chapter." whole, in flow, in its place in the order.
+
+            It also has to be told to lay out in flow, which the block above never covered. Left
+            absolute while .v2 is static, .v2-some resolves against the initial containing block
+            rather than against the frame, and the numeral's slot — 96px of tracked III at the
+            sentence's own size — reached 46px past the right edge and gave the composed page a
+            horizontal scrollbar. Measured at 752 x 873 against next start.
+          */
+          .v2-some { position: static; transform: none !important; opacity: 1 !important;
+            width: auto; white-space: normal; text-align: left; }
+          .v2-chapter-slot { position: static; }
+          .v2-chapter-ghost { visibility: visible; }
+          .v2-chapter { display: none; }
+          /*
+            One optical centre is a composition inside a frame, and there is no frame. The stack is a
+            list instead, in arrival order, at the three sizes the spec gives it — the hierarchy is what
+            survives, which is what the preservation order asks for.
+          */
+          .v2-occasion { position: static; transform: none !important; opacity: 1 !important;
+            margin: 0 0 1.5vh; }
+          /*
+            The environment is one fixed element behind the page and the plates are chosen by a property
+            nothing writes without scripting. So it holds its first frame: the hero, lit, which is the
+            ground Chapter I is composed on. The other two layers are not drawn at all rather than drawn
+            at an arbitrary presence — the same answer the leader rules get above.
+
+            **And it stops being fixed.** Fixed, the footage stands behind the whole document, and the
+            flat layout puts Chapter II's statement and its four occasions straight onto it — white type
+            over a photograph, where the shot puts them on black. Absolute and one viewport tall, it is
+            behind the hero and nothing else, the cards fall back onto the ground body paints, and the
+            composed alternative is the one the shot actually composes. 05-storyboard.md §10 — the same
+            things, told down the page, never the mechanism with its parts removed.
+          */
+          .environment { position: absolute; height: 100dvh; }
+          .env-plate-hero { opacity: 1 !important; }
+          .env-plate-venice, .env-plate-studio, .env-ground { display: none !important; }
           .card { position: static; padding: 22vh 8vw; }
-          .card-marker, .card-statement, .card-occasion, .card-close { opacity: 1 !important; }
+          .card-close { opacity: 1 !important; }
           .close-lead, .close-another, .mark-word, .mark-stop { opacity: 1 !important; }
           /*
             No scroll, so the mark cannot rewrite itself. It reads as the chapter line it starts as,
             which is the same answer the travelling word gets below: the initial form, whole, and the
             part that only exists after a transformation left out rather than stacked on top of it.
           */
-          .card-marker-word { opacity: 1 !important; filter: none !important; }
-          .card-marker-mark { transform: none !important; }
-          .card-marker-topic { display: none !important; }
           .mark { transform: none !important; }
           .mark-label { display: none !important; }
           .mark-slot { display: none !important; }
@@ -61,14 +126,40 @@ export default function Home() {
           */
           .chapter-three { margin-top: 0; }
           /*
-            The head margin is a margin over a pinned frame, and there is no pinned frame here — so it
-            stops being a fixed band and becomes what it is on paper anyway: the head of the chapter,
-            printed once at the top of it. Nothing is clipped, because nothing is stepped into place.
+            The Ledger is a rail over a pinned frame, and there is no pinned frame here — so it stops
+            being fixed and becomes what it is on paper anyway: the head of the page, printed once at the
+            top of it. Nothing is clipped, because nothing is stepped into place, and the index is simply
+            drawn: without scripting there is no state to be unlit at.
+
+            The rules encode depth and depth is a scroll position, so they are not drawn at all rather
+            than drawn at one arbitrary length. The words are the navigation; the rules were never it.
           */
-          .masthead { position: static; height: auto; padding: 0 var(--mark-x) 6vh;
+          .ledger { position: static; height: auto; flex-direction: row; flex-wrap: wrap;
+            align-items: baseline; gap: clamp(1rem, 3vw, 2rem);
+            width: auto; padding: var(--mark-y) var(--mark-x) 6vh;
             opacity: 1 !important; clip-path: none !important; }
-          .masthead-nav { opacity: 1 !important; }
-          .act-anchor { position: static; display: none; }
+          /*
+            The mark docks on a junction and there is no junction here, so it holds the one form it can
+            be sure of: the three strokes stacked, at the head of the rail, which is where they spend
+            the whole of the site that has scrolling. Nothing writes --dock without scripting, so the
+            travel, the fall and the tracking all resolve to their own zero — this states the landed
+            form rather than leaving them upright and mid-flight.
+          */
+          .marker { opacity: 1 !important; transform: none !important; }
+          .mark-stroke { transform: translateY(calc(var(--s-n) * var(--mark-size) * 0.34))
+            rotate(90deg) !important; }
+          .ledger-index ul { flex-direction: row; flex-wrap: wrap;
+            gap: clamp(1.375rem, 2.4vw, 2.25rem); }
+          .ledger-index li { opacity: 1 !important; }
+          .ledger-rule { display: none; }
+          /*
+            The register is opened by a press and there is nothing here to press with. So the way into
+            the work is the line the act already prints on the paper beneath the plate, which is the same
+            offer — and the aside, which exists to keep the film running underneath, has nothing to keep
+            running. 05-storyboard.md §10: the composed alternative, not the mechanism with its parts
+            removed. (No backticks in here — this block is a template literal.)
+          */
+          .register, .register-scrim { display: none; }
           /*
             The act is one frame transformed by scroll, and here there is no scroll to transform it. So it
             is told down the page instead: the work, what it is, what the studio says about it, the way
@@ -86,7 +177,7 @@ export default function Home() {
             block is a template literal.)
           */
           .act-frame { position: static; transform: none; }
-          .act-shot { clip-path: none; aspect-ratio: 16 / 10; background: var(--ground); }
+          .act-shot { position: static; clip-path: none; aspect-ratio: 16 / 10; background: var(--ground); }
           /*
             The light is a narrative state and this page has one state: paper. Nothing to darken, and no
             dark part for type to stand in — so the type is set in the page's own ink instead.
@@ -125,106 +216,99 @@ export default function Home() {
             answer beside it, then the resolution. The same things, in the same order, with the space and
             the convergence removed rather than the content. 05-storyboard.md §10.
           */
-          .method { height: auto; }
+          .method { height: auto; padding-top: 0; background-image: none; }
           .method-stage { position: static; height: auto; display: grid; gap: 4vh;
-            padding: 6vh var(--mark-x) 0; perspective: none; }
-          .method-label { position: static; }
+            padding: 6vh var(--mark-x) 0; perspective: none; background-image: none; }
+          .method-label { position: static; opacity: 1 !important; color: var(--ink-quiet); }
           .mgroup { position: static; display: block; }
           .mask, .mword, .mresolve { position: static; opacity: 1 !important;
             transform: none !important; }
-          .mask { margin: 0 0 0.75vh; }
+          .mask { margin: 0 0 0.75vh; max-width: 32ch; font-size: clamp(1.25rem, 4vw, 1.75rem);
+            color: var(--ink); }
           .mword { display: inline-block; margin-right: 1.25em; font-size: 1.0625rem;
             color: var(--ink-quiet); }
           .mresolve { width: auto; }
-          .mresolve-answer, .mresolve-lines { opacity: 1 !important; transform: none !important; }
+          /*
+            The room never arrives here, so nothing is ever turned over: --mroom stays 0, every colour in the
+            section resolves to the ink it is mixed from, and the ground stays the paper the publication is
+            printed on. The ramp is switched off rather than left at zero alpha, because a gradient nobody
+            can see is still a paint. (No backticks in here — this block is a template literal.)
+          */
+          .mresolve-answer { opacity: 1 !important; transform: none !important;
+            font-size: clamp(1.75rem, 5vw, 2.5rem); color: var(--ink); }
+          .mresolve-lines { opacity: 1 !important; transform: none !important; }
+          /*
+            And junction 13 to 14 is a held frame with Contact composed around a pinned rule, so without
+            scripting there is no frame, no pin and no junction — every one of its opacities would stay at
+            its zero fallback and the whole of Contact would be absent, which it already was before the
+            frame existed. So the closing composition stands down to ordinary flow: the container gives up
+            its runway, the frame stops sticking, and the section goes back to being a page with the rule
+            above it. Everything present, in order, with the sequence removed rather than the content.
+            05-storyboard.md §10.
+          */
+          .closing { height: auto; }
+          .closing-frame { position: static; }
+          /*
+            width:100% was 100% of the container *plus* the rule's own left margin, so the line ran past
+            the right edge and the document scrolled sideways — 62px at 1440 before the publication took
+            its own origin, 236 after. width:auto lets the block fill what is actually left beside the
+            two margins, which is what the scripted rule computes as well.
+            (No backticks in here — this stylesheet is a template literal.)
+          */
+          .persist { position: static; width: auto; height: 1px;
+            margin: 0 var(--mark-x) 0 var(--page-x); }
+          .page-last { position: static; display: grid; row-gap: var(--part-gap);
+            padding: var(--band-close) var(--mark-x) clamp(3.5rem, 9vh, 6rem) var(--page-x); }
+          .page-last > * { position: static; left: auto; right: auto; top: auto;
+            opacity: 1 !important; }
+          .page-terms > .page-note { opacity: 1 !important; }
         `}</style>
       </noscript>
+
+      {/*
+        **The Environment, and it is first because it is behind everything.**
+
+        §11.1, locked: one element, mounted at the Hero, never unmounted, never re-sourced, never
+        `display:none`. It holds the hero footage — which is why the footage is no longer inside
+        `opening.tsx` — and the two stills, and a state changes only how present each of them is.
+
+        Document order is half of what puts it behind the film and the publication; `z-index` in
+        `globals.css` is the other half. It is not a child of any chapter, for the same reason the
+        Ledger is not: it outlives all of them.
+      */}
+      <Environment />
 
       <ScrollStage />
       <Reveal />
 
+      {/*
+        The Ledger, and it stands outside the film because it outlives it. V2 §6 gives it one lifetime —
+        present from the first frame, unlit until the dock, *"never re-created"* — so it cannot be a child
+        of a chapter. It was the masthead, which stepped into being at Chapter III and stopped at four
+        words; `implementation-reconciliation.md` C2 is why it is one rail now.
+      */}
+      <Ledger />
+
+      {/*
+        **The V2 state layer, 01 → 09.** `states.tsx` composes the first nine of V2's fourteen states
+        from `final-design-spec.pdf` §2 and the storyboard's own frames, driven by the two properties C4
+        publishes and by Chapter I's clock.
+
+        **It is a sibling of the runways rather than a child of one**, and fixed to the viewport like the
+        Environment. States 01–05 are priced on the film's runway and 09 on the act's, so a layer living
+        inside either could not reach the other — and V2 is one continuous film, not two pinned frames
+        with a seam. The runways below are now what they always really were: distance. This is the frame.
+
+        It replaced the whole V1 presentation of this stretch — the three cards, the dawn, the travelling
+        word, Chapter III's paper act. They are gone from the tree rather than hidden behind an opacity:
+        `CLAUDE.md`'s revamp principle is that V1 composition is replaced, not layered under.
+      */}
+      <States />
+
       <section className="film">
         <div className="stage">
           <Opening />
-
-          {/*
-            Every card is centred in the same frame, and no two of them ever share it.
-
-            The marker is in three parts because it does not stay one thing: `CHAPTER II` becomes
-            `II Philosophy` while the visitor scrolls. `word` and the numeral are in normal flow, so
-            the card centres `CHAPTER II` exactly as it always did and the resting frame is unchanged.
-            `topic` hangs off the numeral's own right edge, out of flow — which is what keeps it from
-            widening the line it is not part of yet, and what makes the numeral's travel measurable
-            from the layout rather than authored.
-          */}
-          <div className="card" aria-hidden="true">
-            <p className="card-marker">
-              <span className="card-marker-word">{site.two.marker.word}</span>{' '}
-              <span className="card-marker-mark">
-                {site.two.marker.numeral}
-                <span className="card-marker-topic">{site.two.marker.topic}</span>
-              </span>
-            </p>
-          </div>
-
-          <div className="card">
-            <p className="card-statement">
-              {site.two.statement.map((line) => (
-                <span key={line}>{line}</span>
-              ))}
-            </p>
-          </div>
-
-          {site.two.occasions.map((line, i) => (
-            <div className="card" key={line}>
-              <p className="card-occasion" data-occasion={i + 1}>
-                {line}
-              </p>
-            </div>
-          ))}
-
-          {/*
-            Dawn sits after everything Act II says and before Act III's own words, so the light
-            rises over the dark and covers it rather than replacing it. Warmth first, then light —
-            the midpoint of a single cross-fade to ivory is a flat neutral grey.
-          */}
-          <div className="dawn-warmth" aria-hidden="true" />
-          <div className="dawn" aria-hidden="true" />
-
-          {/*
-            Act III's sentence, in parts, because it is taken apart rather than removed. The lead
-            leaves, then `another`, and `chapter` is left alone at the centre — and then that same
-            element travels into the corner and becomes the marker. It is never swapped for a
-            different element; only its size, its place and its purpose change.
-          */}
-          <div className="card card-act-three">
-            <p className="card-close">
-              <span className="close-lead">{site.two.close.lead}</span>
-              <span className="close-tail">
-                <span className="close-another">{site.two.close.another}</span>{' '}
-                <span className="mark">
-                  <span className="mark-word">{site.two.close.word}</span>
-                  <span className="mark-label">{site.mark.label}</span>
-                  <span className="mark-stop">{site.two.close.stop}</span>
-                </span>
-              </span>
-            </p>
-          </div>
-
-          {/*
-            The marker's slot: the numeral, then the empty anchor the word lands on. A flex row, so
-            the anchor sits after the numeral automatically — the word's landing point accounts for
-            "III" without a single number being written down, and stays right at any size.
-
-            The anchor is invisible and measured rather than guessed: the script reads it and the
-            word's natural position and derives the whole travel from the difference.
-          */}
-          <span className="mark-slot" aria-hidden="true">
-            <span className="mark-numeral">{site.mark.numeral}</span>
-            <span className="mark-anchor" />
-          </span>
         </div>
-
       </section>
 
       {/*
@@ -233,39 +317,6 @@ export default function Home() {
         the dark coming up over a photograph. `decisions.md` §46.
       */}
       <div className="chapter-three">
-        {/*
-          Chapter III's head, and it is the marker the travelling word became rather than a navigation
-          that arrives beside it.
-
-          `.marker` is exactly what it was — same coordinates, same size, weight, tracking and ink —
-          because at the instant of the handoff it has to be pixel-identical to the word that lands
-          there. The handoff is a step, not a cross-fade: overlapping two 0.65-alpha inks would darken
-          the mark for a frame. All that has changed is that the mark is now also a way back to the top
-          of the chapter, and that a band of the page's own paper stands behind it.
-
-          The band is not chrome. It is the page's head margin — `04-visual-language.md` §5, margins are
-          silence — and it exists because the frame below it becomes a photograph: measured across the
-          act, the ground behind this corner runs from paper at 241 through the plates' sky at 87–149
-          to black and back, and no single ink survives that. §2 asks every element to exist lit and
-          unlit; this one instead never leaves its own ground. `decisions.md` §47.
-
-          The links arrive after the mark has settled, on the act's own runway — `actStory.navigation`.
-        */}
-        <header className="masthead">
-          <a className="marker" href={`#${site.mark.to}`}>
-            <span className="marker-numeral">{site.mark.numeral}</span>
-            <span className="marker-label">{site.mark.label}</span>
-          </a>
-
-          <nav className="masthead-nav" aria-label={site.mark.label}>
-            {site.mark.nav.map(({ word, to }) => (
-              <a key={word} href={`#${to}`}>
-                {word}
-              </a>
-            ))}
-          </nav>
-        </header>
-
         {/*
           The act. One frame, held, and **the frame is the work** — so nothing ever scrolls past anything
           and there is no boundary between the work arriving, the work being named, what the studio makes
@@ -278,69 +329,26 @@ export default function Home() {
             what is said    the studio's type, composed into the work's own quiet band, above it
             the way out     printed on the paper, once there is paper — the only thing that can be pressed
         */}
-        <section className="act" id={where.studio} aria-label={site.three.work.title}>
-          {/*
-            Where `#work` is. A place in the story rather than an element on a page: inside a pinned
-            frame the work taking the screen is a scroll offset, so the anchor is put at that offset and
-            `--work-at` is derived from the beat the aperture finishes. `transitions.ts`.
-          */}
-          <i className="act-anchor" id={where.work} aria-hidden="true" />
-
-          <div className="act-stage">
-            {/*
-              The work itself, and it is the whole frame. `fragment.tsx` fetches it as the chapter
-              approaches and does nothing else — the aperture, the light and the printing are all scroll,
-              and all of them are `globals.css` reading the act's own properties.
-            */}
-            <WorkFragment />
-
-            {/*
-              **What the studio says, composed into the work.** Not a column beside it: the type stands in
-              the quiet band the fragment declares, over the photograph, the way the timestamp stands
-              inside the hero's own frame in Chapter I. `decisions.md` §53.
-
-              Three things and one axis. The work's **name** arrives as the room goes to evening and stays,
-              because the sentence after it is a reading of a named thing. Beneath it, one box holding two
-              things that never share a frame: the two lines that say what the work is, and then — as the
-              light goes down to a trace and takes them with it — the one sentence the studio says here.
-
-              They are laid on the same grid cell rather than stacked absolutely, so the box is as tall as
-              the taller of them and the name above sits in the same place whichever is lit.
-            */}
-            <div className="act-said">
-              <p className="act-name">{site.three.work.title}</p>
-
-              <div className="act-says">
-                <p className="act-note">
-                  {site.three.work.context.note.map((line) => (
-                    <span key={line}>{line}</span>
-                  ))}
-                </p>
-
-                <p className="act-voice">{site.three.voice.lead}</p>
-              </div>
-            </div>
-
-            {/*
-              The way out, printed on the paper beneath the plate as the plate is printed. The only
-              outward action in the chapter and the only thing in it that can be pressed — there is
-              nothing to enter, because the work on screen is material and the experience is elsewhere.
-
-              An anchor only once there is somewhere to go; until then it is composed and inert, because a
-              link to nowhere is worse than a line that has plainly not been wired up yet.
-            */}
-            <div className="act-out">
-              {site.three.work.url === null ? (
-                <p className="act-open" aria-disabled="true">
-                  {site.three.work.cta}
-                </p>
-              ) : (
-                <a className="act-open" href={site.three.work.url} target="_blank" rel="noreferrer">
-                  {site.three.work.cta}
-                </a>
-              )}
-            </div>
-          </div>
+        {/*
+          **There is no `#work` any more.** It was an anchor placed at the beat the aperture finishes,
+          because inside a pinned frame a place in the story is a scroll offset. V2 §6 makes Work an
+          aside rather than a destination — *"Clicking WORK does not navigate"* — so there is nothing to
+          point at and `--work-at` went with it. `implementation-reconciliation.md` C2.
+        */}
+        {/*
+          `data-segment` is the **position model's** hook and it is deliberately not a class. The driver
+          used to find this frame by `.act`, which made one continuous narrative position depend on a
+          V1 presentation selector — so replacing the composition would have silently detached the
+          sequence from the page. The attribute says *this box is where the act's segment begins on `p`*,
+          which stays true of whatever composition renders it. Same reason `[data-state]` marks the
+          states in flow. `implementation-reconciliation.md` C8.
+        */}
+        <section
+          className="act"
+          data-segment="act"
+          id={where.studio}
+          aria-label={site.three.work.title}
+        >
         </section>
 
         {/*

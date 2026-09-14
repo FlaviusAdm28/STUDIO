@@ -1,3 +1,6 @@
+/* The one file to edit to change any pacing on the site. */
+export { TIMING } from './timing'
+
 /**
  * The motion system.
  *
@@ -6,6 +9,15 @@
  *
  *   story.ts        THE STORYBOARD. Anchors and relationships, in narrative order.
  *                   This is the file you edit, and the only one.
+ *
+ *   spine.ts        THE V2 SPINE. Fourteen states and thirteen junctions, transcribed from the
+ *                   approved design. Identity, never timing — it says *where the film is* and
+ *                   associates each state with the beats that already compose it.
+ *
+ *   environment.ts  THE ENVIRONMENT, PROJECTED. Which of the three plates is behind the page at a
+ *                   given position, how lit it is, and how far the state-08 pan has run. Reads the
+ *                   spine's own §2 columns and the positions the driver already measures; holds no
+ *                   state, no clock and no numbers of its own.
  *
  *   timeline.ts     resolves the storyboard into the absolute values the sequencer and driver need,
  *                   and asserts the three intentions a ripple edit could break silently
@@ -34,17 +46,41 @@ export {
   shotStory,
   actStory,
   afterTheFilm,
+  atmosphere,
+  input,
+  occasionsStory,
   pace,
+  pricing,
   rates,
   methodStory,
   pin,
   actPin,
   methodPin,
+  methodArrival,
   BEATS,
   ACT_BEATS,
   METHOD_BEATS,
 } from './story'
-export type { Beat } from './story'
+export type { Beat, Price } from './story'
+
+/* The V2 spine. Where the film is — states, junctions, and what the Ledger reads. */
+export {
+  DESTINATIONS,
+  PLATE,
+  VERB,
+  WORK_IS_AN_ASIDE,
+  depthOf,
+  destinationState,
+  junctions,
+  stateOf,
+  states,
+  tickOf,
+} from './spine'
+export type { Chapter, Destination, Junction, LedgerState, Plate, Runway, State, Verb } from './spine'
+
+/* The Environment — which plate is behind the page, and how lit. A projection of the spine. */
+export { environmentValues } from './environment'
+export type { EnvironmentValues, Placement } from './environment'
 
 /* Resolved absolutes. Read these; never write them down. */
 export {
@@ -52,6 +88,7 @@ export {
   spans,
   actSpans,
   methodSpans,
+  methodEntrance,
   schedule,
   studioBlocks,
   navHover,
@@ -61,13 +98,35 @@ export {
   chapterThree,
   closestBeats,
   maxAdvance,
+  stateEntries,
+  narrativePositions,
+  junctionSpans,
+  junctionAt,
+  persistSpans,
+  relightSpans,
+  assertNarrative,
+  assertReachable,
+  assertSegments,
+  assertJunctions,
 } from './timeline'
-export type { Span, Cue } from './timeline'
+export type { Span, Cue, Segment, Measured, JunctionSpan } from './timeline'
 
 export { easings, clamp01, smoothstep, unsmoothstep } from './easings'
 export type { Easing } from './easings'
 
-export { rise, fall, show, track, actTrack, methodTrack, PRECISION } from './scroll'
+export {
+  rise,
+  fall,
+  show,
+  ramp,
+  aperture,
+  track,
+  actTrack,
+  methodTrack,
+  persistTrack,
+  relightTrack,
+  PRECISION,
+} from './scroll'
 export type { Track } from './scroll'
 
 export { motionCss } from './transitions'

@@ -11,7 +11,7 @@
 
 import { clamp01, smoothstep } from './easings'
 import { ACT_BEATS, BEATS, METHOD_BEATS } from './story'
-import { actSpans, methodSpans, type Cue, type Span, spans } from './timeline'
+import { actSpans, methodSpans, persistSpans, relightSpans, spans, type Cue, type Span } from './timeline'
 
 /** Eased rise from 0 to 1 across a range. */
 export const rise = (s: number, span: Span): number =>
@@ -22,6 +22,21 @@ export const fall = (s: number, span: Span): number => 1 - rise(s, span)
 
 /** A beat's opacity: whichever of its arrival and its departure is further along. */
 export const show = (s: number, c: Cue): number => Math.min(rise(s, c.enter), fall(s, c.exit))
+
+/**
+ * A straight ramp from 0 to 1 across a range. **The one function in this file with no curve in it**, and it
+ * exists for exactly one thing: the method's camera.
+ *
+ * Every other range here is a beat — something that arrives, so it eases in and eases out, because that is
+ * what arriving looks like. A camera is not a beat. It is the visitor's own movement through a space, and
+ * easing it would slow the field to a halt at both ends of the runway — most visibly at the top of it, where
+ * somebody scrolling in for the first time is most likely to stop and look. Straight, the field moves at the
+ * rate the hand moves, which is the only thing that makes a scroll-driven parallax feel like a place rather
+ * than like an animation of one. `story.methodStory.drift`.
+ *
+ * It runs 0 → 1 the way `rise` does; `globals.css` re-centres it on the composition.
+ */
+export const ramp = (s: number, span: Span): number => clamp01((s - span.from) / (span.to - span.from))
 
 /** A custom property, and the value it should have at a given scroll position in beats. */
 export type Track = ReadonlyArray<readonly [name: string, at: (s: number) => number]>
@@ -200,9 +215,125 @@ export const methodTrack: Track = [
 
   ...methodSpans.words.map((span, i) => [`--mw${i + 1}`, (s: number) => rise(s, span)] as const),
 
+  /*
+    The camera, under everything else. `ramp` rather than `rise` — see `ramp`, and
+    `story.methodStory.drift`: this is the visitor's movement through the space, not a beat of it.
+  */
+  ['--mdrift', (s) => ramp(s, methodSpans.drift)],
+
   ['--mgather', (s) => rise(s, methodSpans.gather)],
   ['--manswer', (s) => rise(s, methodSpans.answer)],
+
+  /*
+    ── The printing ──────────────────────────────────────────────────────────────────────────────
+    The room giving the page back, in the three stages `story.methodStory.printing` argues, plus the two
+    lines that only exist on the far side of it.
+
+    `--mclear` and `--mreturn` are two properties rather than one because they are two *different* things
+    that happen to be adjacent: what is lit, and what the ground is made of. `globals.css` composes each of
+    them with `--menter` — the room's own arrival, which is not a beat and so is not here — into `--mlit` and
+    `--mroom`. That is the same arithmetic-in-the-stylesheet the aperture is built from, and for the same
+    reason: neither driver has to know the other exists.
+  */
+  ['--mclear', (s) => rise(s, methodSpans.clear)],
+  ['--mreturn', (s) => rise(s, methodSpans.returns)],
+  ['--mprint', (s) => rise(s, methodSpans.print)],
   ['--mlines', (s) => rise(s, methodSpans.lines)],
+]
+
+/**
+ * **The aperture, and the weld it replaces.**
+ *
+ * This value used to be composed in the stylesheet: `--frame-mark * --studio + (1 − --frame-mark) *
+ * --aframe`, three properties written by two different runways and added together in CSS because
+ * neither driver could see the other. It was the one survivor on this site that crossed a runway
+ * boundary, and `decisions.md` recorded it as a special case rather than a pattern — thirteen
+ * junctions would have needed thirteen of them.
+ *
+ * With one continuous position there is nothing to weld. The first stage is a function of `p` (the
+ * travelling word opening the frame from inside the film) and the second is a function of the act's
+ * view of `p`; both are read here, in one place, and the stylesheet consumes a single number.
+ *
+ * **The arithmetic is unchanged, deliberately.** Same two spans, same share, same order — only its
+ * address moved. C4 is a refactor of *where* values are computed, never of what they are.
+ */
+export const aperture = (p: number, a: number): number =>
+  actSpans.apertureWithTheMark * rise(p, spans.studioEmerges) +
+  (1 - actSpans.apertureWithTheMark) * rise(a, actSpans.frame)
+
+/**
+ * **Junction 13 → 14, as a track.** C8's first junction, and the shape every other one will take.
+ *
+ * `s` here is not beats and not seconds — it is the junction's own `0 → 1`, which the driver derives
+ * from scroll position over `persistSpans.length` viewport-hundredths. Every entry is a pure function
+ * of it, so the junction reverses exactly, holds a composed frame anywhere it is stopped, and cannot
+ * leave a partial state: there is no state to leave.
+ *
+ * Note what is **not** here: the held-empty frame. §8's *"holds empty for 300ms"* is a stretch with
+ * nothing scheduled in it, so it earns no property — `timeline.ts` asserts its emptiness instead. A cue
+ * you can only express by leaving a gap is the clearest possible proof that this is distance and not a
+ * timeline.
+ */
+export const persistTrack: Track = [
+  /*
+    The list releasing in place — one property per row, each its own span 40ms apart. `fall`, so before
+    the junction every row is at 1 and after it every row is at 0, with no delay anywhere: a stagger
+    made of offsets would replay on the way back up, and a stagger made of spans simply runs backwards.
+  */
+  ...persistSpans.releases.map(
+    (span, i) => [`--jrel${i + 1}`, (s: number) => fall(s, span)] as const,
+  ),
+
+  /*
+    The ground turning and the rule's ink crossing with it. One property for both, because §8's table
+    says the ink crosses *"with the ground, not on its own clock"* — two properties would be two clocks.
+  */
+  ['--jcross', (s) => rise(s, persistSpans.crosses)],
+
+  /* The headline, then the line directly above the rule. */
+  ['--jhead', (s) => rise(s, persistSpans.headline)],
+  ['--jtell', (s) => rise(s, persistSpans.tells)],
+
+  /* The survivor's one animation: measure to the right edge, and weight. §8, *"animated once"*. */
+  ['--jsize', (s) => rise(s, persistSpans.resizes)],
+
+  /* Label, arrow and the three lines, 120ms apart. Same construction as the release. */
+  ...persistSpans.resolves.map(
+    (span, i) => [`--jres${i + 1}`, (s: number) => rise(s, span)] as const,
+  ),
+]
+
+/**
+ * **Junction 12 → 13, on the junction's own `0 → 1`.** The storyboard's channel order, as four properties.
+ *
+ * Four ranges and not one ramp, because the order is the mechanism: *"temperature moves first, then
+ * value, then type."* A single property could only express the three as one change, which is the fade
+ * §11.2 forbids. Each is `rise`, so before the junction all four are 0, after it all four are 1, and
+ * reversing runs the same arithmetic backwards with nothing remembered.
+ */
+export const relightTrack: Track = [
+  /*
+    **The paper retiring, and it is the one channel the storyboard does not author.**
+
+    §2 gives states 12, 13 and 14 a plate, not paper — but `.publication` paints an opaque paper ground
+    over the whole half, so the room the storyboard relights is behind it and none of the four channels
+    below can be seen. This opens it, and it is placed in the junction's own **opening hold**: beat 1 is
+    *"the approved payoff state, untouched"*, so retiring the paper there leaves state 12's settled frame
+    exactly as junction 11 → 12 leaves it, and the room is whole before temperature moves.
+  */
+  ['--rl-open', (s) => rise(s, { from: 0, to: relightSpans.warms.from })],
+
+  /* Beat 2 — saturation and the amber source leave, at constant exposure. */
+  ['--rl-warm', (s) => rise(s, relightSpans.warms)],
+
+  /* Beat 3 — value rises and the black opens into blue. Colour does not move here. */
+  ['--rl-blue', (s) => rise(s, relightSpans.blues)],
+
+  /* Beat 4 — first light from the upper right, and the one beat the plates cross inside. */
+  ['--rl-light', (s) => rise(s, relightSpans.lights)],
+
+  /* Beat 5 — the heading, resolving inside the light and never before it. */
+  ['--rl-settle', (s) => rise(s, relightSpans.settles)],
 ]
 
 /**

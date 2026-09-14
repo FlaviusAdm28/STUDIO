@@ -48,11 +48,18 @@ import {
   afterTheFilm,
   beat,
   chapterOneStory as one,
+  methodArrival,
   methodStory as method,
   pace,
+  persisting,
+  pricing,
+  relighting,
+  SECONDS_TO_VH,
   shotStory as shot,
   type Beat,
+  type Price,
 } from './story'
+import { junctions, states, type Runway, type Verb } from './spine'
 
 /** Trims the float noise of adding two decimals, so a derived value is the number it should be. */
 const r = (n: number): number => Math.round(n * 1e6) / 1e6
@@ -477,7 +484,41 @@ export const methodSpans = (() => {
   )
   const answer: Span = { from: answerFrom, to: r(answerFrom + method.resolve.fade) }
 
-  const linesFrom = r(answer.to + method.resolve.linesAfter)
+  /*
+    **The camera.** From the frame's first beat to the instant the field starts collapsing, and no further —
+    `method.drift.holdsPastTheGathering` is the authored zero that says so. Nothing else in the section runs
+    for this long, which is the point: it is the one range that is underneath everything rather than beside
+    it.
+  */
+  const drift: Span = {
+    from: 0,
+    to: r(gather.from + method.drift.holdsPastTheGathering),
+  }
+
+  /*
+    ── The printing ──────────────────────────────────────────────────────────────────────────────
+    The room gives the page back. Chained in Chapter III's own order, and each link is the reason the one
+    before it had to finish: the light type leaves an intact dark room, the paper returns to an empty frame,
+    and the answer is printed on a page that has arrived. `story.methodStory.printing`.
+  */
+  const clearFrom = r(answer.to + method.resolve.holds)
+  const clear: Span = { from: clearFrom, to: r(clearFrom + method.printing.clears) }
+
+  const returnFrom = r(clear.to + method.printing.thenWaits)
+  const returns: Span = { from: returnFrom, to: r(returnFrom + method.printing.returns) }
+
+  /*
+    Solved from the overlap rather than authored as a delay, exactly as `answer` is against the convergence:
+    what was decided is that the line arrives on a ground that is nearly paper and finishes on paper exactly.
+    `actSpans.wayOut` does the same arithmetic against the act's own printing.
+  */
+  const printFrom = r(
+    returns.from + unsmoothstep(method.printing.whenReturnedIs) * (returns.to - returns.from),
+  )
+  const print: Span = { from: printFrom, to: r(printFrom + method.printing.printFade) }
+
+  const linesFrom = r(print.to + method.printing.linesAfter)
+  const lines: Span = { from: linesFrom, to: r(linesFrom + method.printing.linesFade) }
 
   return {
     invite,
@@ -486,12 +527,31 @@ export const methodSpans = (() => {
     /** Where the twelve stand with nothing moving. Not a range — the assertions read it. */
     gatheredFrom,
     gather,
+    drift,
     answer,
-    lines: { from: linesFrom, to: r(linesFrom + method.resolve.linesFade) } as Span,
+    clear,
+    returns,
+    print,
+    lines,
     /** The last frame the section composes. `METHOD_BEATS` is checked against it. */
-    endsAt: r(linesFrom + method.resolve.linesFade),
+    endsAt: lines.to,
   }
 })()
+
+/**
+ * **Where the room arrives, as the driver needs it.**
+ *
+ * `story.methodArrival` states the two edges as viewport heights above the frame's own lock, because that is
+ * what somebody composing the entrance decides. The driver needs the same thing as a start and a length, so
+ * the subtraction happens once, here, rather than in the loop.
+ *
+ * `over` is asserted positive below: an arrival that settles before it begins is a division that would hand
+ * the driver an infinity and paint the room in one frame.
+ */
+export const methodEntrance = {
+  begins: methodArrival.begins,
+  over: r(methodArrival.begins - methodArrival.settles),
+} as const
 
 /* ──────────────────────────── Chapter III, and the interface ──────────────────────────── */
 
@@ -596,11 +656,687 @@ export const chapterThree = {
 } as const
 
 /**
+ * **Junction 13 → 14, resolved from seconds into fractions of its own distance.**
+ *
+ * This is the whole of C8's conversion, and it is four lines of arithmetic: divide every cue by
+ * `persisting.total`. Nothing here is a duration, nothing is chained, and nothing is compared to a
+ * clock. What comes out is a set of ranges on `0 → 1`, and the driver turns scroll position into that
+ * `0 → 1` — so the junction runs backwards exactly as it runs forwards, and stopping anywhere holds a
+ * composed frame.
+ *
+ * `length` is the only place seconds meet the world: `total × SECONDS_TO_VH`, in viewport-hundredths.
+ * Change the constant and the hand travels further; every proportion below is untouched.
+ */
+export const persistSpans = (() => {
+  const T = persisting.total
+  /** A cue's absolute second, as a fraction of the junction. */
+  const f = (seconds: number): number => r(seconds / T)
+  /** A cue with a duration, as a range. */
+  const span = (at: number, over: number): Span => ({ from: f(at), to: f(at + over) })
+
+  /**
+   * §8's staggers, as a fan of ranges rather than one range with a delay in it.
+   *
+   * The same construction `methodSpans.words` uses for the twelve considerations, and for the same
+   * reason: a stagger is *n* beats that happen to be related, not one beat with an offset. Each row
+   * gets its own span, so each is independently a pure function of position — which is what keeps the
+   * stagger reversible. A shared range with a CSS delay would not reverse; it would replay.
+   */
+  const fan = (at: number, over: number, stagger: number, count: number): readonly Span[] =>
+    Array.from({ length: count }, (_, i) => span(at + i * stagger, over))
+
+  return {
+    /** Nothing happens here, and that is the cue. §8's opening 400ms hold. */
+    holdsUntil: f(persisting.holds),
+
+    /**
+     * The list letting go — one span per row, 40ms apart. Eight, because this build has eight rows
+     * where V2 has seven; the fan is sized from the DOM's count rather than from the spec's, so the
+     * copy pass can change the number without touching this.
+     */
+    releases: fan(persisting.releases.at, persisting.releases.over, persisting.releases.stagger, 8),
+
+    /** The ground turning and the rule's ink crossing with it. One range, because §8 gives one. */
+    crosses: span(persisting.crosses.at, persisting.crosses.over),
+
+    /**
+     * The held-empty frame. Not a range anything fades across — a range in which **nothing is
+     * scheduled**, which is why it is exported as a pair the assertions can check rather than as a
+     * track entry. Its whole job is to be provably empty.
+     */
+    empty: span(persisting.empty.at, persisting.empty.over),
+
+    headline: span(persisting.headline, persisting.arrives),
+    tells: span(persisting.tells, persisting.arrives),
+
+    /** Measure and weight, animated once, right edge only. §8's table. */
+    resizes: span(persisting.resizes.at, persisting.resizes.over),
+
+    /** Label, arrow and the three lines — five, 120ms apart. */
+    resolves: fan(
+      persisting.resolves.at,
+      persisting.resolves.over,
+      persisting.resolves.stagger,
+      persisting.resolves.count,
+    ),
+
+    /** How far the junction runs, in viewport-hundredths. The one place seconds become distance. */
+    length: r(T * SECONDS_TO_VH),
+
+    /** The last thing to finish, as a fraction. Asserted to be exactly the junction's end. */
+    endsAt: f(persisting.resolves.at + (persisting.resolves.count - 1) * persisting.resolves.stagger + persisting.resolves.over),
+  }
+})()
+
+/**
+ * **Junction 12 → 13, resolved.** The storyboard's five beats as ranges on the junction's own `0 → 1`.
+ *
+ * Same construction as `persistSpans` and for the same reason: seconds in, fractions out, and the driver
+ * turns scroll position into the `0 → 1`. Nothing here is a time and nothing is compared to one.
+ *
+ * The junction's interval on `p` is longer than the 5.40s weight — measured 3.22 beats against a priced
+ * 1.97 — so the beats are laid on the **whole interval** rather than on the weight's share of it. That
+ * preserves every proportion the storyboard authors and spends the distance the sequence actually has,
+ * which is what keeps the studio on screen long enough to register.
+ */
+export const relightSpans = (() => {
+  const T = relighting.total
+  const f = (seconds: number): number => r(seconds / T)
+  const span = (at: number, over: number): Span => ({ from: f(at), to: f(at + over) })
+  return {
+    /** Temperature, at constant exposure. */
+    warms: span(relighting.warms.at, relighting.warms.over),
+    /** Value, into blue. */
+    blues: span(relighting.blues.at, relighting.blues.over),
+    /** First light, and the one beat the plates cross inside. */
+    lights: span(relighting.lights.at, relighting.lights.over),
+    /** The heading, last. */
+    settles: span(relighting.settles.at, relighting.settles.over),
+    /** How far the junction runs, in viewport-hundredths — the weight, for the assertion to check. */
+    length: r(T * SECONDS_TO_VH),
+  }
+})()
+
+/**
+ * **Where each of V2's fourteen states begins, in the unit its runway is priced in.**
+ *
+ * `spine.ts` says which state a beat composes; this says where that state starts. Every entry below is
+ * an existing resolved span read at one end — **not one number is authored here**. Retime the beat and
+ * the state moves with it, which is the whole reason the spine associates rather than duplicates.
+ *
+ * Three units, and the driver knows which is which from `runway`:
+ *
+ *   `shot`     beats down the film's pinned frame, from the shot's origin
+ *   `act`      beats down Chapter III's frame, from its own top edge
+ *   `method`   beats down the method's held frame, from its lock
+ *   `flow`     `null` — an ordinary section, measured in the DOM. There is nothing to resolve.
+ *
+ * The film's own first state is 0 by definition: the shot begins at the hero and the hero is state 01.
+ */
+export const stateEntries: ReadonlyArray<{
+  readonly id: number
+  readonly runway: Runway
+  readonly at: number | null
+}> = states.map((state) => {
+  const at = ((): number | null => {
+    switch (state.id) {
+      /* The shot's first frame. The hero is where the film starts, so this is 0 by construction. */
+      case 1:
+        return 0
+      case 2:
+        return spans.marker.enter.from
+      /* Philosophy is the state where the topic has arrived beside the numeral, not where it sets off. */
+      case 3:
+        return spans.becomesTopicArrives.from
+      case 4:
+        return spans.statement.enter.from
+      case 5:
+        return spans.wedding.enter.from
+      case 6:
+        return spans.close.from
+      case 7:
+        return spans.iiiStudio.from
+      /*
+        The dock. V2 draws the index out of the decomposing numeral; this build reveals it at the
+        instant the mark lands, which is the same moment and the beat that already gates the
+        navigation. `spine.ts` records that the choreography between them is C4's.
+      */
+      case 8:
+        return spans.handoffAt
+      /* The work whole, lit and unnamed — the beat the aperture finishes. */
+      case 9:
+        return actSpans.frame.to
+      /* The method's frame from its first beat; its resolution from the beat the answer arrives. */
+      case 11:
+        return 0
+      case 12:
+        return methodSpans.answer.from
+      default:
+        return null
+    }
+  })()
+  return { id: state.id, runway: state.runway, at }
+})
+
+/**
+ * **A segment's place on `p`.** Where it begins, and how many of its own beats fit in one beat of `p`.
+ *
+ * A segment is not a runway. A runway was a coordinate system with its own zero; this is a *view* of the
+ * one position — `local = (p − offset) × scale` — and the only reason it exists is that the act and the
+ * method are deliberately priced differently from the film. Pricing is a property of the position, which
+ * is the whole of what C8 changed.
+ *
+ * Both numbers are runtime facts. `offset` comes from layout and `scale` from `--pin` and its siblings,
+ * which differ by pointer. So the driver measures them and hands them here; nothing is authored twice.
+ */
+export type Segment = {
+  /** Where the segment begins, in beats of `p`. */
+  readonly offset: number
+  /** Local beats per beat of `p` — `perBeat / perSegmentBeat`. */
+  readonly scale: number
+}
+
+/**
+ * What the driver measures each time layout moves, and the only input this file's resolver takes.
+ *
+ * `flow` is already in beats of `p`: a state in ordinary flow has no beat to price, so its position is
+ * its measured top converted through the same divisor everything else uses.
+ */
+export type Measured = {
+  readonly act: Segment
+  readonly method: Segment
+  readonly flow: ReadonlyMap<number, number>
+}
+
+/**
+ * **Every state's position on the one continuous narrative position.**
+ *
+ * This is the resolver C8 asks for, and putting it here rather than in the driver is the point: state
+ * entries are resolved against `p` in the same file that resolves the spans they are read from, so there
+ * is exactly one place that knows how a state's authored beat becomes a position. The driver measures and
+ * writes; it no longer decides.
+ *
+ * The arithmetic is unchanged from the three-origin driver and produces the same numbers to the last
+ * decimal — `offset + at / scale` expands to `(segmentTop − origin) / vh / perSegmentBeat` — because C8
+ * changed where a position comes from, never what it is.
+ *
+ * A state with no resolvable position returns `+Infinity`, which reads as *not yet reachable* everywhere
+ * downstream: the driver's `p >= at` is false, so the state is simply never entered. That is the honest
+ * answer while the page is measuring, and it is never a silent zero.
+ */
+export const narrativePositions = (
+  m: Measured,
+): ReadonlyArray<{ readonly id: number; readonly at: number }> =>
+  stateEntries.map((entry) => {
+    const at = ((): number => {
+      if (entry.runway === 'flow') return m.flow.get(entry.id) ?? Number.POSITIVE_INFINITY
+      if (entry.at === null) return Number.POSITIVE_INFINITY
+      if (entry.runway === 'shot') return entry.at
+      const segment = entry.runway === 'act' ? m.act : m.method
+      if (!Number.isFinite(segment.offset) || segment.scale === 0) return Number.POSITIVE_INFINITY
+      return segment.offset + entry.at / segment.scale
+    })()
+    return { id: entry.id, at }
+  })
+
+/* ─────────────────────────────── The thirteen junctions, on `p` ─────────────────────────────── */
+
+/**
+ * **A junction's extent on the one continuous position.**
+ *
+ * C8 put the fourteen states on one scalar. C4 is the other half of that sentence: the thirteen
+ * *movements between* them, each as one continuous range on the same scalar, so a survivor can be a
+ * pure function of `p` from the frame it leaves to the frame it arrives in.
+ *
+ * ## Where the extent comes from, and why nothing is authored
+ *
+ * **A junction occupies the interval between the two states it joins.** That is the only definition
+ * that invents nothing: both endpoints are already resolved by `narrativePositions`, out of the same
+ * relative beat model the storyboard has always held, so a junction cannot disagree with the sequence
+ * and there is no second coordinate anywhere. It is also the reading the Environment already takes —
+ * *"a junction with no authored distance interpolates across the whole gap between its two states"* —
+ * made explicit and shared instead of assumed in one file.
+ *
+ * The thirteen therefore **tile `p` end to end**: junction *n* ends exactly where junction *n+1*
+ * begins, with no gap between them and no overlap. `assertJunctions` holds that.
+ *
+ * ## The weight is V2's, and it is not the extent
+ *
+ * §3 quotes seconds for four of the thirteen — 3.40 · 4.20 · 2.90 · 3.60 — and C8 ruled what they are:
+ * **weight, not duration.** They state proportion. `weight` carries them verbatim from the spine, and
+ * `priced` is what that weight comes to on `p` through `SECONDS_TO_VH`, the one conversion constant C8
+ * allows. Nine junctions quote nothing, and for those both fields are `null` — an absence, never a
+ * guessed number.
+ *
+ * `priced` is a **claim to be checked against the extent**, never a source of it. Where a junction's
+ * authored movement is longer than the interval it has to happen in, the movement would be truncated,
+ * and that is a real fault the assertion reports rather than papers over.
+ */
+export type JunctionSpan = {
+  /** §3's own numbering: the state it leaves and the state it arrives in. */
+  readonly id: number
+  readonly from: number
+  readonly to: number
+  /** The interval on `p`. */
+  readonly at: number
+  readonly ends: number
+  readonly length: number
+  /** §3's verb and survivor, carried so a reader of a span never has to hold the spine open too. */
+  readonly verb: Verb
+  readonly survivor: string
+  /** §3's quoted seconds, where it quotes one. Weight, never duration. */
+  readonly weight: number | null
+  /** What that weight comes to in beats of `p`, through `SECONDS_TO_VH`. `null` where none is quoted. */
+  readonly priced: number | null
+}
+
+/**
+ * **The thirteen junctions, resolved onto `p`.**
+ *
+ * Takes the fourteen positions `narrativePositions` produced and the price of a beat, and returns one
+ * span per junction. No state is read from anywhere else and no distance is authored here: this is a
+ * projection of the same numbers the Ledger and the Environment already read.
+ */
+export const junctionSpans = (
+  positions: ReadonlyArray<{ readonly id: number; readonly at: number }>,
+  perBeat: number,
+): readonly JunctionSpan[] => {
+  const where = new Map(positions.map((s) => [s.id, s.at]))
+  return junctions.map((junction, i) => {
+    const at = where.get(junction.from) ?? Number.POSITIVE_INFINITY
+    const ends = where.get(junction.to) ?? Number.POSITIVE_INFINITY
+    /*
+      `SECONDS_TO_VH` is viewport-hundredths per authored second and a beat of `p` costs `perBeat`
+      viewports, so the conversion is the same one every other position on `p` goes through. It is the
+      only arithmetic in this file that touches a second, and it produces a length rather than a time.
+    */
+    const priced =
+      junction.time === null || !Number.isFinite(perBeat) || perBeat === 0
+        ? null
+        : (junction.time * SECONDS_TO_VH) / 100 / perBeat
+    return {
+      id: i + 1,
+      from: junction.from,
+      to: junction.to,
+      at,
+      ends,
+      length: ends - at,
+      verb: junction.verb,
+      survivor: junction.survivor,
+      weight: junction.time,
+      priced,
+    }
+  })
+}
+
+/**
+ * **The price of a junction, resolved into a mapping.**
+ *
+ * `story.ts` §8 authors what each phase of a junction costs; this turns that into the monotone curve
+ * that turns *distance travelled* into *how far through the junction we are*. Built once at module
+ * load, from a table, and then it is a lookup.
+ *
+ * The density is smoothed before it is integrated, and that is the whole reason this is not four lines
+ * of arithmetic: a piecewise-constant price gives a piecewise-**linear** mapping, which puts a hard
+ * kink in rendered velocity at every phase boundary. Measured, the largest second derivative of the
+ * result with respect to distance is 0.012 with the blur and 0.450 without it.
+ *
+ * `cost` is what one unit of the junction costs relative to the default, so `mean` is how much longer
+ * the junction becomes overall — the caller multiplies its own length by it.
+ */
+type Priced = { readonly mean: number; readonly through: (t: number) => number }
+
+const price = (table: readonly Price[] | undefined): Priced | null => {
+  if (table === undefined || table.length === 0) return null
+  const n = pricing.resolution
+  const density = new Float64Array(n)
+  for (let i = 0; i < n; i += 1) {
+    const u = (i + 0.5) / n
+    let cost = 1
+    for (const [from, to, c] of table) {
+      if (u >= from && u < to) {
+        cost = c
+        break
+      }
+    }
+    density[i] = cost
+  }
+
+  /* Edge-clamped Gaussian, so the integral is preserved and the ends are not dragged toward 1. */
+  const sd = pricing.blur * n
+  const reach = Math.ceil(3 * sd)
+  const kernel: number[] = []
+  let weight = 0
+  for (let k = -reach; k <= reach; k += 1) {
+    const v = Math.exp(-0.5 * (k / sd) * (k / sd))
+    kernel.push(v)
+    weight += v
+  }
+  const smoothed = new Float64Array(n)
+  for (let i = 0; i < n; i += 1) {
+    let acc = 0
+    for (let k = -reach; k <= reach; k += 1) {
+      acc += density[Math.min(n - 1, Math.max(0, i + k))] * kernel[k + reach]
+    }
+    smoothed[i] = acc / weight
+  }
+
+  const cumulative = new Float64Array(n + 1)
+  for (let i = 0; i < n; i += 1) cumulative[i + 1] = cumulative[i] + smoothed[i]
+  const total = cumulative[n]
+  for (let i = 0; i <= n; i += 1) cumulative[i] /= total
+
+  return {
+    mean: total / n,
+    /** Distance through the junction, 0 → 1, to position in the junction, 0 → 1. */
+    through: (t: number): number => {
+      if (t <= 0) return 0
+      if (t >= 1) return 1
+      let lo = 0
+      let hi = n
+      while (hi - lo > 1) {
+        const mid = (lo + hi) >> 1
+        if (cumulative[mid] <= t) lo = mid
+        else hi = mid
+      }
+      const c0 = cumulative[lo]
+      const c1 = cumulative[lo + 1]
+      return (lo + (c1 > c0 ? (t - c0) / (c1 - c0) : 0)) / n
+    },
+  }
+}
+
+/**
+ * The priced junctions, by the state they run from. Twelve of the thirteen have no table and cost 1.00
+ * everywhere, which is exactly what they all did before — adding a table in `story.ts` §8 is how one of
+ * them gets its own rhythm, and nothing here has to be told about it.
+ */
+export const prices: ReadonlyMap<number, Priced> = new Map(
+  ([[5, pricing.five]] as ReadonlyArray<readonly [number, readonly Price[]]>)
+    .map(([from, table]) => [from, price(table)] as const)
+    .filter((entry): entry is readonly [number, Priced] => entry[1] !== null),
+)
+
+/**
+ * **A junction's own `0 → 1`, from the one continuous position.**
+ *
+ * The whole of what C4 hands a survivor. It is **monotone and continuous** in `p` over the entire
+ * interval and clamped outside it — so it runs backwards exactly as it runs forwards, holds a composed
+ * frame wherever it is stopped, and has no state to leave behind. There is no second clock, no
+ * per-junction timeline and no segment-local coordinate anywhere in it: a survivor built on this
+ * crosses whatever lies inside its interval without knowing that anything is there.
+ *
+ * **It was affine until junction 05 was priced.** A priced junction spends more distance on its holds
+ * than on its transitions — `story.ts` §8 — so the mapping from distance to position is a curve rather
+ * than a ratio. What the affineness was ever protecting is untouched: this still reads `p` and nothing
+ * else, it is still continuous everywhere, and it is still monotone, so a survivor written on it still
+ * crosses an internal segment offset as one movement.
+ */
+export const junctionAt = (span: JunctionSpan, p: number): number => {
+  if (!(span.length > 0) || !Number.isFinite(span.at)) return 0
+  const t = clamp01((p - span.at) / span.length)
+  return prices.get(span.from)?.through(t) ?? t
+}
+
+/**
+ * **The thirteen junctions, checked** — everything C4 claims, in one place.
+ *
+ * Nothing here is a tolerance and nothing is a preference. Each check is a structural property that is
+ * either true of the model or is a real fault, and each says which.
+ */
+export const assertJunctions = (
+  spans: readonly JunctionSpan[],
+  boundaries: ReadonlyArray<{ readonly name: string; readonly at: number }>,
+): void => {
+  if (process.env.NODE_ENV === 'production') return
+  const say = (what: string, detail: string) =>
+    console.error(`[junction] ${what}\n           ${detail}`)
+
+  /* 1 — thirteen of them, and every one resolves to a real interval. */
+  if (spans.length !== 13) {
+    say(
+      `${spans.length} junctions resolved, not 13.`,
+      'V2 §3 authors thirteen. One that does not resolve is a movement the film can never perform.',
+    )
+    return
+  }
+
+  for (const span of spans) {
+    if (!Number.isFinite(span.at) || !Number.isFinite(span.ends)) {
+      say(
+        `Junction ${span.from} → ${span.to} does not resolve.`,
+        `it runs ${span.at} → ${span.ends} on p. Both endpoints are state positions, so an infinite one ` +
+          'means a state has not been placed — the junction has nowhere to happen.',
+      )
+      continue
+    }
+
+    /* 6 — no zero-width and no negative range. A junction with no extent is a cut. */
+    if (!(span.length > 0)) {
+      say(
+        `Junction ${span.from} → ${span.to} has ${span.length === 0 ? 'no width' : 'negative width'}.`,
+        `it runs ${span.at.toFixed(3)} → ${span.ends.toFixed(3)} on p. A junction is a movement; one ` +
+          'with no distance to happen over is a cut, and §1 has no verb for a cut.',
+      )
+    }
+
+    /* 2 — §1's second law, held per junction rather than per table. */
+    if (span.survivor.trim() === '') {
+      say(
+        `Junction ${span.from} → ${span.to} carries nothing across.`,
+        '§1: each junction carries exactly one element across and repurposes it.',
+      )
+    }
+
+    /*
+      A quoted weight is a claim about how much movement the junction contains. If that movement is
+      longer than the interval it has to happen in, the junction is truncated — the survivor would
+      still be crossing when the next state begins.
+    */
+    if (span.priced !== null && span.length > 0 && span.priced > span.length) {
+      say(
+        `Junction ${span.from} → ${span.to} is shorter than the movement V2 authors for it.`,
+        `§3 quotes ${span.weight}s, which is ${span.priced.toFixed(3)} beats of p through SECONDS_TO_VH; ` +
+          `the interval between states ${span.from} and ${span.to} is ${span.length.toFixed(3)}. ` +
+          'The weight is V2\'s and the interval is the build\'s, so this is the build spending less ' +
+          'distance on the movement than the design asks for — a retime of the beats between those two ' +
+          'states, not an edit here.',
+      )
+    }
+  }
+
+  /* 5 — the thirteen tile p, in order, with no gap and no overlap between consecutive junctions. */
+  for (let i = 1; i < spans.length; i += 1) {
+    const previous = spans[i - 1]
+    const here = spans[i]
+    if (!Number.isFinite(previous.ends) || !Number.isFinite(here.at)) continue
+    if (previous.ends !== here.at) {
+      say(
+        `Junction ${here.from} → ${here.to} does not begin where ${previous.from} → ${previous.to} ends.`,
+        `${previous.from} → ${previous.to} ends at ${previous.ends.toFixed(3)} and ${here.from} → ` +
+          `${here.to} begins at ${here.at.toFixed(3)}. The thirteen tile p end to end; a gap is a stretch ` +
+          'of the film belonging to no junction, and an overlap is two movements claiming one distance.',
+      )
+    }
+  }
+
+  /*
+    4 — **no junction split by a narrative boundary**, and this is the check that decides the 08 → 09
+    case rather than anybody deciding it by eye.
+
+    What makes a boundary dangerous is not that it exists. Under one continuous position `p` advances
+    at one rate for the whole document, so a value written as a function of `p` crosses any number of
+    boundaries without noticing them — that is precisely what C8 bought, and `aperture` is the working
+    proof. What would split a junction is a **segment-local coordinate**, which is clamped at its own
+    offset: below it the local value is pinned at zero, so anything driven from it is flat for the first
+    part of the junction and only then begins to move.
+    *
+    So the test is not *is a boundary inside this junction* but *is this junction's own progress a
+    function of anything that is clamped inside it* — and `junctionAt` answers that by construction: it
+    reads `p` and nothing else. A boundary inside an interval is therefore reported as what it is, an
+    **internal offset**, and is a fault only for a survivor that is not built on `p`.
+  */
+  for (const span of spans) {
+    if (!Number.isFinite(span.at) || !(span.length > 0)) continue
+    for (const boundary of boundaries) {
+      if (!Number.isFinite(boundary.at)) continue
+      if (boundary.at > span.at && boundary.at < span.ends) {
+        console.info(
+          `[junction] The ${boundary.name} segment offset sits inside junction ${span.from} → ` +
+            `${span.to} (${span.at.toFixed(3)} → ${span.ends.toFixed(3)} on p, offset at ` +
+            `${boundary.at.toFixed(3)}).\n` +
+            '           This is an internal offset, not a narrative boundary: p advances at one rate ' +
+            'across it, and `junctionAt` is affine in p over the whole interval. A survivor written on ' +
+            'p crosses it continuously. Only a survivor driven from that segment\'s own clamped ' +
+            'coordinate would be split — see `aperture`, which crosses this exact offset as one value.',
+        )
+      }
+    }
+  }
+}
+
+/**
+ * **A segment boundary may never fall inside a junction** — checked, for the junctions that have a
+ * distance to fall inside.
+ *
+ * The rule exists because a boundary used to be the edge of a coordinate system: a value could not be a
+ * function of position across one without a hand-welded bridge, and `--frame-mark` was that bridge. Under
+ * one continuous position a boundary costs nothing to cross — `aperture` crosses the act's and is one
+ * expression — so what is left to protect is narrower and sharper: **a junction that has been priced into
+ * a distance must not be interrupted by a change of price part-way through it.**
+ *
+ * Only junctions with an authored distance are checked, because only they have an inside. Twelve of the
+ * thirteen have none yet: C8 ruled V2's quoted seconds are weight rather than duration, and C4 is what
+ * turns a weight into a distance. As C4 prices them this assertion tightens on its own — every newly
+ * priced junction becomes a new interval to check, and nothing here has to be told about it.
+ */
+export const assertSegments = (
+  positions: ReadonlyArray<{ readonly id: number; readonly at: number }>,
+  boundaries: ReadonlyArray<{ readonly name: string; readonly at: number }>,
+  /** Junctions with an authored distance: the state they open on, and how long they run on `p`. */
+  priced: ReadonlyArray<{ readonly from: number; readonly length: number }>,
+): void => {
+  if (process.env.NODE_ENV === 'production') return
+  const where = new Map(positions.map((s) => [s.id, s.at]))
+
+  for (const junction of priced) {
+    const opens = where.get(junction.from)
+    if (opens === undefined || !Number.isFinite(opens) || !Number.isFinite(junction.length)) continue
+    const closes = opens + junction.length
+    for (const boundary of boundaries) {
+      if (!Number.isFinite(boundary.at)) continue
+      if (boundary.at > opens && boundary.at < closes) {
+        console.error(
+          `[narrative] The ${boundary.name} segment boundary falls inside junction ` +
+            `${junction.from} → ${junction.from + 1}.\n` +
+            `            The junction runs ${opens.toFixed(3)} → ${closes.toFixed(3)} on p and the ` +
+            `boundary is at ${boundary.at.toFixed(3)}. A junction is one movement; changing the price of ` +
+            'a beat part-way through one makes its second half travel at a different rate than its first.',
+        )
+      }
+    }
+  }
+}
+
+/**
+ * **Where the segments sit on `p`, and the check that they still tile it in order.**
+ *
+ * C4 collapsed three independently measured positions into one. What is left of the three is not three
+ * positions but three **views** of one: the act and the method are still priced differently — a beat of
+ * the method deliberately costs less than a beat of the film — so each has an offset on `p` and a scale.
+ * `local = (p − offset) × scale`, which is exactly the arithmetic the driver used to do from three
+ * separate DOM origins, re-expressed through a single scalar.
+ *
+ * Both numbers are runtime facts: the offsets come from layout and the scales from `--pin` and its
+ * siblings, which change with the pointer. So this cannot be asserted at module load, and the driver
+ * hands it over once per measurement instead.
+ *
+ * **What is worth asserting is the thing C4 is for:** that all fourteen states fall on one continuous
+ * position, strictly in order. Before the collapse that sentence could not even be written down — the
+ * states lived in three incomparable scalars, and "state 9 comes after state 8" was true only because
+ * of how the page happened to be laid out.
+ */
+export const assertNarrative = (
+  positions: ReadonlyArray<{ readonly id: number; readonly at: number }>,
+): void => {
+  if (process.env.NODE_ENV === 'production') return
+  const say = (what: string, detail: string) =>
+    console.error(`[narrative] ${what}\n            ${detail}\n            Fix it in src/motion/story.ts.`)
+
+  if (positions.length !== states.length) {
+    say(
+      `${positions.length} of ${states.length} states resolved to a position.`,
+      'Every state has to sit somewhere on p. One that does not is a state the Ledger can never light ' +
+        'and the film can never reach.',
+    )
+    return
+  }
+
+  for (let i = 1; i < positions.length; i += 1) {
+    const previous = positions[i - 1]
+    const here = positions[i]
+    if (!(here.at > previous.at)) {
+      say(
+        `State ${here.id} does not come after state ${previous.id} on p.`,
+        `${previous.id} resolves to ${previous.at.toFixed(3)} and ${here.id} to ${here.at.toFixed(3)}, ` +
+          'both in beats of the film. The sequence is one continuous position now, so this is a real ' +
+          'ordering fault rather than two runways disagreeing — a beat moved past one it used to follow, ' +
+          'or a segment offset is wrong.',
+      )
+    }
+  }
+}
+
+/**
+ * **Every state has to be somewhere the visitor can actually get to.**
+ *
+ * `assertNarrative` checks the fourteen are in order on `p`; it cannot check that they are *reachable*,
+ * because how far `p` goes is a runtime fact — `(maxScroll − origin) / vh / perBeat`, and only the
+ * driver knows the document's height. So this is the other half of that check, and the driver hands the
+ * furthest position over once per measurement.
+ *
+ * **Why it exists.** State 14 spent an unknown length of time unreachable and nothing said so. Contact
+ * carried `data-state` while hanging absolutely off a *sticky* frame, so any re-measure taken with that
+ * frame stuck recorded its position one `--rule-y` past the end of the document. `narrativePositions`
+ * answered with a perfectly ordinary finite number, `assertNarrative` saw fourteen states in strict
+ * order and said nothing, and the last third of junction 13 — §8's whole `detail` channel — simply never
+ * ran. A position that is finite, ordered and *past the end of the scroll* is the one fault the existing
+ * assertions were blind to, and it is the class of fault a sticky ancestor produces every time.
+ *
+ * `+Infinity` is not reported: that is `narrativePositions`' own honest answer while the page is still
+ * measuring, and the driver already holds the audit until the origin is fixed.
+ */
+export const assertReachable = (
+  positions: ReadonlyArray<{ readonly id: number; readonly at: number }>,
+  furthest: number,
+): void => {
+  if (process.env.NODE_ENV === 'production') return
+  if (!Number.isFinite(furthest)) return
+
+  for (const state of positions) {
+    if (!Number.isFinite(state.at)) continue
+    if (state.at <= furthest) continue
+    console.error(
+      `[narrative] State ${state.id} is past the end of the document.\n` +
+        `            it resolves to ${state.at.toFixed(3)} on p and the furthest the visitor can scroll ` +
+        `is ${furthest.toFixed(3)}, so the state is never entered and the junction into it never ` +
+        `finishes.\n` +
+        '            A finite position past the end usually means the element carrying `data-state` was ' +
+        'measured through a sticky ancestor — measure the section, never the stage.',
+    )
+  }
+}
+
+/**
  * Chapter I's clocked beats in the order they are due, for the sequencer to walk.
  *
  * Only the beats on a fixed clock are here. The subtitle and the interface are not: the first is gated
  * on the footage and the second on when the first actually landed, so neither has a time that can be
  * written down in advance.
+ *
+ * **The order is the clock's, and it has to be.** `opening.tsx` walks this list and keeps the last
+ * entry whose time has passed, so an entry out of chronological order would be overwritten by the one
+ * before it and its beat would never fire — and two entries sharing a millisecond would do the same.
  */
 export const schedule: ReadonlyArray<readonly [beat: Beat, at: number]> = [
   [beat.TIMESTAMP, cues.timestamp],
@@ -871,7 +1607,7 @@ if (process.env.NODE_ENV !== 'production') {
       'The room does not go down for the studio to speak.',
       `darkens.depth is ${act.darkens.depth} and deepens.depth is ${act.deepens.depth}. The second has to ` +
         `be deeper than the first and short of 1 — the work stays in the frame as a trace, the way ` +
-        `Chapter I's own dusk leaves the landscape at 0.82.`,
+        `Chapter I's own dusk leaves the landscape at 0.70.`,
     )
   }
 
@@ -968,6 +1704,52 @@ if (process.env.NODE_ENV !== 'production') {
   }
 
   /*
+    **The light type must be gone before the paper starts coming back**, and this is the assertion that
+    keeps it that way through any retiming.
+
+    It is not a matter of taste. Paper-coloured type on ink and ink type on paper are the same two values
+    swapped, so a ground crossing one way while its type crosses the other passes through a frame where the
+    two have the same luminance — measured at about 1.1:1, which is invisible. §56 avoids it by sequencing
+    rather than by tuning: the type leaves, the empty room lightens, the answer is printed. Overlap the two
+    and the resolution washes out for a stretch of scroll in the middle, on a section whose whole job is to
+    deliver that line. `actStory.printing.clears` guards the same crossing in Chapter III.
+  */
+  if (methodSpans.clear.to > methodSpans.returns.from) {
+    complain(
+      'The room lightens while the light type is still in it.',
+      `the type clears by ${methodSpans.clear.to} and the paper starts returning at ` +
+        `${methodSpans.returns.from}. Raise printing.thenWaits — light type and dark type cross through a ` +
+        `frame where neither can be read, and that frame is the resolution.`,
+    )
+  }
+
+  /*
+    And the printed answer must arrive **inside** the return rather than after it, for the reason the answer
+    itself must arrive inside the convergence: a line that appears once the ground has finished moving is a
+    heading on a page, and this one is supposed to be the consequence of the page coming back.
+  */
+  if (methodSpans.print.from <= methodSpans.returns.from || methodSpans.print.from >= methodSpans.returns.to) {
+    complain(
+      'The answer is not printed during the return.',
+      `the paper returns from ${methodSpans.returns.from} to ${methodSpans.returns.to} and the answer is ` +
+        `printed at ${methodSpans.print.from}. Keep printing.whenReturnedIs between 0 and 1.`,
+    )
+  }
+
+  /*
+    The room has to have somewhere to arrive over. `methodArrival` is the one distance in the section stated
+    in viewport heights, so it cannot be caught by the beat checks above — and an arrival that settles before
+    it begins divides by zero in the driver and paints the whole room in a single frame.
+  */
+  if (methodEntrance.over <= 0) {
+    complain(
+      'The room has no distance to arrive over.',
+      `methodArrival.begins is ${methodArrival.begins} and settles is ${methodArrival.settles}, which ` +
+        `leaves ${methodEntrance.over} viewport heights. The paper would go dark in one frame.`,
+    )
+  }
+
+  /*
     Every gap in the section, for the reason the shot's and the act's are checked: chaining makes overlap
     impossible only while all of them are positive, and two questions in one frame is the one failure that
     would look like a bug rather than a retiming.
@@ -978,7 +1760,10 @@ if (process.env.NODE_ENV !== 'production') {
     ['asking.between', method.asking.between],
     ['asking.words.afterQuestion', method.asking.words.afterQuestion],
     ['gathered.holds', method.gathered.holds],
-    ['resolve.linesAfter', method.resolve.linesAfter],
+    ['resolve.holds', method.resolve.holds],
+    ['printing.thenWaits', method.printing.thenWaits],
+    ['printing.linesAfter', method.printing.linesAfter],
+    ['drift.holdsPastTheGathering', method.drift.holdsPastTheGathering],
   ]
 
   for (const [name, gap] of methodGaps) {
@@ -1029,5 +1814,112 @@ if (process.env.NODE_ENV !== 'production') {
       `it ends at ${spans.endsAt} beats and BEATS is ${BEATS}. Raise BEATS — that retimes nothing, ` +
         `since pin only changes how far the hand travels — or shorten a hold.`,
     )
+  }
+
+  /*
+    ── Junction 13 → 14 ────────────────────────────────────────────────────────────────────────
+    Three things about the first junction authored as distance, none of them true by construction.
+  */
+  if (persistSpans.endsAt > 1) {
+    complain(
+      'Junction 13 → 14 does not fit its own distance.',
+      `its last cue finishes at ${persistSpans.endsAt} of the junction and the sheet is ${persisting.total}s ` +
+        `long. Raise persisting.total, or shorten resolves — the junction cannot end after it has ended.`,
+    )
+  }
+
+  /*
+    The held-empty frame is the cue under test, and it is the one cue that is defined by *absence*. If
+    anything is scheduled inside it, it is no longer empty and the junction has quietly lost the beat
+    §8 named. Checked rather than trusted, because a later edit to any neighbouring cue could reach
+    into it without touching this line.
+  */
+  {
+    const inside = (x: number) => x > persistSpans.empty.from && x < persistSpans.empty.to
+    const scheduled: ReadonlyArray<readonly [string, Span]> = [
+      ...persistSpans.releases.map((s, i) => [`releases[${i}]`, s] as const),
+      ['crosses', persistSpans.crosses],
+      ['headline', persistSpans.headline],
+      ['tells', persistSpans.tells],
+      ['resizes', persistSpans.resizes],
+      ...persistSpans.resolves.map((s, i) => [`resolves[${i}]`, s] as const),
+    ]
+    for (const [name, span] of scheduled) {
+      if (inside(span.from) || inside(span.to)) {
+        complain(
+          'Something happens inside the held-empty frame.',
+          `${name} runs ${span.from}–${span.to} and the empty hold is ${persistSpans.empty.from}–` +
+            `${persistSpans.empty.to}. §8 asks for a frame with the ground, the Ledger and one rule in ` +
+            `it and nothing else; a cue that reaches into it removes the pause the junction turns on.`,
+        )
+      }
+    }
+  }
+
+  /*
+    The rule's measure and weight animate *once*, at 2.90s. §8's table says the y and the left origin
+    are *"never animated"* — so if the resize ever started before the ground had finished crossing, the
+    line would be moving while it was still changing colour, and the survivor would read as two things.
+  */
+  if (persistSpans.resizes.from < persistSpans.crosses.to) {
+    complain(
+      'The rule resizes before the ground has finished crossing.',
+      `resizes starts at ${persistSpans.resizes.from} and crosses ends at ${persistSpans.crosses.to}. ` +
+        'The survivor has to be one line the whole way through; changing its measure while its ink is ' +
+        'still crossing is what makes it read as a replacement.',
+    )
+  }
+
+  /*
+    ── The spine against the story ───────────────────────────────────────────────────────────────
+    `spine.ts` associates each V2 state with the beats that compose it, by name. Names are the one
+    thing the compiler cannot check, so a rename in the story would leave the spine quietly pointing
+    at a beat that no longer exists — and the state would keep claiming to be built.
+  */
+  const storyObjects: Readonly<Record<string, object>> = {
+    chapterOneStory: one,
+    shotStory: shot,
+    actStory: act,
+    methodStory: method,
+    afterTheFilm,
+  }
+  for (const state of states) {
+    for (const path of state.beats) {
+      const [root, key] = path.split('.')
+      const base = storyObjects[root]
+      if (base === undefined) {
+        complain(
+          `State ${state.id} names the story object “${root}”, which does not exist.`,
+          'The spine associates states with beats by name. Either the object was renamed or the spine ' +
+            'is pointing at something that was never there.',
+        )
+      } else if (key !== undefined && !Object.prototype.hasOwnProperty.call(base, key)) {
+        complain(
+          `State ${state.id} names the beat “${path}”, which does not exist.`,
+          `${root} has no ${key}. Renaming a beat means renaming it in src/motion/spine.ts too — that ` +
+            'is the whole price of the spine associating rather than duplicating.',
+        )
+      }
+    }
+  }
+
+  /*
+    States are a sequence, so their entry positions have to run forwards within a runway. Across
+    runways they cannot be compared — three prices, three origins — but inside one, a state that
+    begins before the state before it would put the film in two places at once.
+  */
+  const seen = new Map<Runway, { id: number; at: number }>()
+  for (const entry of stateEntries) {
+    if (entry.at === null) continue
+    const previous = seen.get(entry.runway)
+    if (previous !== undefined && entry.at < previous.at) {
+      complain(
+        `State ${entry.id} begins before state ${previous.id} on the same runway.`,
+        `${entry.id} enters at ${entry.at} and ${previous.id} at ${previous.at}, both in beats of the ` +
+          `${entry.runway}. Every entry is read from a resolved span, so this means a beat moved past ` +
+          'one it used to follow — fix the beat, not the spine.',
+      )
+    }
+    seen.set(entry.runway, { id: entry.id, at: entry.at })
   }
 }

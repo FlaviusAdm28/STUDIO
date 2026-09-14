@@ -1,7 +1,33 @@
 import type { Metadata, Viewport } from 'next'
+import { Cormorant_Garamond, Schibsted_Grotesk } from 'next/font/google'
 import { site } from '@content'
 import { motionCss } from '@/motion'
 import './globals.css'
+
+/**
+ * **§5's two families, and no others.**
+ *
+ * `final-design-spec.pdf` §5: *"Cormorant Garamond 300 for every statement… Schibsted Grotesk for every
+ * label and micro-caps… Monospace never ships — it is storyboard annotation only."*
+ *
+ * Self-hosted by `next/font`, so there is no third-party request on the first paint and no layout shift
+ * while a face arrives: the fallback is metric-adjusted and the swap is invisible. Each publishes a
+ * custom property rather than a class, because the faces are read by `globals.css` at the point of use
+ * and a class on the body would type the whole document at once — states 06 → 14 are still the V1
+ * composition and are not this pass's to retype.
+ */
+const cormorant = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['300'],
+  display: 'swap',
+  variable: '--font-cormorant',
+})
+
+const schibsted = Schibsted_Grotesk({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-schibsted',
+})
 
 export const metadata: Metadata = {
   title: site.title,
@@ -41,7 +67,7 @@ const BEGIN_AT_THE_BEGINNING = `
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${cormorant.variable} ${schibsted.variable}`}>
       <body>
         <script dangerouslySetInnerHTML={{ __html: BEGIN_AT_THE_BEGINNING }} />
 

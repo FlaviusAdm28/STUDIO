@@ -1,0 +1,226 @@
+/**
+ * **The Environment, resolved.** What the one persistent photographic element is doing at a given
+ * narrative position.
+ *
+ * `final-design-spec.pdf` §11.1, the locked Environment contract: *"One element, mounted at the Hero,
+ * **never unmounted, never re-sourced, never `display:none`**. Sections change its grade, its transform
+ * and its playbackRate — nothing else."* This file decides those changes, and it decides them as a
+ * **projection of `spine.ts`** rather than as a system of its own.
+ *
+ * ## It holds no state, no timing and no numbers
+ *
+ * Everything below is read out of `states` in `spine.ts` — §2's own `plate`, `exposure` and `ground`
+ * columns, transcribed during C1 and consumed here for the first time. The one input that is not in the
+ * spine is **where each state sits**, and that is handed in by the driver, which already computes it
+ * every frame for the Ledger. So there is no second state machine, no second clock, and nothing here
+ * that could disagree with the sequence.
+ *
+ * `implementation-reconciliation.md` C5 is the register this belongs to.
+ *
+ * ## Three decisions inside the locked design, and each is stated where it is taken
+ *
+ *   **A `none` plate is the plate before it, held.** §2 gives states 04 and 05 a ground instead of a
+ *   plate and §11.2 left it unsaid whether that is a plate at zero exposure or no plate at all. C5's
+ *   preflight answered it from the junction: 04 → 05 is a **HOLD — no plate swap** — so `held` walks
+ *   back to the last stated plate rather than clearing the frame. Derived from the junction, not
+ *   authored here.
+ *
+ *   **A junction with no authored distance interpolates across the whole gap.** V2 quotes seconds for
+ *   some junctions and C8 ruled those are weights rather than durations; none of them has been priced
+ *   into a distance yet. So the only non-inventing reading of "state 05 is the hero and state 06 is
+ *   venice" is that the change occupies the space between them. When C4 prices these junctions the
+ *   interpolation narrows to whatever it prices; nothing here has to move.
+ *
+ *   **Exposure starts at state 06.** §2's column opens `.50 · .35 · .10` across states 01–03, and the
+ *   film **already performs exactly that light** with `--dusk`, its own black over the footage, measured
+ *   running 0.05 → 0.70 → 1.00 across those three states. Grading the plate as well would darken the
+ *   hero twice and the hero is locked. So the environment does not grade where the film's own scrim is
+ *   the light, and takes §2's column from state 06, where nothing else lights the plate. This is an
+ *   engineering decision inside the locked design, not a reading of what the design is.
+ */
+
+import { clamp01, smoothstep } from './easings'
+import { PLATE, states, type Plate } from './spine'
+
+/** Where a state sits on the one continuous position. The driver measures these; nothing here does. */
+export type Placement = { readonly id: number; readonly at: number }
+
+/**
+ * **The plate a state shows, with `none` resolved by holding.**
+ *
+ * §2 gives states 04 and 05 no plate. Junction 04 → 05 is a **HOLD** and carries no plate swap, so what
+ * stands behind those two frames is whatever stood behind state 03 — the hero — under the warm-dark
+ * ground the film paints over it. Walking backwards is what makes that a consequence of the junction
+ * rather than a second table.
+ */
+const held = (id: number): Plate => {
+  for (let i = id; i >= 1; i -= 1) {
+    const plate = states[i - 1].plate
+    if (plate !== PLATE.NONE) return plate
+  }
+  return PLATE.HERO
+}
+
+/**
+ * **Where §2's exposure column starts, and why it is not state 01.**
+ *
+ * The film's own `--dusk` is the light across states 01–05: measured, it runs 0.05 at state 01 to 1.00
+ * from state 03, which is §2's `.50 · .35 · .10` performed as a scrim instead of as a grade. The
+ * environment therefore leaves those states alone — a plate graded to .50 *underneath* a scrim already
+ * at .70 is the hero at a quarter of its light, and `CLAUDE.md` locks the hero.
+ */
+const EXPOSURE_FROM = 6
+
+/** §2's exposure for a state, with `null` carried forward from the last state that states one. */
+const exposureOf = (id: number): number => {
+  if (id < EXPOSURE_FROM) return 1
+  for (let i = id; i >= EXPOSURE_FROM; i -= 1) {
+    const value = states[i - 1].exposure
+    if (value !== null) return value
+  }
+  return 1
+}
+
+/**
+ * **§2's ground for a state, and only where that column is actually a ground.**
+ *
+ * The column holds two different kinds of thing. At states 04 and 05 it is a colour — `#060605` and
+ * `#050504` — the two frames §2 hands a ground *instead of* a plate. At state 13 it is a sentence:
+ * *"hero · sky band, graded — ground 160–171, R−B +26, desaturated, near-still"*, which §11.2 is
+ * explicit is **a grade of the hero plate and never its own asset**. A grade is not a layer, and
+ * painting that string as a ground would put a `background` in front of the very plate it describes.
+ *
+ * So this reads a colour or nothing. State 13's treatment belongs to the hero plate's own grade and is
+ * not implemented in this pass — see the file header and `implementation-reconciliation.md` C5.
+ */
+const groundOf = (id: number): string | null => {
+  const ground = states[id - 1].ground
+  return ground !== null && ground.startsWith('#') ? ground : null
+}
+
+/**
+ * **State 08's pan.** §2's row for 08 reads *plate panned 20%*, and §3's 08 → 09 says which way — *"the
+ * frame pans off the canal"*. C5's preflight P1 derived the physical direction from the plate that ships,
+ * `public/media/projects/venice/venice.png` — the sun low over the canal at plate x 0.102, and open water
+ * and sky filling 48–70% of every column across x 0.00–0.56, against the quay and the palazzo wall at
+ * x 0.62–0.75 measuring five times darker — so the frame travels **right** and the plate translates
+ * **left**; `globals.css` owns that sign and the 20%, because it is a distance in a
+ * frame. This is only *how far along* the pan is.
+ *
+ * It runs across 07 → 08 and holds, because §2 states the plate is already panned when state 08 stands.
+ */
+const PAN_FROM = 7
+const PAN_TO = 8
+
+/**
+ * **Warm stone at state 13, as an envelope on the hero plate — never as a plate of its own.**
+ *
+ * §11.2, locked: *"Warm stone is authored as the hero plate under the state-13 grade — enlarged onto its
+ * sky band, exposure lifted to ground values 160–171 with R−B +26, desaturated, near-still — and never as
+ * its own asset. `dawn_warm.png` must not be referenced in production code. If warm stone loads as a
+ * separate image, states 13 and 14 become a swap and the locked 13 → 14 mechanism is void."*
+ *
+ * So this is not a plate and not a ground: it is **how much of the state-13 grade the hero layer is
+ * wearing**, and `globals.css` owns what that grade is. It rises across 12 → 13 and falls across
+ * 13 → 14, which is §11.2's own sentence about why the locked junction works — *"the locked 13 → 14 can
+ * open the crop on the same negative and arrive at Contact with no swap"*. One negative throughout.
+ *
+ * **`near-still` is reached here and not by `playbackRate`.** P2, closed: the value is 1 for every state,
+ * and a slow-motion value at 13 would be an invented design decision wearing an implementation's clothes.
+ * What holds the sky band still is the enlargement — 6.4× of a frame moves 6.4× less across it.
+ */
+const STONE_FROM = 12
+const STONE_PEAK = 13
+const STONE_TO = 14
+
+const stoneAt = (p: number, placed: ReadonlyArray<Placement>): number => {
+  const at = (id: number): number | undefined => placed[id - 1]?.at
+  const from = at(STONE_FROM)
+  const peak = at(STONE_PEAK)
+  const to = at(STONE_TO)
+  if (from === undefined || peak === undefined) return 0
+  if (!Number.isFinite(from) || !Number.isFinite(peak) || peak <= from) return 0
+  if (p <= peak) return smoothstep(clamp01((p - from) / (peak - from)))
+  if (to === undefined || !Number.isFinite(to) || to <= peak) return 1
+  return 1 - smoothstep(clamp01((p - peak) / (to - peak)))
+}
+
+/** What the Environment reads. Every value a pure function of position; nothing is remembered. */
+export type EnvironmentValues = ReadonlyArray<readonly [name: string, value: string]>
+
+/**
+ * **The two states either side of a position, and how far between them it is.**
+ *
+ * The same walk the driver does for `--state`, kept here rather than shared because the driver wants
+ * *which state* and this wants *the pair*. Positions arrive already monotonic — `assertNarrative` is the
+ * guarantee — so the first entry not yet passed is the one ahead.
+ */
+const span = (
+  p: number,
+  placed: ReadonlyArray<Placement>,
+): { readonly from: number; readonly to: number; readonly t: number } => {
+  let lo = 0
+  for (let i = 0; i < placed.length; i += 1) {
+    if (Number.isFinite(placed[i].at) && p >= placed[i].at) lo = i
+  }
+  const hi = Math.min(lo + 1, placed.length - 1)
+  const a = placed[lo].at
+  const b = placed[hi].at
+  if (hi === lo || !Number.isFinite(a) || !Number.isFinite(b) || b <= a) {
+    return { from: placed[lo].id, to: placed[hi].id, t: 0 }
+  }
+  return { from: placed[lo].id, to: placed[hi].id, t: smoothstep(clamp01((p - a) / (b - a))) }
+}
+
+/** A number read at both ends of the span and mixed. The one curve, applied once, in one place. */
+const mix = (a: number, b: number, t: number): number => a + (b - a) * t
+
+/**
+ * **How far the pan has run**, as a fraction of its 20%. Derived from where states 07 and 08 sit rather
+ * than from an authored distance, for the reason `span` gives.
+ */
+const panAt = (p: number, placed: ReadonlyArray<Placement>): number => {
+  const from = placed[PAN_FROM - 1]?.at
+  const to = placed[PAN_TO - 1]?.at
+  if (from === undefined || to === undefined) return 0
+  if (!Number.isFinite(from) || !Number.isFinite(to) || to <= from) return 0
+  return smoothstep(clamp01((p - from) / (to - from)))
+}
+
+/**
+ * **The Environment at a position.** Six properties, written on the root by the driver and read by
+ * `environment.tsx`'s layers in `globals.css`.
+ *
+ * Three of them are the plates' presence and they are the whole of *which photograph is behind the
+ * page*. They are never a swap: a plate leaves by fading and the next arrives by fading over the same
+ * span, so at every junction the outgoing and incoming plates are both present — which is exactly what
+ * §3 asks for at 09 → 10 (*superimpose*) and what makes 05 → 06 an emergence rather than a cut. The
+ * element behind each of them is mounted once for the session and never re-sourced.
+ */
+export const environmentValues = (
+  p: number,
+  placed: ReadonlyArray<Placement>,
+  round: (n: number) => string,
+): EnvironmentValues => {
+  const { from, to, t } = span(p, placed)
+
+  const plate = (which: Plate): number =>
+    mix(held(from) === which ? 1 : 0, held(to) === which ? 1 : 0, t)
+
+  /* The ground is §2's own colour and it steps rather than mixes — two named greys one value apart. */
+  const ground = groundOf(t < 0.5 ? from : to) ?? groundOf(from) ?? groundOf(to)
+
+  return [
+    ['--env-hero', round(plate(PLATE.HERO))],
+    ['--env-venice', round(plate(PLATE.VENICE))],
+    ['--env-studio', round(plate(PLATE.STUDIO))],
+    ['--env-exposure', round(mix(exposureOf(from), exposureOf(to), t))],
+    ['--env-pan', round(panAt(p, placed))],
+    ['--env-stone', round(stoneAt(p, placed))],
+    [
+      '--env-ground-at',
+      round(mix(groundOf(from) === null ? 0 : 1, groundOf(to) === null ? 0 : 1, t)),
+    ],
+    ['--env-ground', ground ?? 'transparent'],
+  ]
+}

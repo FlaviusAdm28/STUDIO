@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import { site, where } from '@content'
 
 /**
@@ -48,7 +47,9 @@ export default function Publication() {
   const { about, method, questions, contact } = site.publication
 
   return (
-    <div className="publication">
+    /* `data-junction-host` is where junction 13 -> 14 writes its properties; see `data-segment` in
+       `page.tsx` for why the position model no longer reaches for a presentation class. */
+    <div className="publication" data-junction-host>
       {/*
         ── About ─────────────────────────────────────────────────────────────────────────────────────
         **The room the work is made in, and ninety-five words beside it.**
@@ -77,36 +78,25 @@ export default function Publication() {
         separates it is the largest band of silence on the site. An opening spread carries no rule; the
         first one appears at the method, and from there they are all the same length.
       */}
-      <section className="page about" id={where.about} data-reveal>
+      <section className="page about" id={where.about} data-state={10} data-reveal data-ground>
         <div className="about-spread">
           {/*
-            The photograph, on the film's own black. The ground is what the frame holds before the bytes
-            arrive and if they never arrive at all — a dark plate on paper, which is what the act ends as,
-            so nothing is ever seen to be empty and nothing shifts. `05-storyboard.md` §10.
+            **The photograph is not drawn here any anymore, and About is not missing one.**
 
-            `width` and `height` are the file's real dimensions and `aspect-ratio` in the stylesheet is
-            derived from the same 3:2, so the box is reserved before the image loads. Lazy, because it is
-            six screens down and §11 will not have media delaying anything in front of it.
+            It was an inset: a 3:2 figure on the left of this spread, on the film's own black, arriving on
+            its own clock. C5's preflight P3 closed the composition against the Final Visual Master —
+            *State 10 About uses the Studio environment plate; the photograph is the environment, the
+            typography sits above it, no independent inset, no `.about-frame`, no surviving second image
+            layer* — and §11.1 forbids the second surface that keeping both would be.
+
+            The same file is the environment's studio plate now: `site.environment.studio`, mounted once
+            for the session by `environment.tsx` and present across states 10 to 12.
+
+            **Composing the type over it is C6 and is not done here.** What this pass owed the section was
+            the retirement of the duplicate layer; the headline at x196, the second principle at x838 and
+            the hairline at y452 are the next brief's. Until then the narrative stands on the page's own
+            paper, which is what it has always been set to be read on.
           */}
-          <figure className="about-frame">
-            {/*
-              `next/image` rather than a bare `<img>`, and it is a delivery decision rather than a design
-              one: the file is a 1.8MB PNG of a photograph, and this serves it as WebP at the width the
-              composition actually asks for — about 150KB on a phone. The file itself is untouched.
-
-              `sizes` states the composition so the right width is chosen: about half the spread above
-              1080, the full column below it, which is exactly what the stylesheet does. Lazy by default,
-              which is what we want six screens down.
-            */}
-            <Image
-              className="about-image"
-              src={about.portrait.src}
-              width={about.portrait.width}
-              height={about.portrait.height}
-              alt={about.portrait.alt}
-              sizes="(max-width: 1080px) 92vw, 46vw"
-            />
-          </figure>
 
           {/*
             One narrative, and no headings inside it. The label is the section's name and the sentence under
@@ -116,13 +106,28 @@ export default function Publication() {
           <div className="about-words">
             <h2 className="page-label about-label">{about.label}</h2>
 
-            <p className="about-opening">{about.opening}</p>
+            {/*
+              **V2's two groups, in V1's single column.** §4: a 104px headline with its 16px paragraph, and
+              a 46px second principle with three 14.5px lines beneath it. The Final Visual Master stages
+              them at x196 and x838 with a hairline at y452 — none of which is here, because none of it is
+              this pass. The classes are the ones that already existed, so the section is legible at the
+              publication's own measure and nothing in the stylesheet moved.
+            */}
+            <p className="about-opening" data-arrive>{about.headline}</p>
 
-            {about.text.map((paragraph) => (
-              <p className="about-text" key={paragraph}>
-                {paragraph}
-              </p>
-            ))}
+            <p className="about-text" data-arrive="support">{about.paragraph}</p>
+
+            <p className="about-opening" data-arrive="detail" style={{ ["--a-n" as string]: 0 }}>
+            {about.principle}
+          </p>
+
+            <p className="about-text about-lines">
+              {about.lines.map((line, i) => (
+                <span key={line} data-arrive="detail" style={{ ["--a-n" as string]: i + 1 }}>
+                  {line}
+                </span>
+              ))}
+            </p>
           </div>
         </div>
       </section>
@@ -142,7 +147,13 @@ export default function Publication() {
         and answers, and the spatial composition is entirely the stylesheet's business. Nothing here is
         interactive and nothing is a control.
       */}
-      <section className="method" aria-labelledby="method-label">
+      <section
+        className="method"
+        data-ground
+        data-segment="method"
+        id={where.method}
+        aria-labelledby="method-label"
+      >
         {/*
           One viewport, held for `--method-pin` and no longer. Everything in it is absolutely positioned
           against the frame, and `globals.css` owns every coordinate — a position in a frame is composition,
@@ -151,7 +162,7 @@ export default function Publication() {
           The driver writes this section's twenty properties **on this element** rather than on the root, so a
           frame of the method's choreography does not re-resolve style for the whole document.
         */}
-        <div className="method-stage">
+        <div className="method-stage" data-segment-frame>
           {/*
             The section's name, and the one thing in the frame that never moves. It stands for the whole of
             the section the way the mark stands in the head margin — a running label rather than a heading,
@@ -162,33 +173,34 @@ export default function Publication() {
           </h2>
 
           {/*
-            What the studio says before it asks anything. It is the first of the questions rather than a
-            heading over them, so it arrives and leaves exactly as they do — out of the space, and back into
-            it.
+            **The seven overheard lines, and this is a holding render rather than the composition.**
+
+            §4 sets them in sequence, rising 15 · 16 · 17 · 18 · 21 · 26 · 36px, at x196 with the question
+            at bottom 142 — a chronological field, and none of that exists yet. What they are placed in is
+            the field this section already had: seven of the twelve `.mword` slots, at coordinates and
+            opacities that were tuned for a different composition. It is legible and it is driven, and it
+            is not V2. The scale ladder and the placement are the composition phase's.
+
+            The four questions and their twelve considerations that stood here are gone with the copy —
+            `content/site.ts` records why.
           */}
-          <p className="mask" data-ask="0">
-            {method.invite}
+          <div className="mgroup">
+            {method.overheard.map((line, i) => (
+              <span className="mword" data-w={i + 1} key={line}>
+                {line}
+              </span>
+            ))}
+          </div>
+
+          {/* 62px at x196, bottom 142 in V2. Here it is the field's own question slot. */}
+          <p className="mask" data-ask="1">
+            {method.question}
           </p>
 
-          {method.asking.map((asked, q) => (
-            /*
-              One group: the question, and the three considerations it brings. A layer of its own so the DOM
-              can keep the reading order while the stylesheet places everything — and it carries
-              `preserve-3d` rather than an opacity of its own, because an opacity here would flatten the
-              perspective the whole composition is built in.
-            */
-            <div className="mgroup" key={asked.question}>
-              <p className="mask" data-ask={q + 1}>
-                {asked.question}
-              </p>
-
-              {asked.hears.map((word, w) => (
-                <span className="mword" data-w={q * 3 + w + 1} key={word}>
-                  {word}
-                </span>
-              ))}
-            </div>
-          ))}
+          {/* And the one line that says nothing is being asked of anybody. */}
+          <p className="mask" data-ask="2">
+            {method.note}
+          </p>
 
           {/*
             The resolution, and it arrives **through** the convergence rather than after it: it comes forward
@@ -197,10 +209,9 @@ export default function Publication() {
           */}
           <div className="mresolve">
             <p className="mresolve-answer">{method.answer}</p>
+            {/* One line now, where V1 authored two. §4 sets it as a single 17px line. */}
             <p className="mresolve-lines">
-              {method.lines.map((line) => (
-                <span key={line}>{line}</span>
-              ))}
+              <span data-arrive="support">{method.line}</span>
             </p>
           </div>
         </div>
@@ -217,12 +228,17 @@ export default function Publication() {
         it works before hydration, without JavaScript, and from the keyboard. The mark is a `+` that
         becomes a `−`, drawn in CSS, and the only thing that fades is the ink of the answer.
       */}
-      <section className="page page-asked" id={where.faq} data-reveal>
+      <section className="page page-asked" id={where.questions} data-state={13} data-reveal data-ground>
         <hr className="page-rule" />
 
         <div className="page-part">
-          <h2 className="page-label">{questions.label}</h2>
-          <p className="page-note">{questions.note}</p>
+          {/*
+            The heading, and V2 gives it no words of its own: §2's anchor is a 64px heading at y86 and the
+            board says *seven rows, one heading*, but §4 authors no string for it. So the state's own name
+            stands there and the line that used to explain the section is gone with the eight rows it
+            described — `content/site.ts` records that this is flagged rather than invented.
+          */}
+          <h2 className="page-label" data-arrive>{questions.label}</h2>
         </div>
 
         <div className="asked">
@@ -251,66 +267,154 @@ export default function Publication() {
         rather than a link to nowhere — the same state `three.work.cta` uses in the film, and the same
         reasoning: a press that cannot be honoured is worse than a line that has plainly not been wired.
       */}
-      <section className="page page-last" id={where.contact} data-reveal>
-        <hr className="page-rule" />
+      {/*
+        **The persistent rule — junction 13 → 14's survivor, and §7's one non-negotiable.**
 
-        <div className="page-part">
-          <h2 className="page-label">{contact.label}</h2>
-          <p className="page-ask">{contact.ask}</p>
-        </div>
+        *"The eighth rule — the closing rule at y529 in the scrolled last-row state — must be **owned by
+        the page, not by the list**. It is one DOM node that persists into Contact. If it is a child of
+        the accordion, leaving Questions unmounts it, and the entire locked 13 → 14 mechanism becomes a
+        coincidence the visitor cannot verify."*
 
-        {contact.terms.map((term) => (
-          <Passage key={term.label} label={term.label} text={[term.text]} />
-        ))}
+        It was two coincidences until now: a `border-bottom` on the last `<details>`, and a separate
+        `<hr>` at the top of Contact. Two lines that happened to look alike. This is one line that is
+        the same line — the list's closing rule *and* Contact's writing line, never re-created, never
+        re-laid-out.
 
-        <div className="page-part">
-          <p className="write">
+        §8's table is what makes that checkable rather than decorative: `y` and the left origin are
+        **never animated**; only the measure and the weight animate, once, and only at the right edge.
+        So the survivor's position in the document never changes and the eye has nothing to lose track
+        of. `globals.css` drives it from `--jcross` and `--jsize`; nothing else may touch it.
+      */}
+      {/*
+        ── The closing frame ─────────────────────────────────────────────────────────────────────────
+        **Junction 13 → 14 happens in a held frame, and §8's own table is what requires one.**
+
+            property      QUESTIONS   CONTACT   RULE
+            y             529         529       never animated
+
+        A document element has the same viewport `y` in two different states, without being animated,
+        only if the viewport does not move between those states. The storyboard says it three more ways:
+        *"one rule, one coordinate, no travel"*, *"nothing translates at any point in the 3.60s"*, and
+        *"the list releases **around** it, the ground turns **under** it"*.
+
+        Before this, the junction was spent as ordinary page scroll: the rule travelled y529 → y −18 and
+        left the frame, and the document ran out 140px before the junction ended — so the survivor's one
+        authored gesture in its whole life, shortening and thinning at 2.90s, had never once run, and
+        *"Tell us about it."*, the label, the arrow and the three lines never arrived at any viewport.
+        Measured at five: 61–74% of the junction was reachable.
+
+        **The frame is the site's own idiom, not a new one.** The film holds `--pin`, Chapter III holds
+        `--act-pin`, the method holds `--method-pin`; this holds `--closing-pin`. What is different is
+        only what it is anchored to: the frame's top edge **is the rule**, so sticking it at §8's y529
+        pins the survivor at the authored coordinate by construction rather than by arithmetic. Nothing
+        measures it and nothing can drift.
+
+        Contact is composed *around* that pinned line, at §8's own offsets — the headline above it, the
+        writing line resolving onto it, the three lines settling below. One rule, one coordinate, and the
+        list lets go around it.
+      */}
+      {/*
+        **`data-state={14}` is on the container, not on Contact, and that is the sticky trap.**
+
+        `place()` measures a flow state as `getBoundingClientRect().top + scrollY`. Contact is
+        `position: absolute` inside `.closing-frame`, which is `position: sticky` — so once the frame is
+        stuck, Contact's rect reports the frame's *held* offset rather than where it came from, and every
+        re-measure taken low on the page recorded state 14 one `--rule-y` too far down the document.
+
+        Measured at 1610 × 832: re-measured at the top of the page, state 14 resolves at document 31140 —
+        reachable, and junction 13 completes at exactly 1.0000 with `--closing-settle` to spare.
+        Re-measured at the foot, it resolves at 31940, which is 579px past the last scrollable pixel
+        (31361): the driver can never reach it, `--state` stalls at 13, junction 13 stops at 0.6612, and
+        the last third of Contact's arrival — §8's `detail` channel, the label, the arrow and the three
+        lines — never runs. Whether the site had an ending depended on where the visitor happened to be
+        standing when layout last moved.
+
+        `offsetTop` is no escape: it is measured against the same sticky `offsetParent` and carries the
+        same 800px shift. The only stable answer is an element that is not inside the frame.
+
+        `.closing` is that element — `position: relative`, in ordinary flow, and its top *is* Contact's
+        flow top to the pixel, because the frame is the first thing in it and Contact hangs off the
+        frame at offset 0. This is the rule CLAUDE.md already draws for the method: **the runway is
+        measured from the section, never from the stage.** Contact keeps its `id`, and its own
+        `scroll-margin-top` still lands the anchor; only the measurement moved.
+      */}
+      <div className="closing" data-ground data-state={14} data-segment="closing">
+        <div className="closing-frame" data-segment-frame>
+          <hr className="persist" data-junction="13-14" />
+
+          <section className="page page-last" id={where.contact}>
+            <div className="page-part">
+              <h2 className="page-label" data-arrive="detail" style={{ ["--a-n" as string]: 0 }}>
+                {contact.label}
+              </h2>
+              <p className="page-ask" data-arrive>
+                {contact.ask}
+              </p>
+            </div>
+
+            {/*
+              **Second, not last — §8's order, and it is the reason the rule reads as a writing line.**
+              *"2.80s 'Tell us about it.' directly above the rule"*, and the geometry underneath it:
+              block top y468 + 21px type + 16px gap = **y529**, the rule. So this block sits immediately
+              above the survivor and nothing may come between them. It used to be third, below the three
+              conditions, which put two blocks between the sentence and the line it is written on.
+            */}
+            <div className="page-part">
+              <p className="write" data-arrive="support">
+            {/*
+              **The line carries a mark now, not a word.** V1 put *Write to us* here and made it the link;
+              §8 gives the row an arrow bottom-aligned above a 1px rule and no text at all. Still composed
+              and inert while `address` is null — the line stands and does not offer a press it cannot
+              honour.
+            */}
             {contact.write.address === null ? (
               <span className="write-line" aria-disabled="true">
-                {contact.write.cta}
+                {contact.write.mark}
               </span>
             ) : (
-              <a className="write-line" href={`mailto:${contact.write.address}`}>
-                {contact.write.cta}
+              <a
+                className="write-line"
+                href={`mailto:${contact.write.address}`}
+                aria-label={contact.ask}
+              >
+                {contact.write.mark}
               </a>
             )}
           </p>
+            </div>
+
+            {/*
+              **Three lines, and they settle last.** §4 sets them as micro-caps with no label and no
+              paragraph — each is the whole of its claim. §8 puts them below the rule, on the right
+              margin, arriving on the last of the staggered slots.
+            */}
+            <div className="page-part page-terms">
+              {contact.terms.map((term, i) => (
+                <p className="page-note" key={term} data-arrive="detail" style={{ ["--a-n" as string]: i + 1 }}>
+                  {term}
+                </p>
+              ))}
+            </div>
+
+            {/*
+              **Nothing closes the page now.** V1 ended on `01-vision.md`’s pull-quote — *What happens
+              once deserves more than information.* — as the last thing on the site. §8 lists what
+              resolves in state 14 and a closing line is not among them: ground, Ledger, one rule, the
+              headline, *"Tell us about it."*, then the section label, the arrow and the three lines.
+              The rule is the ending, and the studio’s name under it is the colophon rather than a
+              sentence.
+            */}
+            <p className="colophon">{site.title}</p>
+          </section>
         </div>
-
-        {/*
-          The last thing on the site. `05-storyboard.md` §3 — most people leave without acting, that is the
-          normal outcome, and what they carry away is the real product of the sequence. So the page ends on
-          one sentence and the studio's name under it, and nothing tries to keep anybody here.
-        */}
-        <div className="page-part">
-          <p className="page-exit">{contact.close}</p>
-        </div>
-
-        <hr className="page-rule" />
-
-        <p className="colophon">{site.title}</p>
-      </section>
-    </div>
-  )
-}
-
-/**
- * A label in the rail and its prose beside it. The publication's only structural unit.
- *
- * A grid of its own rather than two items in the section's grid, so the label and the paragraphs it
- * belongs to are one row on a wide screen and one tight pair on a narrow one — with the gap between a
- * label and its own text set once, and the gap between passages set once, and neither able to become the
- * other. `01-validation.md`: a composition that cannot survive being narrowed is recomposed, not reflowed.
- */
-function Passage({ label, text }: { label: string; text: readonly string[] }) {
-  return (
-    <div className="page-part">
-      <h3 className="page-label">{label}</h3>
-      <div className="prose">
-        {text.map((paragraph) => (
-          <p key={paragraph}>{paragraph}</p>
-        ))}
       </div>
     </div>
   )
 }
+
+/*
+  **`Passage` is gone with the three labelled terms.** It paired a label in the rail with its prose
+  beside it, and Contact’s *Write if · Not if · What happens next* were the only three things that
+  used it. §4 replaces those with three micro-caps lines carrying no label and no paragraph, so there
+  is nothing left for it to compose — the sections’ own labels and the questions’ rows never did.
+*/

@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prototype — The Promotion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;500&family=Schibsted+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================================
+   THE PROMOTION — prototype
+
+   The sentence CONDENSES onto the words that will survive, and the survivor is
+   PROMOTED — not into a bigger word, but into the studio's mark.
+
+       Some moments deserve another chapter.
+       → another chapter
+       → Studio                        (the same word, in the same place)
+          What we actually make
+       → the card recedes as III — Studio lights in the rail
+       → the index draws, WORK first
+       → HOLD                          (the camera has landed, the room is
+                                        quieter, and nothing moves again)
+
+   NOTHING TRAVELS TO THE MENU. The mark is the identity, not a destination;
+   dragging it into a list of links would demote it. The rail was always there
+   and only ever lights.
+
+   The chapter numeral lives ONLY in the rail. It is a position, not a title.
+   ========================================================================= */
+
+:root{
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: 'Schibsted Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --ink: #f2ece0;
+  --ink-quiet: rgb(242 236 224 / .62);
+
+  /* §2's sentence size. The survivor NEVER changes size — the promotion is
+     weight and letterspacing, not scale. */
+  --sent: clamp(1.25rem, calc(52 / 1440 * 100vw), 4.25rem);
+  /* The floor is NOT 1.05rem: at 388 the mark is 17.5px, and a 16.8px subtitle
+     sits level with it and the hierarchy disappears. 0.8rem keeps it clearly
+     subordinate and still readable. */
+  --sub-size: clamp(0.8rem, calc(31 / 1440 * 100vw), 2.05rem);
+
+  /* The rail, transcribed from the real Ledger in globals.css. */
+  --nav-size: clamp(0.9rem, calc(15 / 1440 * 100vw), 1rem);
+  --rule-unit: 1rem;
+  --rule-intent: 4.375rem;
+  --mark-x: max(clamp(1.75rem, 5vw, 4.5rem), env(safe-area-inset-left, 0px));
+
+  /* Centred. The statement, the survivor and the mark all stand exactly here
+     and NOTHING moves vertically, ever. */
+  --title-y: 50%;
+
+  --curve: cubic-bezier(.22,.61,.36,1);
+  --fade-nav-hover: 420ms;
+}
+
+@media (max-width: 820px){
+  :root{ --sent: clamp(0.95rem, 4.5vw, 1.6rem) }
+}
+
+*{box-sizing:border-box}
+html{background:#000}
+body{
+  margin:0; background:#050505; color:var(--ink);
+  font-family:var(--serif); font-weight:300;
+  -webkit-font-smoothing:antialiased;
+}
+.runway{height:820vh}
+.stage{position:fixed; inset:0; overflow:hidden; background:#050505}
+
+/* ---------------------------------------------------------------- the plate */
+.plate{
+  position:absolute; inset:0;
+  background-image:url('/media/projects/venice/venice.png');
+  background-size:cover; background-position:center 42%;
+  /* The camera's nodal point. Left of 52% the frame spreads outward and leaves,
+     right of it the couple drifts right — which is what opens the left field
+     for the rail without anything being "moved out of the way". */
+  transform-origin:52% 56%;
+  will-change:transform,filter;
+}
+
+/* The bloom that used to live here has been REMOVED, not retuned. It was a warm
+   radial anchored on the sun, and it sat directly under the heaviest part of the
+   grade — warm light added on top of a black wash resolves to a desaturated
+   blue-grey haze over the campanile, which was the one region of the frame that
+   did not look photographic. The exposure curve below already performs the
+   "scene comes alive" beat (0.52 -> 0.86) far more convincingly, and the sun is
+   genuinely in the photograph. Nothing replaces it. */
+/* A grade for the rail only, so the index never sits on the sunlit water.
+   A gradient, never a rectangle.
+
+   THE ANGLE WAS WRONG. At 100deg the gradient's dark end lands upper-left and
+   thins toward lower-right — but in this photograph the upper-left is the
+   campanile in silhouette (already black, so the density read as a flat wash)
+   and the LOWER-left is the sun's specular track on the water, which is the
+   brightest thing in the frame. The grade was protecting what needed no
+   protection and thinning out exactly where `Questions` and `Contact` land.
+
+   At 82deg the direction points right and slightly up, which puts the start of
+   the line — the dense end — at the left and slightly DOWN: the density now
+   follows the water instead of the sky. That is the axis a darkroom burn or an
+   ND grad would actually take on this frame.
+
+   The profile changed with it. The peak comes down (.88 -> .76) so the already
+   dark corner is shaded rather than crushed, and the tail is drawn out with an
+   extra stop (72% -> 84%) so the gradient has no visible terminal knee. Less
+   ink, spread over more distance, biased to where the light actually is.
+
+   AND IT IS RELEASED OFF THE TOP. This was the actual source of the grey-blue
+   haze — not the bloom, which was only making it worse. The sun's glow around
+   the campanile is the most delicate tonal transition in the photograph, a pale
+   warm gradient sitting at roughly 5%-19% of the frame height. Flat black laid
+   over a soft highlight does not darken it, it KILLS it: the pale warm falls to
+   a dead neutral while the deeper orange sky around it stays warm, and the eye
+   reads that lost saturation as a cool green-grey blotch. Measured with the
+   grade toggled off, the plate there is [230,194,149] — warm. Nothing in the
+   photograph is blue.
+
+   The grade exists for the rail and the rail head begins at 33.5% of the frame,
+   so the grade has no business above it. The mask releases the top 12%
+   completely, ramps through the band where nothing is written, and reaches full
+   density exactly where the type starts. The sun keeps its bloom; the index
+   keeps its contrast. Nothing was added to fix this — something was removed. */
+.grade{
+  position:absolute; inset:0; opacity:0;
+  -webkit-mask-image:linear-gradient(180deg,
+    transparent 0%, transparent 12%, rgba(0,0,0,.45) 24%, #000 34%);
+  mask-image:linear-gradient(180deg,
+    transparent 0%, transparent 12%, rgba(0,0,0,.45) 24%, #000 34%);
+  background:linear-gradient(82deg,
+    rgba(4,4,4,.76) 0%, rgba(4,4,4,.63) 20%, rgba(4,4,4,.34) 44%,
+    rgba(4,4,4,.11) 66%, rgba(4,4,4,0) 84%);
+  will-change:opacity;
+}
+
+/* ------------------------------------------------------------- the sentence */
+.sentence{
+  position:absolute; left:50%; top:var(--title-y);
+  transform:translate(-50%,-50%);
+  white-space:nowrap;
+  font-size:var(--sent); line-height:1.1;
+  color:rgb(240 230 214 / .78);
+}
+.sentence .w{ position:absolute; top:0; will-change:transform,opacity }
+
+/* --------------------------------------------------------------- the lockup */
+/* A zero-size anchor. Both words hang from its centre, so the exchange happens
+   around a shared optical centre rather than a shared left edge — the word
+   changes identity in place instead of being replaced by a different object. */
+.lockup{ position:absolute; left:0; top:0; width:0; height:0 }
+.lockup span{
+  position:absolute; left:0; top:0;
+  transform:translate(-50%,-50%);
+  white-space:nowrap;
+  font-size:var(--sent); line-height:1.1;
+  will-change:opacity;
+}
+/* Identical to the sentence's own word, so the hand-over is invisible. */
+#lkFrom{ font-weight:300; color:rgb(240 230 214 / .78) }
+/* The promotion: same face, SAME WEIGHT, same size, same place. The only thing
+   that changes is that the word opens its letterspacing and comes up to full
+   ink — a word settling into a mark, not a word being emboldened.
+
+   CENTRED ON ITS INK MASS, not on its box — and not on its bounding box either.
+
+   This is what was actually causing the jump, and the earlier attempt here made
+   half of it worse. Both words hang from the same anchor by `translate(-50%)`,
+   which centres the LINE BOX. The line boxes are identical, so the baselines
+   agree perfectly — but the ink inside them does not:
+
+     rendered to canvas and integrated over the alpha channel, at 68px
+                              chapter        Studio       delta
+       mass centre X          -4.78px       -2.56px      +2.22px   (rel box centre)
+       mass centre Y         -14.12px      -16.82px      -2.70px   (rel baseline)
+
+   Studio's mass sits 2.22px RIGHT and 2.70px HIGH of where chapter's mass
+   stood. `chapter` carries a descender ('p') and no capital; `Studio` carries a
+   capital and no descender, so its weight rides higher and, with the tracking
+   distributed differently, further right. About 3.5px of diagonal displacement,
+   delivered inside a short dissolve, on the one word the eye is locked onto:
+   that is the step.
+
+   The previous note here corrected for the trailing letter-space (half of .06em
+   = 2.04px) and pushed Studio RIGHT. That was measuring the wrong thing — the
+   bounding box, not the mass — and it moved the word the wrong way, taking the
+   horizontal error from 2.22px to roughly 4.3px. Bounding boxes are set by
+   extremes; the eye tracks mass. Hence the canvas integration above.
+
+   The word does not move because Studio now adopts chapter's mass position
+   exactly. Where that lands in the frame is not important and is invisible
+   (2px on 1920); that the mass does not travel is the whole point. */
+#lkTo{
+  font-weight:300; letter-spacing:.06em; color:var(--ink);
+  transform:translate(calc(-50% - .0327em), calc(-50% + .0397em));
+}
+
+/* READABLE, and solved in the type rather than with a panel behind it.
+
+   Measured with the subtitle hidden, the ground here is not too bright — it is
+   too BUSY. The line lands on the densest detail in the whole frame: the
+   mooring posts, the pontoon edge and the sparkle on the water. Cormorant
+   Garamond is a display serif whose hairlines are very fine, and at 300 / 33px
+   / 76% ink those strokes were the same width and the same tone as the detail
+   behind them, so the eye had nothing to separate. Nothing was wrong with the
+   photograph and nothing needed covering up.
+
+   Three type changes, no overlay, no shadow, no rectangle:
+     weight    300 -> 500   the stems gain enough mass to survive a busy ground.
+                            500 is deliberate, not 400: the @import loads only
+                            300 and 500, so 400 would be synthesised.
+     ink       .76 -> 1     the deck is a statement, not a caption.
+     tracking .035 -> .075  opens the glyphs so the word shapes read against
+                            high-frequency detail, and makes the line scan as an
+                            editorial deck rather than a label.
+
+   Hierarchy is untouched and still carried by scale: Studio is 2.1x this size.
+   A deck set heavier than its headline is ordinary editorial practice — the
+   headline keeps the frame because it is twice as big, not because the deck is
+   faint. */
+.subtitle{
+  position:absolute; left:0; top:0; margin:0;
+  white-space:nowrap;
+  font-family:var(--serif); font-weight:500;
+  font-size:var(--sub-size); letter-spacing:.075em;
+  color:var(--ink);
+  will-change:opacity,clip-path;
+}
+
+/* THE VEIL. One treatment, and it knows nothing about the photograph.
+
+   The subtitle was legible here only because THIS image happens to be dark
+   behind it. That is not a solution, it is a coincidence, and it breaks the
+   moment the project changes — `three.work` is meant to be swappable.
+
+   backdrop-filter is the reason this is image-agnostic: it does not paint a
+   colour, it operates on whatever is already behind it. Three terms, each
+   answering a different failure mode:
+
+     blur(16px)       kills the high-frequency detail — the posts, the pontoon
+                      edge, the sparkle on the water. This is the measured cause
+                      of the original problem: the ground was too BUSY, not too
+                      bright, and hairline serifs cannot compete with detail at
+                      their own stroke width. Blur is tone-neutral, so it costs
+                      nothing on a dark image and everything on a busy one.
+     brightness(.84)  guarantees separation on a BRIGHT ground. The type is
+                      light (--ink), so darkening the backdrop can only ever
+                      increase contrast; on an already dark image a 16% cut is
+                      imperceptible, on a bright sky it is the whole fix. One
+                      direction works for both because the type is always light.
+     saturate(.86)    stops a strongly coloured ground (this sunset, a red wall)
+                      from vibrating against warm type.
+
+   No colour is added, so there is no rectangle and no gradient box to see. The
+   radial mask is what keeps it from reading as UI: the effect is at full
+   strength only under the words and decays to nothing well before any edge, so
+   there is no boundary anywhere in the frame. It is a diffusion pool, the thing
+   a filter in front of the lens would do to one part of the frame.
+
+   IT HAS NO ENTRANCE OF ITS OWN, and that is the whole of its choreography.
+   It used to fade in on a private ramp 20 units ahead of the subtitle, which
+   read as exactly what it was: a field arrives, then type is placed on it. Two
+   events where the piece needs one.
+
+   Now the veil carries the SAME wipe that draws the subtitle, as a second mask
+   layer intersected with the radial. The type does not appear on top of the
+   soft area — the same stroke uncovers both, so the words look like they are
+   bringing their own ground with them. Its opacity is `1 - cardOut`, character
+   for character what the subtitle's opacity is, so the two are one object on
+   the way in, on the way out, and under a reversed scroll.
+
+   The wipe leads the type by ~3% of the field. That is not a sequence, it is
+   clearance: the blur is spatial, so its leading edge has to exist a hair
+   before the glyph that stands on it, or the first letter lands on unveiled
+   ground. At 1920 it is about nine pixels and it cannot be seen.
+
+   Sized from the measured subtitle, so it follows the type at every breakpoint. */
+.subveil{
+  position:absolute; left:0; top:0;
+  opacity:0; pointer-events:none;
+  /* Weak on purpose. The darkening is what gets SEEN — a flat brightness cut
+     over a wide area reads as a pool, and directly under the line the ground is
+     open water, the smoothest part of the frame, where any patch shows. The
+     blur is what actually WORKS: the measured problem was a busy ground, not a
+     bright one, and killing detail costs almost nothing visually. So the
+     brightness term is cut to a third of where it started (.84 -> .95) and the
+     blur carries the job. Legibility comes from the ground losing its competing
+     detail, not from it being darker than its surroundings. */
+  -webkit-backdrop-filter:blur(8px) brightness(.96) saturate(.97);
+  backdrop-filter:blur(8px) brightness(.96) saturate(.97);
+  /* Overwritten every frame by the driver; this is the at-rest, fully hidden
+     state so the veil is never visible before the draw begins. */
+  --wipe:linear-gradient(90deg, #000 -22%, rgba(0,0,0,0) -2%);
+  /* A BAND, NOT AN ELLIPSE — this is what stopped it looking artificial.
+
+     A radial is the wrong shape for a line of type and it was fighting the job
+     twice over. Fitted to the words it leaves their corners OUTSIDE the ellipse
+     (the text box is far wider than it is tall, so its corners sit at t > 1 and
+     get nothing); sized until the corners are covered, it becomes an oval half
+     as tall again as the line, reading as a blob of haze the type happens to
+     sit in. Every previous pass was trading one of those against the other.
+
+     Two linear gradients intersected give a band instead: a soft edge above and
+     below, a soft edge at each end, and a flat middle that follows the line.
+     Vertically it is now 1.25x the line's own box, so the haze sits just behind
+     the letters rather than in a field around them; the fades are wide relative
+     to that height, so there is no edge anywhere — only the middle is solid.
+
+     It also lands further from Studio than the fitted ellipse did (measured
+     14.8px of clearance against 6.1px), so the mark got safer, not tighter. */
+  mask-image:
+    linear-gradient(180deg, transparent 0%, #000 26%, #000 74%, transparent 100%),
+    linear-gradient(90deg,  transparent 0%, #000 10%, #000 90%, transparent 100%),
+    var(--wipe);
+  mask-composite:intersect, intersect;
+  mask-repeat:no-repeat;
+  mask-size:100% 100%;
+  will-change:opacity;
+}
+
+/* ------------------------------------------------------------------ the rail */
+/* The format is the real Ledger's, transcribed: weight 500, .06em, rows on the
+   baseline with a 0.5rem gap, and a leader rule whose length encodes depth. */
+.rail{
+  /* `globals.css`'s V2 override: the rail hangs on 38/1440 of the viewport,
+     not on --mark-x. */
+  position:absolute; left:calc(38 / 1440 * 100vw);
+  font-family:var(--sans);
+  font-size:var(--nav-size);
+}
+.rail-head{
+  display:flex; align-items:baseline; gap:.35rem;
+  font-weight:500; color:var(--ink);
+  margin-bottom:1.6rem;
+  opacity:0; will-change:opacity;
+}
+.rail-head .num{ letter-spacing:.10em }
+.rail-head .lab{ letter-spacing:.06em }
+.rail-head .tie{ opacity:.55; letter-spacing:0 }
+
+.rail-index ul{ display:flex; flex-direction:column; gap:.5rem; margin:0; padding:0; list-style:none }
+.rail-index li{ display:flex; align-items:baseline; gap:.5rem; opacity:var(--i,0) }
+.rail-index li:nth-child(1){ --i:var(--i1,0); --l:0 }
+.rail-index li:nth-child(2){ --i:var(--i2,0); --l:0 }
+.rail-index li:nth-child(3){ --i:var(--i3,0); --l:0 }
+.rail-index li:nth-child(4){ --i:var(--i4,0); --l:0 }
+.rail-index li:nth-child(5){ --i:var(--i5,0); --l:0 }
+
+.ledger-word{
+  appearance:none; border:0; background:none; font:inherit;
+  margin-block:-.5rem; padding:.5rem 0;
+  font-weight:500; letter-spacing:.06em;
+  color:var(--ink-quiet); text-align:left; text-decoration:none; cursor:pointer;
+  transition:color var(--fade-nav-hover) var(--curve);
+}
+.ledger-word:hover{ color:var(--ink) }
+/* The leader rule comes BEFORE the word, exactly as `ledger.tsx` writes it — it
+   is drawn out of the margin and the word follows it, which is why the active
+   destination sits slightly indented from the rest. Rule length encodes depth:
+   an unvisited destination shows no rule at all. A zero-width rule is still in
+   the row, so a destination does not shift the moment it is first reached. */
+.ledger-rule{
+  flex:none; height:1px; background:currentcolor; opacity:.55;
+  width:calc(var(--rule-unit) * var(--l,0) * var(--i,0));
+  transition:width var(--fade-nav-hover) var(--curve);
+}
+.rail-index li:has(.ledger-word:hover) > .ledger-rule{ width:var(--rule-intent) }
+
+/* `globals.css`'s own narrow override for the rail. It MUST come after the
+   base `.rail` rule: same specificity, so source order decides — declared
+   above it, the media query never applied and the rail sat 10px from the edge. */
+@media (max-width: 900px){
+  .rail{ left:6vw }
+}
+
+/* ------------------------------------------------------------- review tools */
+.hud{
+  position:fixed; left:0; right:0; bottom:0; z-index:10;
+  font-family:var(--sans); font-size:11px; letter-spacing:.06em;
+  color:#9b958a; background:rgba(0,0,0,.72);
+  padding:7px 12px 9px; display:flex; gap:14px; align-items:center;
+  backdrop-filter:blur(6px);
+}
+.hud[hidden]{display:none!important}
+.hud .phase{color:#f2ece0; min-width:250px; text-transform:uppercase}
+.hud .p{min-width:64px}
+.hud input{flex:1; accent-color:#f2ece0}
+.hud .hint{opacity:.55}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="plate" id="plate"></div>
+  <div class="grade" id="grade"></div>
+
+  <div class="sentence" id="sentence"></div>
+
+  <div class="lockup" id="lockup">
+    <span id="lkFrom">chapter</span><span id="lkTo">Studio</span>
+  </div>
+
+  <div class="subveil" id="subveil"></div>
+  <p class="subtitle" id="subtitle">What we actually make</p>
+
+  <nav class="rail" id="rail">
+    <div class="rail-head" id="railHead">
+      <span class="num">III</span><span class="tie">&#8212;</span><span class="lab">Studio</span>
+    </div>
+    <div class="rail-index">
+      <ul>
+        <li><i class="ledger-rule"></i><button class="ledger-word">Work</button></li>
+        <li><i class="ledger-rule"></i><a class="ledger-word" href="#">About</a></li>
+        <li><i class="ledger-rule"></i><a class="ledger-word" href="#">Method</a></li>
+        <li><i class="ledger-rule"></i><a class="ledger-word" href="#">Questions</a></li>
+        <li><i class="ledger-rule"></i><a class="ledger-word" href="#">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+</div>
+
+<div class="runway"></div>
+
+<div class="hud" id="hud">
+  <span class="phase" id="hudPhase">—</span>
+  <span class="p" id="hudP">0.000</span>
+  <input type="range" id="scrub" min="0" max="1000" value="0">
+  <span class="hint">H hud · ←/→ step · drag to scrub</span>
+</div>
+
+<script>
+/* ===========================================================================
+   Choreography
+   =========================================================================== */
+const WORDS=['Some','moments','deserve','another','chapter'];
+const KEEPER=4;
+
+/* How much wider the veil is than the line it serves. 1.9 pushed the field
+   157px past each end of the phrase and held it at high alpha most of that way
+   — a soft smudge to the left and right of the words with no type in it to
+   explain why it was there. 1.55 was still 96px. At 1.18 the field ends 31px
+   past the last glyph and the fade is spent inside that. Used by BOTH the mask
+   geometry and the wipe mapping, so the two cannot drift apart. */
+const VEIL_W=1.18;
+
+/* THE REBALANCE. The runway is unchanged at 820vh — this is a redistribution of
+   the same time, not more of it. The old map spent 832px holding a statement
+   before anything had been earned, then performed six events in the last 928px;
+   the longest deliberate hold in the piece (480px) was shorter than the inert
+   opening. Less patience before, more patience after:
+
+     opening hold     832px -> 416px   (halved; the line is still fully legible
+                                        for ~640px, longer than it takes to read)
+     poster frame     448px -> 499px
+     card complete    480px -> 589px
+     FINAL HOLD         0px -> 538px   (new — see below)
+
+   The transformation keeps its shape and very nearly its length; the savings
+   come from the dead opening and ~100px off `becoming`, which is still the
+   longest single move in the sequence. */
+const PH={
+  holdStatement:[0.000,0.065],
+  leaversFade  :[0.065,0.205],
+  /* the pair comes to rest; "chapter" arrives and never moves vertically again */
+  pairTravels  :[0.160,0.305],
+  /* the sentence's word hands over to the lockup's identical word */
+  handoff      :[0.305,0.352],
+  anotherLeaves:[0.310,0.420],
+  /* the becoming: the mark settles to the centre and chapter → Studio */
+  becoming     :[0.352,0.507],
+  /* THE SWAP HAS ITS OWN WINDOW, and this is the fix for the visible jump.
+
+     It used to be derived from `becoming`'s own eased output:
+         swap = easeInOut((easeInOut(t) - 0.12) / 0.72)
+     Nesting one easeInOut inside another multiplies their steepest sections,
+     so the identity change collapsed into 258px of scroll — measured, the
+     crossfade ran from p=0.408 to p=0.448 — and it landed at the exact moment
+     the word was travelling FASTEST (the centroid was moving ~8px per 0.005 of
+     p and still accelerating). A fast cut on top of a fast slide does not read
+     as a dissolve; it reads as the word jumping.
+
+     Driven from `p` directly it eases once and it is placed where the travel
+     has already stopped: measured, the centroid is moving 14.9px per step at
+     0.432 and 2.2px at 0.480, so the dissolve begins with the word effectively
+     at rest and completes in total stillness. The identity change lands ON the
+     settle instead of across the sprint.
+
+     IT NOW BEGINS ONLY AFTER THE WORD HAS STOPPED. `becoming` completes at
+     0.507; the dissolve starts there, so the travel is entirely finished before
+     the identity changes. Arrive, come to rest, THEN become Studio — three
+     things in sequence instead of two of them on top of each other.
+
+     ONLY THE START OF THIS SPAN IS READ. The exchange stopped being a window
+     with an end when it stopped being a cross-dissolve: it is now a fade out, a
+     gap and a fade in, each measured in pixels forward from 0.507. See THE DIP
+     below for the numbers. The closing value is kept so the entry still reads
+     as a span beside its neighbours and so `phaseName` has a bound. */
+  becomes      :[0.507,0.547],
+  /* 0.507 → 0.585 Studio holds ALONE — the poster frame */
+  subtitleDraws:[0.585,0.653],
+  /* 0.653 → 0.745 the card holds complete */
+  /* THE RECOMPOSE. The environment performs this transition: the framing opens
+     to the left, the exposure settles, and the title card gives way. Nothing
+     travels and nothing shrinks. The camera COMPLETES at 0.840 and never moves
+     again — see THE CAMERA below. */
+  recompose    :[0.745,0.840],
+  handover     :[0.757,0.820],   // the card gives way as the scene opens
+  /* 0.820 → 0.840 is deliberately empty: the card is gone, the rail has not lit,
+     and the only thing on screen is the photograph coming to rest. The arrival
+     is introduced by a beat of nothing, which is what makes it an arrival. */
+  /* The marker lights only once the card is gone AND the camera has stopped, so
+     the same word is never legible in two places at once and the structure never
+     appears over a moving frame. */
+  marker       :[0.840,0.880],
+  indexDraws   :[0.862,0.922],   // five rows, WORK first, one channel each
+  /* 0.922 → 1.000 THE HOLD. 538px in which nothing changes at all: the camera is
+     still, the exposure has settled, the index is complete. The sequence does
+     not end on the last row's fade — it ends on the finished frame. */
+};
+
+/* ===========================================================================
+   THE DIP. `chapter` leaves completely, the photograph is alone for a beat, and
+   only then does `Studio` arrive. Approved 5 September 2026 over a shorter
+   near-cut; the rejected variant and the reasoning are at the end of this note.
+
+   It replaced a cross-dissolve, and the reason was measured rather than felt:
+   the old exchange held both words sharp and fully legible for 102px of scroll,
+   which asks the eye to read the word that is neither of them. No easing curve
+   fixes that — the mechanism was wrong for the material, not the timing. Two
+   words are now never on screen together; measured overlap is 0px.
+
+   The empty beat is NOT an empty screen. Nothing leaves except the type: the
+   plate is still lit, still held, still at its own exposure. It is the same
+   device the arrival already uses at 0.820 -> 0.840, where the card is gone and
+   the rail has not lit — the piece's own vocabulary, not a new one.
+
+   Stated in PIXELS OF SCROLL, not in p, because a breath is a duration the hand
+   feels and it must not change length when the runway does.
+
+   THE GAP IS AUTHORED AT 30 AND MEASURES 64px of frames carrying no type. The
+   difference is the eased tails: both curves are already under the threshold of
+   visibility before the gap formally opens. 64 is the number that was reviewed
+   and the number that matters — do NOT "correct" 30 to 64.
+
+   Chosen over 65/17/65 (a 38px breath) on three counts, all tested at the real
+   granularity of a wheel, which is about 100px a tick:
+     - 38px can fall between two ticks and simply not happen, and a beat that
+       can be missed reads as a flicker rather than as a decision;
+     - `Studio` there went from nothing to full inside a single tick, which
+       after an empty frame is a jump cut rather than an arrival;
+     - 64px is half the arrival's own 128px pause — the same family. 38px is
+       below the threshold this piece has already set for a deliberate one.
+   =========================================================================== */
+const DIP={out:100, gap:30, in:100};
+
+const clamp=(v,a=0,b=1)=>v<a?a:v>b?b:v;
+const t=(p,[a,b])=>clamp((p-a)/(b-a));
+const easeInOut=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const easeOut=x=>1-Math.pow(1-x,3);
+const lerp=(a,b,x)=>a+(b-a)*x;
+
+/* The three boundaries of the dip, in p. Derived from `runway` so the px above
+   stay px at any viewport, and shared by the driver and the HUD. */
+function dip(){
+  const s=PH.becomes[0], k=1/(runway||1);
+  const outEnd=s+DIP.out*k, inStart=outEnd+DIP.gap*k;
+  return {start:s, outEnd, inStart, inEnd:inStart+DIP.in*k};
+}
+
+const sentenceEl=document.getElementById('sentence');
+const lockupEl=document.getElementById('lockup');
+const lkFrom=document.getElementById('lkFrom');
+const lkTo=document.getElementById('lkTo');
+const subEl=document.getElementById('subtitle');
+const veilEl=document.getElementById('subveil');
+const plateEl=document.getElementById('plate');
+const gradeEl=document.getElementById('grade');
+const railEl=document.getElementById('rail');
+const railHead=document.getElementById('railHead');
+
+let M=null;
+
+/* ===========================================================================
+   Measure once. Every position is interpolated between measured values, so no
+   frame can reflow, collide, or leave a ragged hole.
+   =========================================================================== */
+function measure(){
+  sentenceEl.style.width=''; sentenceEl.style.height='';
+  sentenceEl.innerHTML=WORDS.map((w,i)=>`<span class="w" data-i="${i}">${w}</span>`).join(' ');
+  const spans=[...sentenceEl.querySelectorAll('.w')];
+  spans.forEach(s=>{s.style.position='static'});
+
+  const box=sentenceEl.getBoundingClientRect();
+  const nat=spans.map(s=>{const r=s.getBoundingClientRect();return {x:r.left-box.left,w:r.width}});
+  const lineW=box.width;
+  /* The words are about to leave flow, which would leave this box zero-high —
+     and a zero-high box centred by translateY(-50%) hangs its words BELOW the
+     centre of the screen. Give it the line's real height. */
+  const lineH=spans[0].getBoundingClientRect().height;
+
+  spans.forEach((s,i)=>{s.style.position='absolute'; s.style.left=nat[i].x+'px'});
+  sentenceEl.style.width=lineW+'px';
+  sentenceEl.style.height=lineH+'px';
+
+  // "another chapter" centred as a pair
+  const gL=nat[3].x, gR=nat[4].x+nat[4].w;
+  const pairDelta=((lineW-(gR-gL))/2)-gL;
+
+  /* The lockup is aligned to the survivor by MEASUREMENT, not by reasoning about
+     line boxes: the sentence's word and the lockup's word must land on the same
+     pixel or the hand-over shows a soft double image. Read where the survivor
+     actually is and put the lockup there. */
+  const kr=spans[KEEPER].getBoundingClientRect();
+  const titleY=kr.top+kr.height/2;
+  const handoffCx=kr.left+kr.width/2+pairDelta;
+
+  subEl.style.webkitMaskImage='none'; subEl.style.maskImage='none';
+  const subR=subEl.getBoundingClientRect();
+  const subW=subR.width, subH=subR.height;
+  const fs=parseFloat(getComputedStyle(sentenceEl).fontSize);
+
+  /* The band is simply the line's own box with a quarter of its height added,
+     centred on it. Earlier passes built the field up from Studio's ink because
+     a field that size had to be aimed to avoid the mark; a band this thin
+     clears it on its own. Measured: Studio's ink ends 0.371 * fs below the
+     anchor (0.331 from the mark's own box centre, plus the .0397em the
+     ink-mass centring shifted #lkTo down), the band's top lands at
+     0.66 * fs - 0.125 * subH, and the gap comes out at 14.8px on desktop and
+     3.1px at 388 — both wider than anything the fitted ellipse managed. */
+  veilEl.style.width=(subW*VEIL_W)+'px';
+  veilEl.style.height=(subH*1.25)+'px';
+  const veilCy=titleY+0.66*fs+subH/2;
+
+  M={spans,nat,lineW,pairDelta,titleY,handoffCx,fs,subW,subH,veilCy,
+     stageW:window.innerWidth, stageH:window.innerHeight};
+}
+
+/* ===========================================================================
+   One frame of the narrative position p.
+   =========================================================================== */
+function render(p){
+  if(!M) return;
+  const {spans}=M;
+
+  /* ---- the leavers recede in ink where they stand, staggered left to right.
+     They never move, and the survivors only ever travel over ground already
+     vacated — so no frame can collide and no hole is ever left open. */
+  const lf=t(p,PH.leaversFade);
+  [0,1,2].forEach((i,k)=>{
+    const a=clamp((lf-k*0.10)/0.80);
+    spans[i].style.opacity=String(1-easeInOut(a));
+  });
+
+  /* ---- the phrase steps out of the sentence and comes to rest. */
+  const pairT=easeInOut(t(p,PH.pairTravels));
+  const dx=M.pairDelta*pairT;
+  spans[3].style.transform=`translateX(${dx}px)`;
+  spans[3].style.opacity=String(1-easeInOut(t(p,PH.anotherLeaves)));
+  spans[4].style.transform=`translateX(${dx}px)`;
+
+  /* ---- the hand-over. The sentence's "chapter" and the lockup's "chapter" are
+     the same word, same size, same weight, same place — so this crossfade is
+     invisible and simply moves ownership. */
+  const hand=easeInOut(t(p,PH.handoff));
+  spans[4].style.opacity=String(1-hand);
+
+  /* ---- THE BECOMING. The mark settles to the centre of the frame and the word
+     changes identity around its own centre: chapter → Studio
+     It does not grow. It gains weight and opens — a word becoming a mark. */
+  const bec=easeInOut(t(p,PH.becoming));
+  const cx=lerp(M.handoffCx, M.stageW/2, bec);
+  lockupEl.style.transform=`translate(${cx}px, ${M.titleY}px)`;
+
+  /* Two independent curves with a hole between them, not one complementary
+     pair. Nothing overlaps: `chapter` is at zero before `Studio` is above it. */
+  const D=dip();
+  const goes=easeInOut(t(p,[D.start,D.outEnd]));
+  const comes=easeInOut(t(p,[D.inStart,D.inEnd]));
+  const cardOut=easeInOut(t(p,PH.handover));
+  lkFrom.style.opacity=String(hand*(1-goes)*(1-cardOut));
+  lkTo.style.opacity=String(hand*comes*(1-cardOut));
+
+  /* ---- the subtitle. Same family, same optical centre, one level below. It is
+     DRAWN, and it recedes with the card — the piece has no third grammar. */
+  /* Centred on the subtitle's own box, and it leaves exactly when the card
+     does — the treatment belongs to the words, not to the frame. */
+  veilEl.style.transform=
+    `translate(${M.stageW/2}px, ${M.veilCy}px) translate(-50%,-50%)`;
+
+  const draw=easeOut(t(p,PH.subtitleDraws));
+  subEl.style.transform=
+    `translate(${(M.stageW-M.subW)/2}px, ${M.titleY+M.fs*0.66}px)`;
+  const edge=-22+draw*146;
+  const m=`linear-gradient(90deg, #000 ${(edge-20).toFixed(1)}%, rgba(0,0,0,0) ${(edge+7).toFixed(1)}%)`;
+  subEl.style.webkitMaskImage=m; subEl.style.maskImage=m;
+  subEl.style.opacity=String(1-cardOut);
+
+  /* The veil is drawn by the same `edge`, on the same frame, and carries the
+     same opacity — one entrance, not two.
+
+     The stops are the subtitle's own two stops converted into the veil's
+     coordinates, so the two wipe fronts sit on the SAME SCREEN X rather than
+     merely sharing a curve. The field is `VEIL_W` times the width of the words
+     and concentric with them, so the words start (0.5 - 0.5/VEIL_W) of the way
+     across it: a point at subtitle-percent e lands at (45 + e)/1.9 of the veil.
+     Converting rather than inventing a second sweep is what keeps them locked —
+     an independent sweep across a wider box has a different slope and drifts,
+     lagging the type early and outrunning it later.
+
+     +LEAD is clearance, not sequence: the blur is spatial, so its front has to
+     exist a few pixels before the glyph standing on it. 4% of the field is
+     about 27px at 1920 and cannot be read as an order of events. */
+  const OFF=50*(VEIL_W-1), LEAD=4;
+  const vLo=(OFF+edge-20)/VEIL_W+LEAD, vHi=(OFF+edge+7)/VEIL_W+LEAD;
+  veilEl.style.setProperty('--wipe',
+    `linear-gradient(90deg, #000 ${vLo.toFixed(1)}%, rgba(0,0,0,0) ${vHi.toFixed(1)}%)`);
+
+  /* The gate, and it is not a second entrance. The field is wider than the
+     line, so the screen position where the subtitle's wipe begins — 15% off its
+     own left edge, where nothing shows — still falls INSIDE the veil's box. A
+     correctly synced wipe therefore leaves a few percent of field showing at
+     the far left before the draw has started. `draw*20` is fully open by 5% of
+     the draw, which is a handful of pixels of scroll: it removes that residue
+     without being an animation anyone could see, and it lets the geometry above
+     be chosen for how the field should look rather than for its endpoints. */
+  veilEl.style.opacity=String(Math.min(1,draw*20)*(1-cardOut));
+
+  /* ---- the mark is handed to the rail. Nothing travels: the centred mark dims
+     exactly as the rail's marker lights, so the same word is never at full
+     strength twice. It stops being an event and becomes furniture. */
+  railHead.style.opacity=String(easeInOut(t(p,PH.marker)));
+
+  /* ---- the index draws, WORK first, one channel per row so a reversal
+     reverses rather than replays. */
+  const ix=t(p,PH.indexDraws);
+  for(let i=0;i<5;i++){
+    const a=easeOut(clamp((ix-i*0.12)/0.42));
+    railEl.style.setProperty('--i'+(i+1), a.toFixed(4));
+  }
+
+  /* ======================= THE CAMERA ==================================
+     ONE move, monotonic, never looping. It starts only after the statement has
+     been read, so at no point is there a "zoom" that begins and ends. The
+     recompose adds the last of it: the frame opens to the left and the couple
+     drifts right, which is what makes room for the rail without anything being
+     moved out of the way.
+
+     IT NOW LANDS. The move used to run to p=1.0, which meant the index wrote
+     itself onto a frame that was still travelling — the definition of a menu
+     opening over a moving background rather than an arrival. Both terms now
+     complete at 0.840 and are clamped there, so the 140px of runway before the
+     index even begins are already still, and the whole hold after it is still.
+     Nothing drifts at rest; that is the point, not an omission.
+
+     The stop is not a cut. `easeInOut` is a cubic whose derivative is zero at
+     x=1, so both the push and the open decelerate to a true standstill — the
+     frame coasts the last of the distance and settles onto its final position. */
+  const cam=easeInOut(clamp((p-0.065)/0.775));
+  const open=easeInOut(t(p,PH.recompose));
+  const scale=1 + 0.072*cam + 0.034*open;
+  const tx=(-0.5*cam + 1.8*open);
+  const ty=( 0.6*cam - 0.5*open);
+  plateEl.style.transform=`translate(${tx}%, ${ty}%) scale(${scale})`;
+
+  /* ---- exposure. One curve: held down while the type is the subject, one dip
+     for the breath before the mark, then opening as the scene comes alive. */
+  /* THE LAST MOVE GOES DOWN. It used to run 0.86 -> 1.00 with contrast to 1.04,
+     which put the photograph at its loudest at the exact moment the type had to
+     be read and the room had to feel resolved. Reversed: the plate settles 2.9%
+     darker and a touch flatter as the frame comes to rest, and holds there. The
+     saturate term below is derived from lum, so it eases off by itself — no
+     second move. Rooms you enter get quieter, not brighter. It is meant to be
+     felt and not seen; at these values nothing reads as a fade. */
+  let lum, con;
+  if(p<0.305)      { lum=0.62; con=0.96 }
+  else if(p<0.405) { const k=easeInOut(t(p,[0.305,0.405])); lum=lerp(0.62,0.52,k); con=lerp(0.96,0.94,k) }
+  else if(p<0.574) { const k=easeInOut(t(p,[0.405,0.574])); lum=lerp(0.52,0.86,k); con=lerp(0.94,1.00,k) }
+  else if(p<0.745) { lum=0.86; con=1.00 }
+  else             { const k=easeInOut(t(p,[0.745,0.840])); lum=lerp(0.86,0.835,k); con=lerp(1.00,0.985,k) }
+  plateEl.style.filter=
+    `brightness(${lum.toFixed(3)}) contrast(${con.toFixed(3)}) saturate(${lerp(0.74,1,clamp((lum-0.52)/0.48)).toFixed(3)})`;
+
+  gradeEl.style.opacity=String(open*0.82);
+
+  /* Hung so the INDEX lands where the real Ledger's index lands (measured on
+     3000: y=333 of 889), with the head sitting above it. */
+  const headH=railHead.offsetHeight+parseFloat(getComputedStyle(railHead).marginBottom);
+  railEl.style.top=(M.stageH*0.375-headH)+'px';
+
+  hud(p);
+}
+
+/* --------------------------------------------------------------------- hud */
+const hudEl=document.getElementById('hud');
+const hudPhase=document.getElementById('hudPhase');
+const hudP=document.getElementById('hudP');
+const scrub=document.getElementById('scrub');
+function phaseName(p){
+  if(p<0.065) return '1 · statement holds';
+  if(p<0.205) return '2 · the line recedes';
+  if(p<0.305) return '3 · another chapter';
+  if(p<0.352) return '4 · the hand-over';
+  if(p<0.547){
+    const D=dip();
+    if(p>=D.outEnd&&p<D.inStart) return '5 · THE BREATH — the photograph alone';
+    if(p>=D.start&&p<D.inEnd)    return '5 · THE BECOMING — chapter to Studio';
+    return '5 · THE BECOMING — chapter to Studio';
+  }
+  if(p<0.585) return '6 · Studio holds  ◄ poster';
+  if(p<0.653) return '7 · the subtitle is drawn';
+  if(p<0.745) return '8 · the card complete  ◄ poster';
+  if(p<0.820) return '9 · the recompose — the card gives way';
+  if(p<0.840) return '10 · the camera settles';
+  if(p<0.922) return '11 · STILL — III — Studio, the index draws';
+  return '12 · ARRIVED — the hold';
+}
+function hud(p){
+  hudPhase.textContent=phaseName(p);
+  hudP.textContent=p.toFixed(3);
+  if(document.activeElement!==scrub) scrub.value=String(Math.round(p*1000));
+}
+
+let runway=0;
+function boot(){
+  runway=document.documentElement.scrollHeight-window.innerHeight;
+  measure();
+  render(clamp(window.scrollY/runway));
+}
+window.addEventListener('scroll',()=>render(clamp(window.scrollY/runway)),{passive:true});
+window.addEventListener('resize',boot);
+window.addEventListener('load',boot);
+boot();
+
+scrub.addEventListener('input',()=>{ window.scrollTo(0,(+scrub.value/1000)*runway); });
+addEventListener('keydown',e=>{
+  if(e.key==='h'||e.key==='H'){ hudEl.hidden=!hudEl.hidden; return; }
+  const step=runway*0.004;
+  if(e.key==='ArrowRight') window.scrollTo(0,window.scrollY+step);
+  if(e.key==='ArrowLeft')  window.scrollTo(0,window.scrollY-step);
+});
+</script>
+</body>
+</html>

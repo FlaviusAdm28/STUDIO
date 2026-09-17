@@ -603,8 +603,20 @@ export const TIMING = {
      *
      * It used to be 0.575 → 0.63, wedged between a word leaving and the camera. With the word gone it
      * starts at zero, because there is nothing before it to wait for.
+     *
+     * **0.10, and the number is set by where `A memory.` actually goes rather than by this window
+     * alone.** The breath does not begin here: the last occasion is gone by y 10600 and this gesture
+     * does not start until y 11071, so the tail of junction 05 already contributes ~470px of held
+     * photograph. Measured at 2560 × 1305. At 0.18 the two together came to **1,140px in which
+     * literally no channel moved** — nearly a full viewport of scroll, which stops reading as a held
+     * frame and starts reading as a page that has stopped responding.
+     *
+     * At 0.10 the total is ~840px, about two thirds of a viewport: long enough that the stillness is
+     * unmistakably deliberate, short enough that the hand is not asking whether anything is wrong. The
+     * light then begins before anything moves, which is the order the passage wants — the photograph
+     * comes alive first and the composition answers it.
      */
-    holdsFrame: [0.0, 0.16],
+    holdsFrame: [0.0, 0.02],
 
     /* ── 4 · The camera opens the composition ────────────────────────────────────────────────────── */
 
@@ -640,7 +652,15 @@ export const TIMING = {
      * It opens after the still and completes just before the index begins to draw beneath it, so the
      * head is standing before its own contents arrive.
      */
-    lights: [0.775, 0.815],
+    /*
+      **`lights` is gone — 14 September 2026, design owner.** It was the rail's head fading in on its
+      own window, which made `III — Studio` a separate event between the camera stopping and the index
+      being drawn: *"não quero luz → espera → câmara → espera → pan → espera → rail."* The head is
+      inside the rail's own wipe now (`.ledger-rail`), so it is drawn out of the margin immediately
+      before the five destinations and the whole navigation arrives as one movement.
+
+      `--lights` is published by nothing and read by nothing.
+    */
 
     /*
       **`reposition`, `holdsSubject`, `falls`, `stacks` and `gap` are gone — 7 September 2026.**
@@ -667,12 +687,42 @@ export const TIMING = {
        left field spreads outward and leaves.
        ───────────────────────────────────────────────────────────────────────────────────────────── */
     camera: {
-      /* Ends at 0.775 — `at + over` — which is `opens[1]`, so both terms come to rest together. */
-      push: { at: 0.065, over: 0.71 },
-      opens: [0.63, 0.775],
-      scale: { push: 0.072, open: 0.034 },
-      x: { push: -0.5, open: 1.8 },
-      y: { push: 0.6, open: -0.5 },
+      /**
+       * **One term, and it is a settle rather than a move** — design owner, 14 September 2026.
+       *
+       * This was two terms, `push` and `opens`, and between them they carried **10.6% of scale and a
+       * reversal of direction**: `x` ran `0 → −0.5 → +1.3`, so the frame drifted left for 2,650px of
+       * scroll and then swung right for 540px. Measured on the running page at 2560 × 1305.
+       *
+       * **The reversal was the whole fault.** §2's own 20% pan (`environment.ts`'s `panAt`, states 07 →
+       * 08) translates the plate **left by up to 512px** across exactly this stretch. The recompose
+       * pushed it **right by 40px** against that, on a different schedule — two lateral systems, in
+       * opposite directions, neither of them finishing where the other did. That is why the passage read
+       * as effects rather than as a shot: it *was* two cameras.
+       *
+       * **So the lateral move is §2's pan alone, and this is what is left.** No `x`, no `y`, and a scale
+       * that exists to let the frame come to rest rather than to get closer to anything. 1.6% across
+       * 1,050px is about 0.4px of growth per wheel notch — below the threshold where the eye reads a
+       * zoom, which is precisely the point: *"pode existir um ligeiro push/reframe, mas não quero um
+       * zoom perceptível."*
+       *
+       * **It closes at 0.84, with the light and with the rail's head**, and that is `stills`' constraint
+       * rather than a preference: the still runs [0.84, 0.88] and nothing this gesture owns may move
+       * inside it. It was 0.86 on the first pass of this rewrite — two hundredths *inside* the still,
+       * so the beat of nothing had the camera and the exposure still running through its first half.
+       * Caught by reading the table back against itself.
+       *
+       * So the move, the light and the name all come to rest on the same frame, and then nothing
+       * happens for 150px before the index is drawn. §2's own pan is still coasting underneath — it is
+       * derived from where states 07 and 08 sit and is not this gesture's to stop — but `smoothstep`'s
+       * derivative is zero at 1, so what it is doing there is arriving, not moving.
+       *
+       * **This also answers C10's open question** (*"should §2's 20% pan stay now that the push is
+       * there?"*) in the only direction that is not a design decision: the pan is V2's, authored in §2's
+       * own column, and the push was the addition. The addition goes.
+       */
+      opens: [0.02, 0.82],
+      scale: { open: 0.016 },
     },
 
     /**
@@ -688,18 +738,36 @@ export const TIMING = {
      * no second move to keep in step.
      */
     exposure: {
+      /**
+       * **The light rises once and never turns back** — design owner, 14 September 2026.
+       *
+       * It used to be five stops with **three changes of direction**: `0.62 → 0.52 → 0.86 → 0.835`, and
+       * then state 09's own lift took it to `1.0` — so the photograph got darker, then much brighter,
+       * then darker again, then brighter, inside one passage in which nothing was being said. Each turn
+       * is a separate event to the eye, and four of them is most of what made this stretch read as a
+       * sequence of effects.
+       *
+       * **The dip had a reason and the reason is gone.** It was *"the breath before the mark"* — the
+       * frame going quiet before `chapter` was set on it. C13 removed the word; the dip stayed behind and
+       * was left dipping for a title card that no longer arrives.
+       *
+       * So: one monotonic rise, `0.62 → 0.835`, beginning as the breath ends and settling with the
+       * camera at 0.84, which is where `stills` begins. **State 09 then continues the same movement** to true exposure — the Environment
+       * lifts `0.835 → 1.0` across junction 08 → 09 — so from `A memory.` to the Work the light does one
+       * thing, in one direction, across the whole passage. The scene coming alive is the bridge, and it
+       * is now a single gesture rather than a flicker.
+       *
+       * **The endpoints are `spine.ts`'s and must stay its.** States 06 and 08 carry `0.62` and `0.835`,
+       * which is what lets `--film-at` ramp the curve in and out without a step at either shoulder. Moving
+       * either end of this table means moving that state's exposure in the same commit.
+       *
+       * `con` follows the luminance up and stops climbing where the light does; `sat` is derived from the
+       * luminance rather than authored, so it cannot disagree with it.
+       */
       stops: [
-        { at: 0.305, lum: 0.62, con: 0.96 },
-        { at: 0.405, lum: 0.52, con: 0.94 },
-        { at: 0.545, lum: 0.86, con: 1.0 },
-        /*
-          **0.545 → 0.63 is the light on the breath.** `chapter` leaves at 0.545 and the photograph
-          carries the frame alone until the recompose picks up at 0.63; the plate is at its brightest
-          across exactly that stretch. The scene coming alive is what fills the beat — nothing is added
-          to it, and nothing needed to be.
-        */
-        { at: 0.63, lum: 0.86, con: 1.0 },
-        { at: 0.775, lum: 0.835, con: 0.985 },
+        { at: 0.02, lum: 0.62, con: 0.96 },
+        { at: 0.46, lum: 0.75, con: 0.97 },
+        { at: 0.82, lum: 0.835, con: 0.985 },
       ],
       sat: { from: 0.74, to: 1, over: [0.52, 1.0] },
     },
@@ -728,9 +796,14 @@ export const TIMING = {
      * It opens as the card releases and is complete as the rail lights, so the density arrives with the
      * structure it exists to protect and never lies on a frame that is still being read.
      */
-    grades: [0.63, 0.775],
+    grades: [0.16, 0.32],
 
-    stills: [0.815, 0.855],
+    /*
+      **`stills` is gone with the beat it protected.** It held a frame of nothing between the head and
+      the index so that the navigation *"reads as an offer rather than as an interface"*. That argument
+      assumed the head and the index were two arrivals; they are one now, so there is nothing to hold a
+      pause between. The breath in this passage is the one after `A memory.`, and it is the only one.
+    */
 
     /**
      * **Draw.** The subject line lifts and the five leader rules extend downward out of the mark in its
@@ -745,10 +818,33 @@ export const TIMING = {
      * 0.952 is the largest `at` that closes it: 0.952 + 0.020 + 0.028 = 1.000 exactly. `stills` follows
      * it down, so the beat of nothing before the index still runs right up to the first row.
      */
-    /* The promotion's own index: five rows over a 0.06 window, `(ix − i·0.12) / 0.42` — which in this
-       group's units is a 0.0072 stagger and a 0.0252 ramp. The last row closes at 0.916, inside the
-       window, so all five arrive complete and the hold after them is real. */
-    draws: { at: 0.855, over: 0.0252, stagger: 0.0072 },
+    /**
+     * **The index is drawn, and now it actually is** — design owner, 14 September 2026.
+     *
+     * This was `{ at, over, stagger }`: five per-row opacity ramps, each 0.0252 of the gesture, 0.0072
+     * apart, closing at 0.916. **Every one of them was spent behind a closed shutter.**
+     *
+     * `.ledger-index` carries `clip-path: inset(calc((1 - var(--handoff)) * 100%) 0 0 0)`, and
+     * `--handoff` is a **step** — `stateEntries` puts state 08 at `spans.handoffAt`, so it goes 0 → 1 in
+     * one frame. Measured on the running page at 2560 × 1305: at y 14795 the clip was `inset(100%)` and
+     * the index invisible with all five rows already at full ink; at **y 14805 — ten pixels later** — the
+     * clip was `inset(0%)` and the whole navigation was standing, complete, at once.
+     *
+     * So the index had **three** arrival mechanisms — a block fade on `--jp7`, five staggered row ramps,
+     * and a clip — and the visitor saw none of them. What they saw was a pop. It is the hardest
+     * discontinuity in the passage and the one thing here that is a plain defect rather than a taste.
+     *
+     * **One mechanism replaces all three, and it is the one §3 authored.** 07 → 08 is *decompose*: the
+     * index is *drawn out of the mark, top to bottom*. That is a wipe, so this window drives the clip
+     * directly — `--rail-draw` — and the rows keep no opacity of their own. The navigation grows
+     * downward out of the head that was just written above it, which is what makes it read as part of
+     * the composition rather than as a panel laid over the photograph.
+     *
+     * It closes exactly at 1.0, which is the instant `--handoff` steps and state 08 begins. The step
+     * survives — it still gates *reachability*, which is what it was added for — but it can no longer be
+     * seen, because the index is already whole when it fires.
+     */
+    draws: [0.3, 0.6],
   },
 
   /* ─────────────────────────────────────────────────────────────────────────────────────────────
@@ -798,6 +894,35 @@ export const TIMING = {
      */
     arrives: {
       /**
+       * **The context arrives while the photograph is still opening, not after it has finished** —
+       * design owner, 14 September 2026.
+       *
+       * The complaint this answers was not that the movement was too long: *"o problema é o movimento
+       * estar a acontecer durante demasiado tempo SEM CONTEXTO."* The section used to open at 0.78 of
+       * junction 07 → 08 — y 12750 is where it opens now, and it was y 14500 — so the visitor scrolled
+       * through the whole of the composition opening with nothing on screen to say what it was opening
+       * *into*.
+       *
+       * **The order the design owner authored is the order this produces**, and the last line of it is
+       * the one that decides these numbers:
+       *
+       *     photograph begins to open → rail begins → WHAT WE ACTUALLY MAKE → Wedding experiences
+       *       → *the photograph finishes settling* → stable
+       *
+       * The Work's own block therefore completes at ~y 13626 while §2's pan runs to y 14803: the type
+       * lands and the camera then settles under it, which is a shot resolving rather than two things
+       * queueing. The light settles later still, and the lift to true exposure later again, so nothing
+       * in the passage ends on the same frame as anything else.
+       *
+       * `from` is junction 06 — the section now opens in the same junction the rail is drawn in, so the
+       * two overlap by design rather than waiting for each other. `spans` still runs to the end of
+       * junction 08 → 09, so every window closes inside the exposure lift.
+       */
+      from: 6,
+      opensAt: 0.9,
+      spans: 2.1,
+
+      /**
        * **The section's own presence, and it is the envelope the three lines arrive inside.**
        *
        * It was a literal in `globals.css` — `clamp(0, (--jp8 − 0.35) / 0.65, 1)` — which is choreography
@@ -810,57 +935,193 @@ export const TIMING = {
        * across the start of 09 → 10 before `release` takes it out. The driver publishes it as
        * `--work-in` and the stylesheet reads it; neither holds a second opinion about the number.
        */
-      block: [0.35, 0.75],
+      /**
+       * **Brought forward so the composition has time to stand still** — design owner, 14 September 2026.
+       *
+       * It was `[0.35, 0.75]`, and that left the Work complete at y 15789 with `release` already taking
+       * it out again at y 16118. Measured on the running page: **329px — a quarter of a viewport — was
+       * the entire stretch in which the destination of the whole film stood finished and unchanging.**
+       * The passage arrived and immediately began leaving, which is the opposite of settling.
+       *
+       * `release` cannot move — `grounds.cross` runs [0.04, 0.16] of junction 09 → 10 and `arriving.empty`
+       * needs the paper before About writes on it — so the room is made at this end instead. Complete at
+       * 0.5 gives **657px**, twice what it had, and it costs the arrival nothing: the junction's own
+       * exposure lift is still running, so the type arrives into a frame that is still coming up to true
+       * exposure and the light finishing last is what closes the passage.
+       */
+      block: [0.0, 0.26],
 
       /*
-        All four close **inside `block`**, and that is the rule rather than a preference: the section's
-        own envelope reaches full at 0.75, so anything still arriving after it is arriving into a frame
-        that has stopped changing. They ran to 0.94 at first and the identification was at 0.6 of its
-        ink at the moment the Work was otherwise complete — measured in Chrome.
+        **They overlap now, and that is the point.** The four windows used to run nearly end to end —
+        0.35→0.47, 0.44→0.58, 0.56→0.68, 0.62→0.74 — which is a chain of four separate arrivals, and it
+        read as four elements each doing its own animation. Overlapped, the same reading order survives
+        as *emphasis inside one arrival*: the eyebrow is the frame the section is read in so it is there
+        first, the category follows close enough to be the same gesture, and the offer and the caption
+        settle under them.
+
+        All four still close inside `block`, which stays the rule rather than a preference: anything
+        still arriving after the envelope is full is arriving into a frame that has stopped changing.
       */
-      label: [0.35, 0.47],
-      category: [0.44, 0.58],
-      cta: [0.56, 0.68],
+      label: [0.0, 0.11],
+      /**
+       * **The queue arrives with the eyebrow it continues** — C14, 16 September 2026. It is the index of
+       * the statement above it, so it is there before the category it names the successor of. This was
+       * `cta`: the offer moved into the caption (it opens the *work*, not the category) and arrives with
+       * `identity` now.
+       */
+      index: [0.0, 0.11],
+      /** *"Pode entrar ligeiramente depois do eyebrow, mas de forma muito subtil."* */
+      category: [0.05, 0.17],
       /** The identification, last and quietest — a caption settles after its picture. */
-      identity: [0.62, 0.74],
+      identity: [0.16, 0.24],
     },
 
     /**
-     * ── THE CAROUSEL · **MILLISECONDS**, and this is the one place in the film that holds a clock ──
+     * ── THE QUEUE · **MILLISECONDS** — the one clock in the film, and what it is allowed to own ──
      *
-     * Design owner, 7 September 2026 (C13): **scroll must not scrub the carousel.** It was
-     * `{ spans, at, each, over }` — fractions of junction 09 → 10, so which experience was showing was
-     * a function of how far down the page the visitor had scrolled. Two things were wrong with that:
-     * the content became a function of how hard someone flicked, and scrolling back up ran the
-     * exhibition in reverse.
+     * C14, design owner, 16 September 2026 (Q2 · *fila que roda*). **The category words are the index,
+     * and the next one fills with time.** When it is full it is promoted: it leaves the row as the
+     * headline leaves the frame, the row moves up while the frame is empty, the category that was
+     * showing re-enters at the tail, and the content changes on the dip's own signal.
      *
-     * **A clock is what C8 reserves for exactly this.** *Scroll owns progression; time owns only what
-     * the visitor did not cause.* The visitor causes their progress through the page and that is still
-     * scroll; they do not cause which experience is on show, so it is time — alongside the Hero's
-     * arrival, the Work aside and interface response.
+     * **This reinstates the clock the 14 September ruling removed, and C8 is still what allows it.**
+     * *Scroll owns progression; time owns only what the visitor did not cause.* Which category stands
+     * is not the visitor's until they press a word — and pressing one does not stop the queue, it
+     * promotes that word and the queue carries on from there. Scroll still never changes the category:
+     * it decides only whether the section is composed (`data-work`), and the clock runs only while it is.
      *
-     * `holds` is how long one experience stands before the next replaces it. **9 seconds**: long
-     * enough to read a category, look at the photograph and reach the offer without being hurried,
-     * short enough that a visitor who stops in the section sees there is more than one. It is a room in
-     * an exhibition, not a slide.
-     *
-     * `type` is how the words exchange and **it is the film's own dip, not a cross-fade**: out, a gap
-     * carrying nothing, then in. The first pass cross-faded them and the two categories were both
-     * legible for 780ms — measured in Chrome at t=22s of the cycle — which asks the eye to read the
-     * line that is neither of them. It is the identical failure `dock.dip` was built to avoid, and it
-     * gets the identical answer.
-     *
-     * `plate` is the photograph's own exchange, and it is slower and later than the type on purpose.
-     * A caption revised before the picture behind it settles reads as an editorial decision; both on
-     * the same frame reads as a slide. It stays a dissolve rather than a dip — the section is one
-     * continuous surface and taking the image away to change it is the cut this whole sequence exists
-     * to avoid.
-     *
-     * **The clock runs only while the Work is on screen** and resets to the first experience when it
-     * is not — `work-experiences.tsx` owns that, with an `IntersectionObserver` rather than a scroll
-     * listener. Re-entering the section therefore always begins on the plate the film ended on.
+     * The exchange itself is unchanged — `carousel` below is still the film's dip.
      */
-    carousel: { holds: 9000, type: { out: 420, gap: 260, in: 420 }, plate: 1250 },
+    queue: {
+      /**
+       * **How long one category stands, which is how long its successor takes to fill.** 8 seconds —
+       * the value the design owner watched in the Q2 exploration. Long enough to read the headline,
+       * look at the photograph and reach the caption; the filling word is what says there is more.
+       */
+      holds: 8000,
+      /**
+       * **The row moving up**, and the returning word writing itself in at the tail while it does. It
+       * begins when the promoted word has left (`carousel.out`), so the row recomposes in an empty frame
+       * rather than under a word that is still leaving.
+       */
+      moves: 420,
+      /**
+       * **A pressed word completes before it is promoted.** The press shows the rule the clock follows —
+       * a word enters when it is full — rather than cutting past it. Short, because it answers a press.
+       */
+      completes: 320,
+    },
+
+    /**
+     * **The exchange between one category and the next — the film's own dip.** `out`, a gap carrying
+     * nothing, `in`: two categories are never legible at once, and the photograph changes inside the
+     * dim rather than across it. Interface response, like `navHover` and `answer`, and in milliseconds
+     * for the same reason. The queue above decides *when*; this decides *how*.
+     */
+    carousel: {
+      /**
+       * **How far the room goes down while the work is changed.** Black over the frame, and 0.55 rather
+       * than 1: a blackout is a cut between films, and these are two works in one exhibition. At 0.55
+       * the photograph is still faintly there — the room has dimmed, it has not been emptied — which is
+       * what keeps the section one place rather than two.
+       */
+      dim: 0.55,
+
+      /** The type leaves and the light goes down together. */
+      out: 380,
+      /** The frame carries no type and is at the dim floor. **The photograph is exchanged here.** */
+      gap: 240,
+      /** The light returns on the new work and the type is written onto it. */
+      in: 420,
+
+      /**
+       * **Where inside the gap the work is exchanged, and how long the photograph takes to do it.**
+       * `at` is measured from the **start of the gap**, not from the press.
+       *
+       * The old exchange was a 1,250ms cross-dissolve beginning on the press, and it is most of why this
+       * read as a component. Measured frame by frame in Chrome: at the moment the outgoing category had
+       * finished leaving, the picture was already **46%** changed, and by the time the incoming category
+       * began it was at **84%**. The image changed itself in full light and the words then updated to
+       * describe it — the causality of a caption following a slideshow, not of a film cutting to another
+       * subject.
+       *
+       * **Everything that changes changes here, on one signal**: the photograph, the category, the
+       * caption and the indicator. 60ms after the type has finished leaving, so the switch cannot race
+       * the transition that hid it, and `over` closes at exactly `gap` — the cross-fade is finished
+       * before the room begins to come back up, so it is never seen as a cross-fade at all.
+       *
+       * What the eye reads is a dim frame that held one work and now holds another. That is a cut.
+       */
+      exchange: { at: 60, over: 180 },
+    },
+  },
+
+  /* ─────────────────────────────────────────────────────────────────────────────────────────────
+     STATE 10 · ABOUT — **fractions of junctions 09 → 10 (`--jp9`) and 10 → 11 (`--jp10`)**
+
+     Rebuilt 16 September 2026 on the design owner's brief. §3's verb for 09 → 10 is **superimpose** —
+     *"the sun becomes the lamp, one light belonging to two environments; the plates cross; the light
+     never goes out"* — and its keyframe has the headline resolving at 30% of the junction, while both
+     rooms are present. 10 → 11 is **extinguish**, *"About released in place"*.
+
+     So About is no longer a block of page that scrolls up over the photograph. It is written into the
+     frame, like the Work: the section keeps its height as runway, and its composition stands in the
+     viewport, arriving on the publication's own grammar (`arriving`) and released in place here.
+     ───────────────────────────────────────────────────────────────────────────────────────────── */
+  about: {
+    /**
+     * **Where in 09 → 10 the two rooms cross.** It used to be the whole junction — ~5,300px at
+     * 1920 × 889 — so venice and the studio stood half-and-half for thousands of pixels and read as a
+     * ghost rather than as one light. The cross now begins as the Work leaves (`work.release` ends at
+     * 0.06) and completes as the headline settles, so the double exposure is a passage, not a state.
+     */
+    superimpose: [0.06, 0.34],
+
+    /**
+     * **About's reading order, and it is scroll that starts each group and time that resolves it** —
+     * design owner, 16 September 2026.
+     *
+     * The groups used to be pure functions of `--jp9`: opacity, tracking and settle all dragged pixel by
+     * pixel, so nothing ever *settled* — it only stopped when the hand stopped. Now scroll decides
+     * **when** (`at`, a fraction of 09 → 10, published as `data-about` on the root) and each group
+     * resolves on its own curve (`ms`). Crossing back under a threshold releases the group on `leaves`.
+     * The camera and the release stay on scroll: they are the space, and the space answers the hand.
+     *
+     * **The groups are spread across the camera's settle**, so the room answers each one as it lands —
+     * that relation between the type on the left and the tree moving on the right is the design owner's,
+     * and it is kept by placing the thresholds inside `settle`, not by animating the tree.
+     *
+     * **The breathing room is the distance after the last group.** The last group is written by ~0.6,
+     * the camera finishes settling at `settle[1]`, and the frame is then wholly still until state 10,
+     * where the method's room begins to darken and `release` takes the type. Measured at 1920 × 889:
+     * ~1,000px of stillness, about a viewport.
+     */
+    arrives: {
+      at: { statement: 0.18, support: 0.38, detail: 0.56 },
+      ms: { statement: 1500, support: 1300, detail: 1000, stagger: 140, leaves: 450 },
+    },
+
+    /**
+     * **The camera coming to rest in the studio.** A push of `push` (a fraction of the frame) that
+     * settles to nothing across this window, centred on the lamp — the room is arrived in rather than
+     * switched to. Complete before the details land, so nothing is read on a moving frame for long.
+     */
+    settle: [0.06, 0.82],
+    push: 0.04,
+
+    /**
+     * **About released in place**, early in 10 → 11 — the type leaves the wall before the method's room
+     * goes dark around it (`method.arrival`), so the lamp goes out on an empty room.
+     */
+    release: [0.04, 0.3],
+
+    /**
+     * **Where the stage may exist at all, on scroll.** The groups resolve on a clock, so a jump away —
+     * the rail's *Work*, the head back to the top — would leave them fading for `leaves` over whatever
+     * the visitor jumped to. The stage is therefore also gated by position: absent before this window of
+     * 09 → 10 and present after it, closing before the first group starts (`arrives.at.statement`).
+     */
+    presence: [0.08, 0.16],
   },
 
   /* ─────────────────────────────────────────────────────────────────────────────────────────────
@@ -908,7 +1169,14 @@ export const TIMING = {
     states: [
       /* state                      veil   ink   §2's plate                                     */
       { state: 9, veil: 0.0, ink: 1.0 } /*   venice 1.00 — the film's own last frame       */,
-      { state: 10, veil: 1.0, ink: 0.0 } /*  studio 1.02 — bright room; paper beside it     */,
+      /*
+        **About stands on the photograph, not on paper** — design owner, 16 September 2026. It was
+        `veil 1, ink 0`: a paper scrim beside the figure with dark ink on it, which read as a milky panel
+        laid over the room and flipped to light ink at the state boundary with the text still on screen.
+        The studio plate is a dark room lit by one lamp; the type is written onto its wall in the film's
+        own light ink, so 09 → 10 changes nothing in the register at all and the Ledger keeps its ink.
+      */
+      { state: 10, veil: 0.0, ink: 1.0 } /*  studio 1.02 — the room, and the type on its wall */,
       { state: 11, veil: 0.55, ink: 1.0 } /* studio .12  — the method's own dark room       */,
       { state: 12, veil: 0.6, ink: 1.0 } /*   studio .20 — the payoff, still in the room     */,
       { state: 13, veil: 1.0, ink: 0.0 } /*  warm stone  — §2's ground 160–171, dark ink     */,
@@ -967,6 +1235,36 @@ export const TIMING = {
     studioBlocks: { fade: 1100, arrivesShortOf: 0.12, threshold: 0 },
     /** Interface response. */
     navHover: { fade: 240 },
+
+    /**
+     * **The rail's chapter exchange** — the Ledger's running header changing over.
+     *
+     * ## Why it holds a clock at all
+     *
+     * C8: *scroll owns progression; time owns only what the visitor did not cause.* Which chapter is
+     * running **is** scroll — `spine.ts`'s `ledger.active`, a fact about where the film is. But the
+     * exchange is a **substitution**, not a progression: at the state boundary one word stops being the
+     * header and another starts, and there is no continuous quantity between `Work` and `About` for
+     * scroll to drive. So this is `about`'s own shape, which CLAUDE.md already lists among the things
+     * allowed a clock: **scroll starts it, time resolves it.**
+     *
+     * ## The numbers
+     *
+     * The design owner approved the transformation watched at **0.33× in the prototype review**, and
+     * was explicit that 0.33 is not a duration: it is the authored Option A timing slowed to a third,
+     * and the *feel* is what is approved — slow, precise, and long enough to see the rank change
+     * happen rather than notice that it has.
+     *
+     * So these are Option A's authored 220 / 340 / 90 at that third. It reads as deliberate rather than
+     * as lag because nobody is waiting on it: this fires from scrolling through the film, not from a
+     * press, so the visitor is already moving and the rail resolves behind them. Every other interface
+     * response on the site — `navHover` at 240, `answer` at 180 — is input-caused and stays quick.
+     *
+     * **If it ever feels long in use, halve `out` and `in` together and leave `lag` at a quarter of
+     * `in`.** That ratio is the mechanism: the departing setting is most of the way gone before the
+     * arriving one commits, which is what stops the two words being legible at once.
+     */
+    chapter: { out: 660, in: 1020, lag: 270 },
     /** About's arrival: the room, then the mark, then the words. */
     about: {
       image: { fade: 1500, settle: 14 },

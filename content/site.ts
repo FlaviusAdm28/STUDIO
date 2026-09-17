@@ -73,18 +73,6 @@ export const projects = {
     title: 'Wedding Experience',
 
     /**
-     * **The category — what kind of thing this is, in the plural.** C13, 7 September 2026.
-     *
-     * `title` is the project's own name and is what the Work **aside** heads itself with. This is what
-     * the Work **section** shows: the studio makes *wedding experiences*, and this happens to be one.
-     *
-     * They are two fields because they are two claims, and the composition needs the second: C13
-     * retired state 09's 80px `Wedding Experience` headline precisely because it repeated the category
-     * standing above it. Naming them apart is what stops that repetition coming back.
-     */
-    category: 'Wedding experiences',
-
-    /**
      * **The Environment plate — produced and supplied, 27 August 2026.** It carries V2 states 06–09:
      * *Some moments deserve another chapter* (06, exposure .13), *Chapter III* (07, .09), the Ledger
      * writing itself (08, .19, plate panned 20%), and *the work* (09, exposure 1.00, the brightest
@@ -112,6 +100,29 @@ export const projects = {
      * the other way walks into more water and more gondolas and the mechanism inverts.
      */
     plate: '/media/projects/venice/venice.png',
+
+    /**
+     * **How this plate reads behind the rail** — three measurements, written down.
+     *
+     * Sampled in Chrome at 1920 × 889 inside the Ledger's own rectangle (120 × 226 at x41 y266) under
+     * the same `cover` crop the Environment paints, as relative luminance:
+     *
+     *   `lum`   `0.6 · p85 + 0.4 · p95` — the highlights, which are what break cream type at the
+     *           caption register. The mean says nothing useful: it is dominated by the dark half of
+     *           the box and cannot tell you whether `CONTACT` survives a bright band crossing it.
+     *   `mid`   the median — whether the box is *mostly* lit or mostly dark. This is what decides
+     *           which ink the rail is printed in, and it is a different question from `lum`: venice
+     *           has a bright top and a median of 0.019, so it is a dark ground with a highlight in it.
+     *   `floor` the 5th percentile — the darkest corner the type has to clear **once the ink is dark**.
+     *
+     * None of it can be discovered at runtime: the plates are painted through a filter chain, behind
+     * other plates, at an exposure that is a function of scroll, and sampling a canvas every frame to
+     * find out would cost more than the thing it pays for. Measured once and recorded, exactly as
+     * `three.work.embeds` is. **A new plate needs its own three numbers**;
+     * `src/motion/environment.ts` turns them into the ink and the field, and argues both curves.
+     */
+    rail: { lum: 0.453, mid: 0.019, floor: 0.003 },
+
 
     /**
      * The composed moment Chapter III holds. Measured live and returning 200 — the project authored this
@@ -170,14 +181,34 @@ export const projects = {
   artist: {
     id: 'artist',
 
-    /** The project's own name, for the aside. The carousel shows `category` below. */
+    /** The project's own name, for the aside. The Work section shows its category, in `makes.categories`. */
     title: 'Art Experience',
-
-    /** What kind of thing this is — what the Work section shows. See venice's `category`. */
-    category: 'Art experiences',
 
     /** `public/media/projects/artist/art.png`, supplied 7 September 2026. */
     plate: '/media/projects/artist/art.png',
+
+    /**
+     * **How this plate reads behind the rail** — three measurements, written down.
+     *
+     * Sampled in Chrome at 1920 × 889 inside the Ledger's own rectangle (120 × 226 at x41 y266) under
+     * the same `cover` crop the Environment paints, as relative luminance:
+     *
+     *   `lum`   `0.6 · p85 + 0.4 · p95` — the highlights, which are what break cream type at the
+     *           caption register. The mean says nothing useful: it is dominated by the dark half of
+     *           the box and cannot tell you whether `CONTACT` survives a bright band crossing it.
+     *   `mid`   the median — whether the box is *mostly* lit or mostly dark. This is what decides
+     *           which ink the rail is printed in, and it is a different question from `lum`: venice
+     *           has a bright top and a median of 0.019, so it is a dark ground with a highlight in it.
+     *   `floor` the 5th percentile — the darkest corner the type has to clear **once the ink is dark**.
+     *
+     * None of it can be discovered at runtime: the plates are painted through a filter chain, behind
+     * other plates, at an exposure that is a function of scroll, and sampling a canvas every frame to
+     * find out would cost more than the thing it pays for. Measured once and recorded, exactly as
+     * `three.work.embeds` is. **A new plate needs its own three numbers**;
+     * `src/motion/environment.ts` turns them into the ink and the field, and argues both curves.
+     */
+    rail: { lum: 0.255, mid: 0.037, floor: 0.002 },
+
 
     /**
      * No fragment and no experience URL yet: the work behind this card is not built. Both are `null`
@@ -197,6 +228,62 @@ export const projects = {
        */
       identity: 'Cibele',
       meta: ['Abstract / 2026', 'Porto & Madrid'] as const,
+    },
+  },
+
+  /**
+   * **The third category's work — Selected Projects, 16 September 2026, design owner (C14).**
+   *
+   * Arrives as a record, as the two before it did. Its plate is the experience's own photograph, like the
+   * artist's: never mounted by `motion/environment.ts`, never graded by a state.
+   */
+  selected: {
+    id: 'selected',
+
+    /** The project's own name, for the aside. The Work section shows its category, in `makes.categories`. */
+    title: 'Selected Projects',
+
+    /** `public/media/projects/selected/selected.png`, supplied 16 September 2026. */
+    plate: '/media/projects/selected/selected.png',
+
+    /**
+     * **How this plate reads behind the rail** — three measurements, written down.
+     *
+     * Sampled in Chrome at 1920 × 889 inside the Ledger's own rectangle (120 × 226 at x41 y266) under
+     * the same `cover` crop the Environment paints, as relative luminance:
+     *
+     *   `lum`   `0.6 · p85 + 0.4 · p95` — the highlights, which are what break cream type at the
+     *           caption register. The mean says nothing useful: it is dominated by the dark half of
+     *           the box and cannot tell you whether `CONTACT` survives a bright band crossing it.
+     *   `mid`   the median — whether the box is *mostly* lit or mostly dark. This is what decides
+     *           which ink the rail is printed in, and it is a different question from `lum`: venice
+     *           has a bright top and a median of 0.019, so it is a dark ground with a highlight in it.
+     *   `floor` the 5th percentile — the darkest corner the type has to clear **once the ink is dark**.
+     *
+     * None of it can be discovered at runtime: the plates are painted through a filter chain, behind
+     * other plates, at an exposure that is a function of scroll, and sampling a canvas every frame to
+     * find out would cost more than the thing it pays for. Measured once and recorded, exactly as
+     * `three.work.embeds` is. **A new plate needs its own three numbers**;
+     * `src/motion/environment.ts` turns them into the ink and the field, and argues both curves.
+     */
+    rail: { lum: 0.735, mid: 0.189, floor: 0.092 },
+
+
+    /** No destination yet, so the caption carries no offer — `null` rather than a placeholder. */
+    fragment: null,
+    experienceUrl: null,
+    embeds: false,
+
+    context: {
+      note: null,
+      /**
+       * **A line above the name**, set in the metadata's own register — the design owner's copy has three
+       * levels here (*SELECTED* / the name / where it is made), where a person's work has two. Optional:
+       * the other captions do not carry one.
+       */
+      label: 'Selected',
+      identity: 'A collection of singular projects',
+      meta: ['Made in Porto', 'Shared with the world'] as const,
     },
   },
 } as const
@@ -474,12 +561,24 @@ export const site = {
       The rail now has one semantic purpose — **where you can go** — and the film's position is carried
       by the mark, which *is* the chapter numeral. See `TIMING.dock`.
     */
+    /**
+     * **The five chapters, and their folios.**
+     *
+     * The folio is the section's own number in the running order, and it is here rather than derived
+     * from the array index for the reason every other word on the site is here: the day a chapter is
+     * added, removed or re-ordered, the numbering is a decision somebody takes in the content and not
+     * a side effect of a loop. It is set in the eyebrow register beside the running header — the same
+     * voice `WHAT WE ACTUALLY MAKE` is in — and is never spoken as *chapter*.
+     *
+     * The order is the running order. `spine.ts`'s `ledger.active` names which of them the film is in,
+     * and `ledger.tsx` promotes that one out of this list into the header.
+     */
     destinations: [
-      { id: 'work', word: 'Work', to: null },
-      { id: 'about', word: 'About', to: where.about },
-      { id: 'method', word: 'Method', to: where.method },
-      { id: 'questions', word: 'Questions', to: where.questions },
-      { id: 'contact', word: 'Contact', to: where.contact },
+      { id: 'work', word: 'Work', folio: '01', to: null },
+      { id: 'about', word: 'About', folio: '02', to: where.about },
+      { id: 'method', word: 'Method', folio: '03', to: where.method },
+      { id: 'questions', word: 'Questions', folio: '04', to: where.questions },
+      { id: 'contact', word: 'Contact', folio: '05', to: where.contact },
     ] as const,
 
     /**
@@ -658,42 +757,51 @@ export const site = {
        *     photograph, a real person and real metadata; there is no third until there is a third
        *     project.
        *   - **Scroll chose the category.** Scroll owns the visitor's progress through the page — it
-       *     must not double as a control for the content standing on it. The carousel has its own
-       *     clock (`TIMING.work.carousel`), which is exactly what C8 reserves a clock for: *time owns
+       *     must not double as a control for the content standing on it. The queue has its own
+       *     clock (`TIMING.work.queue`), which is exactly what C8 reserves a clock for: *time owns
        *     only what the visitor did not cause.*
        *
-       * ## The composition it feeds
+       * ## The composition it feeds — C14, 16 September 2026 (Q2 · *fila que roda*)
        *
        * ```
        *   WHAT WE ACTUALLY MAKE      eyebrow · label · never moves, never changes
-       *   Wedding experiences        the category · the protagonist · this is what changes
-       *   See full experience →      the offer · arrives after the category, not with it
+       *   ART   EXHIBITION   …       the queue · the category words themselves, small; the first one fills
+       *   Wedding experiences        the category · the protagonist · left-aligned, never travels
        *
        *                                                       Raquel & Flávio      ← lower right,
        *                                                       28 · 08 · 2027 — VENICE  small, discreet
+       *                                                       See full experience →   only with a URL
        * ```
        *
-       * `label` and `cta` are the frame the experiences pass through, and they are fixed for exactly
-       * that reason: what the visitor sees changing is one line of type and one photograph, which reads
-       * as an editorial revision rather than as a component advancing. **No dots, no pagination, no
-       * thumbnails, no cards, no slider arrows.** `cta` is a way *in*, never a way *forward*.
+       * **The category word is the index.** The active category is the headline and is *not* in the
+       * queue; the next one stands first and fills with time; when it is full it is promoted, the row
+       * moves up and the category that was showing re-enters at the tail. No dots, no counter, no
+       * arrows, no bars — the words are the whole of the navigation.
        *
-       * ## The experiences
+       * **The offer is the work's, not the category's**, so it stands in the corner with the work it
+       * opens and is simply absent where there is no work to open (`experienceUrl: null`).
        *
-       * Each is a `projects` record and nothing here restates one: `category` is its `title`, the
-       * photograph is its `plate`, and the corner reads `context.identity` and `context.meta`. Adding a
-       * third is a record in `projects` and its id in this list.
+       * ## The categories
        *
-       * **The first is `venice`, and that is what makes the entry into the Work a bridge rather than a
-       * cut.** The film's own last frame *is* experience one's photograph, so the section does not
-       * arrive on a new image — the image the visitor has been looking at since state 06 acquires a new
-       * job. Nothing is swapped to enter the Work.
+       * **A category is a word, its headline and one representative work.** The homepage shows one work
+       * per category; a newer work replaces the representative by changing `work` and nothing else. The
+       * work is a `projects` record and nothing here restates it: the photograph is its `plate`, and the
+       * corner reads `context.identity`, `context.meta` and `experienceUrl`. Adding a category is one
+       * entry here.
+       *
+       * **The first is Wedding on `venice`, and that is what makes the entry into the Work a bridge rather
+       * than a cut.** The film's own last frame *is* its photograph, so the section does not arrive on a
+       * new image. Nothing is swapped to enter the Work.
        */
       makes: {
         label: 'What we actually make',
         cta: 'See full experience →',
-        /* In order. The first must be the plate the film ends on, or the entry becomes a swap. */
-        experiences: ['venice', 'artist'] as const,
+        /* In order — this is the queue's order. The first must be the plate the film ends on. */
+        categories: [
+          { word: 'Weddings', headline: 'Wedding experiences', work: 'venice' },
+          { word: 'Artists', headline: 'Art experiences', work: 'artist' },
+          { word: 'Selected Projects', headline: 'Experiences beyond categories', work: 'selected' },
+        ] as const,
       },
 
       /**
@@ -787,8 +895,11 @@ export const site = {
       /**
        * The first group. 104px at x196 — one of the two largest sizes on the site, the other being state
        * 12's payoff at the same size and the same axis.
+       *
+       * **Two authored lines** — 16 September 2026. At display size the sentence is a composition, and
+       * where it breaks is part of it (`04-visual-language.md` §4): the claim, then what it is close to.
        */
-      headline: 'We stay close to every detail.',
+      headline: ['We stay close', 'to every detail.'] as const,
 
       /**
        * What stands under it: 16px on a 474 measure, which is 55 characters of reading type at the
@@ -800,8 +911,12 @@ export const site = {
       /**
        * The second group, and it is deliberately the smaller one — 46px at x838, half the width of the
        * page away from the first. §4's *second principle*: the asymmetry is the composition.
+       *
+       * **Two authored lines** — design owner, 16 September 2026. Left to the measure it wrapped to two
+       * lines and then to one while its tracking closed, and a statement that reflows mid-arrival reads
+       * as an accident rather than as a decision.
        */
-      principle: 'Built exclusively for you.',
+      principle: ['Built exclusively', 'for you.'] as const,
 
       /**
        * And its three lines, at 14.5px. Authored as three, not wrapped into three: the board sets them

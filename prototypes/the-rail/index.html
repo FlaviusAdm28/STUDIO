@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prototype — The Rail · five directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Schibsted+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================================
+   THE RAIL — five directions for Chapter One's persistent navigation.
+
+   A review harness, not an implementation. Nothing here is imported by the
+   Next build; `prototypes/server.mjs` serves it and aliases /media onto the
+   real plates so every direction is judged on the grounds it will actually
+   stand on.
+
+   ONE RULE HOLDS ACROSS ALL FIVE: no leader rules, no bars, no dots, no
+   numerals, no underlines, no progress marks. Each direction has to be a
+   signature made of type, position and ink alone — which is the only way to
+   see whether the *concept* carries it.
+
+   The values are the site's own, measured in Chrome at 1920×945 against the
+   running build: caption register 9.5–13px uppercase at 0.22–0.26em, reading
+   face Cormorant Garamond 300, film ink rgb(242 236 224) at .86 / .62, paper
+   #f4f1e9 with ink rgba(24 23 20).
+   ========================================================================= */
+
+:root{
+  --serif:'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --sans:'Schibsted Grotesk', ui-sans-serif, system-ui, 'Segoe UI', Helvetica, sans-serif;
+
+  /* The film's ink. Warm cream, never white. */
+  --ink-rgb: 242 236 224;
+
+  /* The axis. The site's own `--mark-x` / `--mark-y`. */
+  --mark-x: max(clamp(1.75rem, 5vw, 4.5rem), env(safe-area-inset-left, 0px));
+  --mark-y: clamp(2rem, 6vh, 4rem);
+
+  --curve: cubic-bezier(0.32, 0, 0.24, 1);
+  --hover: 240ms;
+
+  --chrome-bg:#0d0d0c;
+  --chrome-ink:#cfcabd;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  background:#0a0a09;
+  font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+}
+
+/* ── The stage: one frame, the ground under it, the rail over it ─────────── */
+
+.deck{
+  position:fixed; inset:0;
+  display:grid;
+  place-items:center;
+  padding: 0 0 92px;
+}
+
+.stage{
+  position:relative;
+  width:100%; height:100%;
+  overflow:hidden;
+  background:#111;
+}
+
+.deck[data-w="390"] .stage{
+  width:390px; height:844px;
+  max-height:calc(100% - 8px);
+  outline:1px solid rgb(255 255 255 / .12);
+  outline-offset:0;
+}
+
+.ground{
+  position:absolute; inset:0;
+  background-size:cover;
+  background-position:center;
+}
+.stage[data-ground="venice"]   .ground{background-image:url(/media/projects/venice/venice.png)}
+.stage[data-ground="studio"]   .ground{background-image:url(/media/studio/image19aug26.png)}
+.stage[data-ground="selected"] .ground{background-image:url(/media/projects/selected/selected.png)}
+.stage[data-ground="paper"]    .ground{background:#f4f1e9}
+.stage[data-ground="black"]    .ground{background:#070706}
+
+/*
+  ── The veil ──────────────────────────────────────────────────────────────
+
+  Not part of any of the five. It is the harness's way of asking the question
+  every one of them has to answer: the top-left of the venice plate is the
+  brightest eighth of the brightest plate on the site, and cream type at the
+  caption register does not survive there on its own — measured against the
+  running build, not only against these prototypes.
+
+  Three answers are worth seeing side by side, so it is a three-way switch:
+  `off` is the honest worst case; `veil` is a corner gradient in the margin,
+  ~26% at the axis and nothing by a third of the frame; `cross` is V2 §6's own
+  answer — the rail's ink crosses with the ground and the same rail is set in
+  dark ink where the ground is light.
+*/
+.cell[data-veil="veil"][data-ground="paper"]::before,
+.stage[data-veil="veil"][data-ground="paper"]::before{ content:none }
+
+.cell[data-veil="veil"]::before,
+.stage[data-veil="veil"]::before{
+  content:''; position:absolute; inset:0; z-index:2; pointer-events:none;
+  background:
+    linear-gradient(to bottom, rgb(12 10 8 / .30), transparent 46%),
+    linear-gradient(to right,  rgb(12 10 8 / .30), transparent 34%);
+}
+.cell[data-veil="cross"],
+.stage[data-veil="cross"]{ --ink-rgb:24 23 20 }
+/* Paper is already the dark-ink case; crossing has nowhere to cross to. */
+.cell[data-veil="cross"][data-ground="paper"],
+.stage[data-veil="cross"][data-ground="paper"]{ --ink-rgb:24 23 20 }
+.cell[data-veil="cross"][data-ground="studio"],
+.cell[data-veil="cross"][data-ground="black"],
+.stage[data-veil="cross"][data-ground="studio"],
+.stage[data-veil="cross"][data-ground="black"]{ --ink-rgb:242 236 224 }
+
+/* Paper flips the ink. Every direction reads both ways or it is not finished. */
+.stage{--ink-rgb:242 236 224}
+.stage[data-ground="paper"]{--ink-rgb:24 23 20}
+
+/* ============================================================================
+   THE RAIL — shared skeleton
+   ========================================================================= */
+
+.rail{
+  position:absolute;
+  left:var(--mark-x);
+  top:var(--mark-y);
+  z-index:5;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+}
+
+/*
+  No `display` here. `.rail a` outranks `.head` on specificity, so declaring one
+  here silently turned the head into a block — the mark's two lines stretched to
+  the column and the measured fit below could never find anything to fit.
+*/
+.rail a{ text-decoration:none; color:inherit; }
+
+/* The head. */
+.rail .head{ display:flex; align-items:baseline; white-space:nowrap; }
+.rail .head .tie{ opacity:.5 }
+
+/*
+  The index.
+
+  `width:100%` is the press area, not the layout: without it the column shrinks
+  to the longest word and each row's hit box is the width of its own word, so
+  `Work` is a third of the target `Questions` is. The rail declares a column
+  width and every row fills it.
+*/
+.idx{ margin:0; padding:0; list-style:none; width:100%; }
+
+/*
+  The hit area is the row and the row alone: a fixed-width block with block
+  padding taken back out by a negative margin, so the column's rhythm is set by
+  the type and the press area is larger than the type at every size. Nothing a
+  direction does on hover may touch this box — hovers move ink and inner spans,
+  never the row.
+*/
+.w{
+  position:relative;
+  display:block;
+  width:100%;
+  margin-block:-.45rem;
+  padding:.45rem 0;
+  border:0; background:none; font:inherit; color:inherit;
+  letter-spacing:inherit; text-transform:inherit; text-align:inherit;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.lead{ display:none }
+.w > *{ pointer-events:none }          /* nothing inside a row may take the mouse */
+.w:focus-visible{ outline:1px solid rgb(var(--ink-rgb) / .55); outline-offset:.45rem }
+
+.t, .d{ display:inline-block; transition:color var(--hover) var(--curve), opacity var(--hover) var(--curve), transform var(--hover) var(--curve) }
+
+/* ============================================================================
+   0 — THE RAIL AS IT SHIPS TODAY
+
+   Not a direction. It is here so the five are compared against something
+   rather than against memory: `III — STUDIO` at 12px / 0.22em / 62% over five
+   words at 16px / 500 / 0.06em, with the leader rule carrying depth — 0 for
+   unvisited, 16px for visited, 32px for active, 70px on intent.
+
+   It is the only place in this file a rule is drawn.
+   ========================================================================= */
+
+.rail[data-c="0"]{ width:8.25rem; gap:clamp(1.25rem, 2.6vh, 1.75rem) }
+.rail[data-c="0"] .head{
+  font-size:.75rem; letter-spacing:.22em; text-transform:uppercase; font-weight:400;
+  color:rgb(var(--ink-rgb) / .86); opacity:.62; gap:.3em;
+}
+.rail[data-c="0"] .idx{ display:flex; flex-direction:column; gap:.5rem }
+.rail[data-c="0"] .w{ display:flex; align-items:baseline; gap:.5rem; font-size:1rem; font-weight:500; letter-spacing:.06em }
+.rail[data-c="0"] .lead{
+  display:block; flex:none; height:1px; background:currentcolor; opacity:.55;
+  color:rgb(var(--ink-rgb) / .62);
+  width:0; transition:width var(--hover) var(--curve), opacity var(--hover) var(--curve);
+}
+.rail[data-c="0"] .w[data-past] .lead{ width:1rem }
+.rail[data-c="0"] .w[data-on] .lead{ width:2rem }
+.rail[data-c="0"] .w:hover .lead{ width:4.375rem; opacity:1 }
+.rail[data-c="0"] .t{ color:rgb(var(--ink-rgb) / .62) }
+.rail[data-c="0"] .w:hover .t{ color:rgb(var(--ink-rgb) / .86) }
+.rail[data-c="0"] .w[data-on] .t{ color:rgb(var(--ink-rgb) / .86) }
+.rail[data-c="0"] .d{ display:none }
+
+/* ============================================================================
+   1 — TYPOGRAPHIC SIGNATURE
+
+   The menu is one piece of typography, not a list of links: a stanza in the
+   reading face, with the running head set two registers below it in the
+   caption voice. The whole identity is the interval between those two — 10px
+   of tracked sans against 26px of Cormorant, which is the same contrast the
+   Work's eyebrow makes against its category and About's label against its
+   headline. The rail finally speaks in the site's own voice instead of in
+   interface voice.
+
+   The active destination changes *voice*, not decoration: roman becomes
+   italic. Nothing else marks it.
+   ========================================================================= */
+
+.rail[data-c="1"]{ width:11.5rem; gap:1.55rem }
+.rail[data-c="1"] .head{
+  font-size:.625rem; letter-spacing:.26em; text-transform:uppercase; font-weight:400;
+  color:rgb(var(--ink-rgb) / .48); gap:.42em;
+}
+.rail[data-c="1"] .idx{ display:flex; flex-direction:column; gap:.34rem }
+.rail[data-c="1"] .w{ font-family:var(--serif); font-weight:300; font-size:1.625rem; line-height:1.18 }
+.rail[data-c="1"] .t{ color:rgb(var(--ink-rgb) / .70) }
+.rail[data-c="1"] .w:hover .t{ color:rgb(var(--ink-rgb) / .95) }
+.rail[data-c="1"] .w[data-on] .t{ color:rgb(var(--ink-rgb) / 1); font-style:italic }
+.rail[data-c="1"] .d{ display:none }
+
+/* ============================================================================
+   2 — EDITORIAL / INDEX
+
+   A book index, read the way a contemporary publication would set one: the
+   entry on the left in the caption voice, and beside it — where a page number
+   would be — what the entry actually *is*, in Cormorant italic. The index
+   stops being a list of destinations and becomes a short description of the
+   volume.
+
+   Position carries the state, in the one way an index has always carried it:
+   the entry you are in **hangs into the margin**. No leader, no dot, no rule.
+
+   The two right-hand words are placeholder copy for the concept, not approved
+   language — they are here so the second column can be judged at all.
+   ========================================================================= */
+
+.rail[data-c="2"]{ width:13.75rem; gap:1.9rem; text-align:left }
+.rail[data-c="2"] .head{
+  font-size:.5938rem; letter-spacing:.3em; text-transform:uppercase; font-weight:400;
+  color:rgb(var(--ink-rgb) / .40); gap:.5em;
+}
+.rail[data-c="2"] .idx{ display:flex; flex-direction:column; gap:.62rem }
+.rail[data-c="2"] .w{ display:grid; grid-template-columns:auto 1fr; align-items:baseline; column-gap:.85rem }
+.rail[data-c="2"] .t{
+  font-size:.6875rem; font-weight:500; letter-spacing:.155em; text-transform:uppercase;
+  color:rgb(var(--ink-rgb) / .78);
+}
+.rail[data-c="2"] .d{
+  justify-self:end; text-align:right; white-space:nowrap;
+  font-family:var(--serif); font-style:italic; font-weight:300; font-size:.875rem;
+  color:rgb(var(--ink-rgb) / .38);
+}
+.rail[data-c="2"] .w:hover .t{ color:rgb(var(--ink-rgb) / .96) }
+.rail[data-c="2"] .w:hover .d{ color:rgb(var(--ink-rgb) / .60) }
+/* The hang. Inside the row, so the press area never moves. */
+.rail[data-c="2"] .w[data-on] .t{ color:rgb(var(--ink-rgb) / 1); transform:translateX(-.7rem) }
+.rail[data-c="2"] .w[data-on] .d{ color:rgb(var(--ink-rgb) / .74); font-style:normal }
+
+/* ============================================================================
+   3 — CHAPTER
+
+   Sequence, without a single numeral. The column steps: each destination is
+   indented one unit deeper than the one above it, so the *shape* of the block
+   is the arc — a descent, read at a glance, before a word of it is read.
+
+   Ink says how far along the visitor is. Behind them the entries have been
+   spent and go quiet; ahead of them they wait at half ink; the one they are in
+   is the only thing at full strength, and it is the only line set in the
+   reading face — the chapter being read is the one spoken aloud.
+
+   Every row is a fixed height, so the voice can change without the staircase
+   moving.
+   ========================================================================= */
+
+.rail[data-c="3"]{ width:13rem; gap:1.65rem; --step:.95rem }
+.rail[data-c="3"] .head{
+  font-size:.625rem; letter-spacing:.26em; text-transform:uppercase; font-weight:400;
+  color:rgb(var(--ink-rgb) / .42); gap:.42em;
+}
+.rail[data-c="3"] .idx{ display:flex; flex-direction:column }
+.rail[data-c="3"] .w{
+  height:1.75rem; margin-block:0; padding:0;
+  display:flex; align-items:center;
+  font-size:.6563rem; font-weight:500; letter-spacing:.2em; text-transform:uppercase;
+}
+.rail[data-c="3"] .idx li:nth-child(1) .w{ padding-left:calc(var(--step) * 0) }
+.rail[data-c="3"] .idx li:nth-child(2) .w{ padding-left:calc(var(--step) * 1) }
+.rail[data-c="3"] .idx li:nth-child(3) .w{ padding-left:calc(var(--step) * 2) }
+.rail[data-c="3"] .idx li:nth-child(4) .w{ padding-left:calc(var(--step) * 3) }
+.rail[data-c="3"] .idx li:nth-child(5) .w{ padding-left:calc(var(--step) * 4) }
+.rail[data-c="3"] .t{ color:rgb(var(--ink-rgb) / .52) }          /* ahead */
+.rail[data-c="3"] .w[data-past] .t{ color:rgb(var(--ink-rgb) / .26) }  /* spent */
+.rail[data-c="3"] .w:hover .t{ color:rgb(var(--ink-rgb) / .88) }
+.rail[data-c="3"] .w[data-on] .t{
+  color:rgb(var(--ink-rgb) / 1);
+  font-family:var(--serif); font-weight:400; font-size:1.375rem;
+  letter-spacing:.01em; text-transform:none;
+}
+.rail[data-c="3"] .d{ display:none }
+
+/* ============================================================================
+   4 — STUDIO SIGNATURE
+
+   The head stops being a running head and becomes the mark. `III` is set as
+   type at display size in the reading face, and `STUDIO` is letter-spaced —
+   measured in the browser, not guessed — until its box is exactly the width of
+   the numeral above it. That optical fit is the whole point: it is the one
+   thing on the rail nobody is meant to notice and everybody feels.
+
+   The navigation below is deliberately the quietest type on the site. It is
+   the fine print under a logotype, and it is set so that the mark is read
+   first, always.
+   ========================================================================= */
+
+.rail[data-c="4"]{ width:11rem; gap:2.1rem }
+.rail[data-c="4"] .head{ flex-direction:column; align-items:flex-start; gap:.34rem }
+.rail[data-c="4"] .head .tie{ display:none }
+.rail[data-c="4"] .num{
+  font-family:var(--serif); font-weight:300; font-size:2.75rem; line-height:.82;
+  letter-spacing:.02em; color:rgb(var(--ink-rgb) / .92);
+}
+.rail[data-c="4"] .lab{
+  display:block;
+  font-size:.5625rem; text-transform:uppercase; font-weight:400;
+  color:rgb(var(--ink-rgb) / .52);
+}
+.rail[data-c="4"] .idx{ display:flex; flex-direction:column; gap:.05rem }
+.rail[data-c="4"] .w{ font-size:.6563rem; font-weight:400; letter-spacing:.17em; text-transform:uppercase; line-height:1.9 }
+.rail[data-c="4"] .t{ color:rgb(var(--ink-rgb) / .48) }
+.rail[data-c="4"] .w:hover .t{ color:rgb(var(--ink-rgb) / .8) }
+.rail[data-c="4"] .w[data-on] .t{ color:rgb(var(--ink-rgb) / 1); font-weight:500 }
+.rail[data-c="4"] .d{ display:none }
+
+/* ============================================================================
+   5 — THE SPINE
+
+   The rail lies down the edge of the frame and becomes one line: the way a
+   book is marked on its spine and a reel of film on its leader. It is the
+   smallest area any of these five occupies, it never crosses the image, and
+   the silhouette alone is unlike any navigation on any studio site.
+
+   One continuous run of caption-register capitals, read bottom to top. The
+   mark opens the line; the destinations follow it. The active destination is
+   the only one at full ink — in a line this quiet, ink is enough.
+   ========================================================================= */
+
+.rail[data-c="5"]{
+  left:var(--mark-x);
+  top:auto; bottom:var(--mark-y);
+  width:auto;
+  flex-direction:row; align-items:baseline;
+  gap:2.6rem;
+  white-space:nowrap;
+  transform-origin:0 100%;
+  transform:rotate(-90deg);
+}
+.rail[data-c="5"] .head{
+  font-size:.5938rem; letter-spacing:.3em; text-transform:uppercase; font-weight:400;
+  color:rgb(var(--ink-rgb) / .44); gap:.5em;
+}
+.rail[data-c="5"] .idx{ display:flex; flex-direction:row; align-items:baseline; gap:2.1rem; width:auto }
+.rail[data-c="5"] .w{
+  width:auto; margin-block:0; margin-inline:-.5rem; padding:.45rem .5rem;
+  font-size:.625rem; font-weight:500; letter-spacing:.24em; text-transform:uppercase;
+}
+.rail[data-c="5"] .t{ color:rgb(var(--ink-rgb) / .55) }
+.rail[data-c="5"] .w:hover .t{ color:rgb(var(--ink-rgb) / .85) }
+.rail[data-c="5"] .w[data-on] .t{ color:rgb(var(--ink-rgb) / 1) }
+.rail[data-c="5"] .d{ display:none }
+
+/* ============================================================================
+   390 — the same five, adapted. Not a second design: the same concept, solved
+   in a narrower frame. Driven off the deck rather than a media query so the
+   phone frame can be reviewed beside the desktop one.
+   ========================================================================= */
+
+.deck[data-w="390"] .stage{ --mark-x:1.5rem; --mark-y:1.75rem }
+.deck[data-w="390"] .rail[data-c="1"]{ width:9.5rem; gap:1.1rem }
+.deck[data-w="390"] .rail[data-c="1"] .w{ font-size:1.3125rem }
+.deck[data-w="390"] .rail[data-c="2"]{ width:calc(390px - 3rem) }
+.deck[data-w="390"] .rail[data-c="3"]{ --step:.7rem; width:11rem }
+.deck[data-w="390"] .rail[data-c="4"] .num{ font-size:2.25rem }
+/*
+  44px, everywhere a thumb has to find it. Measured in Chrome: at desktop
+  settings the index rows are 28–34px tall, which is right for a mouse and
+  short for a thumb. The padding is taken back out by a negative margin so the
+  column's rhythm is still set by the type.
+*/
+.deck[data-w="390"] .rail[data-c="0"] .w{ padding-block:.78rem; margin-block:-.78rem }
+.deck[data-w="390"] .rail[data-c="1"] .w{ padding-block:.62rem; margin-block:-.62rem }
+.deck[data-w="390"] .rail[data-c="2"] .w{ padding-block:.85rem; margin-block:-.85rem }
+.deck[data-w="390"] .rail[data-c="3"] .w{ height:2.75rem }
+.deck[data-w="390"] .rail[data-c="4"] .w{ padding-block:.78rem; margin-block:-.78rem }
+.deck[data-w="390"] .rail[data-c="5"] .w{ padding-block:.97rem; margin-block:-.97rem; margin-inline:0; padding-inline:0 }
+
+/* The spine stands up again: a line this long has nowhere to lie on a phone. */
+.deck[data-w="390"] .rail[data-c="5"]{
+  transform:none; top:var(--mark-y); bottom:auto;
+  flex-direction:column; align-items:flex-start; gap:1.3rem;
+}
+.deck[data-w="390"] .rail[data-c="5"] .idx{ flex-wrap:wrap; gap:.6rem 1.35rem; max-width:calc(390px - 3rem) }
+
+/* ============================================================================
+   ALL — the five side by side, one ground, for choosing a direction
+   ========================================================================= */
+
+.wall{ position:absolute; inset:0; display:grid; grid-template-columns:repeat(3,1fr); grid-auto-rows:1fr; gap:1px; background:rgb(255 255 255 / .09) }
+.cell{ position:relative; overflow:hidden }
+.cell .ground{ background-size:cover; background-position:left top }
+.cell .rail{ --mark-x:1.6rem; --mark-y:1.5rem; transform-origin:0 0; }
+.cell .rail[data-c="5"]{ transform-origin:0 100%; }
+.cell .tag{
+  position:absolute; right:.7rem; bottom:.6rem; z-index:9;
+  font-size:.5625rem; letter-spacing:.2em; text-transform:uppercase;
+  color:rgb(var(--ink-rgb) / .5); pointer-events:none;
+}
+.cell.empty{ background:#0a0a09 }
+
+/*
+  At 390 the wall is six phone frames rather than a phone frame containing a
+  wall — otherwise the whole comparison is squeezed into one column and every
+  direction is judged on a width none of them will ever be asked to hold.
+*/
+.deck[data-w="390"] .stage:has(.wall){ width:100%; height:100% }
+.deck[data-w="390"] .wall{ grid-template-columns:repeat(3, 390px); justify-content:center }
+.deck[data-w="390"] .cell{ --mark-x:1.5rem; --mark-y:1.75rem }
+
+/* ============================================================================
+   The harness chrome. Deliberately not designed — it must never be mistaken
+   for part of the proposal.
+   ========================================================================= */
+
+.bar{
+  position:fixed; left:0; right:0; bottom:0; z-index:99;
+  display:flex; flex-wrap:wrap; align-items:center; gap:.4rem 1.1rem;
+  padding:.6rem .9rem;
+  background:var(--chrome-bg);
+  border-top:1px solid #232320;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:11px; color:var(--chrome-ink);
+}
+.bar .grp{ display:flex; align-items:center; gap:.3rem }
+.bar b{ font-weight:400; color:#6d6a62; letter-spacing:.1em; text-transform:uppercase; font-size:9.5px }
+.bar button{
+  font:inherit; color:var(--chrome-ink); background:#1a1a18;
+  border:1px solid #2e2e2a; border-radius:2px; padding:.24rem .5rem; cursor:pointer;
+}
+.bar button:hover{ border-color:#4a4a44 }
+.bar button[aria-pressed="true"]{ background:#e8e3d6; color:#141412; border-color:#e8e3d6 }
+.bar .note{ flex:1 1 100%; color:#8b877d; line-height:1.45; font-size:10.5px; max-width:none }
+.bar .note em{ color:#cfcabd; font-style:normal }
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck" data-w="desktop">
+  <div class="stage" id="stage" data-ground="venice"></div>
+</div>
+
+<div class="bar">
+  <div class="grp"><b>Direction</b>
+    <button data-c="0">0 Current</button>
+    <button data-c="1">1 Typographic</button>
+    <button data-c="2">2 Index</button>
+    <button data-c="3">3 Chapter</button>
+    <button data-c="4">4 Studio</button>
+    <button data-c="5">5 Spine</button>
+    <button data-c="all">All</button>
+  </div>
+  <div class="grp"><b>Ground</b>
+    <button data-g="venice">Venice</button>
+    <button data-g="studio">Studio</button>
+    <button data-g="selected">Selected</button>
+    <button data-g="paper">Paper</button>
+    <button data-g="black">Black</button>
+  </div>
+  <div class="grp"><b>Active</b>
+    <button data-a="work">Work</button>
+    <button data-a="about">About</button>
+    <button data-a="method">Method</button>
+    <button data-a="questions">Questions</button>
+    <button data-a="contact">Contact</button>
+  </div>
+  <div class="grp"><b>Legibility</b>
+    <button data-v="off">Off</button>
+    <button data-v="veil">Veil</button>
+    <button data-v="cross">Cross ink</button>
+  </div>
+  <div class="grp"><b>Frame</b>
+    <button data-w="desktop">Desktop</button>
+    <button data-w="390">390</button>
+  </div>
+  <p class="note" id="note"></p>
+</div>
+
+<script>
+/* ---------------------------------------------------------------------------
+   One content model, five presentations. The markup is identical in all five —
+   the same head, the same five rows, the same hit areas — so what is being
+   compared is the design and never the DOM.
+--------------------------------------------------------------------------- */
+
+const ITEMS = [
+  { id:'work',      word:'Work',      note:'the register'   },
+  { id:'about',     word:'About',     note:'the studio'     },
+  { id:'method',    word:'Method',    note:'how we work'    },
+  { id:'questions', word:'Questions', note:'what is asked'  },
+  { id:'contact',   word:'Contact',   note:'to begin'       },
+]
+
+const NOTES = {
+  '0': '<em>The rail as it ships today.</em> Here as a baseline only — 12px tracked head over five 16px words, with the leader rule carrying depth. The five directions are meant to be judged against this, not against memory.',
+  '1': '<em>Typographic signature.</em> The rail speaks in the site’s own voice: the caption register against Cormorant 300, the same interval the Work’s eyebrow makes against its category. Active changes voice — roman to italic — and nothing is marked.',
+  '2': '<em>Editorial index.</em> Where a page number would be, the entry says what it is. State is carried the way an index has always carried it: the active entry hangs into the margin. Right-hand words are placeholder copy for the concept.',
+  '3': '<em>Chapter.</em> Sequence with no numeral: the column steps, so the shape of the block is the arc. Spent entries go quiet, entries ahead wait at half ink, and the one being read is the only line set in the reading face.',
+  '4': '<em>Studio signature.</em> The mark is the rail. <code>STUDIO</code> is letter-spaced — measured, not guessed — until its box is exactly the numeral’s width. The navigation is fine print under a logotype, and is meant to be read second.',
+  '5': '<em>The spine.</em> The rail lies down the edge of the frame: one line of capitals, read bottom to top, the way a book is marked on its spine. Smallest area of the five, never crosses the image, and the silhouette is unlike any studio navigation.',
+  'all': 'Five directions and today’s rail, one ground, one active destination. Press 0–5 to open any of them full frame; A returns here; G cycles the ground; V cycles the legibility answer; M toggles 390; ↑ ↓ move the active destination.',
+}
+
+function rail (concept) {
+  const ul = ITEMS.map(it => `
+    <li><a class="w" href="#" data-id="${it.id}">
+      <i class="lead" aria-hidden="true"></i><span class="t">${it.word}</span><span class="d">${it.note}</span>
+    </a></li>`).join('')
+
+  return `
+    <nav class="rail" data-c="${concept}" aria-label="Chapter One">
+      <a class="head" href="#">
+        <span class="num">III</span><span class="tie">—</span><span class="lab">Studio</span>
+      </a>
+      <ul class="idx">${ul}</ul>
+    </nav>`
+}
+
+const deck = document.getElementById('deck')
+const stage = document.getElementById('stage')
+const note = document.getElementById('note')
+
+let concept = '1'
+let ground = 'venice'
+let active = 'about'
+let veil = 'off'
+
+/*
+  `STUDIO` justified to the numeral's width. Measured rather than authored,
+  because the fit has to survive a font swap and every breakpoint — the same
+  argument the dock's measured cap height made in the build.
+*/
+function justifyMark (root) {
+  root.querySelectorAll('.rail[data-c="4"] .head').forEach(head => {
+    const num = head.querySelector('.num')
+    const lab = head.querySelector('.lab')
+    if (!num || !lab) return
+    lab.style.letterSpacing = '0px'
+    lab.style.marginRight = '0px'
+    /*
+      A Range, not the element's box: `.lab` is a block in a column and reports
+      the column's width however it is aligned. The range reports the glyphs.
+    */
+    const range = document.createRange()
+    range.selectNodeContents(num); const target = range.getBoundingClientRect().width
+    range.selectNodeContents(lab); const natural = range.getBoundingClientRect().width
+    const n = lab.textContent.length
+    if (!n || !natural) return
+    const extra = (target - natural) / n
+    lab.style.letterSpacing = extra + 'px'
+    lab.style.marginRight = (-extra) + 'px'   /* CSS tracks the last glyph too */
+  })
+}
+
+/* Spent / present / ahead, from the one active destination. */
+function paint (root) {
+  const order = ITEMS.map(i => i.id)
+  const at = order.indexOf(active)
+  root.querySelectorAll('.w').forEach(w => {
+    const i = order.indexOf(w.dataset.id)
+    w.toggleAttribute('data-on', i === at)
+    w.toggleAttribute('data-past', i < at)
+    if (i === at) w.setAttribute('aria-current', 'true'); else w.removeAttribute('aria-current')
+  })
+}
+
+function render () {
+  if (concept === 'all') {
+    stage.removeAttribute('data-ground')
+    stage.innerHTML = '<div class="wall">' +
+      ['1','2','3','4','5','0'].map(c => `
+        <div class="cell" data-ground="${ground}">
+          <div class="ground"></div>
+          ${rail(c)}
+          <span class="tag">${c === '0' ? 'current' : c}</span>
+        </div>`).join('') + '</div>'
+    /* Each cell carries its own ink, exactly as the stage does. */
+    stage.querySelectorAll('.cell[data-ground]').forEach(cell => {
+      if (cell.dataset.ground === 'paper') cell.style.setProperty('--ink-rgb', '24 23 20')
+      const g = cell.querySelector('.ground')
+      const src = {
+        venice:'/media/projects/venice/venice.png',
+        studio:'/media/studio/image19aug26.png',
+        selected:'/media/projects/selected/selected.png',
+      }[cell.dataset.ground]
+      if (src) g.style.backgroundImage = `url(${src})`
+      else g.style.background = cell.dataset.ground === 'paper' ? '#f4f1e9' : '#070706'
+    })
+  } else {
+    stage.dataset.ground = ground
+    stage.innerHTML = '<div class="ground"></div>' + rail(concept)
+  }
+  stage.dataset.veil = veil
+  stage.querySelectorAll('.cell').forEach(c => { c.dataset.veil = veil })
+
+  paint(stage)
+  justifyMark(stage)
+  note.innerHTML = NOTES[concept]
+
+  document.querySelectorAll('.bar button').forEach(b => {
+    const on =
+      (b.dataset.c && b.dataset.c === concept) ||
+      (b.dataset.g && b.dataset.g === ground) ||
+      (b.dataset.a && b.dataset.a === active) ||
+      (b.dataset.v && b.dataset.v === veil) ||
+      (b.dataset.w && b.dataset.w === deck.dataset.w)
+    b.setAttribute('aria-pressed', on ? 'true' : 'false')
+  })
+}
+
+document.querySelector('.bar').addEventListener('click', e => {
+  const b = e.target.closest('button')
+  if (!b) return
+  if (b.dataset.c) concept = b.dataset.c
+  if (b.dataset.g) ground = b.dataset.g
+  if (b.dataset.a) active = b.dataset.a
+  if (b.dataset.v) veil = b.dataset.v
+  if (b.dataset.w) deck.dataset.w = b.dataset.w
+  render()
+})
+
+/* Pressing a destination in the prototype only moves the active state. */
+stage.addEventListener('click', e => {
+  const w = e.target.closest('.w')
+  if (!w) return
+  e.preventDefault()
+  active = w.dataset.id
+  render()
+})
+
+const GROUNDS = ['venice','studio','selected','paper','black']
+addEventListener('keydown', e => {
+  const order = ITEMS.map(i => i.id)
+  if ('012345'.includes(e.key)) { concept = e.key; render() }
+  else if (e.key.toLowerCase() === 'a') { concept = 'all'; render() }
+  else if (e.key.toLowerCase() === 'g') { ground = GROUNDS[(GROUNDS.indexOf(ground) + 1) % GROUNDS.length]; render() }
+  else if (e.key.toLowerCase() === 'v') { const V=['off','veil','cross']; veil = V[(V.indexOf(veil)+1)%V.length]; render() }
+  else if (e.key.toLowerCase() === 'm') { deck.dataset.w = deck.dataset.w === '390' ? 'desktop' : '390'; render() }
+  else if (e.key === 'ArrowDown') { e.preventDefault(); active = order[(order.indexOf(active) + 1) % order.length]; render() }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); active = order[(order.indexOf(active) + order.length - 1) % order.length]; render() }
+})
+
+addEventListener('resize', () => justifyMark(stage))
+document.fonts && document.fonts.ready.then(() => justifyMark(stage))
+render()
+</script>
+</body>
+</html>

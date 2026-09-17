@@ -1,76 +1,146 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { railFieldFor, railLiftFor, railLitFor } from '@/motion/environment'
 import { site, projects } from '@content'
-import { TIMING } from '@/motion'
-
+import { TIMING, clamp01, smoothstep } from '@/motion'
 
 /**
- * **The Work — what the studio actually makes, one experience at a time.**
+ * **The Work — what the studio actually makes, one category at a time.**
  *
- * Added 7 September 2026 on the design owner's direction; the record is
- * `docs/design/v2/implementation-reconciliation.md` C13.
+ * C13 (7 September 2026) made the Work an editorial section on the photograph the film ends on; C14
+ * (16 September 2026, design owner, the Q2 exploration — *fila que roda*) decides how the categories
+ * are navigated. The record is `docs/design/v2/implementation-reconciliation.md` C14.
  *
- * ## Why this holds a clock, and why that is not a violation
+ * ## The category word is the index
  *
- * `CLAUDE.md`'s driving rule is C8: **scroll owns progression; time owns only what the visitor did not
- * cause.** The visitor's progress *through* the page is scroll and stays scroll — this component does
- * not move the page, is not pinned, and publishes nothing the driver reads.
+ * ```
+ *   WHAT WE ACTUALLY MAKE
+ *   ART   EXHIBITION   PERFORMANCE        ← the queue: the next category first, filling with time
+ *   Wedding experiences                   ← the active category: the headline, never in the queue
+ * ```
  *
- * What changes here is **which experience is on show**, and the visitor did not cause that. The design
- * owner ruled it explicitly: *"o scroll NÃO deve scrubbar o conteúdo do carousel."* Scrubbing the
- * content with the same gesture that scrolls the page makes the work a function of how fast someone
- * flicked, and makes the section unreadable in both directions. So it is a clock, and it joins the
- * three other things C8 allows one: the Hero's arrival, the Work aside, and interface response.
+ * The category that is showing is the headline and is **not** in the row, so the small word and the
+ * large one are never the same claim at the same time: the small word is a category preparing, the
+ * headline is the category standing. The first word fills across `TIMING.work.queue.holds`; when it is
+ * full it is promoted —
  *
- * ## It runs only while the Work is on screen
+ *   1. it leaves the row on the dip's own `out`, as the headline leaves the frame;
+ *   2. the row moves up while the frame is empty, and the category that was showing re-enters at the
+ *      tail;
+ *   3. the content — headline, caption, photograph — changes on the dip's own signal, in the gap;
+ *   4. once the new headline has arrived, the next word starts to fill.
  *
- * It watches `data-work` on the root — the driver's own answer to *is this section composed* — with a
- * `MutationObserver`. The carousel advances while the Work is on screen and is otherwise stopped at its
- * first experience, so re-entering the section always begins on `venice`, the plate the film's own last
- * frame already is.
+ * **The headline never travels.** It stays on the left margin at its own height; the row moves, and
+ * only horizontally, only inside itself. No dots, no counter, no arrows, no bars.
  *
- * **`--state` is the wrong gate and was the second attempt.** The Work is composed across the tail of
- * junction 08 → 09, where the state is still 8, so gating on state 9 left the clock stopped for eleven
- * seconds of parking inside the section. Measured in Chrome.
+ * ## Two axes, and scroll is still only one of them
  *
- * **An `IntersectionObserver` cannot do this and was the first attempt.** `.v2` is a *fixed* layer, so
- * `.v2-work` intersects the viewport from the first frame of the session whatever the scroll position
- * is: the clock started at page load and the section opened on `Art experiences` instead of on the
- * photograph the film had just ended on. Measured in Chrome.
+ * Scroll owns entry and exit of the section and nothing else: it never changes the category. The queue
+ * runs on a clock, which C8 reserves for what the visitor did not cause, and **only while the section is
+ * composed** (`data-work`). Pressing a word completes it and promotes it — the press follows the same
+ * rule the clock does — and the queue carries on from there.
  *
- * Watching the state is not the carousel being scroll-driven. Scroll owns **entry and exit** of the
- * section, which is what the design owner reserved for it; which experience is showing is the clock's.
+ * ## What is state and what is not
  *
- * ## What it is not
- *
- * **No dots, no pagination, no thumbnails, no cards, no slider arrows.** The design owner's list, and
- * it is a list of things that would make this a component. What the visitor sees is one line of type
- * changing under a label that does not, and a photograph changing under it — an exhibition moving to
- * the next room, not an interface advancing.
- *
- * `See full experience →` is a way **in**, never a way forward. It does not advance anything.
+ * `at` is the category being shown or about to be; `row` is the category the row treats as active and
+ * follows `at` once the promoted word has left; `shown` is what the content displays and changes inside
+ * the gap. The fill is **not** React state — it is written to one custom property every frame, the way
+ * the driver writes scroll, so the clock never re-renders the section.
  */
+
+type ProjectId = keyof typeof projects
+
+const { makes } = site.three.work
+const categories = makes.categories
+const count = categories.length
+const wrap = (i: number) => ((i % count) + count) % count
+const workOf = (i: number) => projects[categories[i].work as ProjectId]
+/** The optional line above the name — only some captions carry one. */
+const labelOf = (work: ReturnType<typeof workOf>) => ('label' in work.context ? work.context.label : null)
+const linesOf = (work: ReturnType<typeof workOf>) =>
+  work.context.meta.length + (work.experienceUrl ? 1 : 0) + (labelOf(work) ? 1 : 0)
+
+/*
+  **The tallest caption, chosen rather than named** — the most lines, counting the offer where the work
+  has somewhere to go and the line above the name where there is one. `.v2-ident-set`s are stacked on
+  one origin so the corner cannot shift when the category changes, which leaves `.v2-ident` itself
+  measuring zero; this copy, in flow and hidden, is what gives it a height. The same construction `.v2-make-ghost` uses, for the same reason.
+*/
+const tallest = categories
+  .map((_, i) => workOf(i))
+  .reduce((a, b) => (linesOf(b) > linesOf(a) ? b : a))
+
+const longest = categories.map((c) => c.headline).reduce((a, b) => (b.length > a.length ? b : a))
+
 export default function WorkExperiences() {
-  const { makes } = site.three.work
   const [at, setAt] = useState(0)
+  const [row, setRow] = useState(0)
+  const [shown, setShown] = useState(0)
+  const [swapping, setSwapping] = useState(false)
   const [live, setLive] = useState(false)
+  const [widths, setWidths] = useState<number[]>([])
+
+  const queue = useRef<HTMLDivElement>(null)
+  const words = useRef<(HTMLButtonElement | null)[]>([])
 
   /*
-    Whether the film is standing in state 09 — the Work. `data-film-state` is written by the driver and
-    is the only thing this component reads about the page; see the note above for why an
-    `IntersectionObserver` gives the wrong answer on a fixed layer.
+    Everything the frame loop reads. Refs rather than state because the loop runs every frame and must
+    not re-render anything; `at` and `swapping` are mirrored here from state for the same reason.
+  */
+  const clock = useRef({
+    at: 0,
+    swapping: false,
+    held: false,
+    elapsed: 0,
+    /** The word the clock is filling, or -1 while an exchange runs. */
+    next: count > 1 ? 1 : -1,
+    /** A word the visitor pressed, completing on its own short ramp; -1 otherwise. */
+    pressed: -1,
+    pressedFill: 0,
+    /** The word that has just been promoted and is leaving the row, full. */
+    leaving: -1,
+  })
 
-    Leaving the state resets to the first experience, so arriving in the Work always lands on the image
-    already on screen — never mid-cycle, and never on a photograph the visitor has not been walked into.
+  const paint = () => {
+    const c = clock.current
+    const p = clamp01(c.elapsed / TIMING.work.queue.holds)
+    words.current.forEach((el, i) => {
+      if (!el) return
+      let fill = 0
+      if (i === c.leaving) fill = 1
+      else if (i === c.pressed) fill = c.pressedFill
+      else if (i === c.next) fill = p
+      el.style.setProperty('--p', String(fill))
+    })
+  }
+
+  const promote = (i: number) => {
+    const c = clock.current
+    if (c.swapping || i === c.at) return
+    c.leaving = i
+    c.pressed = -1
+    c.next = -1
+    c.elapsed = 0
+    c.swapping = true
+    paint()
+    setAt(i)
+  }
+
+  /*
+    ── Whether the section is composed ─────────────────────────────────────────────────────────────
+
+    `data-work` is the driver's own answer to *is the Work on screen*, and it gates two things: whether
+    the clock runs, and whether the words can be pressed or reached by keyboard. It never resets the
+    category — the design owner ruled that scroll does not change what is showing.
+
+    `--state` and an `IntersectionObserver` are both wrong gates, measured: the Work is composed across
+    the tail of junction 08 → 09 where the state is still 8, and `.v2` is a fixed layer that intersects
+    the viewport from the first frame of the session.
   */
   useEffect(() => {
     const root = document.documentElement
-    const read = () => {
-      const here = root.dataset.work === 'on'
-      setLive(here)
-      if (!here) setAt(0)
-    }
+    const read = () => setLive(root.dataset.work === 'on')
     read()
     const mo = new MutationObserver(read)
     mo.observe(root, { attributes: true, attributeFilter: ['data-work'] })
@@ -78,137 +148,323 @@ export default function WorkExperiences() {
   }, [])
 
   /*
-    The clock. One interval, cleared whenever the section leaves — so nothing is running while the
-    visitor is elsewhere on the page, and a reduced-motion visitor gets the first experience and no
-    cycle at all.
+    ── The clock ────────────────────────────────────────────────────────────────────────────────────
+
+    Runs only while the section is composed. Leaving the section stops it and empties the fill, so a
+    return starts the category's time again rather than promoting on arrival.
+
+    The step is clamped: a frame loop that adds the raw delta leaps after a stall — a background tab,
+    a long task — and would promote a category the visitor never saw fill. Under reduced motion the
+    queue does not advance on its own; the words stay pressable.
   */
   useEffect(() => {
-    if (!live) return
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+    const c = clock.current
+    if (!live) {
+      c.elapsed = 0
+      paint()
       return
-    const id = window.setInterval(
-      () => setAt((n) => (n + 1) % makes.experiences.length),
-      TIMING.work.carousel.holds,
-    )
-    return () => window.clearInterval(id)
-  }, [live, makes.experiences.length])
+    }
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
+    let raf = 0
+    let last = performance.now()
+    const tick = (now: number) => {
+      const step = Math.min(now - last, 64)
+      last = now
+      if (c.pressed < 0 && !c.swapping) {
+        c.next = count > 1 ? wrap(c.at + 1) : -1
+        if (!c.held && !reduced.matches && c.next >= 0) c.elapsed += step
+        if (c.elapsed >= TIMING.work.queue.holds) {
+          c.elapsed = TIMING.work.queue.holds
+          paint()
+          promote(c.next)
+        }
+      }
+      paint()
+      raf = window.requestAnimationFrame(tick)
+    }
+    raf = window.requestAnimationFrame(tick)
+    return () => window.cancelAnimationFrame(raf)
+    // `paint` and `promote` read refs only; the loop is rebuilt when the section's presence changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [live])
 
   /*
-    ── The ground ────────────────────────────────────────────────────────────────────────────────
+    ── A press ──────────────────────────────────────────────────────────────────────────────────────
+
+    The word completes before it is promoted — from wherever the clock had it, if it was the one
+    filling. The press shows the rule rather than cutting past it: a word enters when it is full.
+  */
+  const press = (i: number) => {
+    const c = clock.current
+    if (c.swapping || c.pressed >= 0 || i === c.at) return
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const from = i === c.next ? clamp01(c.elapsed / TIMING.work.queue.holds) : 0
+    const span = reduced ? 0 : TIMING.work.queue.completes
+    c.pressed = i
+    c.pressedFill = from
+    c.next = -1
+    let t0 = -1
+    const ramp = (now: number) => {
+      if (t0 < 0) t0 = now
+      const k = span > 0 ? clamp01((now - t0) / span) : 1
+      c.pressedFill = from + (1 - from) * smoothstep(k)
+      paint()
+      if (k < 1) window.requestAnimationFrame(ramp)
+      else promote(i)
+    }
+    window.requestAnimationFrame(ramp)
+  }
+
+  /*
+    ── The exchange ─────────────────────────────────────────────────────────────────────────────────
+
+    **One attribute carries the dip** — `data-swapping` on the root, which the headline, the caption and
+    the Environment's dim all read — and three moments inside it:
+
+      out                  the promoted word has left with the headline → the row recomposes
+      out + exchange.at    the frame is empty and at the dim floor → the content changes, all of it
+      out + gap + in       the new headline has arrived → the next word starts to fill
+
+    Guarded by the previous value rather than a mounted flag, so a development double-invocation of the
+    effect cannot run an exchange on mount.
+  */
+  const previous = useRef(at)
+  useEffect(() => {
+    if (previous.current === at) return
+    previous.current = at
+    const k = TIMING.work.carousel
+    const root = document.documentElement
+    const c = clock.current
+    c.at = at
+    setSwapping(true)
+    root.dataset.swapping = '1'
+    const timers = [
+      window.setTimeout(() => setRow(at), k.out),
+      window.setTimeout(() => setShown(at), k.out + k.exchange.at),
+      window.setTimeout(() => {
+        setSwapping(false)
+        root.dataset.swapping = '0'
+      }, k.out + k.gap),
+      window.setTimeout(() => {
+        c.leaving = -1
+        c.elapsed = 0
+        c.swapping = false
+      }, k.out + k.gap + k.in),
+    ]
+    return () => timers.forEach((t) => window.clearTimeout(t))
+  }, [at])
+
+  /*
+    ── The row's measure ────────────────────────────────────────────────────────────────────────────
+
+    The words are placed from their own widths, which change with the viewport (the type is `clamp`ed
+    on `vw`) and with the face loading. Observed rather than read once — a width read at mount goes stale
+    the moment the frame changes size.
+  */
+  useLayoutEffect(() => {
+    const measure = () => setWidths(words.current.map((el) => (el ? el.getBoundingClientRect().width : 0)))
+    measure()
+    const ro = new ResizeObserver(measure)
+    words.current.forEach((el) => el && ro.observe(el))
+    document.fonts?.ready.then(measure)
+    return () => ro.disconnect()
+  }, [])
+
+  /*
+    ── The row's order ──────────────────────────────────────────────────────────────────────────────
+
+    **The next category is always first**, directly above the headline it will become; the rest follow
+    in the order they will come; the category that is showing is last and not drawn. When `row` moves,
+    the promoted word — already gone — is placed at the tail without a transition, and everything else
+    slides to its new place while the returning word writes itself in.
+
+    If the row is wider than the room the frame leaves it, it runs on past the edge and fades there
+    rather than wrapping: the queue continues, it does not become a second line.
+  */
+  const placed = useRef(row)
+  useLayoutEffect(() => {
+    const el = queue.current
+    if (!el || widths.length !== count) return
+    const gap = parseFloat(getComputedStyle(el).fontSize) * 1.6
+    const jumped = placed.current !== row ? row : -1
+    placed.current = row
+    let x = 0
+    for (let k = 1; k <= count; k++) {
+      const i = wrap(row + k)
+      const word = words.current[i]
+      if (!word) continue
+      if (i === jumped) word.dataset.instant = ''
+      word.style.setProperty('--x', `${x}px`)
+      if (i !== row) x += widths[i] + gap
+    }
+    const room = window.innerWidth - el.getBoundingClientRect().left - 16
+    const runs = x - gap > room
+    if (runs) {
+      el.dataset.overflow = ''
+      el.style.setProperty('--queue-room', `${room}px`)
+    } else {
+      delete el.dataset.overflow
+    }
+    if (jumped >= 0) {
+      const word = words.current[jumped]
+      if (word) {
+        void word.offsetWidth
+        delete word.dataset.instant
+      }
+    }
+  }, [row, widths])
+
+  /*
+    ── The ground ───────────────────────────────────────────────────────────────────────────────────
 
     **The photograph is the Environment's, not this component's.** `--exp-src` and `--exp-at` are
-    written on the root and `.env-plate-experience` draws them; the carousel decides *which* experience,
-    and the Environment stays the one thing that owns the ground.
-
-    The first experience is `venice`, which the Environment is already showing at state 09 — so this
-    layer stays transparent for it. That is what makes the entry into the Work a bridge and not a
-    cross-fade: there is nothing to fade into, because the photograph the section arrives on is the
-    photograph the film ended on.
-
-    Drawing it inside the film layer was the first attempt and it was wrong: `.v2` is at 0.84 by the
-    time the Work is composed, so the plate composited over the ground rather than being one and venice
-    showed through. Measured in Chrome.
+    written on the root and `.env-plate-experience` draws them. The first category stands on the plate
+    the film ends on, so that layer stays transparent for it — the entry into the Work is a bridge, not
+    a cross-fade. `.v2` is at 0.84 by the time the Work is composed, so a plate drawn in here would
+    composite over the ground instead of being one; measured in Chrome.
   */
   useEffect(() => {
     const root = document.documentElement
-    const id = makes.experiences[at] as keyof typeof projects
-    const first = at === 0
+    const first = shown === 0
     root.style.setProperty('--exp-at', first ? '0' : '1')
-    if (!first) root.style.setProperty('--exp-src', `url(${projects[id].plate})`)
-  }, [at, makes.experiences])
+    if (!first) root.style.setProperty('--exp-src', `url(${workOf(shown).plate})`)
+    /*
+      **And what the rail needs over this plate.** Which ink to be printed in, how much dark wash, and
+      how much light lift — all three are functions of what is actually standing behind the Ledger, and
+      here that is whichever project the clock is showing. The Environment cannot know it: this is the
+      one ground on the site that changes on time rather than on scroll.
+
+      The project's three measurements are in `content/site.ts`; the curves are `motion/environment.ts`;
+      `globals.css` blends these with the Environment's own by `--exp-at`.
+
+      **The ink crosses inside the film's own dip.** `--work-swap` is 0 in the middle of the exchange —
+      it is what stops two categories being legible together — and this is written on the same beat, so
+      the rail changing register is never seen happening any more than the category is.
+    */
+    const rail = workOf(shown).rail
+    root.style.setProperty('--exp-lit', String(railLitFor(rail.mid)))
+    root.style.setProperty('--exp-field', String(railFieldFor(rail.lum)))
+    root.style.setProperty('--exp-lift', String(railLiftFor(rail.floor)))
+  }, [shown])
+
+  const hold = (held: boolean) => {
+    clock.current.held = held
+  }
 
   return (
-    <>
-      {/*
-        ── The editorial block ──────────────────────────────────────────────────────────────────────
-        label → idea → action, and the hierarchy is the reading order.
-
-        The label and the offer are fixed. Only the middle line changes, which is what makes this read
-        as one line of type being revised rather than as a slide advancing.
-      */}
-      <div className="v2-work-type">
-        <div className="v2-make">
+    <div className="v2-work-type">
+      <div className="v2-make">
         <p className="v2-make-label">{makes.label}</p>
 
         {/*
-          The category, and it is the protagonist. A stack rather than a sequence: every experience is
-          absolutely positioned on the same origin, so the block's height is the tallest of them and the
-          label above and the offer below cannot shift when it changes. Laying them out in flow would
-          make the composition a function of which word happens to be lit.
+          ── The queue ────────────────────────────────────────────────────────────────────────────
+          Each word is drawn twice on one origin: the waiting ink, and a full-ink copy uncovered from
+          the left by `--p`. The fill is the word itself, not a mark beside it.
+        */}
+        <div
+          ref={queue}
+          className="v2-queue"
+          aria-label={makes.label}
+          aria-hidden={live ? undefined : true}
+          onPointerEnter={() => hold(true)}
+          onPointerLeave={() => hold(false)}
+          onFocus={() => hold(true)}
+          onBlur={() => hold(false)}
+        >
+          {categories.map((c, i) => {
+            const state =
+              i === row ? 'active' : i === at ? 'leaving' : !swapping && i === wrap(at + 1) ? 'next' : 'waiting'
+            const reachable = live && (state === 'next' || state === 'waiting')
+            return (
+              <button
+                key={c.word}
+                ref={(el) => {
+                  words.current[i] = el
+                }}
+                type="button"
+                className="v2-queue-word"
+                data-state={state}
+                aria-label={c.headline}
+                aria-hidden={reachable ? undefined : true}
+                tabIndex={reachable ? undefined : -1}
+                onClick={() => press(i)}
+              >
+                <span className="v2-queue-base">{c.word}</span>
+                <span className="v2-queue-fill" aria-hidden="true">
+                  {c.word}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+
+        {/*
+          The category, and it is the protagonist. A stack rather than a sequence: every headline is on
+          one origin, with an invisible copy of the longest in flow, so the block's size never depends on
+          which one is lit.
         */}
         <span className="v2-make-slot">
-          {/*
-            An invisible copy of the longest category, in flow, so the slot has a real box before any
-            live one is lit. The same construction the sentence's survivor used, and for the same
-            reason: layout must not depend on state.
-          */}
           <span className="v2-make-ghost" aria-hidden="true">
-            {makes.experiences
-              .map((id) => projects[id as keyof typeof projects].category)
-              .reduce((a, b) => (b.length > a.length ? b : a))}
+            {longest}
           </span>
-          {makes.experiences.map((id, i) => (
+          {categories.map((c, i) => (
             <span
-              key={id}
+              key={c.word}
               className="v2-make-word"
-              data-lit={at === i ? '1' : '0'}
-              aria-hidden={at === i ? undefined : true}
+              data-lit={shown === i ? '1' : '0'}
+              aria-hidden={shown === i ? undefined : true}
             >
-              {projects[id as keyof typeof projects].category}
+              {c.headline}
             </span>
           ))}
         </span>
-
-        {/*
-          The offer. One line for the whole section — a way into the experience that is showing, never a
-          way to the next one.
-
-          **It stands on every experience and is inert where there is no work behind it yet.** Dropping
-          the line entirely was the first attempt and it was wrong twice over: the block lost its third
-          row whenever `Art experiences` was showing, so the composition changed height and rhythm with
-          the content, and the section stopped saying the same thing about both. `contact.write.address`
-          and `three.work.url` set the convention — the line renders composed and does not promise a
-          press it cannot honour.
-        */}
-        {(() => {
-          const url = projects[makes.experiences[at] as keyof typeof projects].experienceUrl
-          return url === null ? (
-            <p className="v2-make-cta" data-inert="">
-              {makes.cta}
-            </p>
-          ) : (
-            <a className="v2-make-cta" href={url} target="_blank" rel="noreferrer">
-              {makes.cta}
-            </a>
-          )
-        })()}
       </div>
 
-        {/*
-        ── The identification ───────────────────────────────────────────────────────────────────────
-        Who and what the photograph is. Lower right, small, and deliberately not competing with the
-        block on the left: a caption on a picture rather than a title over it.
-
-        It carries the experience that is showing, so the metadata and the image can never disagree —
-        the old composition read `context` off `activeProject` and would have kept a wedding's date
-        under a painter's photograph.
+      {/*
+        ── The identification ─────────────────────────────────────────────────────────────────────
+        Who and what the photograph is, and the way into it where there is one. Lower right, small: a
+        caption on a picture rather than a title over it. The offer belongs to the work, so it lives
+        here and is simply absent where the work has nowhere to go yet.
       */}
-        <div className="v2-ident">
-        {makes.experiences.map((id, i) => {
-          const project = projects[id as keyof typeof projects]
+      <div className="v2-ident">
+        <div className="v2-ident-ghost" aria-hidden="true">
+          {labelOf(tallest) && <p className="v2-ident-line">{labelOf(tallest)}</p>}
+          <p className="v2-ident-name">{tallest.context.identity}</p>
+          {tallest.context.meta.map((line) => (
+            <p className="v2-ident-line" key={line}>
+              {line}
+            </p>
+          ))}
+          {tallest.experienceUrl && <span className="v2-ident-open">{makes.cta}</span>}
+        </div>
+
+        {categories.map((c, i) => {
+          const work = workOf(i)
+          const lit = shown === i
           return (
-            <div key={id} className="v2-ident-set" data-lit={at === i ? '1' : '0'}>
-              <p className="v2-ident-name">{project.context.identity}</p>
-              {project.context.meta.map((line) => (
+            <div key={c.word} className="v2-ident-set" data-lit={lit ? '1' : '0'} aria-hidden={lit ? undefined : true}>
+              {labelOf(work) && <p className="v2-ident-line">{labelOf(work)}</p>}
+              <p className="v2-ident-name">{work.context.identity}</p>
+              {work.context.meta.map((line) => (
                 <p className="v2-ident-line" key={line}>
                   {line}
                 </p>
               ))}
+              {work.experienceUrl && (
+                <a
+                  className="v2-ident-open"
+                  href={work.experienceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  tabIndex={lit && live ? undefined : -1}
+                >
+                  {makes.cta}
+                </a>
+              )}
             </div>
           )
         })}
-        </div>
       </div>
-    </>
+    </div>
   )
 }

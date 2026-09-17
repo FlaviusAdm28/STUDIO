@@ -61,6 +61,21 @@ const settings: ReadonlyArray<readonly [string, string]> = [
   ['--fade-nav-hover', `${navHover.fade}ms`],
 
   /*
+    ── The rail's chapter exchange · `TIMING.publication.chapter` ──────────────────────────────────
+
+    The promoted word grows and the demoted word shrinks, in both places at once, so the exchange is
+    legible as a change of **rank** and never as something crossing the frame. Three durations and two
+    scales; `globals.css` holds the scales because they are composition, and `timing.ts` holds these
+    because they are time.
+
+    Outside `--haste`, like every other interface duration: the opening's impatience has nothing to do
+    with the rail.
+  */
+  ['--rail-out', `${TIMING.publication.chapter.out}ms`],
+  ['--rail-in', `${TIMING.publication.chapter.in}ms`],
+  ['--rail-lag', `${TIMING.publication.chapter.lag}ms`],
+
+  /*
     ── The Work's carousel · `TIMING.work.carousel` ────────────────────────────────────────────────
 
     The one clock in the film, and C8 is what allows it: *time owns only what the visitor did not
@@ -72,18 +87,45 @@ const settings: ReadonlyArray<readonly [string, string]> = [
     plus the gap — so the two are never legible together. Cross-fading them held both categories
     readable for 780ms, measured in Chrome.
 
-    **The photograph is slower and later.** The type has already changed by the time the image settles,
-    which is the only precedence in the section.
+    **The photograph is exchanged inside the dim, not across it.** `--fade-exp-plate` is short and the
+    component makes the change `carousel.exchange.at` into the gap, so the cross-fade both starts and
+    finishes while the room is down and the two works are never seen dissolving through each other. It
+    used to run 1,250ms from the press in full light, which finished the picture 550ms before the new
+    category had arrived.
 
     Outside `--haste`, like every other interface duration: the visitor cannot hurry an exhibition.
   */
-  ['--fade-exp-plate', `${TIMING.work.carousel.plate}ms`],
-  ['--fade-exp-out', `${TIMING.work.carousel.type.out}ms`],
-  ['--fade-exp-in', `${TIMING.work.carousel.type.in}ms`],
-  [
-    '--wait-exp-in',
-    `${TIMING.work.carousel.type.out + TIMING.work.carousel.type.gap}ms`,
-  ],
+  ['--fade-exp-plate', `${TIMING.work.carousel.exchange.over}ms`],
+  ['--fade-exp-out', `${TIMING.work.carousel.out}ms`],
+  ['--fade-exp-in', `${TIMING.work.carousel.in}ms`],
+  ['--wait-exp-in', `${TIMING.work.carousel.out + TIMING.work.carousel.gap}ms`],
+  /** How far the room goes down while the work is changed — `.env-experience-dim` reads it. */
+  ['--exp-dim', `${TIMING.work.carousel.dim}`],
+  /*
+    The queue (C14). The promoted word leaves on `--fade-exp-out`, with the headline; the row then moves
+    up across `--fade-queue-move` and the returning word writes itself in over the same span. The fill is
+    not a transition — `work-experiences.tsx` writes it every frame from the clock.
+  */
+  ['--fade-queue-move', `${TIMING.work.queue.moves}ms`],
+
+  /*
+    About (state 10). Scroll starts each group (`data-about`, written by the driver) and these durations
+    resolve it; the settle and the release are fractions of `--jp9` and `--jp10`, turned into ramps by one
+    `clamp()` each. `TIMING.about` argues every number; the superimpose window is read by
+    `motion/environment.ts`, not here.
+  */
+  ['--fade-about-statement', `${TIMING.about.arrives.ms.statement}ms`],
+  ['--fade-about-support', `${TIMING.about.arrives.ms.support}ms`],
+  ['--fade-about-detail', `${TIMING.about.arrives.ms.detail}ms`],
+  ['--step-about', `${TIMING.about.arrives.ms.stagger}ms`],
+  ['--fade-about-leave', `${TIMING.about.arrives.ms.leaves}ms`],
+  ['--about-settle-at', `${TIMING.about.settle[0]}`],
+  ['--about-settle-over', `${TIMING.about.settle[1] - TIMING.about.settle[0]}`],
+  ['--about-push', `${TIMING.about.push}`],
+  ['--about-here-at', `${TIMING.about.presence[0]}`],
+  ['--about-here-over', `${TIMING.about.presence[1] - TIMING.about.presence[0]}`],
+  ['--about-release-at', `${TIMING.about.release[0]}`],
+  ['--about-release-over', `${TIMING.about.release[1] - TIMING.about.release[0]}`],
 
   /*
     The publication's interface timing: a question answering. Outside --haste for the reason `navHover` is,

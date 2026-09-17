@@ -108,12 +108,12 @@ export default function States() {
 
         Two blocks with two different jobs, and the difference between them is the whole composition:
 
-          the editorial block    label → category → offer. Left margin, at the height the narrative
+          the editorial block    label → queue → category. Left margin, at the height the narrative
                                  stood at, so the eye does not travel to find it.
-          the identification     who and what the photograph is. Lower right, small, discreet — a
-                                 caption on a picture, not a title over it.
+          the identification     who and what the photograph is, and the way into it. Lower right,
+                                 small, discreet — a caption on a picture, not a title over it.
 
-        `WorkExperiences` is a client component because the carousel holds a clock (`TIMING.work`), and
+        `WorkExperiences` is a client component because the queue holds a clock (`TIMING.work.queue`), and
         it owns the second experience's plate for the same reason. Everything else here is static.
       */}
       <div className="v2-work">

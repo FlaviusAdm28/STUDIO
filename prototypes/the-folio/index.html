@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prototype — The Folio · A B C</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Schibsted+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================================
+   THE FOLIO — one idea, three interpretations.
+
+   ACTIVE CHAPTER + RUNNING HEADER + FOLIO. The section being read is promoted
+   out of the list and set as the running header with its folio; the other four
+   stand under it as the index. `III — STUDIO` is gone, and so are the leader
+   rules, the dots, the bars, the arrows and the underlines.
+
+   ── WHERE THE GRAMMAR COMES FROM ──────────────────────────────────────────
+
+   Not from this file. The Work section already sets this exact composition,
+   seen in Chrome at state 09:
+
+       WHAT WE ACTUALLY MAKE          eyebrow · 9.5px · 0.26em · 66% ink
+       ARTISTS  SELECTED PROJECTS     the queue · same register · 28% at rest
+       Wedding experiences            the protagonist · Cormorant 300 · 38px
+
+   A label register, an index of what is not showing, and one word at reading
+   size. That is the running header and folio the brief is asking for, already
+   designed, already approved, already on the page. The rail is built as its
+   twin in the left margin — the same three registers turned into a column —
+   so it reads as the same publication rather than as a navigation bolted on.
+
+   ── THE ONE THING THAT MAKES THE TRANSFORMATION POSSIBLE ──────────────────
+
+   The five sections keep one canonical order, and the list is that order with
+   the active one taken out. Which means moving from one chapter to the next
+   changes **exactly one row of the list** — the row standing at the arriving
+   chapter's own index now holds the departing one. Everything else is still.
+
+       Work · 01      About · 02          the list's rows 2, 3 and 4 do not
+       About          Work                move, do not reflow, and are not
+       Method         Method              redrawn. One row changes. One
+       Questions      Questions           header changes. One folio changes.
+       Contact        Contact
+
+   So nothing has to travel across the composition for the exchange to read.
+   Three slots substitute in place, and the whole apparent recomposition is
+   carried by three words changing on fixed axes. That is the trick, and it is
+   a compositional one rather than an animated one.
+
+   ── WHAT DIFFERS BETWEEN A, B AND C ───────────────────────────────────────
+
+   A · RE-SETTING    the promoted word grows and the demoted word shrinks, in
+                     both places at once — the exchange is legible as scale.
+   B · THE FRONTIER  one soft edge crosses the whole block, erasing the old
+                     setting and inking the new one behind it. One movement.
+   C · THE IMPRESSION the new word strikes first and the old one stays a beat
+                     as an offset ghost, the way a second impression lands on
+                     the first; the forme knocks 2.5px into register.
+
+   Every duration, delay and curve is in ONE block below — §TIMING. Nothing in
+   this file authors a time anywhere else, which is the project's own rule.
+   ========================================================================= */
+
+@property --f { syntax:'<number>'; inherits:true; initial-value:1 }
+
+:root{
+  --serif:'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --sans:'Schibsted Grotesk', ui-sans-serif, system-ui, 'Segoe UI', Helvetica, sans-serif;
+
+  /*
+    The rail's two inks, taken from the running build (`globals.css`, `.ledger`):
+    the film's warm cream, and the page's near-black. The rail already crosses
+    between them — that is shipped, not proposed — so all three directions get
+    it for free and are judged on paper as well as on a photograph.
+  */
+  --ink-film: 242 236 224;
+  --ink-page: 15 14 12;
+  --ink-rgb: var(--ink-film);
+
+  /*
+    The axis, and it is V2's own x38 rather than a round number:
+    `padding-left: calc(38 / 1440 * 100vw)` in the shipped rail. The vertical
+    is the same file's `top: calc(236 / 760 * 100dvh)`.
+  */
+  --mark-x: max(1.5rem, calc(38 / 1440 * 100vw));
+  --rail-y: calc(236 / 760 * 100%);
+
+  /* ── §TIMING ─────────────────────────────────────────────────────────────
+     The whole choreography. `--speed` is the harness's slow motion and is the
+     only thing that ever multiplies these.
+  */
+  --speed: 1;
+  --curve: cubic-bezier(0.32, 0, 0.24, 1);
+  --curve-ink: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  --t-out:      calc(220ms * var(--speed));   /* the departing setting        */
+  --t-in:       calc(340ms * var(--speed));   /* the arriving setting         */
+  --t-in-lag:   calc(90ms  * var(--speed));   /* how far behind it arrives    */
+  --t-frontier: calc(560ms * var(--speed));   /* B — the edge crossing        */
+  --t-strike:   calc(150ms * var(--speed));   /* C — the impression landing   */
+  --t-ghost:    calc(460ms * var(--speed));   /* C — the first one letting go */
+  --t-knock:    calc(400ms * var(--speed));   /* C — the forme into register  */
+  --t-open:     calc(420ms * var(--speed));   /* 390 — the tab expanding      */
+  --t-row-lag:  calc(45ms  * var(--speed));   /* 390 — row to row             */
+  --t-hover:    160ms;                        /* interface, never narrative   */
+
+  --chrome-bg:#0d0d0c;
+  --chrome-ink:#cfcabd;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:#0a0a09;font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden}
+
+/* ── The stage ───────────────────────────────────────────────────────────── */
+
+.deck{position:fixed;inset:0;display:grid;place-items:center;padding:0 0 92px}
+.stage{position:relative;width:100%;height:100%;overflow:hidden;background:#111}
+.deck[data-w="390"] .stage{width:390px;height:844px;max-height:calc(100% - 8px);outline:1px solid rgb(255 255 255 / .12)}
+
+.ground{position:absolute;inset:0;background-size:cover;background-position:center}
+.stage[data-ground="venice"]   .ground{background-image:url(/media/projects/venice/venice.png)}
+.stage[data-ground="studio"]   .ground{background-image:url(/media/studio/image19aug26.png)}
+.stage[data-ground="selected"] .ground{background-image:url(/media/projects/selected/selected.png)}
+.stage[data-ground="paper"]    .ground{background:#f4f1e9}
+.stage[data-ground="black"]    .ground{background:#070706}
+
+.stage[data-ground="paper"]{--ink-rgb:var(--ink-page)}
+
+/*
+  The veil. Not part of any direction — the top-left of the venice plate is the
+  brightest eighth of the brightest plate on the site and no caption-register
+  ink survives there unaided. It is here so legibility is judged honestly
+  rather than flattered.
+*/
+.stage[data-veil="on"]:not([data-ground="paper"])::before{
+  content:'';position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:
+    linear-gradient(to bottom, rgb(12 10 8 / .30), transparent 46%),
+    linear-gradient(to right,  rgb(12 10 8 / .30), transparent 34%);
+}
+
+/* ============================================================================
+   THE RAIL — shared skeleton
+   ========================================================================= */
+
+.rail{
+  position:absolute;
+  left:var(--mark-x);
+  top:var(--rail-y);
+  z-index:6;
+  color:rgb(var(--ink-rgb) / 1);
+  user-select:none;
+}
+
+.rail a,.rail button{text-decoration:none;color:inherit;font:inherit;letter-spacing:inherit;
+  background:none;border:0;padding:0;margin:0;text-align:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+/*
+  A slot. Two settings on one origin: the arriving one in flow-independent
+  absolute position, the departing one behind it. The box is declared by the
+  column, never by the word, so a longer word can leave while a shorter one
+  arrives and nothing in the composition twitches.
+*/
+.slot{position:relative;display:block;width:100%}
+.slot::before{content:'\00a0';visibility:hidden}
+.slot > .s{position:absolute;left:0;top:0;white-space:nowrap;will-change:transform,opacity}
+.slot[data-align="right"] > .s{left:auto;right:0}
+.slot > .out{opacity:0}
+
+/*
+  The press area is the row and the row alone: a block the full width of the
+  declared column, with block padding taken back out by a negative margin so
+  the rhythm is still set by the type. Nothing inside a row may take the mouse,
+  and no state a row enters may change this box.
+*/
+.w{position:relative;display:block;width:100%;margin-block:-.4rem;padding:.4rem 0;cursor:pointer}
+.w > *{pointer-events:none}
+.w:focus-visible{outline:1px solid rgb(var(--ink-rgb) / .5);outline-offset:.4rem}
+.head{display:block;width:100%;text-align:left}
+
+.idx{margin:0;padding:0;list-style:none;width:100%}
+
+/* ============================================================================
+   A — RE-SETTING
+
+   The most typographic of the three, and the closest reading of the Work
+   block: the folio in the eyebrow's exact register, the chapter at reading
+   size in Cormorant, the four remaining sections as a fine texture of tracked
+   capitals under it. Nothing else. No rule, no mark, no punctuation.
+
+   The transformation is the concept made visible. A word being promoted grows
+   — in the list, as it leaves, and in the header, as it arrives. A word being
+   demoted shrinks in both places. Twelve per cent, never more: enough that the
+   eye registers a change of rank, far too little to read as movement. At a
+   glance the two words simply swapped; watched, one of them was set larger.
+   ========================================================================= */
+
+.rail[data-v="A"]{width:12.5rem}
+.rail[data-v="A"] .folio{
+  font-size:clamp(.5625rem, calc(9.5 / 1440 * 100vw), .8125rem);
+  letter-spacing:.26em;text-transform:uppercase;font-weight:400;
+  color:rgb(var(--ink-rgb) / .44);
+}
+.rail[data-v="A"] .title{
+  font-family:var(--serif);font-weight:300;line-height:1.06;
+  font-size:clamp(1.5rem, calc(30 / 1440 * 100vw), 2.25rem);
+  color:rgb(var(--ink-rgb) / .97);
+  margin-top:.34rem;
+}
+.rail[data-v="A"] .idx{margin-top:1.55rem;display:flex;flex-direction:column;gap:.2rem}
+.rail[data-v="A"] .w{
+  font-size:clamp(.5625rem, calc(9.5 / 1440 * 100vw), .8125rem);
+  letter-spacing:.24em;text-transform:uppercase;font-weight:400;line-height:1.9;
+}
+/*
+  The Work section's queue rests at 28% because it is a caption; this is a
+  navigation and has to be read from the corner of the eye. 44% measured legible
+  on the veiled venice plate — the site's own worst ground — and still sits a
+  register below the chapter above it.
+*/
+.rail[data-v="A"] .w .slot > .s{color:rgb(var(--ink-rgb) / .44);transition:color var(--t-hover) var(--curve)}
+.rail[data-v="A"] .w:hover .slot > .in{color:rgb(var(--ink-rgb) / .88)}
+
+/* The law: promoted grows, demoted shrinks, in both places. */
+.rail[data-v="A"] .slot[data-swap] > .in{
+  animation:a-in var(--t-in) var(--curve) var(--t-in-lag) both;
+  --from:1;
+}
+.rail[data-v="A"] .slot[data-swap][data-in="promote"] > .in{--from:.89}
+.rail[data-v="A"] .slot[data-swap][data-in="demote"]  > .in{--from:1.11}
+.rail[data-v="A"] .slot[data-swap] > .out{
+  animation:a-out var(--t-out) var(--curve) both;
+  --to:1;
+}
+.rail[data-v="A"] .slot[data-swap][data-out="promote"] > .out{--to:1.11}
+.rail[data-v="A"] .slot[data-swap][data-out="demote"]  > .out{--to:.89}
+
+@keyframes a-in{
+  from{opacity:0;transform:scale(var(--from))}
+  to  {opacity:1;transform:scale(1)}
+}
+@keyframes a-out{
+  from{opacity:1;transform:scale(1)}
+  to  {opacity:0;transform:scale(var(--to))}
+}
+.rail[data-v="A"] .slot > .s{transform-origin:0 68%}
+
+/* ============================================================================
+   B — THE FRONTIER
+
+   Architectural. One declared measure, a word at one end of it and the folio
+   at the other, and a single hairline the full width of that measure — furniture,
+   not an indicator: it never changes length, never reports anything, and is the
+   same rule on every chapter. The header is set in the grotesque rather than the
+   serif, because this direction is built out of structure instead of voice.
+
+   The transformation is one movement and not three. A soft frontier crosses the
+   whole block left to right — forward — erasing the old setting and inking the
+   new one behind it; going back, it crosses the other way. Header, folio and the
+   one changed row share the same edge, driven by a single property on the rail,
+   so they cannot drift apart. A forme being re-set in one pass.
+   ========================================================================= */
+
+.rail[data-v="B"]{width:var(--colw);--colw:13.25rem}
+.rail[data-v="B"] .head{display:grid;grid-template-columns:1fr auto;align-items:baseline;column-gap:1rem}
+.rail[data-v="B"] .title{
+  font-family:var(--sans);font-weight:500;
+  font-size:clamp(.875rem, calc(17 / 1440 * 100vw), 1.25rem);
+  letter-spacing:.09em;text-transform:uppercase;line-height:1.2;
+  color:rgb(var(--ink-rgb) / .95);
+}
+.rail[data-v="B"] .folio{
+  width:2.2rem;
+  font-size:clamp(.5625rem, calc(9.5 / 1440 * 100vw), .8125rem);
+  letter-spacing:.14em;font-weight:400;font-variant-numeric:tabular-nums;
+  color:rgb(var(--ink-rgb) / .40);
+}
+.rail[data-v="B"] .measure{
+  display:block;width:100%;height:1px;margin:.85rem 0 0;
+  background:rgb(var(--ink-rgb) / .28);
+}
+.rail[data-v="B"] .idx{margin-top:.85rem;display:flex;flex-direction:column}
+.rail[data-v="B"] .w{
+  font-size:clamp(.625rem, calc(11 / 1440 * 100vw), .875rem);
+  letter-spacing:.1em;text-transform:uppercase;font-weight:500;
+  line-height:1.65;margin-block:-.32rem;padding:.32rem 0;
+}
+.rail[data-v="B"] .w .slot > .s{color:rgb(var(--ink-rgb) / .44);transition:color var(--t-hover) var(--curve)}
+.rail[data-v="B"] .w:hover .slot > .in{color:rgb(var(--ink-rgb) / .88)}
+
+/*
+  One property, one edge. `--f` runs 0 → 1 on the rail and every slot's two
+  masks read it, so the frontier is a single position rather than three
+  agreeing schedules. `--dir` flips the reading for a move backwards.
+*/
+.rail[data-v="B"][data-swap]{animation:b-frontier var(--t-frontier) var(--curve) both}
+/*
+  **The mask box is the column, not the word.** Masks resolve their percentages
+  against the element they are painted on, so leaving them on the text spans put
+  the frontier at 76% of *each word* — four edges at four different x, which is
+  four schedules agreeing rather than one movement. Seen in Chrome mid-wipe with
+  the header already complete and the row below it still half-set.
+
+  Giving every span the column's own width makes all four mask boxes the same
+  rectangle, so `--f` is a single position on the composition. The right-aligned
+  folio gets the same box from the other end, which lands on the same rectangle
+  because its cell ends where the column does.
+*/
+.rail[data-v="B"]{--edge:2.6em}
+.rail[data-v="B"] .slot > .s{width:var(--colw)}
+.rail[data-v="B"] .slot[data-align="right"] > .s{text-align:right}
+.rail[data-v="B"] .slot > .in{
+  -webkit-mask-image:linear-gradient(var(--dir,90deg), #000 calc(var(--f) * 100%), transparent calc(var(--f) * 100% + var(--edge)));
+  mask-image:linear-gradient(var(--dir,90deg), #000 calc(var(--f) * 100%), transparent calc(var(--f) * 100% + var(--edge)));
+}
+.rail[data-v="B"] .slot[data-swap] > .out{
+  opacity:1;
+  -webkit-mask-image:linear-gradient(var(--dir,90deg), transparent calc(var(--f) * 100%), #000 calc(var(--f) * 100% + var(--edge)));
+  mask-image:linear-gradient(var(--dir,90deg), transparent calc(var(--f) * 100%), #000 calc(var(--f) * 100% + var(--edge)));
+}
+.rail[data-v="B"][data-dir="back"]{--dir:270deg}
+
+@keyframes b-frontier{ from{--f:0} to{--f:1} }
+
+/* ============================================================================
+   C — THE IMPRESSION
+
+   The Chapter One one. Every section carries a folio in lowercase roman —
+   front-matter numbering, which is what a book uses for the pages before the
+   text begins — right-aligned in a gutter of its own that sits on the site's
+   own axis, with the words hanging to the right of it. The chapter being read
+   is promoted out of the list with its numeral; the rest keep theirs, barely
+   inked, so the sequence is legible standing still without a number ever being
+   announced.
+
+   The transformation is a second impression landing on the first. The arriving
+   word strikes in 150ms; the departing one does not cross-fade with it but
+   stays a beat, offset by a hair and falling to a ghost, exactly the way a
+   misregistered plate shows what was printed before it. Then the whole forme
+   knocks 2.5px into register. At speed it reads as *it changed*; slowed down
+   it is unmistakably a press.
+   ========================================================================= */
+
+.rail[data-v="C"]{width:13.5rem;--gut:1.55rem;--gut-gap:.85rem}
+.rail[data-v="C"] .head{display:grid;grid-template-columns:var(--gut) 1fr;column-gap:var(--gut-gap);align-items:baseline}
+.rail[data-v="C"] .folio{
+  font-family:var(--serif);font-weight:300;font-style:italic;
+  font-size:clamp(.875rem, calc(16 / 1440 * 100vw), 1.1875rem);
+  color:rgb(var(--ink-rgb) / .40);
+}
+.rail[data-v="C"] .title{
+  font-family:var(--serif);font-weight:300;line-height:1.02;
+  font-size:clamp(1.625rem, calc(34 / 1440 * 100vw), 2.5rem);
+  color:rgb(var(--ink-rgb) / .97);
+}
+.rail[data-v="C"] .idx{margin-top:1.5rem;display:flex;flex-direction:column;gap:.24rem}
+.rail[data-v="C"] .w{
+  display:grid;grid-template-columns:var(--gut) 1fr;column-gap:var(--gut-gap);align-items:baseline;
+  font-size:clamp(.6875rem, calc(11.5 / 1440 * 100vw), .875rem);
+  letter-spacing:.02em;font-weight:400;line-height:1.75;
+}
+.rail[data-v="C"] .w .num{
+  font-family:var(--serif);font-style:italic;font-weight:300;
+  font-size:clamp(.6875rem, calc(12 / 1440 * 100vw), .9375rem);
+}
+/* A whisper, but a legible one: .20 disappeared entirely on a veiled sky at 390. */
+.rail[data-v="C"] .w .num > .s{color:rgb(var(--ink-rgb) / .27);transition:color var(--t-hover) var(--curve)}
+.rail[data-v="C"] .w .word > .s{color:rgb(var(--ink-rgb) / .46);transition:color var(--t-hover) var(--curve)}
+/* The hover is answered by the folio, not by a mark: the numeral comes up with the word. */
+.rail[data-v="C"] .w:hover .word > .in{color:rgb(var(--ink-rgb) / .92)}
+.rail[data-v="C"] .w:hover .num  > .in{color:rgb(var(--ink-rgb) / .52)}
+
+.rail[data-v="C"][data-swap]{animation:c-knock var(--t-knock) var(--curve) both}
+.rail[data-v="C"] .slot[data-swap] > .in{animation:c-strike var(--t-strike) var(--curve-ink) both}
+.rail[data-v="C"] .slot[data-swap] > .out{animation:c-ghost var(--t-ghost) var(--curve-ink) both}
+
+@keyframes c-strike{ from{opacity:0} to{opacity:1} }
+@keyframes c-ghost{
+  0%  {opacity:1;   transform:translate(0,0)}
+  26% {opacity:.17; transform:translate(1.1px,1.1px)}
+  100%{opacity:0;   transform:translate(1.8px,1.8px)}
+}
+@keyframes c-knock{
+  from{transform:translateY(-2.5px)}
+  to  {transform:translateY(0)}
+}
+
+/* ============================================================================
+   390 — the chapter tab
+
+   Not a drawer and not a hamburger: the same three registers, with the index
+   clipped to nothing. The header and folio stand in exactly the position they
+   will stand in when the menu is open — the same element, never re-created —
+   so opening is the tab **expanding**, with nothing sliding in from anywhere
+   and nothing arriving from off-screen.
+
+   `grid-template-rows: 0fr → 1fr` is what makes the expansion a real one: the
+   block has no height until it is asked for, so the closed state genuinely is
+   a small persistent presence rather than a hidden panel.
+   ========================================================================= */
+
+.deck[data-w="390"] .rail{top:1.9rem;left:var(--mark-x);width:calc(390px - var(--mark-x) * 2)}
+.deck[data-w="390"] .fold{display:grid;grid-template-rows:0fr;transition:grid-template-rows var(--t-open) var(--curve)}
+.deck[data-w="390"] .fold > div{overflow:hidden;min-height:0}
+.deck[data-w="390"] .rail[data-open] .fold{grid-template-rows:1fr}
+
+/*
+  The mobile veil, so the index reads over a photograph while it is out. It is
+  painted by the stage rather than by the rail: a `position:fixed` pseudo on an
+  absolutely-positioned rail resolves against the viewport, which inside a 390
+  frame is a rectangle of the wrong size and in the wrong place — seen in Chrome
+  with a hard edge down the middle of the plate.
+*/
+.deck[data-w="390"] .cell::after,
+.deck[data-w="390"] .stage::after{
+  content:'';position:absolute;inset:0;z-index:3;pointer-events:none;
+  background:linear-gradient(to bottom, rgb(10 9 8 / .66), rgb(10 9 8 / .30) 50%, transparent 78%);
+  opacity:0;transition:opacity var(--t-open) var(--curve);
+}
+.deck[data-w="390"] .cell[data-open]::after,
+.deck[data-w="390"] .stage[data-open]::after{opacity:1}
+.deck[data-w="390"] .cell[data-ground="paper"]::after,
+.deck[data-w="390"] .stage[data-ground="paper"]::after{
+  background:linear-gradient(to bottom, rgb(244 241 233 / .86), rgb(244 241 233 / .45) 50%, transparent 78%);
+}
+
+/*
+  ── The affordance ────────────────────────────────────────────────────────
+
+  Not a glyph and not a hamburger: the folio states the whole, the way a page
+  number does. `02 / 05` says there are five chapters and this is the second,
+  which is the only thing a closed tab has to say for the rest to be expected.
+
+  It lives *inside* the folio slot rather than beside it, so it crosses with
+  the direction's own transformation instead of needing one of its own — and
+  so the closed tab is one lockup rather than a lockup with a badge on it.
+*/
+.deck[data-w="390"] .rail[data-v="C"]{--gut:3.1rem}
+.deck[data-w="390"] .rail[data-v="B"] .folio{width:3.4rem}
+
+/* The rows are drawn out of the tab in the direction's own voice. */
+.deck[data-w="390"] .rail[data-open] .idx > li{animation:var(--open-anim) var(--t-in) var(--curve) both;
+  animation-delay:calc(var(--i) * var(--t-row-lag))}
+.rail[data-v="A"]{--open-anim:a-unfold}
+.rail[data-v="B"]{--open-anim:b-unfold}
+.rail[data-v="C"]{--open-anim:c-unfold}
+@keyframes a-unfold{from{opacity:0;transform:scale(.94);transform-origin:0 50%}to{opacity:1;transform:scale(1)}}
+@keyframes b-unfold{from{opacity:0;clip-path:inset(0 100% 0 0)}to{opacity:1;clip-path:inset(0 0 0 0)}}
+@keyframes c-unfold{from{opacity:0;transform:translateY(-2px)}to{opacity:1;transform:translateY(0)}}
+
+/* 44px under a thumb, everywhere. */
+.deck[data-w="390"] .rail[data-v="A"] .w{padding-block:.72rem;margin-block:-.72rem}
+.deck[data-w="390"] .rail[data-v="B"] .w{padding-block:.62rem;margin-block:-.62rem}
+.deck[data-w="390"] .rail[data-v="C"] .w{padding-block:.66rem;margin-block:-.66rem}
+.deck[data-w="390"] .head{padding-block:.5rem;margin-block:-.5rem}
+
+/* ============================================================================
+   ALL — the three side by side
+   ========================================================================= */
+.wall{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgb(255 255 255 / .09)}
+.cell{position:relative;overflow:hidden}
+.cell .ground{background-position:left top}
+.cell .tag{position:absolute;right:.7rem;bottom:.6rem;z-index:9;font-size:.5625rem;letter-spacing:.22em;
+  text-transform:uppercase;color:rgb(var(--ink-rgb) / .5);pointer-events:none}
+.cell[data-ground="paper"]{--ink-rgb:var(--ink-page)}
+.cell[data-veil="on"]:not([data-ground="paper"])::before{
+  content:'';position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:linear-gradient(to bottom, rgb(12 10 8 / .30), transparent 46%),
+             linear-gradient(to right,  rgb(12 10 8 / .30), transparent 34%);
+}
+.deck[data-w="390"] .stage:has(.wall){width:100%;height:100%}
+.deck[data-w="390"] .wall{grid-template-columns:repeat(3,390px);justify-content:center}
+
+/* ── harness chrome, deliberately undesigned ─────────────────────────────── */
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:99;display:flex;flex-wrap:wrap;align-items:center;
+  gap:.4rem 1.1rem;padding:.6rem .9rem;background:var(--chrome-bg);border-top:1px solid #232320;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--chrome-ink)}
+.bar .grp{display:flex;align-items:center;gap:.3rem}
+.bar b{font-weight:400;color:#6d6a62;letter-spacing:.1em;text-transform:uppercase;font-size:9.5px}
+.bar button{font:inherit;color:var(--chrome-ink);background:#1a1a18;border:1px solid #2e2e2a;
+  border-radius:2px;padding:.24rem .5rem;cursor:pointer}
+.bar button:hover{border-color:#4a4a44}
+.bar button[aria-pressed="true"]{background:#e8e3d6;color:#141412;border-color:#e8e3d6}
+.bar .note{flex:1 1 100%;color:#8b877d;line-height:1.45;font-size:10.5px}
+.bar .note em{color:#cfcabd;font-style:normal}
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck" data-w="desktop">
+  <div class="stage" id="stage" data-ground="venice" data-veil="on"></div>
+</div>
+
+<div class="bar">
+  <div class="grp"><b>Direction</b>
+    <button data-v="A">A Re-setting</button>
+    <button data-v="B">B Frontier</button>
+    <button data-v="C">C Impression</button>
+    <button data-v="all">All</button>
+  </div>
+  <div class="grp"><b>Chapter</b>
+    <button data-a="0">Work</button>
+    <button data-a="1">About</button>
+    <button data-a="2">Method</button>
+    <button data-a="3">Questions</button>
+    <button data-a="4">Contact</button>
+  </div>
+  <div class="grp"><b>Play</b>
+    <button data-p="run">Cycle</button>
+    <button data-s="1">1×</button>
+    <button data-s="3">0.33×</button>
+    <button data-s="8">0.12×</button>
+  </div>
+  <div class="grp"><b>Ground</b>
+    <button data-g="venice">Venice</button>
+    <button data-g="studio">Studio</button>
+    <button data-g="selected">Selected</button>
+    <button data-g="paper">Paper</button>
+    <button data-g="black">Black</button>
+  </div>
+  <div class="grp"><b>Veil</b>
+    <button data-l="on">On</button>
+    <button data-l="off">Off</button>
+  </div>
+  <div class="grp"><b>Frame</b>
+    <button data-w="desktop">Desktop</button>
+    <button data-w="390">390</button>
+  </div>
+  <p class="note" id="note"></p>
+</div>
+
+<script>
+/* ---------------------------------------------------------------------------
+   One canonical order, and the list is that order minus the active chapter.
+   Everything the transformation does follows from this and nothing else.
+--------------------------------------------------------------------------- */
+
+const CHAPTERS = [
+  { word:'Work',      folio:'01', roman:'i'   },
+  { word:'About',     folio:'02', roman:'ii'  },
+  { word:'Method',    folio:'03', roman:'iii' },
+  { word:'Questions', folio:'04', roman:'iv'  },
+  { word:'Contact',   folio:'05', roman:'v'   },
+]
+
+const NOTES = {
+  A: '<em>A · Re-setting.</em> The folio in the Work section’s own eyebrow register, the chapter in Cormorant, the four others as a texture of tracked capitals. The exchange is legible as <em>scale</em>: the promoted word grows in both places at once, the demoted word shrinks in both. Twelve per cent — a change of rank, never a movement.',
+  B: '<em>B · The frontier.</em> One declared measure, the word at one end and the folio at the other, one hairline that never changes length. A single soft edge crosses the whole block — left to right going forward, right to left coming back — erasing the old setting and inking the new one behind it. Header, folio and the one changed row share that edge, so they cannot drift.',
+  C: '<em>C · The impression.</em> Every chapter carries a lowercase-roman folio in a gutter on the site’s own axis — front-matter numbering, so the sequence is legible standing still without a number being announced. The arriving word strikes in 150ms; the departing one stays a beat as an offset ghost, the way a second impression lands on the first, and the forme knocks 2.5px into register.',
+  all: 'Three readings of one idea: active chapter promoted to a running header with its folio, the other four beneath. Press A B C to open one full frame; ← → move chapter; P cycles; S slows the transformation down; G ground; M 390.',
+}
+
+const deck  = document.getElementById('deck')
+const stage = document.getElementById('stage')
+const note  = document.getElementById('note')
+
+let variant = 'A'
+let ground  = 'venice'
+let veil    = 'on'
+let active  = 0
+let timer   = null
+
+/* ── The rail's markup. Identical in all three. ──────────────────────────── */
+
+function slot (cls, align) {
+  return `<span class="slot ${cls}"${align ? ' data-align="right"' : ''}><span class="s in"></span><span class="s out"></span></span>`
+}
+
+function railHTML (v) {
+  const rows = CHAPTERS.map((_, i) => `
+    <li style="--i:${i}"><a class="w" href="#" data-row="${i}">
+      ${v === 'C' ? slot('num', true) : ''}${slot('word')}
+    </a></li>`).join('')
+
+  const head =
+    v === 'A' ? `${slot('folio')}${slot('title')}`
+  : v === 'B' ? `${slot('title')}${slot('folio', true)}`
+  :             `${slot('folio', true)}${slot('title')}`
+
+  return `
+    <nav class="rail" data-v="${v}" aria-label="Chapters">
+      <button class="head" type="button" aria-expanded="false">${head}</button>
+      ${v === 'B' ? '<i class="measure" aria-hidden="true"></i>' : ''}
+      <div class="fold"><div>
+        <ul class="idx">${rows}</ul>
+      </div></div>
+    </nav>`
+}
+
+/* ── One substitution. Returns true when the slot actually changed. ──────── */
+
+function setSlot (el, text, roleIn, roleOut) {
+  if (!el) return false
+  if (el.dataset.text === text) return false
+  const first = el.dataset.text === undefined
+  el.querySelector('.out').textContent = el.dataset.text || ''
+  el.querySelector('.in').textContent = text
+  el.dataset.text = text
+  if (first) return false                       /* the first setting is not an exchange */
+  el.dataset.in = roleIn || 'plain'
+  el.dataset.out = roleOut || 'plain'
+  el.removeAttribute('data-swap')
+  void el.offsetWidth                           /* restart, so a fast cycle never skips one */
+  el.setAttribute('data-swap', '')
+  return true
+}
+
+/*
+  The list is the canonical order with the active chapter removed, so the row
+  that changes is the arriving chapter's own index. The roles are read off the
+  words themselves rather than from the direction of travel, which is what
+  makes an arbitrary jump behave as correctly as a step.
+*/
+function compose (rail, from) {
+  const v = rail.dataset.v
+  const now = CHAPTERS[active]
+  const was = from === null ? null : CHAPTERS[from]
+  const list = CHAPTERS.filter((_, i) => i !== active)
+  let changed = false
+
+  changed = setSlot(rail.querySelector('.head .title'), now.word, 'promote', 'demote') || changed
+  /*
+    On a phone the folio also carries the whole — `02 / 05` — because that is
+    the closed tab's entire affordance. It is one string in one slot, so it
+    crosses with whichever transformation the direction owns.
+  */
+  const tab = deck.dataset.w === '390'
+  const mark = v === 'C'
+    ? (tab ? `${now.roman} / v` : now.roman)
+    : (tab ? `${now.folio} / 05` : now.folio)
+  changed = setSlot(rail.querySelector('.head .folio'), mark, 'promote', 'demote') || changed
+
+  rail.querySelectorAll('.idx > li').forEach((li, i) => {
+    const c = list[i]
+    const word = li.querySelector('.word')
+    const num  = li.querySelector('.num')
+    if (!c) { li.hidden = true; return }
+    li.hidden = false
+    const roleIn  = was && c.word === was.word ? 'demote' : 'plain'
+    const roleOut = word.dataset.text === now.word ? 'promote' : 'plain'
+    changed = setSlot(word, c.word, roleIn, roleOut) || changed
+    if (num) setSlot(num, c.roman, roleIn, roleOut)
+  })
+
+  if (changed && from !== null) {
+    rail.dataset.dir = active >= from ? 'fwd' : 'back'
+    rail.removeAttribute('data-swap')
+    void rail.offsetWidth
+    rail.setAttribute('data-swap', '')
+  }
+}
+
+/* ── Render ──────────────────────────────────────────────────────────────── */
+
+const SRC = {
+  venice:'/media/projects/venice/venice.png',
+  studio:'/media/studio/image19aug26.png',
+  selected:'/media/projects/selected/selected.png',
+}
+
+function dressCell (cell) {
+  cell.dataset.ground = ground
+  cell.dataset.veil = veil
+  const g = cell.querySelector('.ground')
+  /*
+    Longhands only. Clearing the `background` shorthand afterwards resets every
+    background property, including the image set on the line above it — which
+    left the whole wall black with the plates correctly requested and then
+    thrown away.
+  */
+  if (SRC[ground]) { g.style.backgroundColor = ''; g.style.backgroundImage = `url(${SRC[ground]})` }
+  else { g.style.backgroundImage = 'none'; g.style.backgroundColor = ground === 'paper' ? '#f4f1e9' : '#070706' }
+}
+
+function render () {
+  if (variant === 'all') {
+    stage.removeAttribute('data-ground'); stage.removeAttribute('data-veil')
+    stage.innerHTML = '<div class="wall">' + ['A','B','C'].map(v => `
+      <div class="cell"><div class="ground"></div>${railHTML(v)}<span class="tag">${v}</span></div>`).join('') + '</div>'
+    stage.querySelectorAll('.cell').forEach(dressCell)
+  } else {
+    stage.dataset.ground = ground
+    stage.dataset.veil = veil
+    stage.innerHTML = '<div class="ground"></div>' + railHTML(variant)
+  }
+  stage.querySelectorAll('.rail').forEach(r => compose(r, null))
+  note.innerHTML = NOTES[variant]
+  press()
+}
+
+function press () {
+  document.querySelectorAll('.bar button').forEach(b => {
+    const on =
+      (b.dataset.v && b.dataset.v === variant) ||
+      (b.dataset.g && b.dataset.g === ground) ||
+      (b.dataset.l && b.dataset.l === veil) ||
+      (b.dataset.a && +b.dataset.a === active) ||
+      (b.dataset.w && b.dataset.w === deck.dataset.w) ||
+      (b.dataset.s && b.dataset.s === String(speed())) ||
+      (b.dataset.p && timer !== null)
+    b.setAttribute('aria-pressed', on ? 'true' : 'false')
+  })
+}
+
+function speed () { return +getComputedStyle(document.documentElement).getPropertyValue('--speed') || 1 }
+
+function go (next) {
+  const from = active
+  active = (next + CHAPTERS.length) % CHAPTERS.length
+  stage.querySelectorAll('.rail').forEach(r => compose(r, from))
+  press()
+}
+
+/* ── Controls ────────────────────────────────────────────────────────────── */
+
+document.querySelector('.bar').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return
+  if (b.dataset.v) { variant = b.dataset.v; render(); return }
+  if (b.dataset.g) { ground = b.dataset.g; render(); return }
+  if (b.dataset.l) { veil = b.dataset.l; render(); return }
+  if (b.dataset.w) { deck.dataset.w = b.dataset.w; render(); return }
+  if (b.dataset.s) { document.documentElement.style.setProperty('--speed', b.dataset.s); press(); return }
+  if (b.dataset.a) { go(+b.dataset.a); return }
+  if (b.dataset.p) {
+    if (timer) { clearInterval(timer); timer = null }
+    else timer = setInterval(() => go(active + 1), 1700 * speed())
+    press()
+  }
+})
+
+stage.addEventListener('click', e => {
+  const head = e.target.closest('.head')
+  if (head) {
+    e.preventDefault()
+    /* The tab is a door only where it is a tab. On desktop the header is the chapter. */
+    if (deck.dataset.w !== '390') return
+    const rail = head.closest('.rail')
+    const open = rail.toggleAttribute('data-open')
+    head.setAttribute('aria-expanded', open ? 'true' : 'false')
+    const cell = rail.closest('.cell') || stage
+    cell.toggleAttribute('data-open', open)
+    return
+  }
+  const row = e.target.closest('.w')
+  if (!row) return
+  e.preventDefault()
+  const list = CHAPTERS.filter((_, i) => i !== active)
+  const picked = list[+row.dataset.row]
+  if (picked) go(CHAPTERS.findIndex(c => c.word === picked.word))
+})
+
+const GROUNDS = ['venice','studio','selected','paper','black']
+addEventListener('keydown', e => {
+  const k = e.key.toLowerCase()
+  if (k === 'a' || k === 'b' || k === 'c') { variant = e.key.toUpperCase(); render() }
+  else if (k === 'w') { variant = 'all'; render() }
+  else if (k === 'g') { ground = GROUNDS[(GROUNDS.indexOf(ground) + 1) % GROUNDS.length]; render() }
+  else if (k === 'l') { veil = veil === 'on' ? 'off' : 'on'; render() }
+  else if (k === 'm') { deck.dataset.w = deck.dataset.w === '390' ? 'desktop' : '390'; render() }
+  else if (k === 's') { const S=[1,3,8]; const n=S[(S.indexOf(speed())+1)%S.length]; document.documentElement.style.setProperty('--speed', n); press() }
+  else if (k === 'p') { document.querySelector('.bar [data-p]').click() }
+  else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); go(active + 1) }
+  else if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { e.preventDefault(); go(active - 1) }
+  else if ('12345'.includes(e.key)) { go(+e.key - 1) }
+})
+
+render()
+</script>
+</body>
+</html>

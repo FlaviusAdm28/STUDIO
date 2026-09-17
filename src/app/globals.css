@@ -302,22 +302,20 @@ html {
                     canal"*. Authored V2, and the reason this layer is a fifth wider than the frame.
       `--cam`       the promotion's slow close on the couple. It begins only after the statement has
                     been read, so there is no push under type the visitor is still reading.
-      `--cam-open`  the recompose: the framing opens to the left and the couple drifts right, which is
-                    what makes room for the rail without anything being moved out of the way.
+    **`--cam-x` and `--cam-y` are gone — 14 September 2026.** They were the recompose's lateral terms, and
+    they were pushing the plate **right by ~40px against this pan's 512px**, on a schedule of their own.
+    Two lateral systems in opposite directions is why the stretch read as effects rather than as a shot,
+    and §2's pan is the one with a column behind it. **There is one horizontal move in this frame and it
+    is `--env-pan`.**
 
-    Both camera terms complete at `TIMING.dock.camera.opens[1]` and clamp, so the index is drawn onto a
-    frame that has already stopped. The nodal point is left of the couple: left of it the frame spreads
-    outward and leaves, right of it the couple drifts right.
+    `--cam-scale` survives as a 1.6% settle. It completes at `TIMING.dock.camera.opens[1]`, with the
+    light, so the rail is written onto a frame that has already stopped.
 
-    `translate` before `scale` in the list means the percentages are of the layer's own box and the
-    scale happens about the origin afterwards — which is what keeps the pan's 20% honest.
+    `translate` before `scale` in the list means the percentage is of the layer's own box and the scale
+    happens about the origin afterwards — which is what keeps the pan's 20% honest.
   */
   transform-origin: 52% 56%;
-  transform: translate(
-      calc(-1 * var(--env-pan-throw) * var(--env-pan) + var(--cam-x, 0) * 1%),
-      calc(var(--cam-y, 0) * 1%)
-    )
-    scale(var(--cam-scale, 1));
+  transform: translate(calc(-1 * var(--env-pan-throw) * var(--env-pan))) scale(var(--cam-scale, 1));
 
   /*
     **The film's own exposure, and it overrides the Environment's column here on purpose.**
@@ -371,14 +369,131 @@ html {
   **No pan and no scale.** The film's camera has come to rest by the time this can be seen, and a plate
   that moved under a still frame would read as a second camera. The exchange is ink and nothing else.
 */
+/*
+  **The section's presence, and nothing eased.** Scroll decides whether the Work is composed, so this
+  term is a pure function of position — `--work-in` is its arrival — and the plate is present exactly
+  where the section is.
+
+  **It leaves with the ground, not with the type** — 16 September 2026. It was multiplied by
+  `--work-holds`, the Work's *type* release at [0, 0.06] of 09 → 10, so any experience but the first was
+  taken away before the studio arrived and venice stood on screen in between, whatever the visitor had
+  been looking at. It now carries `--env-venice` — the Work's ground presence, which the Environment
+  clears across `TIMING.about.superimpose` over the studio waiting beneath — so the photograph that
+  dissolves into About is the one that was showing. Still zero once 09 → 10 is through, so the selection
+  never stands as the publication's ground.
+*/
 .env-plate-experience {
+  opacity: calc(var(--work-in, 0) * var(--env-venice, 0));
+}
+
+/*
+  **Venice steps aside while it is covered.** During 09 → 10 venice and an opaque experience plate would
+  clear together, and venice would bleed through the experience as both went down. So while an
+  experience is showing (`--exp-at`), the Work is fully composed and the ground is leaving, venice's own
+  image is not drawn: what dissolves is only the photograph on top. Each term is a step, so nothing here
+  eases — and outside that window (the Work's own exchanges, the film before it) venice is untouched.
+*/
+.env-venice {
+  --work-full: clamp(0, calc((var(--work-in, 0) - 0.999) * 1000), 1);
+  --ground-leaving: clamp(0, calc((1 - var(--env-venice, 1)) * 1000), 1);
+  opacity: calc(1 - var(--exp-at, 0) * var(--work-full) * var(--ground-leaving));
+}
+
+/*
+  **Which experience the visitor chose, and this one dissolves.** A press, not a position, so it carries
+  `plate` from `TIMING.work.carousel` — slower and later than the type, because a caption revised before
+  the picture behind it settles reads as an editorial decision and both on one frame reads as a slide.
+
+  It is a separate box from its parent on purpose: sharing one `opacity` gave the scroll term above the
+  1250ms this one needs, and a fast scroll out of the Work left the photograph behind its own type.
+*/
+.env-experience-image {
+  position: absolute;
+  inset: 0;
   background-image: var(--exp-src, none);
   background-size: cover;
   background-position: center 46%;
   opacity: var(--exp-at, 0);
-  /* `plate` from `TIMING.work.carousel`, and it is slower and later than the type. */
   transition: opacity var(--fade-exp-plate) var(--curve);
   will-change: opacity;
+}
+
+/*
+  ── The Work's exchange, as one value ───────────────────────────────────────────────────────────
+
+  **`--work-swap` is how much of the Work's own type is present, and every piece of it multiplies by it.**
+
+  **The name matters and the first one was taken.** This was `--swap` for one pass, which is V1's
+  channel for the marker exchange — `scroll.ts` writes it on the root every frame and `.mark-word`,
+  `.mark-label` and `.v2-word-serif` read it. An inline value beats a stylesheet rule, so the rule below
+  never applied and the exchange simply did not happen; worse, the `:root { --swap: 1 }` it came with
+  would have overridden that channel for the elements that do depend on it. Found in the CSSOM, not on
+  screen. Check a channel name against `scroll.ts` before taking it.
+
+  It is registered so it can be *transitioned* — a bare custom property is not interpolable and would
+  step. One value, one curve, on the root: the label, the category, the offer, the caption and the
+  indicator all go down together and come back together, and none of them can drift from another.
+
+  **Why the whole block and not just the line that changes.** The first pass dipped only the category
+  and the caption, and left `WHAT WE ACTUALLY MAKE` and `See full experience →` at full ink. Seen in
+  Chrome at the floor of the dim: the label stood over an empty gap with the offer under it, which reads
+  as type that has failed to load — and an offer pointing at a work that is not on screen. A frame that
+  keeps its furniture while its contents vanish is a component swapping content. A frame that empties
+  and refills is a shot changing.
+
+  The label still never *changes*, which is what C13 reserves for it; it simply leaves with the work it
+  frames and returns with the next one.
+
+  It multiplies rather than replaces, so every element keeps its own scroll-driven arrival (`--wk-*`)
+  underneath and the two can never disagree. At rest it is 1, so nothing here depends on scripting.
+*/
+@property --work-swap {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 1;
+}
+
+:root {
+  --work-swap: 1;
+  transition: --work-swap var(--fade-exp-in) var(--curve);
+}
+
+:root[data-swapping='1'] {
+  --work-swap: 0;
+  transition: --work-swap var(--fade-exp-out) var(--curve);
+}
+
+/*
+  ── The room going down while the work is changed ───────────────────────────────────────────────
+
+  **The exchange between two works is a shot change, and this is what makes it one.**
+
+  The old exchange cross-dissolved the two photographs in full light over 1,250ms. Measured frame by
+  frame in Chrome: the picture was 46% changed at the moment the outgoing category finished leaving and
+  84% changed when the incoming one began — so the image changed itself and the words then caught up.
+  That is a slideshow's causality. Two photographs visibly dissolving through each other is also the
+  most generic move in the vocabulary, and the section had a camera on the way in and nothing here.
+
+  So the room goes down, **the work is changed in the dark**, and the room comes back up on the new one.
+  `TIMING.work.carousel` owns every number; this is only where the black is painted.
+
+  It rises over `out` with the type, holds through `gap` — which is where `--exp-at` and `--exp-src`
+  change — and falls over `in` as the new type is written. Gated on the Work's own presence for the same
+  reason the experience plate is: the selection outlives the section and nothing here may be visible
+  once the film has released it.
+*/
+.env-experience-dim {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--fade-exp-in) var(--curve);
+}
+
+:root[data-swapping='1'] .env-experience-dim {
+  opacity: calc(var(--exp-dim) * var(--work-in, 0) * var(--work-holds, 1));
+  transition: opacity var(--fade-exp-out) var(--curve);
 }
 
 .env-plate-studio {
@@ -453,6 +568,243 @@ html {
   opacity: var(--env-ground-at);
 }
 
+/*
+  ── THE RAIL'S LEGIBILITY FIELD ─────────────────────────────────────────────────────────────────
+
+  `src/motion/environment.ts` holds the measurements and the curve and argues both. What is left here
+  is where the wash is painted, what shape it has, and the two things the type does for itself.
+
+  **It is drawn as the last layer of the Environment, and that placement is the design.** It composites
+  with the plates instead of standing over them, so it is part of how the photograph is exposed rather
+  than a surface behind a menu; it is under everything else on the page, so it cannot touch the
+  publication's paper, the Work's type, the act or the register; and it crosses with the plates on
+  properties the driver already writes, so it follows the existing transitions and owns no schedule.
+
+  ## Three things keep it from reading as a rectangle
+
+  **It has no straight edge.** Six stops approximating a gaussian rather than the two-stop ramp
+  `radial-gradient` gives by default — a linear ramp leaves a shoulder the eye finds on a flat sky.
+
+  **It is the size of the type, not of the corner.** The rail's block measures 120 × 227 at 1920 × 945;
+  the pool's radii are 12rem × 15rem, so it is past half strength inside the block and gone within
+  about one block of it. Nothing outside that corner changes, which is what *localised and organic*
+  has to mean if the photograph is to stay the protagonist.
+
+  **It is usually not there at all.** On the studio plate the demand computes to zero and this element
+  paints nothing; on the artist's it is a whisper. It reaches its half only on the one plate that
+  measured 0.735, and that is the whole argument against the fixed vignette this replaced.
+*/
+:root {
+  /*
+    ── What the ground behind the rail is doing ──────────────────────────────────────────────────
+
+    Three measurements of it, each blended the same way: the Environment's plates, crossed with the
+    Work's own plate by how present that plate is. `motion/environment.ts` holds the curves that
+    produced them and argues all three.
+
+    **`--rail-on`** is the gate: there is a rail, and it is standing on a photograph. Before the dock
+    there is no rail; on paper and over warm stone the ground is not a photograph and the crossing
+    that already exists has already answered it.
+  */
+  --rail-on: calc((1 - max(var(--env-stone, 0), calc(1 - var(--page-ink, 1)))) * var(--rail-draw, 0));
+
+  --rail-lit: calc(
+    (var(--env-lit, 0) * (1 - var(--exp-at, 0)) + var(--exp-lit, 0) * var(--exp-at, 0)) *
+      var(--rail-on)
+  );
+
+  /*
+    The dark wash, and it **withdraws as the ink crosses**. Dark ink does not want a darkened ground,
+    so on a lit plate this goes to nothing and the photograph is left completely alone.
+  */
+  --rail-field: calc(
+    (var(--env-field, 0) * (1 - var(--exp-at, 0)) + var(--exp-field, 0) * var(--exp-at, 0)) *
+      var(--rail-on) * (1 - var(--rail-lit))
+  );
+
+  /*
+    And the light lift, which is the same pool in the other polarity and arrives only with the
+    crossing: it raises the darkest corner of a lit frame until dark ink clears it too.
+  */
+  --rail-lift: calc(
+    (var(--env-lift, 0) * (1 - var(--exp-at, 0)) + var(--exp-lift, 0) * var(--exp-at, 0)) *
+      var(--rail-on) * var(--rail-lit)
+  );
+
+  /* How much treatment there is of either polarity — what the halo runs on. */
+  --rail-treated: calc(var(--rail-field) + var(--rail-lift));
+
+  /*
+    **How far the quiet registers move toward the running header's own ink**, and it is a `max` rather
+    than the sum above for one reason: on a *lit* ground the ink has crossed, and `--rail-ink-quiet`
+    there is `rgb(54 52 45)` — a soft grey that measured 2.6:1 against the lifted floor of the selected
+    plate and was simply not there. Seen in Chrome. Dark type on a photograph has to be dark; the
+    quietness that reads as restraint over the film reads as absence over a lit room.
+
+    So wherever the ink has crossed, the folio and the listed chapters are at `--rail-ink` outright. The
+    hierarchy survives it because Option A carries hierarchy in **scale and face** — 36px of Cormorant
+    against 12.7px of tracked grotesque — and not in ink.
+  */
+  /*
+    **It stops at 0.86, not at 1, and the missing 14% is the hover.** Taken all the way, the resting
+    registers land on `--rail-ink` — which is where the hover goes too — and on a crossed plate the
+    pointer stopped answering at all: `rgb(15 14 12)` at rest against `rgb(9 8 7)` on hover is a
+    difference nobody can see. Measured in Chrome on the selected plate.
+
+    0.86 leaves the rest a value short of the header's ink, so the hover is a step again, and it costs
+    nothing that matters: against that plate's lifted floor it measures 3.9:1 instead of 4.0:1.
+  */
+  --rail-ink-at: calc(max(var(--rail-field), var(--rail-lift), var(--rail-lit)) * 0.86);
+}
+
+/*
+  **The ink crossing gains a third term, and nothing else about it changes.**
+
+  `--rail-stone` has always been *which register the rail's ink is in* — 0 is the film's cream, 1 is the
+  page's near-black — and it already took the darker demand of two things: how far the environment has
+  crossed to warm stone, and whether the ground is paper. A photograph that is simply lit is the third
+  thing that can ask for the same answer, and it asks for it in the same way. C5's `color-mix` below is
+  untouched; it is being handed a better question.
+*/
+:root {
+  --rail-stone: max(
+    var(--env-stone, 0),
+    calc(1 - var(--page-ink, 1)),
+    var(--rail-lit, 0)
+  );
+}
+
+.env-legibility {
+  position: absolute;
+  /*
+    **Centred on the block's optical centre, not its geometric one.** At the geometric centre the folio
+    — the topmost and quietest thing on the rail — sat 0.47 of a radius out and took barely half the
+    wash, and it stayed the one element that disappeared. Seen in Chrome on the selected plate. The
+    running header carries the block's visual weight and sits high, so the centre goes up with it.
+  */
+  --rf-rx: 12rem;
+  --rf-ry: 16rem;
+  left: calc(var(--mark-x) + 3.1rem - var(--rf-rx));
+  top: calc(236 / 760 * 100dvh + 5.3rem - var(--rf-ry));
+  width: calc(var(--rf-rx) * 2);
+  height: calc(var(--rf-ry) * 2);
+  pointer-events: none;
+
+  /*
+    Warm black rather than neutral: every plate here is warm, and a neutral wash reads as grey haze over
+    a sunset. `rgb(14 10 7)` is the film's own black pulled toward the venice plate's shadow hue.
+  */
+  /*
+    **One pool, two polarities.** Warm black where the rail is cream, warm paper where it has crossed —
+    `--rail-lit` picks the ink for both at once, so the wash and the type it is for can never be in
+    opposite registers. Warm rather than neutral in both directions: every plate here is warm, and a
+    neutral wash reads as grey haze over a sunset or as fog over a lit room.
+
+    The stops are the same gaussian either way. Six of them rather than the two `radial-gradient` gives
+    by default, because a linear ramp leaves a shoulder the eye can find on a flat sky.
+  */
+  --rf-ink: color-mix(in srgb, rgb(246 240 228) calc(var(--rail-lit, 0) * 100%), rgb(14 10 7));
+  background: radial-gradient(
+    closest-side ellipse at 50% 50%,
+    var(--rf-ink) 0%,
+    color-mix(in srgb, var(--rf-ink) 94%, transparent) 18%,
+    color-mix(in srgb, var(--rf-ink) 74%, transparent) 36%,
+    color-mix(in srgb, var(--rf-ink) 44%, transparent) 55%,
+    color-mix(in srgb, var(--rf-ink) 18%, transparent) 74%,
+    color-mix(in srgb, var(--rf-ink) 4%, transparent) 88%,
+    transparent 100%
+  );
+  opacity: var(--rail-treated, 0);
+  /*
+    No transition. `--rail-field` is a pure function of scroll through the Environment's own presences,
+    and the Work's term crosses on `--exp-at`, which already carries the carousel's dip. A duration here
+    would be a second clock on a value that is resolved every frame.
+  */
+}
+
+/*
+  ── The two treatments this was chosen over ─────────────────────────────────────────────────────
+
+  Switchable under `data-rf` on the root for one review pass, and to be deleted once the direction is
+  signed off. The rule above is the default.
+*/
+
+/* `ink` — nothing on the photograph at all; the crossing and the halo carry the whole of it. */
+:root[data-rf='ink'] .env-legibility {
+  display: none;
+}
+
+/* `dark` — the crossing disabled, so the wash alone can be seen doing the work it cannot do. */
+:root[data-rf='dark'] {
+  --rail-lit: 0;
+}
+
+/* `grade` — the photograph's own pixels re-exposed under the same soft mask, instead of ink added. */
+:root[data-rf='grade'] .env-legibility {
+  background: none;
+  opacity: 1;
+  -webkit-backdrop-filter: brightness(calc(1 - var(--rail-field, 0) * 0.92)) contrast(1.08)
+    saturate(1.05);
+  backdrop-filter: brightness(calc(1 - var(--rail-field, 0) * 0.92)) contrast(1.08) saturate(1.05);
+  -webkit-mask-image: radial-gradient(
+    closest-side ellipse at 50% 50%,
+    #000 0%,
+    rgb(0 0 0 / 0.94) 18%,
+    rgb(0 0 0 / 0.74) 36%,
+    rgb(0 0 0 / 0.44) 55%,
+    rgb(0 0 0 / 0.18) 74%,
+    rgb(0 0 0 / 0.04) 88%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    closest-side ellipse at 50% 50%,
+    #000 0%,
+    rgb(0 0 0 / 0.94) 18%,
+    rgb(0 0 0 / 0.74) 36%,
+    rgb(0 0 0 / 0.44) 55%,
+    rgb(0 0 0 / 0.18) 74%,
+    rgb(0 0 0 / 0.04) 88%,
+    transparent 100%
+  );
+}
+
+:root[data-rf='off'] .env-legibility {
+  display: none;
+}
+
+/*
+  ── The rail's own share ────────────────────────────────────────────────────────────────────────
+
+  The field brings the ground down; these bring the glyph up, and it is the two together that let the
+  wash stop at half instead of going where it would start being a shape.
+
+  Both run on `--rail-field`, so they are **absent wherever the field is absent** — on the studio plate,
+  on paper, and before the dock. That is what keeps them from being a treatment applied to type that
+  does not need one: dark ink on the page carrying a halo of its own black reads as a smudge, and this
+  is the one way the fix could make legibility worse than it found it.
+
+  **A halo, not an outline.** Two shadows at zero offset and very small radii, darkening the two or
+  three pixels around each stroke and nothing further. A `-webkit-text-stroke` was tried first and is
+  not here: at 12.7px, thin enough not to bolden the word is thin enough to alias into a grey fringe.
+*/
+/*
+  The halo is the film's own black behind cream type, and the page's own paper behind dark type — it
+  separates the glyph from whatever it is on, and which side that is depends on which ink is printed.
+  Both are on `--rail-treated`, so wherever the ground needs nothing there is nothing.
+*/
+.ledger {
+  --rail-halo-ink: color-mix(in srgb, rgb(248 243 233) calc(var(--rail-lit, 0) * 100%), rgb(12 9 6));
+  --rail-halo: 0 0 1px
+      color-mix(in srgb, var(--rail-halo-ink) calc(30% * var(--rail-treated, 0)), transparent),
+    0 1px 3px color-mix(in srgb, var(--rail-halo-ink) calc(26% * var(--rail-treated, 0)), transparent);
+}
+
+.rail-title,
+.rail-folio,
+.ledger-word {
+  text-shadow: var(--rail-halo);
+}
+
 /* ---------- The shot ---------- */
 
 /*
@@ -513,6 +865,14 @@ html {
 
   --mark-y: calc(clamp(2rem, 6vh, 4rem) + env(safe-area-inset-top, 0px));
   --mark-size: 0.9375rem;
+  /*
+    **The running head's own size, and it is deliberately below the destinations.** `--mark-size` is the
+    rail's reading size and the five words keep it; the head is filed under them at 11px on the reference
+    frame, which is the same rank `.v2-make-label` is set at on the other side of the composition.
+  */
+  --mark-head-size: clamp(0.625rem, calc(11 / 1440 * 100vw), 0.75rem);
+  /* How much of the rail's ink the running head wears. Not a channel — it never changes. */
+  --rail-soft: 0.62;
 
   /*
     The Ledger's rail. V2 §5: *"Ledger rail 132px wide, padded from x38."*
@@ -523,15 +883,15 @@ html {
     production viewport, and an exact coordinate is the last thing preserved), and `--mark-x` is where
     the travelling word lands, which cannot move while the word still travels to it.
 
-    `--rule-unit` is the leader's own rest length — §3 t27, *"WORK's leader rule grows from 16px to
-    70px"* — so a visited destination shows 16 and the active one twice that. `--rule-intent` is the 70.
-    Both are lengths in a rail whose width is V2's, so they are the one place V2's pixels are used as
-    pixels.
+    **`--rule-unit` and `--rule-intent` are gone with the leader rules**, 17 September 2026. §3 t27's
+    16px-to-70px growth was the affordance while depth was drawn as a length; Option A says where the
+    film is with the running header instead, and encoding it a second time as a rule beside the word
+    was the same redundancy the chapter ticks were retired for. `--l1` … `--l5` are still written by the
+    driver from `depthOf` and are read by nothing; the spine's model of depth is unchanged and is where
+    it will be picked up from if a later composition wants it.
   */
   --rail-w: 8.25rem;
   --rail: calc(var(--mark-x) + var(--rail-w));
-  --rule-unit: 1rem;
-  --rule-intent: 4.375rem;
 
   /*
     Act III. Warm, low chroma, high lightness — paper rather than screen. Not white, which is a
@@ -577,11 +937,28 @@ html {
   means they can never reach the bottom of the page while the opening is running, which would otherwise
   leave the shot with nowhere to play. See `scroll-stage.tsx`.
 */
+/*
+  **It declines pointer events for the same reason `.chapter-three` does.**
+
+  `.film` is the shot's runway and it has **no interactive descendant at all** — it is footage, plates
+  and type, and the V1 layers inside it already decline pointer events one by one. What it had was a
+  15,753px box at `z-index: 1`, a *later sibling of `.v2` at the same `z-index`, so document order put
+  it above the film's own type across the entire shot.
+
+  That is the second half of why the Work's controls could not be pressed: `.chapter-three` covered
+  them from state 08 onward and this covered them before that. `See full experience →` is an `<a>` with
+  a real `experienceUrl` on venice and **had never been pressable on any state.** Measured in Chrome at
+  y 15200 — `elementsFromPoint` returned `.stage` and `.film` above `.v2-make-cta`.
+
+  Declining here rather than raising `.v2` is deliberate, and the reason is recorded below: `.v2`'s
+  `z-index` is load-bearing for the film's paper ending, and must not be raised to solve this.
+*/
 .film {
   position: relative;
   /* Above the environment, which is the one thing on the page that stands behind all three acts. */
   z-index: 1;
   height: calc(100dvh + var(--pin) + var(--origin, 0px));
+  pointer-events: none;
 }
 
 /*
@@ -764,11 +1141,33 @@ html {
   There is no top padding, on purpose. The page's distance from the film is one number, and a padding
   underneath the overlap would be a second opinion about the same gap.
 */
+/*
+  **It declines pointer events, and the Work's controls are why.**
+
+  This section is a **stage**: its runway, its held frame, the aperture and the annotation. It has no
+  interactive descendant at all — the aperture is material (`.act-frame` says so in as many words), and
+  the live work lives in the Ledger's aside, outside this box entirely.
+
+  What it did have was a full-height box painted **above the film layer**: `.chapter-three` is a later
+  sibling of `.film` at the same `z-index: 1`, so it wins on document order and swallowed every press
+  aimed at anything inside `.v2`. Measured in Chrome at y 15200 — `elementsFromPoint` on the Work's next
+  arrow returned `.chapter-three` above `.v2-step-arrow`. **`See full experience →` was therefore never
+  pressable either**, on any state, although `venice` carries a real `experienceUrl`. Found while giving
+  the arrows a press target, not looked for.
+
+  **Declining here rather than raising `.v2` is deliberate.** `.v2` carried `z-index: 1` once and it put
+  the V2 ground above `.dawn`, so the film stopped ending on paper — recorded further down this file.
+  That fix must not be undone to solve this one.
+
+  Anything in this section that ever becomes a control takes `pointer-events: auto` back for itself,
+  which is the pattern the register's scrim already uses.
+*/
 .chapter-three {
   /* So the marker has something to be absolute against if it ever stops being fixed. */
   position: relative;
   /* Above the environment, with the film and the publication. */
   z-index: 1;
+  pointer-events: none;
   margin-top: calc(-1 * var(--three-overlap));
   background: var(--paper);
   color: var(--ink);
@@ -1320,48 +1719,31 @@ a.act-open:focus-visible {
   The layout box is the row's own, so the rail's column is whatever the head measures. It cannot reflow
   against the numeral standing in the frame because the numeral never stands in the frame.
 */
-.marker {
-  display: flex;
-  align-items: baseline;
-  gap: 0.35rem;
-  width: max-content;
-  margin: 0;
-  font-family: var(--v2-sans, var(--voice));
-  font-size: var(--mark-size);
-  font-weight: 500;
-  color: var(--rail-ink, var(--ink-quiet));
-  text-decoration: none;
-  opacity: var(--lights, 0);
-  /* Interface feedback, not narrative — so it answers, and it is outside `--haste`. */
-  transition: color var(--fade-nav-hover) var(--curve);
-}
-
 /*
-  **The numeral steps back a value, and the tie further still.** At equal ink the head reads as two
-  words of the same rank, which makes the numeral a title. It is not a title — it is the running head a
-  book puts in the corner, and the studio is the protagonist of its own arrival. A dash is punctuation
-  and should never be the second-loudest thing in a lockup.
+  ── The running head, set as a running head ─────────────────────────────────────────────────────
+
+  **It was competing with the navigation it stands over.** At `--mark-size` (15px) and weight 500 it
+  was the same size as the five destinations and heavier than them, so the eye read six items of equal
+  rank with one of them oddly punctuated. Seen in Chrome at state 08. A running head is not the top
+  entry of the list; it is the thing the list is filed under, and it should be legible without ever
+  being read first.
+
+  **So it drops a register instead of gaining one.** Smaller than the words below it, uppercase, wide
+  tracking, and quiet — which is §5's own label setting and the identical register the Work's eyebrow
+  is in. That rhyme is deliberate: `WHAT WE ACTUALLY MAKE` names the frame the Work is read in and
+  `III — STUDIO` names the chapter the rail belongs to, so the same voice does the same job on both
+  sides of the composition, and the two things the visitor is meant to actually read — the
+  destinations and the category — are the only type at full strength in the frame.
+
+  Uppercase at this size also stops the numeral needing to be held back: `III` and `STUDIO` are one
+  even texture of capitals, so the dash can simply be punctuation rather than a managed third weight.
+
+  **It has no opacity channel of its own.** `--lights` is gone; the wipe on `.ledger-rail` reveals it,
+  and `--rail-soft` is a constant — the head sits at 62% of the rail's ink for as long as it exists,
+  which is what keeps it under the destinations without putting it on a separate timeline.
 */
-.mark-num {
-  letter-spacing: 0.1em;
-  opacity: 0.72;
-}
-
-.mark-tie {
-  letter-spacing: 0;
-  opacity: 0.42;
-}
-
-.mark-lab {
-  letter-spacing: 0.06em;
-}
-
-.marker:hover,
-.marker:focus-visible {
-  color: var(--rail-ink-hover, var(--ink));
-}
-
 /*
+  The visually-hidden utility./*
   The visually-hidden utility. It carried the mark's accessible name while the head was three bars that
   could not say `Studio`; the head is type now and names itself, so nothing uses this today. It is kept
   because it is the project's one screen-reader-only pattern and the next thing that needs one will need
@@ -1403,152 +1785,420 @@ a.act-open:focus-visible {
   outweighs the chapter it is navigating has spent it wrongly.
 */
 .ledger-index {
-  opacity: calc(var(--anav) * var(--lindex));
   /*
-    **The dock's gate, moved here from the rail.** It is the index that must not be reachable before it
-    is drawn — five rows at `opacity: 0` still take a click — so the step that used to clip the whole
-    rail now clips exactly the part it was protecting. Identical mechanism, narrower scope.
+    **The index is drawn by this clip, and the clip is the only thing that reveals it.**
+
+    It used to carry three arrivals at once: this clip on `--handoff`, a block fade on `--jp7` (the rule
+    further down this file), and five per-row opacity ramps on `--i1..--i5`. **`--handoff` is a step**,
+    so the first of them cancelled the other two — measured on the running page at 2560 × 1305, the
+    navigation went from `inset(100%)` and invisible at y 14795 to `inset(0%)` and complete at y 14805.
+    Ten pixels. Everything the choreography had authored for it was spent behind a closed shutter.
+
+    `--rail-draw` is `TIMING.dock.draws`, a continuous window, so the inset is now a **wipe**: the five
+    rows are drawn downward out of the head that was written above them a beat earlier. That is §3's own
+    verb for 07 → 08 — *decompose: the index is drawn out of the mark, top to bottom* — performed
+    instead of merely described. It closes exactly where `--handoff` steps, so the step is still there
+    and can no longer be seen.
+
+    **Reachability is still gated, and by this same property.** `clip-path` clips hit-testing, not only
+    paint, so a row that has not been drawn cannot be clicked — which is exactly what the step was added
+    for (*"five rows at `opacity: 0` still take a click"*), and it now holds continuously instead of all
+    at once. A row becomes reachable at the moment it becomes visible, which is the behaviour that was
+    wanted; before the wipe starts the inset is still a full 100% and nothing in here is hit-testable.
+
+    It does not reorder the tab sequence — neither did the step, so this is unchanged rather than
+    regressed, and it is the Ledger's to solve if it is ever solved.
   */
-  clip-path: inset(calc((1 - var(--handoff)) * 100%) 0 0 0);
+  /*
+    **The inset is on the bottom edge, and that is not interchangeable with the top.** `inset(X 0 0 0)`
+    clips the top away and reveals the block **upward from its last row** — Contact first, WORK last,
+    which is §3's sentence backwards. It went unnoticed while `--handoff` drove this, because a step has
+    no direction: it was `inset(100%)` or `inset(0)` and never anything in between. Driving it
+    continuously is what made the direction visible, and wrong — seen in Chrome at y 14620, where Method,
+    Questions and Contact were standing and WORK and About were not yet drawn.
+
+    Clipping the **bottom** away reveals downward from the head: WORK first, Contact last.
+
+    **The edge is soft, and the clip is what makes that safe.** A bare `inset` is a knife: seen in Chrome
+    at y 14640, it had *Questions* cut through the middle of its glyphs, which reads as a rendering fault
+    rather than as a reveal — a row is mid-cut for roughly one wheel notch, which is long enough to be
+    seen and not long enough to be understood.
+
+    So the same `--rail-draw` drives two properties that are **one movement**: the mask fades the ink out
+    over the 28px above the edge, and the clip cuts exactly where the mask has already reached zero. The
+    knife therefore never falls on anything visible, and what travels down the block is a soft edge.
+
+    This is not the *"fade + slide + scale"* stacking the rest of this pass removes. Two arrivals would be
+    two schedules; this is one position spent twice on the same frontier, and neither half can drift from
+    the other because there is only one variable.
+
+    **The clip stays because it is the reachability gate.** `mask-image` hides ink and nothing else — a
+    masked-out row is still clickable — so removing it would leave five invisible destinations taking
+    clicks, which is exactly what `--handoff` was added to prevent. `clip-path` clips hit-testing, so a
+    row becomes reachable within 28px of becoming visible.
+  */
 }
+
+/*
+  ── The rail, drawn as one block ────────────────────────────────────────────────────────────────
+
+  **The head and the five destinations arrive together, because they are one thing arriving.** The head
+  had `TIMING.dock.lights` and the index had the wipe, so `III — Studio` appeared, a frame of nothing
+  was held, and then the navigation was drawn under it — three events for one rail, inside a passage
+  the design owner had already called too eventful. The wrapper exists so one mask can cross both.
+
+  It carries the column's gap and nothing else: no position, no ink, no timing. The Work aside is
+  outside it and is never masked, because it is opened by a press and not by the film.
+*/
+.ledger-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(0.9rem, 1.9vh, 1.25rem);
+  /*
+    `--rail-draw` is `TIMING.dock.draws`. The mask fades the ink out over the 28px above the edge and
+    the clip cuts where the mask has already reached zero, so the knife never falls on a glyph — a bare
+    `inset` had *Questions* cut through the middle of its letters, which reads as a rendering fault
+    rather than as a reveal. Two properties, one variable, one movement.
+
+    The clip is what gates reachability: `mask-image` hides ink and nothing else, so a masked row would
+    still take a click. `clip-path` clips hit-testing, and a row becomes reachable within 28px of
+    becoming visible.
+  */
+  --rail-edge: 28px;
+  /*
+    **The reveal overshoots the block by exactly one soft edge, and it has to.** At `draw: 1` a reveal of
+    plain `100%` leaves the gradient's own falloff sitting on the last 28px of the element — so `Contact`
+    stood permanently dimmer than the four words above it, for the whole rest of the site. Seen in Chrome
+    at y 15400, with the wipe long finished.
+
+    Running the reveal to `100% + --rail-edge` puts the opaque stop at 100% when the draw completes, so
+    the falloff is entirely past the bottom of the block and every row ends at the same ink.
+  */
+  --rail-reveal: calc(var(--rail-draw, 0) * (100% + var(--rail-edge)));
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 calc(var(--rail-reveal) - var(--rail-edge)),
+    transparent var(--rail-reveal)
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 calc(var(--rail-reveal) - var(--rail-edge)),
+    transparent var(--rail-reveal)
+  );
+  /* `max` because the reveal overshoots: a negative inset would expand the clip past the border box. */
+  clip-path: inset(0 0 max(0px, calc(100% - var(--rail-reveal))) 0);
+}
+
+/* ════════════════════════════════════════════════════════════════════════════════════════════════
+   THE RAIL · OPTION A — RE-SETTING
+
+   Adopted 17 September 2026 on the design owner's direction, from `prototypes/the-folio` direction A.
+   It replaces `III — Studio` and the five leader rules, both of which are retired: the running head is
+   the chapter the film is in, and depth is no longer drawn as a length.
+
+   ## The composition is the Work section's, turned into a column
+
+   §9's Work block already sets exactly these three registers, and this borrows them rather than
+   inventing a fourth voice for the margin:
+
+       WHAT WE ACTUALLY MAKE      the eyebrow   9.5px · 0.26em · uppercase   →  the folio
+       ARTISTS  SELECTED PROJECTS the queue     same register, quieter       →  the chapters listed
+       Wedding experiences        the serif     Cormorant 300 · 38px         →  the running header
+
+   The rail's serif is smaller than the Work's — 30 against 38 at the reference frame — because the
+   margin may never outweigh the frame. `04-visual-language.md` §5: scale is currency.
+
+   ## Nothing here is a mark, a rule, a dot or a bar
+
+   The only things drawn are words. Depth is not encoded, because the running header already says where
+   the film is and saying it twice was what made the ticks and the rules redundant in the first place
+   (`content/site.ts` argues the ticks; `implementation-reconciliation.md` C2 argues the rail).
+   ════════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/*
+  ── A slot ──────────────────────────────────────────────────────────────────────────────────────
+
+  Two settings on one origin: the arriving one in flow, the departing one absolutely positioned over
+  it. The box is the column's, never the word's, so a long setting can leave while a short one arrives
+  and nothing in the composition moves.
+
+  `contain: layout` is not used and must not be: the departing setting overflows its slot by design
+  when it is the longer of the two, and clipping it would cut a word in half mid-exchange.
+*/
+.rail-slot {
+  position: relative;
+  display: block;
+  white-space: nowrap;
+}
+
+.rail-set {
+  display: inline-block;
+  /*
+    The origin of the scale. Left, because the column's axis is the one thing that may never move; 68%
+    down rather than at the baseline, because a word scaled about its baseline appears to sink — the
+    optical centre of a line of type is below its middle, and this is where it measured still.
+  */
+  transform-origin: 0 68%;
+}
+
+.rail-out {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+}
+
+/*
+  ── The exchange ────────────────────────────────────────────────────────────────────────────────
+
+  **The promoted word grows and the demoted word shrinks, in both places at once.** The word leaving
+  the list grows as it goes and arrives in the header still growing; the word leaving the header
+  shrinks as it goes and arrives in the list still shrinking. Two positions, one continuous change of
+  size, and nothing crosses the frame between them — so what the eye reads is a change of **rank**.
+
+  **Eleven per cent, and not a value more.** At the amplitudes a normal cross-dissolve would use this
+  reads as a zoom, and a zoom is a thing moving. At 11% it is below the threshold at which the eye
+  calls it motion and above the one at which it registers at all, which is the whole brief: *it looks
+  like it simply changed, and then you notice that it did not.*
+
+  `--rail-out`, `--rail-in` and `--rail-lag` are `TIMING.publication.chapter`, published by
+  `transitions.ts`. The departing setting is most of the way gone before the arriving one commits,
+  which is what keeps two chapters from being legible at once.
+*/
+/*
+  ── THE FIRST FORMATION ─────────────────────────────────────────────────────────────────────────
+
+  **The rail is drawn by one frontier, and the chapter it is drawn as is promoted into place by the
+  same eleven per cent every later promotion uses.**
+
+  The frontier is `.ledger-rail`'s own wipe on `--rail-draw` and is unchanged: a soft edge travelling
+  down the block, so the folio is written, then the chapter under it, then the four chapters under
+  that. One movement, in the order the composition reads, and nothing is animated separately — what
+  looked like five elements arriving is one edge passing over them.
+
+  What is added is the head's own arrival. Before the dock, `Work` is not the running chapter; it is
+  nothing. At the dock it *becomes* one — which is a promotion, and Option A already has a law for
+  what a promotion looks like. So the head arrives at 0.89 and settles at 1, exactly as it will every
+  other time it is promoted, and the birth is the system performing itself rather than a second
+  vocabulary invented for the occasion.
+
+  **It is on `--rail-draw` and not on a clock**, so it cannot drift from the frontier drawing it, it
+  reverses correctly when the visitor scrolls back up, and it costs `timing.ts` nothing: the dock
+  already prices this passage. C8 — scroll owns progression.
+
+  `--rail-born` is the head's share of the draw. The frontier reaches the bottom of the head about a
+  third of the way down the block, so the settle is finished before the list is written and the two
+  are read as one arrival rather than as a queue.
+*/
+.ledger-rail {
+  --rail-born: clamp(0, calc((var(--rail-draw, 0) - 0.04) / 0.34), 1);
+}
+
+.rail-head .rail-set {
+  transform: scale(calc(0.89 + 0.11 * var(--rail-born, 1)));
+}
+
+/*
+  Reduced motion keeps the frontier — it is the reveal, not an embellishment — and drops the scale.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .rail-head .rail-set {
+    transform: none;
+  }
+}
+
+.rail-slot[data-swap] > .rail-in {
+  --rail-from: 1;
+  animation: rail-in var(--rail-in) var(--curve) var(--rail-lag) both;
+}
+
+.rail-slot[data-swap][data-in='promote'] > .rail-in {
+  --rail-from: 0.89;
+}
+
+.rail-slot[data-swap][data-in='demote'] > .rail-in {
+  --rail-from: 1.11;
+}
+
+.rail-slot[data-swap] > .rail-out {
+  --rail-to: 1;
+  animation: rail-out var(--rail-out) var(--curve) both;
+}
+
+.rail-slot[data-swap][data-out='promote'] > .rail-out {
+  --rail-to: 1.11;
+}
+
+.rail-slot[data-swap][data-out='demote'] > .rail-out {
+  --rail-to: 0.89;
+}
+
+@keyframes rail-in {
+  from {
+    opacity: 0;
+    transform: scale(var(--rail-from, 1));
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes rail-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(var(--rail-to, 1));
+  }
+}
+
+/*
+  The reduced-motion answer is the exchange without the scale: the words still change, and they change
+  by ink alone. `04-visual-language.md` — the meaning survives, the mechanism is what goes.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .rail-slot[data-swap] > .rail-in,
+  .rail-slot[data-swap] > .rail-out {
+    --rail-from: 1;
+    --rail-to: 1;
+  }
+}
+
+/* ── The head ─────────────────────────────────────────────────────────────────────────────────── */
+
+.rail-head {
+  display: block;
+  margin: 0;
+  width: 100%;
+}
+
+/*
+  The folio, in §9's eyebrow register exactly. It is the quietest thing on the rail and it is meant to
+  be: it files the chapter, it does not announce it, and it is never spoken as the word *chapter*.
+*/
+.rail-folio {
+  font-family: var(--v2-sans, var(--voice));
+  font-size: clamp(0.5625rem, calc(9.5 / 1440 * 100vw), 0.8125rem);
+  font-weight: 400;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--rail-ink-quiet, var(--ink-quiet));
+}
+
+/*
+  The running chapter. Cormorant 300 at 30 on the reference frame — large enough to be the thing being
+  read in this margin, small enough that it never competes with the frame it stands beside.
+*/
+.rail-title {
+  display: block;
+  width: 100%;
+  margin-top: 0.34rem;
+  font-family: var(--v2-serif, var(--read));
+  font-weight: 300;
+  font-size: clamp(1.5rem, calc(30 / 1440 * 100vw), 2.25rem);
+  line-height: 1.06;
+  color: var(--rail-ink, var(--ink));
+}
+
+/*
+  Where the header is the Work's door it is a control, and a control must look like nothing at all —
+  §6: *"the affordance is the rule, not a button."* The rule is gone; what is left is that the one
+  chapter with somewhere to go is the one that answers to the pointer.
+*/
+/*
+  **No `font: inherit` here, and that is not an omission.** The shorthand resets `font-family` and
+  `font-size` to `inherit` — and `.rail-door` sits on the same element as `.rail-title` and is written
+  after it, so the shorthand won and the running chapter came out at 16px in the grotesque. Seen in
+  Chrome at state 08. A control needs its UA chrome removed, not its type replaced; `.rail-title` sets
+  the type on this element already.
+*/
+.rail-door {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: color var(--fade-nav-hover) var(--curve);
+}
+
+.rail-door:hover {
+  color: var(--rail-ink-hover, var(--ink));
+}
+
+/* ── The chapters that are not running ────────────────────────────────────────────────────────── */
 
 .ledger-index ul {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin: 0;
+  /*
+    **The gap is the press areas' too, and that is why it is a variable.** Each row's padding is half of
+    it and is negative-margined back out, so the hit boxes **tile exactly**: they meet and never
+    overlap. Authored the other way round — a fixed 0.4rem of padding against this 0.2rem gap — every
+    row's box ran 9.6px into the row below it, and because the later row paints on top, the bottom
+    third of `About` was answering for `Method`. Measured in Chrome at state 08.
+
+    The composition is unchanged by the fix: the gap is Option A's own 0.2rem and the rhythm is still
+    set by the type.
+  */
+  --row-gap: 0.2rem;
+  gap: var(--row-gap);
+  margin: 1.55rem 0 0;
   padding: 0;
   list-style: none;
 }
 
-/*
-  **Each destination is drawn out of the stack, top to bottom, WORK first.** `--i1` … `--i5` are
-  `TIMING.dock.draws` — one span per row, 45 thousandths of the junction apart, because a stagger is
-  *n* spans and never one span with a delay in it: five separate channels reverse, one channel with
-  five delays would replay.
-
-  The row's own rule is the thing that extends — the index is *drawn* rather than faded — so the width
-  below carries the arrival and `--l` keeps saying how deep the destination is once it is there.
-*/
 .ledger-index li {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  opacity: var(--i, 0);
-}
-
-.ledger-index li:nth-child(1) {
-  --i: var(--i1, 0);
-}
-
-.ledger-index li:nth-child(2) {
-  --i: var(--i2, 0);
-}
-
-.ledger-index li:nth-child(3) {
-  --i: var(--i3, 0);
-}
-
-.ledger-index li:nth-child(4) {
-  --i: var(--i4, 0);
-}
-
-.ledger-index li:nth-child(5) {
-  --i: var(--i5, 0);
+  display: block;
 }
 
 /*
-  **The leader rule, and it is the affordance rather than the decoration.** §6: *"Rule length encodes
-  depth. The active destination's leader is longest; unvisited destinations show no rule at all."*
+  The rows. `button` and `a` in one selector because one of the five is not a link and must not look
+  like the odd one out.
 
-  So one unit and a multiplier: `--l1` … `--l5` are 0, 1 or 2 — unvisited, visited, active — and
-  `depthOf` in `spine.ts` is the only thing that decides which. The unit is V2's own rest length for
-  WORK's leader, so *visited* is that and *active* is twice it.
-
-  A rule of zero width is still in the row, so a destination does not shift sideways the moment it is
-  first reached.
-*/
-.ledger-rule {
-  flex: none;
-  /*
-    The arrival multiplies the depth, so the rule *extends* out of the mark as the row is drawn and then
-    keeps whatever length depth gives it. A row that is not yet drawn has no rule at all, which is also
-    §6's own answer for an unvisited destination.
-  */
-  width: calc(var(--rule-unit) * var(--l, 0) * var(--i, 0));
-  height: 1px;
-  background: currentcolor;
-  opacity: 0.55;
-  transition:
-    width var(--fade-nav-hover) var(--curve),
-    opacity var(--fade-nav-hover) var(--curve);
-}
-
-.ledger-index li:nth-child(1) {
-  --l: var(--l1);
-}
-
-.ledger-index li:nth-child(2) {
-  --l: var(--l2);
-}
-
-.ledger-index li:nth-child(3) {
-  --l: var(--l3);
-}
-
-.ledger-index li:nth-child(4) {
-  --l: var(--l4);
-}
-
-.ledger-index li:nth-child(5) {
-  --l: var(--l5);
-}
-
-/*
-  The words. `button` and `a` in one selector because one of the five is not a link and must not look
-  like the odd one out — §6's Work is a door, and *"the affordance is the rule, not a button"*.
-
-  The block padding takes each hit area past 44px without moving a pixel of type, and is negative-
-  margined back out so the column's rhythm is still decided by the type rather than by the padding.
+  **Full width, and that is the press area rather than the layout.** Without it each row's hit box is
+  the width of its own word, so `Work` is a third of the target `Questions` is. The block padding takes
+  each row past 44px without moving a pixel of type and is negative-margined back out, so the column's
+  rhythm is still decided by the type.
 */
 .ledger-word {
   appearance: none;
+  display: block;
+  width: 100%;
   border: 0;
-  margin-block: -0.5rem;
-  padding: 0.5rem 0;
+  margin-block: calc(var(--row-gap, 0.2rem) / -2);
+  padding-block: calc(var(--row-gap, 0.2rem) / 2);
+  padding-inline: 0;
   background: none;
-  font: inherit;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  color: var(--ink-quiet);
+  font-family: var(--v2-sans, var(--voice));
+  font-size: clamp(0.5625rem, calc(9.5 / 1440 * 100vw), 0.8125rem);
+  font-weight: 400;
+  letter-spacing: 0.24em;
+  line-height: 1.9;
+  text-transform: uppercase;
   text-align: left;
   text-decoration: none;
+  color: var(--rail-ink-quiet, var(--ink-quiet));
   cursor: pointer;
   transition: color var(--fade-nav-hover) var(--curve);
 }
 
 .ledger-word:hover,
 .ledger-word:focus-visible {
-  color: var(--ink);
+  color: var(--rail-ink-hover, var(--ink));
 }
 
-/*
-  **Work on intent.** §3's t27, frame 1: *"WORK's leader rule grows from 16px to 70px — the same rule
-  that wrote the index into being at the dock. Nothing else changes; the work is still playing."*
-*/
-.ledger-index li:has(> .ledger-word:hover) > .ledger-rule,
-.ledger-index li:has(> .ledger-word:focus-visible) > .ledger-rule {
-  width: var(--rule-intent);
-  opacity: 1;
-}
-
-.marker:focus-visible,
+.rail-door:focus-visible,
 .ledger-word:focus-visible {
-  outline: 1px solid var(--ink-quiet);
+  outline: 1px solid var(--rail-ink-quiet, var(--ink-quiet));
   outline-offset: 0.5rem;
 }
 
-/* ---------- The register: the Work aside ---------- */
+/* ---------- The register: the Work aside ---------- *//* ---------- The register: the Work aside ---------- */
 
 /*
   §3's fourteenth row, and the only junction the visitor causes rather than the film.
@@ -1657,8 +2307,14 @@ a.act-open:focus-visible {
       to about 339 with the same gaps, so they wrap. The space is reserved unconditionally so that
       nothing shifts when they do — `05-storyboard.md` §6 Beat 0.
     */
+    /*
+      **6rem rather than 2.8, and the two reserved index rows are why.** At 390 the four chapters sit on
+      one line; at 320 they wrap, which is the case the original 2.8rem was reserving for. The press
+      areas are 44px now instead of 30, so two of them and the gap that keeps them from overlapping come
+      to about 90px. The band has to keep clearing the rail or the page runs under it.
+    */
     --masthead: calc(
-      var(--mark-y) + var(--mark-size) * 1.25 + 0.6rem + 2.8rem + clamp(1rem, 2.4vh, 1.5rem)
+      var(--mark-y) + var(--mark-size) * 1.25 + 0.6rem + 6rem + clamp(1rem, 2.4vh, 1.5rem)
     );
   }
 
@@ -1677,11 +2333,45 @@ a.act-open:focus-visible {
   .ledger-index ul {
     flex-direction: row;
     flex-wrap: wrap;
-    gap: 0.5rem clamp(1.125rem, 5vw, 1.75rem);
+    /*
+      The margin above the list is the column's and belongs to a column. Lying down, the head and the
+      chapters are on one baseline band and `.ledger`'s own gap spaces them.
+    */
+    margin: 0;
+    /*
+      The row gap is the press areas', not the type's: at 390 the four chapters sit on one line and it
+      never applies, but at 320 they wrap, and 1.75rem is what keeps two 44px targets from overlapping.
+    */
+    gap: 1.75rem clamp(1.125rem, 5vw, 1.75rem);
   }
 
-  .ledger-rule {
-    display: none;
+  /*
+    Each row shrinks to its word here, because they sit side by side: full-width rows in a wrapping
+    row would each take the whole band and stack five deep.
+  */
+  .ledger-word {
+    width: auto;
+    /*
+      44px under a thumb. The rows measured 30 lying down, which is right for a mouse and short for a
+      finger; the padding takes them to 44 without moving a pixel of type, and the row gap below opens
+      far enough that two wrapped lines' press areas cannot overlap.
+    */
+    padding-block: 0.85rem;
+    margin-block: -0.85rem;
+  }
+
+  /* The head lies down with them: the folio beside the chapter rather than above it. */
+  .rail-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    width: auto;
+  }
+
+  .rail-title {
+    width: auto;
+    margin-top: 0;
+    font-size: clamp(1.125rem, 6vw, 1.5rem);
   }
 
   /* The register has no margin to be drawn out of here, so it is the page, beneath the band. */
@@ -1721,10 +2411,11 @@ a.act-open:focus-visible {
   }
 }
 
-:root[data-aside='open'] .ledger-index li:nth-child(1) > .ledger-rule {
-  width: var(--rule-intent);
-  opacity: 1;
-}
+/*
+  **The aside used to extend WORK's leader rule while the register was out.** Option A has no rules and
+  no longer needs the device: when the register is open the Work is the running chapter, so it is
+  already the largest word on the rail. The state is said once, by the composition, rather than twice.
+*/
 
 .register-label {
   margin: 0;
@@ -2701,47 +3392,6 @@ html[data-opening='running'] .ways a {
 }
 
 /*
-  About — §2's `studio · 1.02`, and the photograph *is* the right-hand half of the composition. The
-  scrim holds the essay's column and clears before the figure. 96deg rather than 90 so the top of the
-  column, where the label sits, is a shade denser than the bottom.
-*/
-.about {
-  --ground-near: 0.95;
-  --ground-far: 0;
-  --ground-from: 4%;
-  --ground-to: 88%;
-  --ground-top: 14%;
-  --ground-bottom: 18%;
-}
-
-/*
-  The three closing lines are three lines. They were rendered as bare inline `<span>`s inside one
-  paragraph, which set them as `No templates.No copies.Nothing made to fit twice.` — no separator at all.
-  Stacking them is what §11.3 is saying anyway: three flat statements, one under the other, each arriving
-  after the one above it on the publication's own arrival grammar.
-*/
-.about-lines {
-  display: grid;
-  row-gap: 0.35em;
-}
-
-/*
-  **Below 820 the essay is the whole frame, so the scrim is too.**
-
-  The wide composition is a column of type and a photograph beside it, and the scrim clears at 88% because
-  the right third *is* the photograph. On a phone About is one column across the full width — there is no
-  right third to leave alone — and the falloff put the last two thirds of every line of the paragraph over
-  the figure. Seen at 390. The photograph is still the ground; it is simply read through paper the whole
-  way across, which is the same relationship the wide frame has on its left.
-*/
-@media (max-width: 820px) {
-  .about {
-    --ground-far: 0.9;
-    --ground-to: 100%;
-  }
-}
-
-/*
   Your experience and the method's approach — §2's dark plates. The scrim is the studio's own ink and it
   runs the other way: full at the top where the frame has to be a room, easing off at the foot so the
   plate is still visibly a photograph rather than a black rectangle.
@@ -2962,188 +3612,278 @@ html[data-opening='running'] .ways a {
 /* ---------- About: the room, and one narrative ---------- */
 
 /*
-  **The one section of the publication with material in it, and therefore the one without a rail.**
+  ══════════════════════════════════════════════════════════════════════════════════════════════════
+  ABOUT · state 10 — the room the work is made in, and the studio's account written on its wall
+  ══════════════════════════════════════════════════════════════════════════════════════════════════
 
-  The other three are type, so they use the label-and-column grid. Here half the composition is a
-  photograph of the room the work is made in, and a margin full of small labels beside a picture would be
-  furniture. What About keeps is the axis, the paper and the label; everything else is its own.
+  Rebuilt 16 September 2026 on the design owner's brief. The section read as a page laid over a
+  photograph: a milky scrim beside the figure, a column of paragraphs, a heading, and the register
+  flipping from dark to light ink at the state boundary while the words were on screen.
 
-  It is also **wider** than the type sections. `--page-w` is 68rem because that is where a measure stops
-  being a measure; a photograph has no measure, and the picture has to be able to hold its half of the
-  frame — at 1440 the spread runs 1280 and the image is 659 across, which is 51% of it and inside the 45–55
-  the composition was asked for.
+  **It is a frame now, composed like the Work.** `.about` is runway and nothing else — it keeps the
+  height it had (82vh; 85vh on a phone, measured), so 09 → 10 and 10 → 11 cost what they cost and the
+  method's approach is untouched. `.about-stage` stands fixed in the viewport and is written onto the
+  studio plate on the publication's own arrival grammar (`--jp9`), then released in place early in
+  10 → 11 (`TIMING.about.release`). Nothing scrolls across the room.
 
-  `opacity: 1` and no transition: the section deliberately does **not** fade as a block. Its three parts
-  arrive in order — the room, then the mark, then the words — and the page-level reveal would fade the whole
-  thing in underneath that. Same observer and same attribute; the children carry it.
+  **No scrim.** The plate is a dark room lit by one lamp; the type is the film's own light ink on its
+  wall (`TIMING.grounds` state 10 is `veil 0, ink 1`), so nothing in the register changes from the Work.
+
+  **Two groups, staggered and unequal** — §2's description of the state, placed on this photograph:
+
+    the claim      eyebrow and headline, high on the left, on the dark of the wall, on the Work's own
+                   left axis — the eyebrow lands on the same line the Work's eyebrow stood on
+    its evidence   a narrow column on the right: the paragraph, a hairline, the second principle and
+                   three short refusals in the caption register the Work's corner uses
+
+  Both stay above the figure's head and clear of the lamp, which is where the photograph's own light is.
 */
 .about {
-  --band: var(--band-open);
-  max-width: calc(var(--about-w) + var(--page-x) + var(--mark-x));
+  height: 82vh;
+  max-width: none;
+  padding: 0;
   opacity: 1;
   transition: none;
-
-  /*
-    **The approach to the method, and it is runway rather than composition.**
-
-    Junction 10 → 11 is the interval between About's own top and the method frame's lock, and it was the
-    only one of the four junctions 09 → 13 made of nothing but layout — the other three are filled with
-    choreography that still ships (the last 2.58 beats of Chapter III inside 09 → 10, the method's own
-    asking and gathering inside 11 → 12 and 12 → 13). So it is the one that could be proportioned now
-    without compressing a composition.
-
-    **The ratio is V2's and the anchor is the method's.** §3 gives 10 → 11 3.40s against 11 → 12's 4.00s,
-    and the design owner adopted both on 30 August 2026. 11 → 12 is held where it is: it is priced by
-    `--method-pin`, which `story.ts` argues down to the 20vh dwell that keeps a question readable at
-    speed — *"the one number in the section that was not for sale"*. So the method's frame is the fixed
-    term and About's approach is set against it: 3.4 / 4.0 of 11 → 12's measured 2.255 beats is 1.917,
-    and the interval was 1.393.
-
-    Measured on the running page at 1440 × 760: 580px against a target of 798, so **29vh** is the
-    difference, stated in viewport heights because every other runway distance on this site is — a
-    layout gap in `px` would be a different junction on every screen.
-
-    **It sits inside About rather than above the method on purpose.** `methodArrival.begins` starts the
-    room darkening 0.86 of a viewport above the lock, and `story.ts` argues that it must begin *"while
-    About is still on the screen"*. Padding the method down would have opened 218px of bare paper
-    between About's last line and the first of the darkening; holding the distance inside About's own box
-    keeps the room arriving over the section it arrives out of. Checked: at the frame where the darkening
-    begins, About's text still stands whole in the viewport.
-
-    This is the runway, not the composition. When C6 composes state 10 over the studio plate — 104px at
-    x196, the second principle at x838, the hairline at y452 — the section gets a real height and this
-    number is re-derived against it rather than kept.
-  */
-  padding-bottom: 29vh;
 }
 
-/*
-  **One column, because there is no longer a second object on this row.**
+.about-stage {
+  --about-x: clamp(8vw, calc(20.024vw - 92.34px), calc(196 / 1440 * 100vw));
+  --about-out: clamp(
+    0,
+    calc((var(--jp10, 0) - var(--about-release-at, 0.04)) / var(--about-release-over, 0.26)),
+    1
+  );
 
-  It was a spread: slightly more than half to an inset photograph, the narrative beside it. C5's preflight
-  P3 closed the composition against the Final Visual Master — *the Studio photograph is the environment,
-  About's typography sits above it, no independent inset, no `.about-frame`, no surviving second image
-  layer* — and §11.1 forbids the second surface that keeping both would have been. The photograph is
-  `site.environment.studio` now and stands behind the page across states 10 to 12.
+  /* Gated by position too, so a jump away never leaves the groups fading over another scene. */
+  --about-here: clamp(
+    0,
+    calc((var(--jp9, 0) - var(--about-here-at, 0.08)) / var(--about-here-over, 0.08)),
+    1
+  );
 
-  **This is the retirement and not the composition.** The Final Visual Master puts the headline at 104px
-  on x196 with its paragraph on a 474 measure, the second principle at 46px on x838, and a hairline at
-  y452 — none of that is here, because none of it is C5's. What is here is the narrative at the
-  publication's own measure, which is what it was already set to be read at.
-*/
-.about-spread {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  align-items: start;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: calc(var(--about-here) * (1 - var(--about-out)));
 }
 
-/*
-  **`.about-frame` and `.about-image` are not declared here any more.** They styled the inset, and the
-  inset is retired — the same photograph is the environment's studio plate. `--fade-about-image` and
-  `--about-settle` are still generated by the motion module and are read by nothing: the arrival they
-  timed was the photograph's, and retiring a layer is not a licence to retime the section. When C6
-  composes About over the plate it will decide what, if anything, that stage times.
-*/
+/* ── The claim ───────────────────────────────────────────────────────────────────────────────────── */
 
-/*
-  One narrative, with nothing labelled inside it. The label is the section's name; the sentence under it is
-  the first line of the story rather than a heading over it, which is why it is larger than the paragraphs
-  and set in the same voice as them.
-
-  Margins rather than a `row-gap`, because the distance from the label to the first line and the distance
-  from one paragraph to the next are different relationships: the first is the page's rhythm, the second is
-  the type's, so the second is stated in the type's own ems and stays proportional when the size changes.
-*/
-.about-words {
-  display: grid;
-  align-content: start;
+.about-claim {
+  position: absolute;
+  left: var(--about-x);
+  top: calc(112 / 760 * 100vh);
+  max-width: calc(100vw - var(--about-x) * 2);
 }
 
+/* The Work's eyebrow register exactly: the section is named the way the Work named its statement. */
 .about-label {
+  --a-base-track: 0.26em;
+  white-space: nowrap;
   margin: 0;
+  font-family: var(--v2-sans);
+  font-weight: 400;
+  font-size: clamp(0.5625rem, calc(9.5 / 1440 * 100vw), 0.8125rem);
+  text-transform: uppercase;
+  color: rgb(255 248 236 / 0.66);
 }
 
-.about-opening {
-  margin: clamp(0.85rem, 2vh, 1.3rem) 0 0;
-  font-size: clamp(1.1875rem, 1.7vw, 1.5rem);
+.about-headline {
+  --a-base-track: -0.014em;
+  margin: clamp(0.9rem, 2.4vh, 1.5rem) 0 0;
+  font-family: var(--v2-serif);
   font-weight: 300;
-  line-height: 1.4;
-  letter-spacing: -0.006em;
-  color: var(--ink);
-  /*
-    Two lines of even length rather than a full line and the word `repeat.` on its own, which is what the
-    measure gives it at 1440. The line breaks are not authored here — this is a sentence, not a composed
-    statement — so the browser is asked to make them even instead. Nothing else in the publication needs
-    this, because nothing else in it is display type set to an inherited width.
-  */
-  text-wrap: balance;
-}
-
-.about-text {
-  margin: 1.15em 0 0;
-  font-family: var(--read);
-  font-size: var(--read-size);
-  line-height: var(--read-leading);
-  color: var(--ink);
+  font-size: clamp(2.375rem, calc(78 / 1440 * 100vw), 6.25rem);
+  line-height: 1.02;
+  color: #fdf8ec;
 }
 
 /*
-  **The arrival**, and it is the only composed one in the publication: the room, then the mark, then the
-  words, one after another, over about two and a fifth seconds. `story.afterTheFilm.about` holds every
-  number and `timeline.ts` resolves the three delays from one `step` — nothing here declares a duration.
-
-  The photograph is the one thing that moves, 14px from below (`--studio-settle`), so its arrival has a
-  direction and reads as a picture being set down rather than switched on. The label and the words are
-  opacity alone: three elements each drifting upward is the generic scroll reveal this exists instead of.
-  Under `prefers-reduced-motion` the settle is zero and the order is unchanged — see `transitions.ts`.
-
-  Each block takes its delay from a variable so the cadence is one line of CSS per block and the numbers all
-  come from one place. `nth-of-type` over the paragraphs: the opening sentence is the first, the narrative
-  is the second and third.
+  Authored lines, and each is its own box that never wraps: tracking opens and closes on the line, not on
+  a paragraph that re-breaks around it.
 */
-.about-label,
-.about-opening,
+.about-headline span,
+.about-principle span {
+  display: block;
+  white-space: nowrap;
+}
+
+/* ── Its evidence ────────────────────────────────────────────────────────────────────────────────── */
+
+.about-evidence {
+  position: absolute;
+  left: calc(838 / 1440 * 100vw);
+  top: calc(146 / 760 * 100vh);
+  width: clamp(15rem, calc(300 / 1440 * 100vw), 24rem);
+}
+
 .about-text {
+  margin: 0;
+  font-family: var(--v2-serif);
+  font-weight: 300;
+  font-size: clamp(0.9375rem, calc(16 / 1440 * 100vw), 1.1875rem);
+  line-height: 1.62;
+  color: rgb(253 248 236 / 0.74);
+}
+
+.about-rule {
+  display: block;
+  width: 2.25rem;
+  height: 1px;
+  margin: clamp(1.4rem, 4vh, 2.4rem) 0 clamp(1.1rem, 3vh, 1.8rem);
+  background: rgb(253 248 236 / 0.42);
+}
+
+.about-principle {
+  margin: 0;
+  font-family: var(--v2-serif);
+  font-weight: 300;
+  font-size: clamp(1.375rem, calc(30 / 1440 * 100vw), 2.375rem);
+  line-height: 1.12;
+  color: #fdf8ec;
+}
+
+/* The three refusals, in the caption register the Work's corner and the rail are set in. */
+.about-lines {
+  display: grid;
+  row-gap: 0.7em;
+  margin: clamp(0.9rem, 2.4vh, 1.4rem) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.about-lines li {
+  --a-base-track: 0.18em;
+  white-space: nowrap;
+  font-family: var(--v2-sans);
+  font-size: clamp(0.5625rem, calc(9.5 / 1440 * 100vw), 0.8125rem);
+  text-transform: uppercase;
+  color: rgb(253 248 236 / 0.62);
+}
+
+/*
+  ── How a group arrives: scroll starts it, time resolves it ────────────────────────────────────────
+
+  The driver writes `data-about` — how many of About's three groups the hand has reached
+  (`TIMING.about.arrives.at`). Each group then resolves on its own curve, with the publication's three
+  channels: the tracking closes, the ink rises inside that movement and finishes before it, and a small
+  settle lands last. Scrolling back under a threshold releases the group on `--fade-about-leave`, with no
+  stagger, so reversal is immediate and exact.
+
+  **The paragraph does not track.** Tracking a wrapped paragraph re-breaks it on every frame; it arrives
+  on ink and settle alone. Every other line is a single unbreakable line.
+*/
+.about-stage [data-in] {
+  --dur: var(--fade-about-detail);
+  --track: var(--arr-track, 0.055);
   opacity: 0;
+  letter-spacing: calc(var(--a-base-track, 0em) + var(--track) * 1em);
+  transform: translateY(calc(var(--arr-rise, 6) * 1px));
+  transition:
+    opacity var(--fade-about-leave) var(--curve),
+    letter-spacing var(--fade-about-leave) var(--curve),
+    transform var(--fade-about-leave) var(--curve);
 }
 
-.about-label {
-  transition: opacity var(--fade-about-label) var(--curve) var(--in-about-label);
+.about-stage [data-in='statement'] {
+  --dur: var(--fade-about-statement);
 }
 
-.about-opening,
-.about-text {
-  transition: opacity var(--fade-about-words) var(--curve) var(--in, 0ms);
+.about-stage [data-in='support'] {
+  --dur: var(--fade-about-support);
+  --track: 0;
 }
 
-.about-words p:nth-of-type(1) {
-  --in: var(--in-about-words-1);
-}
-
-.about-words p:nth-of-type(2) {
-  --in: var(--in-about-words-2);
-}
-
-.about-words p:nth-of-type(3) {
-  --in: var(--in-about-words-3);
-}
-
-.about[data-shown='true'] .about-label,
-.about[data-shown='true'] .about-opening,
-.about[data-shown='true'] .about-text {
+:root:is([data-about='1'], [data-about='2'], [data-about='3']) .about-stage [data-in='statement'],
+:root:is([data-about='2'], [data-about='3']) .about-stage [data-in='support'],
+:root[data-about='3'] .about-stage [data-in='detail'] {
+  --wait: calc(var(--i, 0) * var(--step-about));
   opacity: 1;
+  letter-spacing: var(--a-base-track, 0em);
+  transform: none;
+  transition:
+    opacity calc(var(--dur) * 0.7) var(--curve) var(--wait),
+    letter-spacing var(--dur) var(--curve) var(--wait),
+    transform calc(var(--dur) * 0.8) var(--curve) calc(var(--wait) + var(--dur) * 0.2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about-stage [data-in] {
+    letter-spacing: var(--a-base-track, 0em);
+    transform: none;
+    transition: opacity var(--fade-about-leave) linear;
+  }
 }
 
 /*
-  ---------- About, narrower ----------
+  ── The camera, arriving in the room ──────────────────────────────────────────────────────────────
 
-  The stacking rule that used to live here went with the spread: there is one column at every width now,
-  so there is nothing left to stack. What survives is the reason the rule existed — a narrative wants a
-  measure and not a screen's width — and it now applies everywhere rather than only below 1080.
+  §3's superimpose is one light belonging to two rooms, so the studio does not appear at rest: it comes
+  in a few percent close on its lamp and settles back while the venice plate leaves
+  (`TIMING.about.settle`). Before junction 09 the plate is not present, and after it the scale is 1, so
+  the method and the relight stand on the plate exactly as they did.
 */
-.about-words {
-  max-width: var(--measure);
+.env-studio {
+  --about-in: clamp(
+    0,
+    calc((var(--jp9, 0) - var(--about-settle-at, 0.06)) / var(--about-settle-over, 0.74)),
+    1
+  );
+  transform: scale(
+    calc(
+      1 + var(--about-push, 0.04) *
+        (1 - var(--about-in) * var(--about-in) * (3 - 2 * var(--about-in)))
+    )
+  );
+  transform-origin: 21% 66%;
 }
+
+/*
+  ── A phone ───────────────────────────────────────────────────────────────────────────────────────
+
+  Portrait crops the studio to its middle: the figure fills the lower half and the lamp leaves the frame.
+  The claim stays high on the wall; the evidence moves under the figure's shoulders, where the dark of
+  the shirt and the desk is the wall's equivalent. One column, the Work's margin on both sides.
+*/
+@media (max-width: 820px) {
+  .about {
+    height: 85vh;
+  }
+
+  .about-claim {
+    top: calc(var(--masthead, 0px) + 12vh);
+  }
+
+  .about-headline {
+    font-size: clamp(2.125rem, 10vw, 3.25rem);
+  }
+
+  .about-evidence {
+    left: var(--about-x);
+    top: auto;
+    bottom: 7vh;
+    width: calc(100vw - var(--about-x) * 2);
+  }
+
+  .about-text {
+    max-width: 30em;
+  }
+
+  .about-rule {
+    margin: 1.1rem 0 0.9rem;
+  }
+
+  /*
+    The portrait crop, chosen rather than centred: at 50% the figure was cut by the left edge and the
+    lamp — the room's one light — was out of frame; 26% holds the man and the lamp. It is the studio
+    plate's framing at every state it stands in on a phone (10 to 12), and the method's room is at
+    exposure .12 there, so the difference is only read here.
+  */
+  .env-studio {
+    object-position: 26% center;
+  }
+}
+
 
 /* ---------- The method: the room the studio listens in ---------- */
 
@@ -4344,11 +5084,6 @@ a.write-line:focus-visible {
 
   .page-ask {
     font-size: clamp(1.5rem, 7.4vw, 2.25rem);
-  }
-
-  /* The standfirst comes down with the frame, and stays clearly above the paragraphs under it. */
-  .about-opening {
-    font-size: clamp(1.125rem, 4.8vw, 1.3125rem);
   }
 
   .page-close {
@@ -6019,7 +6754,8 @@ a.write-line:focus-visible {
   was correct. The label face stays the inherited default, which is why only the statements are listed
   here: §5 gives Schibsted everything that is not one.
 */
-.about-opening,
+.about-headline,
+.about-principle,
 .about-text,
 .mresolve-answer,
 .mresolve-lines,
@@ -6071,7 +6807,8 @@ a.write-line:focus-visible {
   --a-i: clamp(0, calc((var(--a-p) - var(--arr-stmt-at, 0.18)) / var(--arr-stmt-over, 0.36)), 1);
   --a-k: clamp(0, calc((var(--a-p) - var(--arr-stmt-at, 0.18) - 0.06) / 0.24), 1);
   opacity: var(--a-i);
-  letter-spacing: calc(var(--arr-track, 0.055) * 1em * (1 - var(--a-k)));
+  /* `--a-base-track` is an element's own tracking at rest; the arrival opens on top of it. */
+  letter-spacing: calc(var(--a-base-track, 0em) + var(--arr-track, 0.055) * 1em * (1 - var(--a-k)));
   transform: translateY(calc(var(--arr-rise, 6) * 1px * (1 - var(--a-k))));
   will-change: opacity, letter-spacing, transform;
 }
@@ -6093,11 +6830,10 @@ a.write-line:focus-visible {
   --a-k: clamp(0, calc((var(--a-p) - var(--a-d) - 0.06) / 0.24), 1);
 }
 
-/* Each state reads its own junction. The state is the junction that lands on it. */
-.about[data-arrive-on] [data-arrive],
-.about [data-arrive] {
-  --a-p: var(--jp9);
-}
+/*
+  Each state reads its own junction. The state is the junction that lands on it. About is not here: its
+  groups are started by scroll and resolved in time (`.about-stage [data-in]`).
+*/
 .method [data-arrive] {
   --a-p: var(--jp10);
 }
@@ -6129,7 +6865,7 @@ a.write-line:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .publication [data-arrive] {
     opacity: 1;
-    letter-spacing: normal;
+    letter-spacing: var(--a-base-track, normal);
     transform: none;
   }
 }
@@ -6186,7 +6922,7 @@ a.write-line:focus-visible {
 
   Two blocks, two jobs, and the difference between them is the composition:
 
-    `.v2-make`    label → category → offer. The left margin, at the height the narrative stood at.
+    `.v2-make`    label → queue → category. The left margin, at the height the narrative stood at.
     `.v2-ident`   who and what the photograph is. Lower right, small — a caption, not a title.
 
   **What is NOT here:** an 80px `Wedding Experience` headline (it repeated the category above it and
@@ -6267,7 +7003,7 @@ a.write-line:focus-visible {
   letter-spacing: 0.26em;
   text-transform: uppercase;
   color: rgb(255 248 236 / 0.66);
-  opacity: var(--wk-label, 0);
+  opacity: calc(var(--wk-label, 0) * var(--work-swap));
 }
 
 /*
@@ -6298,7 +7034,7 @@ a.write-line:focus-visible {
 .v2-make-slot {
   position: relative;
   display: block;
-  opacity: var(--wk-cat, 0);
+  opacity: calc(var(--wk-cat, 0) * var(--work-swap));
   margin: 0.62rem 0 0.9rem;
   font-family: var(--v2-serif);
   font-weight: 300;
@@ -6318,56 +7054,122 @@ a.write-line:focus-visible {
   top: 0;
   color: #fdf8ec;
   white-space: nowrap;
-  opacity: 0;
   /*
-    **Out, a gap, then in — the film's own dip, and never a cross-fade.**
+    **It switches, and it does not fade.** This carried its own dip — out, a gap, then in — which was
+    the right answer while the block around it stood still. The block dips now (`--work-swap`), so a second
+    dip in here would be a fade inside a fade: the word would still be arriving after its own frame had
+    finished returning.
 
-    The outgoing word loses `data-lit` on the same frame the incoming one gains it, so this base rule is
-    the exit: it empties over `--fade-exp-out` with no delay. The rule below is the entrance and it
-    waits `--wait-exp-in` — the out plus the gap — before it starts. The two are therefore never above
-    zero together.
-
-    Cross-fading them held both categories legible for 780ms, measured in Chrome at t=22s of the cycle,
-    which asks the eye to read the line that is neither of them. `dock.dip` answered the identical
-    problem the identical way.
+    So the choice is instant, and `work-experiences.tsx` makes it in the **middle of the gap**, where
+    `--work-swap` is 0 and nothing in this corner is legible. Two categories can no more be read together
+    than before — there is simply one mechanism holding that instead of two.
   */
-  transition: opacity var(--fade-exp-out) var(--curve);
-  will-change: opacity;
+  opacity: 0;
 }
 
 .v2-make-word[data-lit='1'] {
   opacity: 1;
-  transition: opacity var(--fade-exp-in) var(--curve) var(--wait-exp-in);
 }
 
 /*
-  **The offer, and it is a way in rather than a way forward.** Smaller than the category, normal case,
-  quiet — it does not advance the carousel and it is not a control. It arrives after the category
-  (`TIMING.work.arrives.cta`), because the reading order is label → idea → action.
+  ── The queue · C14, 16 September 2026 (Q2 · *fila que roda*) ───────────────────────────────────
+
+  **The category words are the index.** The eyebrow's own register — sans, uppercase, 0.26em, the same
+  size — because the row continues the statement above it: *what we actually make: art, exhibition…*
+
+  **The active category is not in the row.** It is the headline. The next one stands first, directly
+  above it, a value more ink than the rest, and fills from the left with time: each word is drawn twice
+  on one origin and the full-ink copy is uncovered by `--p`, which `work-experiences.tsx` writes every
+  frame. The fill is the word, not a mark beside it.
+
+  **The row moves, the headline never does.** Words are placed along one line from their own measured
+  widths (`--x`); a promotion moves them up and the returning category writes itself in at the tail.
+  The row does not dip with the headline — it is the index, and it stays while the content changes
+  under it.
+
+  It arrives with the eyebrow (`--wk-index`) and never wraps: a row wider than the room runs on past
+  the edge and fades there (`[data-overflow]`).
 */
-.v2-make-cta {
-  display: inline-block;
+.v2-queue {
+  position: relative;
+  height: calc(1.2em + 10px);
+  margin: 0.45rem 0 0;
   font-family: var(--v2-sans);
-  font-size: clamp(0.625rem, calc(11 / 1440 * 100vw), 0.875rem);
-  letter-spacing: 0.14em;
-  color: rgb(253 248 236 / 0.72);
-  text-decoration: none;
-  opacity: var(--wk-cta, 0);
-  transition: color var(--fade-nav-hover) var(--curve);
-}
-
-.v2-make-cta[data-inert] {
-  /*
-    No work behind it yet, so it is not a link: the line composes and does not respond. The same
-    absence `three.work.url` and `contact.write.address` render, and for the same reason.
-  */
-  margin: 0;
-  cursor: default;
-  color: rgb(253 248 236 / 0.44);
-}
-
-.v2-make-cta:not([data-inert]):hover {
+  font-size: clamp(0.5625rem, calc(9.5 / 1440 * 100vw), 0.8125rem);
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
   color: #fdf8ec;
+  opacity: var(--wk-index, 0);
+}
+
+.v2-queue[data-overflow] {
+  width: var(--queue-room);
+  overflow: clip;
+  mask-image: linear-gradient(to right, #000 calc(100% - 3em), transparent);
+}
+
+.v2-queue-word {
+  appearance: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 0;
+  padding: 5px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: none;
+  transform: translateX(var(--x, 0px));
+  transition:
+    transform var(--fade-queue-move) var(--curve),
+    opacity var(--fade-queue-move) var(--curve);
+}
+
+/* A promoted word leaves with the headline, on the dip's own out. */
+.v2-queue-word[data-state='leaving'] {
+  opacity: 0;
+  transition-duration: var(--fade-queue-move), var(--fade-exp-out);
+}
+
+/* The category that is showing is the headline, and is not drawn here. */
+.v2-queue-word[data-state='active'] {
+  opacity: 0;
+}
+
+/* Placed at the tail while it is not drawn — never seen travelling there. */
+.v2-queue-word[data-instant] {
+  transition: none;
+}
+
+.v2-queue-base {
+  opacity: 0.28;
+  transition: opacity var(--fade-nav-hover) var(--curve);
+}
+
+.v2-queue-word[data-state='next'] .v2-queue-base {
+  opacity: 0.45;
+}
+
+.v2-queue-fill {
+  position: absolute;
+  top: 5px;
+  left: 0;
+  clip-path: inset(0 calc((1 - var(--p, 0)) * 100%) 0 0);
+}
+
+.v2-queue-word:hover .v2-queue-base,
+.v2-queue-word:focus-visible .v2-queue-base {
+  opacity: 0.8;
+}
+
+.v2-queue-word:focus-visible {
+  outline: 1px solid rgb(253 248 236 / 0.5);
+  outline-offset: 0.35rem;
 }
 
 /*
@@ -6389,22 +7191,69 @@ a.write-line:focus-visible {
   right: var(--x196);
   bottom: calc(74 / 760 * 100%);
   text-align: right;
-  opacity: var(--wk-ident, 0);
+  opacity: calc(var(--wk-ident, 0) * var(--work-swap));
 }
 
-/* The identification exchanges on the same dip as the category — see `.v2-make-word`. */
+/*
+  ── What can be pressed inside the film, and when ───────────────────────────────────────────────
+
+  **`.v2` is `pointer-events: none`** — the film is a layer to look through. The Work's words and its
+  offer take pointer events back, **gated on `data-work`**, the driver's own answer to *is this section
+  composed* and the same signal the component reads for the tab order. An invisible control at
+  `opacity: 0` still takes a click, which on a full-bleed layer is a dead zone over the film — so the
+  category that is showing, the word that is leaving, and the offer of a caption that is not lit are
+  never pressable.
+*/
+:root[data-work='on'] .v2-queue-word:is([data-state='next'], [data-state='waiting']),
+:root[data-work='on'] .v2-ident-set[data-lit='1'] .v2-ident-open {
+  pointer-events: auto;
+}
+
+/*
+  **The way into the work, and it belongs to the work.** It stands under the caption it opens, on the
+  corner's own right edge, and is absent where the work has nowhere to go yet (`experienceUrl: null`).
+  It arrives and dips with the caption.
+*/
+.v2-ident-open {
+  display: block;
+  margin: 0.7rem 0 0;
+  font-family: var(--v2-sans);
+  font-size: clamp(0.5625rem, calc(10 / 1440 * 100vw), 0.8125rem);
+  letter-spacing: 0.14em;
+  color: rgb(253 248 236 / 0.86);
+  text-decoration: none;
+  transition: color var(--fade-nav-hover) var(--curve);
+}
+
+a.v2-ident-open:hover,
+a.v2-ident-open:focus-visible {
+  color: #fdf8ec;
+}
+
+a.v2-ident-open:focus-visible {
+  outline: 1px solid rgb(253 248 236 / 0.5);
+  outline-offset: 0.35rem;
+}
+
+/*
+  The ghost reserves the tallest caption's height — offer included — so `.v2-ident` measures something. Hidden rather than removed: `visibility` keeps the box.
+*/
+.v2-ident-ghost {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* It switches inside the gap, like the category — see `.v2-make-word`. The block above it carries the dip. */
 .v2-ident-set {
   position: absolute;
   right: 0;
   bottom: 0;
   white-space: nowrap;
   opacity: 0;
-  transition: opacity var(--fade-exp-out) var(--curve);
 }
 
 .v2-ident-set[data-lit='1'] {
   opacity: 1;
-  transition: opacity var(--fade-exp-in) var(--curve) var(--wait-exp-in);
 }
 
 /*
@@ -6493,7 +7342,7 @@ a.write-line:focus-visible {
 .v2-make,
 .v2-make-label,
 .v2-make-slot,
-.v2-make-cta,
+.v2-queue,
 .v2-ident,
 .v2-grade,
 .v2-scrim,
@@ -6541,7 +7390,7 @@ a.write-line:focus-visible {
     at 388 in Chrome.
   */
   .v2-make-slot {
-    /* One line at every width — the categories are two words and the longest measures 19 characters. */
+    /* One line at every width — the longest headline, *Experiences beyond categories*, is 29 characters. */
     white-space: nowrap;
   }
 }
@@ -6670,7 +7519,7 @@ a.write-line:focus-visible {
     studio's ink — so the rail takes the darker demand of the two. During the film `--page-ink` is 1 and
     the term is 0, which is why nothing above state 09 moves.
   */
-  --rail-stone: max(var(--env-stone, 0), calc(1 - var(--page-ink, 1)));
+  /* `--rail-stone` is hoisted to `:root`, beside `--rail-field`. The expression is unchanged. */
   --rail-ink: color-mix(in srgb, rgb(15 14 12) calc(var(--rail-stone) * 100%), rgb(242 236 224 / 0.86));
   --rail-ink-quiet: color-mix(
     in srgb,
@@ -6689,23 +7538,38 @@ a.write-line:focus-visible {
   color: var(--rail-ink);
 }
 
-.marker,
-.ledger-word {
+/*
+  Option A's three registers take C5's crossing ink: the chapter at full strength, the folio and the
+  listed chapters at the quiet value, and the hover answering with the page's own near-black or the
+  film's near-white depending on which side of the crossing the ground is.
+*/
+.rail-title {
   color: var(--rail-ink);
 }
 
+/*
+  **The quiet registers take the crossing and the adaptation in one declaration**, and it has to be
+  this one: written after Option A's own block, a plain `var(--rail-ink-quiet)` here won on source
+  order and the adaptive mix never applied. Seen in Chrome on the selected plate, where the folio and
+  the four chapters stayed at `rgb(54 52 45)` and were not there.
+
+  `--rail-ink-at` is how far they move toward the running header's own ink: the wash and the lift both
+  raise it a little, and a crossed ink raises it all the way — `:root` argues why.
+
+  **The hierarchy is not inverted by it**, because Option A carries hierarchy in *scale and face* — 36px
+  of Cormorant against 12.7px of tracked grotesque — and not in ink. And it happens only where the
+  ground asks for it, so on the studio plate, on paper and before the dock the composition is exactly
+  the approved one, untouched.
+*/
+.rail-folio,
 .ledger-word {
-  color: var(--rail-ink-quiet);
+  color: color-mix(in srgb, var(--rail-ink) calc(var(--rail-ink-at, 0) * 100%), var(--rail-ink-quiet));
 }
 
+.rail-door:hover,
 .ledger-word:hover,
 .ledger-word:focus-visible {
   color: color-mix(in srgb, rgb(9 8 7) calc(var(--rail-stone, 0) * 100%), #f7efe2);
-}
-
-/* The leader rule is the affordance; on a photograph it needs the film's own ink, not the page's. */
-.ledger-rule {
-  background: var(--rail-rule-ink);
 }
 
 /*
@@ -6788,7 +7652,16 @@ a.write-line:focus-visible {
   beat belonging to a runway that has not started.
 */
 .ledger-index {
-  opacity: var(--jp7);
+  /*
+    **The block fade is gone.** It read `opacity: var(--jp7)` — the whole index fading up linearly across
+    junction 07 → 08 — underneath a clip that hid all of it until the junction was over. Two mechanisms
+    for one arrival, and the visitor saw neither. The wipe above is the arrival; this element's ink is
+    simply its own.
+
+    `--lindex` is not in the opacity either, and was not before: it stays `spine.ts`'s record of *whether*
+    the index exists at a state, read by the Ledger rather than by the reveal.
+  */
+  opacity: 1;
 }
 
 /*

@@ -145,13 +145,16 @@ export default function Home() {
             travel, the fall and the tracking all resolve to their own zero — this states the landed
             form rather than leaving them upright and mid-flight.
           */
-          .marker { opacity: 1 !important; transform: none !important; }
+          .rail-head { display: flex; align-items: baseline; gap: .6rem; width: auto; }
+          .rail-title { width: auto; margin-top: 0; font-size: 1.25rem; }
+          .rail-set { transform: none !important; }
           .mark-stroke { transform: translateY(calc(var(--s-n) * var(--mark-size) * 0.34))
             rotate(90deg) !important; }
           .ledger-index ul { flex-direction: row; flex-wrap: wrap;
             gap: clamp(1.375rem, 2.4vw, 2.25rem); }
           .ledger-index li { opacity: 1 !important; }
-          .ledger-rule { display: none; }
+          .ledger-index ul { margin: 0; }
+          .ledger-word { width: auto; }
           /*
             The register is opened by a press and there is nothing here to press with. So the way into
             the work is the line the act already prints on the paper beneath the plate, which is the same
@@ -202,13 +205,17 @@ export default function Home() {
           */
           .page { scroll-margin-top: 0; }
           /*
-            And About's arrival is staggered per element, gated on the attribute the observer writes — so
-            without scripting the attribute never arrives and the room, the mark and the words would all
-            stay at zero. This is the composed alternative: everything present, in order, with the
+            And About is a frame written by scroll position: its composition stands fixed in the viewport
+            and arrives on the junction's own progress, so without scripting it would be pinned and empty.
+            This is the composed alternative: the section in flow, everything present, in order, with the
             sequence removed rather than the content. 05-storyboard.md §10.
           */
-          .about-frame, .about-label, .about-opening, .about-text {
-            opacity: 1 !important; transform: none !important; }
+          .about { height: auto; }
+          .about-stage { position: static; opacity: 1 !important; display: grid; gap: 6vh;
+            padding: 6vh var(--mark-x) 10vh var(--page-x); }
+          .about-claim, .about-evidence { position: static; }
+          .about [data-in] { opacity: 1 !important; transform: none !important;
+            letter-spacing: var(--a-base-track, normal) !important; }
           /*
             And the method is a held frame driven by scroll position, so without scripting there is no frame
             and no choreography — only the first state of it, which is a label and one line. So it is told

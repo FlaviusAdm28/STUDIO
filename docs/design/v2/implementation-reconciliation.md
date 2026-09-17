@@ -2212,3 +2212,180 @@ Every one of these was invisible to the typecheck and the DOM, and was found by 
 ### Still open, carried forward
 
 **Whether §2's 20% pan should stay now that the push is there.** Untouched by this entry.
+
+---
+
+## C14 · The Work's categories are a queue of words · **CANONICAL — 16 September 2026** · design owner
+
+> **THIS IS THE CURRENT DECISION FOR HOW STATE 09 IS NAVIGATED.** It supersedes C13's *arrows and a
+> count* (the 14 September amendment) and reinstates a clock on the section. Everything else in C13
+> stands: the sequence into the Work, the photograph as the bridge, the dip, the caption in the corner.
+>
+> Chosen by the design owner from four explorations (Q1–Q4) as **Q2 · *fila que roda***, and implemented
+> as explored: *"não quero mais uma ronda de exploração de alternativas."*
+
+### The composition
+
+```
+WHAT WE ACTUALLY MAKE          eyebrow · unchanged
+ART   EXHIBITION   …           the queue · the category words, in the eyebrow's register
+Wedding experiences            the active category · the headline · left-aligned, never travels
+
+                                              Raquel & Flávio
+                                              28 · 08 · 2027 — VENICE
+                                              See full experience →     only where the work has a URL
+```
+
+**The category word is the index.** The active category is the headline and is **not** in the queue, so
+the small word (a category preparing) and the headline (the category standing) are never the same claim
+at once. The next category stands first, directly above the headline, and **fills from the left with
+time** — the word itself, not a mark beside it.
+
+### The cycle — `TIMING.work.queue`, milliseconds
+
+1. The first word fills across `holds` (8 000).
+2. When it is full it is **promoted**: it leaves the row on the dip's own `out`, as the headline leaves.
+3. The row **moves up** across `moves` (420) while the frame is empty; the category that was showing
+   re-enters at the tail. The promoted word is placed at the tail without a transition, unseen.
+4. Headline, caption and photograph change on the dip's own signal (`carousel.exchange.at`).
+5. Once the new headline has arrived (`out + gap + in`), the next word starts to fill.
+
+**A press completes the word** (`completes`, 320) and promotes it; the queue carries on from there.
+Hovering or focusing the row holds the clock. Under `prefers-reduced-motion` the queue does not advance
+on its own; the words stay pressable.
+
+### Why a clock again, and why C8 still allows it
+
+The 14 September ruling removed the 9-second interval because a control made the choice the visitor's.
+The design owner has now asked for autoplay with the words as the control. C8's licence holds: which
+category stands is not the visitor's until they press a word, and **scroll never changes it** — scroll
+only decides whether the section is composed (`data-work`), and the clock runs only while it is. Leaving
+the section stops the clock and empties the fill; the category shown is kept.
+
+### Model
+
+`site.three.work.makes.categories` — `{ word, headline, work }`, in queue order. **One representative
+work per category**; a newer work replaces it by changing `work`. The first must stand on the plate the
+film ends on (venice), or the entry becomes a swap. `projects.<id>.category` is removed — the headline
+belongs to the category, not to the project.
+
+### What changed in the build
+
+| | |
+|---|---|
+| `makes.experiences`, `makes.step` | **REMOVED** → `makes.categories` |
+| `projects.<id>.category` | **REMOVED** → `makes.categories[].headline` |
+| `.v2-step*`, `01 / 02`, `←` `→` | **REMOVED** |
+| `See full experience →` under the headline, inert on Art | **MOVED** into the caption (`.v2-ident-open`), **absent** without a URL |
+| `TIMING.work.arrives.cta` / `--wk-cta` | **RENAMED** `arrives.index` / `--wk-index` — the queue arrives with the eyebrow |
+| `TIMING.work.queue` | **NEW** — `holds`, `moves`, `completes`; `--fade-queue-move` |
+
+### Verified in Chrome, 16 September 2026
+
+Autoplay Wedding → Art → Wedding with photograph, caption and offer changing in the gap; a promoted word
+leaving in ~380 ms and the row recomposing after it; a press completing in ~320 ms and promoting; hover
+holding the clock; leaving the section emptying the fill and keeping the category. Four categories were
+exercised with two temporary entries (removed): Wedding → Art → Exhibition, the queue rotating, no
+overflow at 1440, 768 or 390 (widest row ends at x 326 of 388). A clean load reaches all fourteen states
+with no console errors; the arrival order into the Work is label and queue, then category, then caption.
+
+### Still open
+
+- **WCAG 2.2.2** asks for a way to pause content that moves on its own for more than five seconds. Hover
+  and focus hold the clock and reduced motion stops it; there is **no explicit pause control**, because
+  the design owner ruled out additional UI. Carried forward.
+- **A row wider than the frame** (roughly six or more categories at 390) runs past the edge and fades
+  rather than wrapping. Not yet seen with real content.
+
+### Addendum · a third category · 16 September 2026 · design owner
+
+`Selected Projects` joins the queue as a record and an entry, with nothing else changed in the mechanism:
+
+| word (queue) | headline | work | caption |
+|---|---|---|---|
+| Weddings | Wedding experiences | `venice` | Raquel & Flávio · 28 · 08 · 2027 — VENICE · *See full experience →* |
+| Artists | Art experiences | `artist` | Cibele · Abstract / 2026 · Porto & Madrid |
+| Selected Projects | Experiences beyond categories | `selected` (`public/media/projects/selected/selected.png`) | SELECTED · A collection of singular projects · Made in Porto · Shared with the world |
+
+The queue words are the design owner's plural forms (*Weddings*, *Artists*); the two existing headlines
+are unchanged. The Selected caption has three levels, so `context.label` is an **optional** line above the
+name, set in the metadata's own style — no new style. No URL was given, so no offer is drawn.
+
+Verified in Chrome at 1920 and 390: Weddings → Artists → Selected Projects → Weddings in autoplay, the plate,
+headline and caption changing in the gap; a press on *Selected Projects* promoting it; at 390 the longest
+headline ends at x 290 of 388 and the row fits without overflow.
+
+---
+
+## C15 · About is a frame, and 09 → 10 is a superimpose · **16 September 2026** · design owner brief
+
+> **The current composition of state 10 and of junction 09 → 10.** Supersedes C6's pending
+> *"composing the type over the plate"* and the paper scrim About stood on. The Work, Q2, the categories
+> and 01 → 09 are untouched.
+
+**The brief.** About read as a conventional page laid over a photograph — a milky scrim, a column of
+paragraphs, a heading — and the passage from the Work was broken: the scrim arrived as a pale band
+scrolling up over the studio, and the ink flipped from light to dark at the state boundary with the
+words still on screen.
+
+### What it is now
+
+```
+ABOUT                                          We work directly with our clients…   ← evidence
+We stay close                                  ——
+to every detail.          ← the claim          Built exclusively for you.
+                                               NO TEMPLATES. · NO COPIES. · NOTHING MADE TO FIT TWICE.
+            [ the studio plate: the man at his desk, one lamp — no scrim ]
+```
+
+- **No scrim.** `TIMING.grounds` state 10 is `veil 0, ink 1`: the film's light ink on the dark room, so
+  nothing in the register changes from the Work and the Ledger keeps its ink.
+- **A frame, not a page.** `.about` keeps its height as runway (82vh; 85vh below 820 — the heights it
+  already had, so every junction after it costs what it cost). `.about-stage` is fixed in the viewport,
+  written onto the plate on `arriving`'s grammar with About's own windows (`TIMING.about.arrives`), and
+  **released in place** early in 10 → 11 (`TIMING.about.release`) — §3's *extinguish*. The method's
+  approach is unchanged.
+- **§2's two groups, staggered and unequal.** The claim on the Work's own left axis, the eyebrow in the
+  Work's eyebrow register; the evidence as a narrow column at x838, the refusals in the caption register.
+  Both above the figure and clear of the lamp. Headline authored in two lines.
+- **09 → 10 is §3's superimpose, narrowed.** The plates used to cross across the whole junction
+  (~5,300px at 1920 × 889 — a half-and-half ghost). They now dissolve inside `TIMING.about.superimpose`
+  [0.06, 0.34]: the studio rises over venice, which stays whole until it is covered, so the frame never
+  dips. The headline resolves inside it (§3's *headline at 30%*). `motion/environment.ts` `crossWindows`.
+- **The camera arrives.** The studio comes in 4% close on the lamp and settles to rest across
+  `TIMING.about.settle`; scale is 1 before and after, so the method and the relight are unchanged.
+- **A phone** keeps the claim high and puts the evidence on the dark of the figure's shirt; the studio
+  plate is framed at 26% so the man and the lamp are both in the portrait crop.
+
+### Retired
+
+`.about-spread`, `.about-words`, `.about-opening`, the About scrim (`--ground-near/far` on `.about`), the
+observer-driven clock arrival (`data-reveal` on About; `TIMING.publication.about` is now read by nothing).
+
+### Verified in Chrome, 16 September 2026
+
+1920 × 889, 1440 × 900, 768 × 1024 and 390 × 844: no overflow, no horizontal scroll; the arrival runs
+label + headline → paragraph → rule → principle → refusals and is whole before state 10; the stage is at
+0 by 10 → 11 @ 0.3 and the method arrives as before.
+
+**Not verified:** the no-scripting version against `next start` (the composed alternative is written in
+`page.tsx`'s noscript block but was not opened with scripting disabled); iOS Safari.
+
+### C15 amendment · 16 September 2026 · design owner
+
+1. **Work → About no longer depends on the active work.** The experience plate left with the Work's
+   *type* (`--work-holds`), so any category but Weddings dissolved back to venice before the studio
+   arrived. Now the studio plate stacks **beneath** venice and the experience plate
+   (`environment.tsx`), stands whole as the window opens, and the Work's ground clears off it: the
+   experience plate carries `--env-venice`, and venice's image steps aside while an experience covers it.
+   Verified with Weddings, Artists and Selected Projects — each dissolves from its own photograph.
+2. **`Built exclusively / for you.` is two authored lines** (`about.principle`), and every About line is
+   an unbreakable box; the paragraph arrives without tracking. Its height was constant at every frame
+   of slow and fast scroll at 1920, 1440 and 390.
+3. **Scroll starts, time resolves.** The driver writes `data-about` (how many of About's three groups
+   `TIMING.about.arrives.at` the hand has passed); each group resolves on its own curve
+   (`arrives.ms`) and is released on `leaves` when scrolled back. The camera's settle — the tree moving
+   as the type lands — and the release stay on scroll.
+4. **Breathing room.** The groups sit inside the camera's settle and the last one is written by ~0.6 of
+   09 → 10; the frame is then still for ~1,000px (1,050 at 1920 × 889, 1,025 at 1440, 975 at 390)
+   before state 10's darkening and release.

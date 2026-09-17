@@ -31,6 +31,11 @@
  *   venice" is that the change occupies the space between them. When C4 prices these junctions the
  *   interpolation narrows to whatever it prices; nothing here has to move.
  *
+ *   **09 → 10 is the first junction narrowed that way** (16 September 2026): §3's *superimpose* is a
+ *   passage around one shared light, and across the whole junction it stood as a half-and-half ghost for
+ *   thousands of pixels. `crossWindows` below reads the window from `TIMING.about.superimpose`; every
+ *   other junction still crosses across its whole gap.
+ *
  *   **Exposure starts at state 06.** §2's column opens `.50 · .35 · .10` across states 01–03, and the
  *   film **already performs exactly that light** with `--dusk`, its own black over the footage, measured
  *   running 0.05 → 0.70 → 1.00 across those three states. Grading the plate as well would darken the
@@ -41,6 +46,15 @@
 
 import { clamp01, smoothstep } from './easings'
 import { PLATE, states, type Plate } from './spine'
+import { TIMING } from './timing'
+
+/**
+ * **Junctions whose plates cross inside a window rather than across their whole gap**, keyed by the
+ * state the junction leaves. A fraction of that junction's own `0 → 1`; the numbers are `timing.ts`'s.
+ */
+const crossWindows: Readonly<Record<number, readonly [number, number]>> = {
+  9: TIMING.about.superimpose as unknown as readonly [number, number],
+}
 
 /** Where a state sits on the one continuous position. The driver measures these; nothing here does. */
 export type Placement = { readonly id: number; readonly at: number }
@@ -107,9 +121,31 @@ const groundOf = (id: number): string | null => {
  * **left**; `globals.css` owns that sign and the 20%, because it is a distance in a
  * frame. This is only *how far along* the pan is.
  *
- * It runs across 07 → 08 and holds, because §2 states the plate is already panned when state 08 stands.
+ * **It runs across 06 → 08 — design owner, 14 September 2026 — and the 20% is untouched.**
+ *
+ * It ran 07 → 08, which is one junction, and that is what made the entry into the Work feel like a
+ * wait. Measured on the running page at 2560 × 1305: `A memory.` leaves at y 10600 and this pan did not
+ * begin until **y 12937**. For 2,300px — nearly two viewports — the only things moving were the
+ * exposure and a 1.6% scale, neither of which the eye reads as movement. The visitor was looking at a
+ * photograph that appeared to be standing still, and the composition only began to open halfway to the
+ * rail.
+ *
+ * Starting it at state 06 puts the whole of the opening on the gesture the rail is written in: the
+ * photograph begins moving as the breath after `A memory.` ends, and it is still arriving as the
+ * navigation is drawn in the field it has opened. **The distance, the direction and the endpoint are
+ * exactly as they were** — §2's column says state 08 stands on a plate panned 20%, and it still does.
+ * Only the runway changed, which is why this is an implementation latitude and not a design change:
+ * §2 states where the pan has got to at 08, and never where it starts.
+ *
+ * `smoothstep` over the doubled runway also puts the pan's highest velocity at the junction boundary
+ * and decelerating through the rail's arrival — so the composition opens decisively and is settling
+ * while the navigation is written on it, rather than starting and stopping twice.
+ *
+ * **Nothing may translate the plate further left than this.** `.env-plate` is `100% + --env-pan-throw`
+ * wide and this consumes the whole overhang at `1`; any additional leftward term would pull the plate's
+ * right edge into the frame. That is why the camera carries no lateral term at all.
  */
-const PAN_FROM = 7
+const PAN_FROM = 6
 const PAN_TO = 8
 
 /**
@@ -169,7 +205,9 @@ const span = (
   if (hi === lo || !Number.isFinite(a) || !Number.isFinite(b) || b <= a) {
     return { from: placed[lo].id, to: placed[hi].id, t: 0 }
   }
-  return { from: placed[lo].id, to: placed[hi].id, t: smoothstep(clamp01((p - a) / (b - a))) }
+  const raw = clamp01((p - a) / (b - a))
+  const [w0, w1] = crossWindows[placed[lo].id] ?? [0, 1]
+  return { from: placed[lo].id, to: placed[hi].id, t: smoothstep(clamp01((raw - w0) / (w1 - w0))) }
 }
 
 /** A number read at both ends of the span and mixed. The one curve, applied once, in one place. */
@@ -197,6 +235,102 @@ const panAt = (p: number, placed: ReadonlyArray<Placement>): number => {
  * §3 asks for at 09 → 10 (*superimpose*) and what makes 05 → 06 an emergence rather than a cut. The
  * element behind each of them is mounted once for the session and never re-sourced.
  */
+/*
+  ── THE RAIL OVER A PHOTOGRAPH ──────────────────────────────────────────────────────────────────
+
+  The Ledger stands in one corner for the whole film and the plates behind that corner are not one
+  ground. Sampled in Chrome at 1920 × 889 inside the rail's own 120 × 226 rectangle:
+
+                 lum     mid     floor
+      studio     0.008   0.006   0.004    near black, all of it
+      hero       0.180   0.088   0.023    night footage with a little sky in the corner
+      artist     0.255   0.037   0.002    a wall seam runs down the middle of the index
+      venice     0.453   0.019   0.003    a dark canal with the water's specular column across it
+      selected   0.735   0.189   0.092    **lit everywhere** — its darkest 5% is brighter than
+                                          venice's median
+
+  **`mid` and `lum` are different questions and the last row is why.** Venice and selected both have
+  bright highlights behind the rail, but venice is a dark photograph with a bright band in it and
+  selected is simply a lit room. A wash dark enough to put cream type on selected has to move the whole
+  box, and at that strength it is findable as a patch of shadow over the window — measured, and the one
+  outcome the direction of 17 September 2026 rules out by name.
+
+  So the two are treated as the different problems they are:
+
+  **A bright band in a dark frame** is the wash's job. `railFieldFor(lum)` drops the highlight far
+  enough for cream to hold, and because the rest of the box is already dark the wash has nothing to
+  move and cannot be seen.
+
+  **A lit frame** is the *ink's* job. The rail is printed in the page's own near-black instead — which
+  is not a new device: `globals.css` already crosses `--rail-ink` between that black and the film's
+  cream, and has since C5. All that is new is a third thing that can ask for the crossing.
+  `railLitFor(mid)` asks it.
+
+  **And when the ink crosses, the wash crosses with it.** Dark ink does not want a darkened ground; it
+  wants the shadows lifted off the floor so the bottom of the box clears too. So the same pool becomes
+  warm paper instead of warm black, at `railLiftFor(floor)` — over a backlit room that reads as bloom,
+  which is what a backlit room does. The photograph is left brighter than it was rather than darker,
+  and nothing is laid over it that it would not have done itself.
+
+  The crossing sits between 0.10 and 0.17 of median luminance, which is empty: the four dark plates
+  are at 0.006 to 0.088 and selected is at 0.189. So every *plate* resolves to one ink or the other and
+  never to the grey in between; only a scroll-blend of two plates can land mid-crossing, and at that
+  moment the ground itself is mid too.
+*/
+
+/** Dark ink wants the ground below this; it is where 4.5:1 lands for cream at the caption register. */
+const FIELD_TARGET = 0.15
+
+/**
+ * **Where the treatment stops being invisible**, and a judgement rather than a calculation. The curve
+ * asks 0.51 of the selected plate; at that value the pool is findable. It no longer binds — selected
+ * crosses the ink now instead — but it stays as the guarantee that no future plate can buy contrast by
+ * putting a shadow on the photograph.
+ */
+const FIELD_CEILING = 0.4
+
+/** Dark ink on a lit ground needs the ground above this — 4.5:1 against `rgb(15 14 12)`. */
+const LIFT_TARGET = 0.2
+
+/** And the lift has its own ceiling, for the same reason the wash does. */
+const LIFT_CEILING = 0.34
+
+/** Linear ramp, clamped. */
+const ramp = (x: number, a: number, b: number): number =>
+  x <= a ? 0 : x >= b ? 1 : (x - a) / (b - a)
+
+const srgb = (luminance: number): number => luminance ** (1 / 2.2)
+
+/**
+ * **Which ink the rail is printed in**, from the median luminance behind it: 0 is the film's cream, 1
+ * is the page's near-black. `globals.css` feeds it into `--rail-stone`, beside the two terms that were
+ * already there.
+ */
+export const railLitFor = (median: number): number => ramp(median, 0.1, 0.17)
+
+/** The dark wash a ground of this highlight luminance needs, or nothing if it needs nothing. */
+export const railFieldFor = (luminance: number): number => {
+  if (luminance <= 0) return 0
+  const a = 1 - srgb(FIELD_TARGET) / srgb(luminance)
+  return a <= 0 ? 0 : Math.min(a, FIELD_CEILING)
+}
+
+/** The light lift a ground of this floor needs before dark ink clears its darkest corner. */
+export const railLiftFor = (floor: number): number => {
+  const g = srgb(floor)
+  if (g >= 0.95) return 0
+  const a = (srgb(LIFT_TARGET) - g) / (0.95 - g)
+  return a <= 0 ? 0 : Math.min(a, LIFT_CEILING)
+}
+
+/** What each of the Environment's own plates measures. The Work's plate carries its own, in content. */
+const PLATE_RAIL: Record<Plate, { lum: number; mid: number; floor: number }> = {
+  [PLATE.HERO]: { lum: 0.18, mid: 0.088, floor: 0.023 },
+  [PLATE.VENICE]: { lum: 0.453, mid: 0.019, floor: 0.003 },
+  [PLATE.STUDIO]: { lum: 0.008, mid: 0.006, floor: 0.004 },
+  [PLATE.NONE]: { lum: 0, mid: 0, floor: 0 },
+}
+
 export const environmentValues = (
   p: number,
   placed: ReadonlyArray<Placement>,
@@ -204,17 +338,53 @@ export const environmentValues = (
 ): EnvironmentValues => {
   const { from, to, t } = span(p, placed)
 
-  const plate = (which: Plate): number =>
-    mix(held(from) === which ? 1 : 0, held(to) === which ? 1 : 0, t)
+  /*
+    A windowed junction is a **dissolve**, not a mix: the incoming plate stacks *beneath* the outgoing
+    one (`environment.tsx`), stands whole as soon as the window opens, and the outgoing ground clears off
+    it across the window. Mixing both at `t` put two half-opaque plates over black, and the frame dipped
+    at the middle of 09 → 10, where §3 says the light never goes out.
+
+    Clearing the *upper* layer is what makes the junction independent of which Work is showing: the
+    stylesheet multiplies the Work's experience plate by this same presence, so whichever ground the
+    Work stood on is the one that dissolves.
+  */
+  const dissolves = from in crossWindows
+  const plate = (which: Plate): number => {
+    const a = held(from) === which ? 1 : 0
+    const b = held(to) === which ? 1 : 0
+    if (dissolves && a === 0 && b === 1) return t > 0 ? 1 : 0
+    return mix(a, b, t)
+  }
+
+  /*
+    A measurement of the ground, blended by how present each plate is and scaled by §2's exposure. The
+    same shape as `plate()` above, over the numbers rather than over the presences.
+  */
+  const exposure = mix(exposureOf(from), exposureOf(to), t)
+  const weigh = (of: 'lum' | 'mid' | 'floor'): number =>
+    (Object.keys(PLATE_RAIL) as Array<keyof typeof PLATE_RAIL>).reduce(
+      (sum, which) => sum + plate(which as Plate) * PLATE_RAIL[which][of],
+      0,
+    ) * exposure
 
   /* The ground is §2's own colour and it steps rather than mixes — two named greys one value apart. */
   const ground = groundOf(t < 0.5 ? from : to) ?? groundOf(from) ?? groundOf(to)
 
   return [
+    /*
+      What the rail needs over whatever is standing behind it: which ink to be, how much dark wash, and
+      how much light lift. All three are blended by the same presences the plates are drawn at, and the
+      luminances are taken down by §2's own exposure — a plate at a third of a stop is a third as bright
+      behind the type. `work-experiences.tsx` supplies the Work's own plate separately; `globals.css`
+      composes the two and gates all of it on the rail existing at all.
+    */
+    ['--env-lit', round(railLitFor(weigh('mid')))],
+    ['--env-field', round(railFieldFor(weigh('lum')))],
+    ['--env-lift', round(railLiftFor(weigh('floor')))],
     ['--env-hero', round(plate(PLATE.HERO))],
     ['--env-venice', round(plate(PLATE.VENICE))],
     ['--env-studio', round(plate(PLATE.STUDIO))],
-    ['--env-exposure', round(mix(exposureOf(from), exposureOf(to), t))],
+    ['--env-exposure', round(exposure)],
     ['--env-pan', round(panAt(p, placed))],
     ['--env-stone', round(stoneAt(p, placed))],
     [

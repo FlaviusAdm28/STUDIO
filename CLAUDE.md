@@ -62,11 +62,17 @@ not optional context.
 > `Studio` as a display word · `Wedding Experience` as state 09's headline · `Other experiences →`.
 >
 > **The Work is an editorial carousel and scroll does not control it.** *WHAT WE ACTUALLY MAKE* (eyebrow)
-> → the category (the protagonist, ~38px serif) → *See full experience →* (a way **in**, never forward),
-> with the photograph's identification small in the lower right. **Scroll owns entry and exit of the
-> section; which experience is showing is a clock** — `TIMING.work.carousel`, which is what C8 reserves a
-> clock for. **No dots, pagination, thumbnails, cards or slider arrows**, and the exchange is the film's
-> own dip so two categories are never legible together.
+> → **the queue** → the category (the protagonist, ~38px serif), with the photograph's identification
+> small in the lower right and *See full experience →* under it only where the work has a URL. **Scroll
+> owns entry and exit of the section; which category is showing is a clock** — `TIMING.work.queue`, which
+> is what C8 reserves a clock for. **No dots, pagination, counters, thumbnails, cards or arrows**, and the
+> exchange is the film's own dip so two categories are never legible together.
+>
+> **C14, decided 16 September 2026 (Q2 · *fila que roda*): the category word is the index.** The next
+> categories stand as small words between the eyebrow and the headline; the first fills with time, is
+> promoted when full, the row moves up and the category that was showing re-enters at the tail. The
+> active category is never in the row, and the headline never travels. One representative work per
+> category (`makes.categories`). `implementation-reconciliation.md` C14 is the record.
 >
 > Three approved departures from the Final Spec, all in C13: §2's states 06 and 07 carry no type; §2's
 > state-09 board is re-composed; and §11.2's plate count is **four** — the Work's experiences need a
@@ -322,10 +328,11 @@ existing code is the way it is; they do not override V2.
   new ground, and it is the only exception there is. `decisions.md` §54, §55 and §56.
 - **One grid for the two sections that are type**, and no break in it: a rail of labels on `--mark-x` and a
   column beside it. The questions and Contact use it; they are also the only two sections with a rule.
-  **About and the method are the exceptions.** About is a photograph on the left and one narrative on the
-  right — no rail, wider than the rest (`--about-w`), because half of it is material — and it arrives on a
-  clock: the room, then the mark, then the words, with the photograph the only thing that moves.
-  `decisions.md` §54.
+  **About and the method are the exceptions.** ~~About is a photograph on the left and one narrative on
+  the right, arriving on a clock.~~ **Superseded by C15 (16 September 2026):** About is a *frame* — the
+  studio plate with no scrim, the claim and its evidence written on the wall in light ink, fixed in the
+  viewport, arriving on `--jp9` and released in place in 10 → 11. 09 → 10 is a narrowed superimpose.
+  `implementation-reconciliation.md` C15 and `TIMING.about`.
 - **The method is a held frame, the only spatial composition on the site, and the one place the publication
   turns its material over.** The paper darkens to the studio's own ink on the approach, four questions surface
   out of a `perspective` space one at a time, each brings three considerations, twelve accumulate at their own

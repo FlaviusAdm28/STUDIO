@@ -51,83 +51,65 @@ export default function Publication() {
        `page.tsx` for why the position model no longer reaches for a presentation class. */
     <div className="publication" data-junction-host>
       {/*
-        ── About ─────────────────────────────────────────────────────────────────────────────────────
-        **The room the work is made in, and ninety-five words beside it.**
+        ── About · state 10 ──────────────────────────────────────────────────────────────────────────
+        **The room the work is made in, and the studio's account of itself written on its wall.**
 
-        The first thing after the film, and there is nothing between them: no sentence handing over, no
-        numeral, no second hero. What says the film is over is that the frame has stopped being held and
-        there is a photograph and a paragraph on a page. `decisions.md` §54.
+        Rebuilt 16 September 2026 on the design owner's brief: it read as a page laid over a photograph —
+        a milky panel, a column of paragraphs, a heading. It is a frame now, composed like the Work.
 
-        Two columns and no rail — this is the one section that does not use the label-and-prose grid,
-        because it has material in it and the material is half the composition. The photograph takes the
-        left and slightly more than half the width; the studio's account of itself sits to the right of it,
-        top-aligned, reading down. `04-visual-language.md` §5 — asymmetry by default.
+        **The section is runway; the composition is in the viewport.** `.about` keeps the height it had,
+        so junctions 09 → 10 and 10 → 11 cost what they cost; `.about-stage` stands fixed in the frame
+        and is written onto the studio plate on the publication's own arrival grammar (`--jp9`), then
+        released in place early in 10 → 11 (`TIMING.about.release`). Nothing scrolls across the room.
 
-        The three parts arrive in order and it is the only composed arrival in the publication: the room,
-        then the mark, then the words. `story.afterTheFilm.about`.
+        Two groups, staggered and unequal — §2's own description of the state:
+
+          the claim        the eyebrow and the headline, high on the left, on the dark of the wall
+          its evidence     the paragraph, a hairline, the second principle and three short refusals,
+                           in a narrow column on the right, above the figure and clear of the lamp
+
+        No scrim. The plate is a dark room and the type is the film's light ink on it.
       */}
-      {/*
-        **No rule above this one**, and it is the only section without one. Two reasons, and they agree.
-
-        A rule is the publication's section mark, spanning the page it belongs to — and About is wider than
-        the three type sections, because half of it is a photograph. Measured at 1440: its rule ran 1286
-        where the method's runs 1232, and two rule lengths on one page read as an accident rather than as a
-        decision.
-
-        And it is the first thing after the film, so it has nothing above it to be separated from. What
-        separates it is the largest band of silence on the site. An opening spread carries no rule; the
-        first one appears at the method, and from there they are all the same length.
-      */}
-      <section className="page about" id={where.about} data-state={10} data-reveal data-ground>
-        <div className="about-spread">
-          {/*
-            **The photograph is not drawn here any anymore, and About is not missing one.**
-
-            It was an inset: a 3:2 figure on the left of this spread, on the film's own black, arriving on
-            its own clock. C5's preflight P3 closed the composition against the Final Visual Master —
-            *State 10 About uses the Studio environment plate; the photograph is the environment, the
-            typography sits above it, no independent inset, no `.about-frame`, no surviving second image
-            layer* — and §11.1 forbids the second surface that keeping both would be.
-
-            The same file is the environment's studio plate now: `site.environment.studio`, mounted once
-            for the session by `environment.tsx` and present across states 10 to 12.
-
-            **Composing the type over it is C6 and is not done here.** What this pass owed the section was
-            the retirement of the duplicate layer; the headline at x196, the second principle at x838 and
-            the hairline at y452 are the next brief's. Until then the narrative stands on the page's own
-            paper, which is what it has always been set to be read on.
-          */}
-
-          {/*
-            One narrative, and no headings inside it. The label is the section's name and the sentence under
-            it is the first line of the story rather than a statement about it — `04-visual-language.md` §4,
-            type that disappears, which is what an account of yourself has to be set in.
-          */}
-          <div className="about-words">
-            <h2 className="page-label about-label">{about.label}</h2>
-
-            {/*
-              **V2's two groups, in V1's single column.** §4: a 104px headline with its 16px paragraph, and
-              a 46px second principle with three 14.5px lines beneath it. The Final Visual Master stages
-              them at x196 and x838 with a hairline at y452 — none of which is here, because none of it is
-              this pass. The classes are the ones that already existed, so the section is legible at the
-              publication's own measure and nothing in the stylesheet moved.
-            */}
-            <p className="about-opening" data-arrive>{about.headline}</p>
-
-            <p className="about-text" data-arrive="support">{about.paragraph}</p>
-
-            <p className="about-opening" data-arrive="detail" style={{ ["--a-n" as string]: 0 }}>
-            {about.principle}
-          </p>
-
-            <p className="about-text about-lines">
-              {about.lines.map((line, i) => (
-                <span key={line} data-arrive="detail" style={{ ["--a-n" as string]: i + 1 }}>
-                  {line}
+      <section className="page about" id={where.about} data-state={10}>
+        {/*
+          `data-in` names the group an element belongs to — statement, support or detail — and `--i` its
+          place in that group. The driver's `data-about` says which groups the hand has reached; each one
+          then resolves on its own curve (`TIMING.about.arrives`). Every line is its own element and never
+          wraps, so nothing reflows while its tracking closes.
+        */}
+        <div className="about-stage">
+          <div className="about-claim">
+            <h2 className="about-label" data-in="statement" style={{ ["--i" as string]: 0 }}>
+              {about.label}
+            </h2>
+            <p className="about-headline">
+              {about.headline.map((line, i) => (
+                <span key={line} data-in="statement" style={{ ["--i" as string]: i + 1 }}>
+                  {line}{' '}
                 </span>
               ))}
             </p>
+          </div>
+
+          <div className="about-evidence">
+            <p className="about-text" data-in="support" style={{ ["--i" as string]: 0 }}>
+              {about.paragraph}
+            </p>
+            <i className="about-rule" aria-hidden="true" data-in="detail" style={{ ["--i" as string]: 0 }} />
+            <p className="about-principle">
+              {about.principle.map((line, i) => (
+                <span key={line} data-in="detail" style={{ ["--i" as string]: i + 1 }}>
+                  {line}{' '}
+                </span>
+              ))}
+            </p>
+            <ul className="about-lines">
+              {about.lines.map((line, i) => (
+                <li key={line} data-in="detail" style={{ ["--i" as string]: i + 3 }}>
+                  {line}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>

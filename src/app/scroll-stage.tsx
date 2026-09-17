@@ -925,7 +925,6 @@ export default function ScrollStage() {
         */
         const win = ([from, to]: readonly [number, number]) =>
           smoothstep(clamp01((j - from) / (to - from)))
-        const ramp = (from: number, over: number) => smoothstep(clamp01((j - from) / over))
 
         /*
           ── There is no type in this gesture — C13, 7 September 2026 ─────────────────────────────
@@ -945,7 +944,6 @@ export default function ScrollStage() {
           it is not an arrival from the frame. Nothing travelled here and no word handed over to it: C12 removed
           the display `Studio` entirely, so the studio is named once, where its structure is.
         */
-        put('--lights', win(d.lights as unknown as readonly [number, number]))
         /*
           `--numeral`, `--three1..3`, `--reposition`, `--subject` and `--subject-entry` are gone —
           7 September 2026. Five channels published to a stylesheet that read none of them, describing a
@@ -956,17 +954,14 @@ export default function ScrollStage() {
 
         /*
           ── The camera ──────────────────────────────────────────────────────────────────────────
-          Two terms of one move: the push that has been running since the statement was read, and the
-          recompose that opens the frame to the left for the rail. Both complete at `camera.opens[1]`
-          and are clamped there, so everything from the index onward is composed on a frame that has
-          stopped. The stylesheet spends them as one transform on the plate.
+          **One term, and it carries no lateral move.** `--cam-x` and `--cam-y` are gone with the push
+          that authored them: §2's own 20% pan (`environment.ts`) is the only thing that moves this frame
+          sideways, and the recompose used to push 40px back against its 512px on a different schedule.
+          What is left is a 1.6% settle that comes to rest with the light at `camera.opens[1]`, so the
+          rail is written onto a frame that has stopped. `timing.ts` §dock owns the reasoning.
         */
-        const cam = smoothstep(clamp01((j - d.camera.push.at) / d.camera.push.over))
         const opens = win(d.camera.opens as unknown as readonly [number, number])
-        const c = d.camera
-        put('--cam-scale', 1 + c.scale.push * cam + c.scale.open * opens)
-        put('--cam-x', c.x.push * cam + c.x.open * opens)
-        put('--cam-y', c.y.push * cam + c.y.open * opens)
+        put('--cam-scale', 1 + d.camera.scale.open * opens)
 
         /*
           ── The film's own exposure ─────────────────────────────────────────────────────────────
@@ -1032,12 +1027,22 @@ export default function ScrollStage() {
         /*
           ── 6 · stillness, then the rail is written ────────────────────────────────────────────
           `stills` is published so the stylesheet can be *checked* against it, and consumed by nothing:
-          its whole job is to be a range in which no channel moves. Between `stacks.to` and `draws.at`
-          there must be nothing, and `assertDock` below holds that.
+          its whole job is to be a range in which no channel moves. Between `lights[1]` and `draws[0]`
+          there must be nothing.
+
+          **There is no `assertDock`.** This comment claimed one held the rule; `grep` finds no such
+          function anywhere in `src/`. The range is held by reading the table, which is why the windows
+          in `timing.ts` §dock are authored end to end rather than as gaps between other windows.
         */
-        for (let i = 0; i < DESTINATIONS.length; i += 1) {
-          put(`--i${i + 1}`, ramp(d.draws.at + i * d.draws.stagger, d.draws.over))
-        }
+        /*
+          **The index is drawn by one wipe, not by five fades behind a shutter.** `--i1..--i5` are gone:
+          they were five per-row opacity ramps spent entirely while `.ledger-index` was clipped to
+          nothing by `--handoff`, which is a step. Measured on the running page: ten pixels of scroll
+          took the navigation from invisible to complete. This is the clip itself, driven, so the rows
+          are drawn downward out of the head — §3's own *decompose* — and `--handoff` goes back to
+          gating reachability alone, which is what it was added for.
+        */
+        put('--rail-draw', win(d.draws as unknown as readonly [number, number]))
 
         /*
           **The anchor is gone with the column it placed.** `--anchor-dx` / `--anchor-dy` stood the
@@ -1055,33 +1060,40 @@ export default function ScrollStage() {
         `--work-holds` keeps the section at full ink through the first 45% of junction 09 → 10 and takes
         it out across the rest, inside the plate superimpose §3 authors there.
 
-        `--wk-label` / `--wk-cat` / `--wk-cta` / `--wk-ident` are the section's own arrival across
+        `--wk-label` / `--wk-index` / `--wk-cat` / `--wk-ident` are the section's own arrival across
         junction 08 → 09 — the lift that brings the plate to true exposure. They are four windows rather
-        than one because the composition is a reading order: **label → idea → action**, with the
+        than one because the composition is a reading order: **label → index → category**, with the
         identification settling last, the way a caption settles after its picture.
 
-        **Which experience is showing is NOT here, and that is C13's whole point.** It used to be
-        `--make1..3`, scrubbed by `--jp9`, so the content was a function of scroll position. The
-        carousel has a clock now and `work-experiences.tsx` owns it; the driver publishes nothing about
-        it and cannot.
+        **Which category is showing is NOT here, and that is C13's whole point.** It used to be
+        `--make1..3`, scrubbed by `--jp9`, so the content was a function of scroll position. The queue
+        has a clock and `work-experiences.tsx` owns it (C14); the driver publishes nothing about it and
+        cannot.
       */
       {
         const w = TIMING.work
         const jn = Number(written.get('--junction') ?? 0)
         const ja = clamp01(Number(written.get('--junction-at') ?? 0))
         const jp9 = clamp01(jn - 9 + ja)
-        const jp8 = clamp01(jn - 8 + ja)
+        /*
+          **The Work's arrival spans the tail of junction 07 → 08 and the whole of 08 → 09.** It was
+          `jp8` — junction 08 alone — which made the section's first ink impossible before the rail had
+          completely finished. `timing.ts` §work owns `from`, `opensAt` and `spans`; this only resolves
+          them, the way `dock` resolves its own two-junction gesture.
+        */
+        const a = w.arrives
+        const wp = clamp01((jn - a.from + ja - a.opensAt) / a.spans)
         put(
           '--work-holds',
           1 - smoothstep(clamp01((jp9 - w.release[0]) / (w.release[1] - w.release[0]))),
         )
         const arr = (window0: readonly [number, number]) =>
-          smoothstep(clamp01((jp8 - window0[0]) / (window0[1] - window0[0])))
+          smoothstep(clamp01((wp - window0[0]) / (window0[1] - window0[0])))
         const workIn = arr(w.arrives.block as unknown as readonly [number, number])
         put('--work-in', workIn)
         put('--wk-label', arr(w.arrives.label as unknown as readonly [number, number]))
         put('--wk-cat', arr(w.arrives.category as unknown as readonly [number, number]))
-        put('--wk-cta', arr(w.arrives.cta as unknown as readonly [number, number]))
+        put('--wk-index', arr(w.arrives.index as unknown as readonly [number, number]))
         put('--wk-ident', arr(w.arrives.identity as unknown as readonly [number, number]))
 
         /*
@@ -1108,6 +1120,15 @@ export default function ScrollStage() {
         */
         const workOn = shown > 0.6 ? 'on' : 'off'
         if (root.dataset.work !== workOn) root.dataset.work = workOn
+
+        /*
+          **Which of About's groups the hand has reached** — `TIMING.about.arrives.at`. Scroll starts a
+          group; the stylesheet resolves it on its own curve. A count, so crossing back under a threshold
+          releases exactly the groups above it.
+        */
+        const at = TIMING.about.arrives.at
+        const aboutStage = String([at.statement, at.support, at.detail].filter((v) => jp9 >= v).length)
+        if (root.dataset.about !== aboutStage) root.dataset.about = aboutStage
       }
 
       /*

@@ -60,6 +60,7 @@ This is not tidiness. Three things depend on it and each of them breaks quietly 
 | 12 | `grounds` | what each state from 09 to 14 stands on: how much scrim, and which ink is read on it |
 | 13 | `dock` | junctions 06 → 07 → 08: the photograph alone, the camera opening the composition, and the rail written in the field it opens. **No type** |
 | 14 | `work` | state 09: the section arrives, leaves before the ground crosses, and the experiences change on their own clock |
+| — | `about` | state 10 (C15): where in 09 → 10 the plates dissolve, the camera's settle, the scroll thresholds that start About's groups and the **milliseconds** that resolve them, and its release in 10 → 11 |
 
 ### §13 `dock` — the photograph, the camera, the rail
 
@@ -111,7 +112,7 @@ all served movements that no longer exist. `place()` reads no boxes for this ges
   `subject`, `entry`, `holdsSubject`** — the `chapter III` lockup and the three strokes migrating to the
   rail. The head is type and has been since C10.
 
-### §14 `work` — state 09, and the carousel that lives in it
+### §14 `work` — state 09, and the queue that lives in it
 
 **The photograph the film ends on is the Work's first experience**, so nothing is swapped to enter the
 section: the image acquires a new job rather than being replaced.
@@ -119,9 +120,10 @@ section: the image acquires a new job rather than being replaced.
 | key | unit | phase |
 |---|---|---|
 | `arrives.block` | fraction of jp8 | the section's own presence — the envelope the three lines arrive inside |
-| `arrives.label` / `category` / `cta` / `identity` | fraction of jp8 | **label → idea → action**, then the caption. All four close inside `block` |
+| `arrives.label` / `index` / `category` / `identity` | fraction of jp8 | **label and queue → category**, then the caption. All four close inside `block` |
 | `release` | fraction of jp9 | the section leaves **before the ground crosses** |
-| `carousel` | **milliseconds** | which experience is showing |
+| `queue` | **milliseconds** | C14: `holds` (how long a category stands — its successor's fill), `moves` (the row moving up), `completes` (a pressed word filling) |
+| `carousel` | **milliseconds** | the exchange itself — the film's dip, and where in it the content changes |
 
 **`release` is a constraint, not a taste.** `grounds.cross` takes the veil and the ink to the
 publication's paper across [0.04, 0.16] of junction 09 → 10 and cannot move — `arriving.empty` needs the
@@ -159,7 +161,7 @@ Kept because each one looks correct and is not:
 
 ```
 Chapter I            milliseconds. Its own clock, which the visitor can accelerate.
-The Work's carousel  milliseconds. Its own clock, which the visitor cannot.
+The Work's queue     milliseconds. Its own clock, which the visitor cannot hurry.
 Everything else      beats of scroll. No clock at all — a pure function of position, so it
                      runs backwards exactly as it runs forwards.
 ```

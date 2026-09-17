@@ -90,17 +90,16 @@ export default function Environment() {
         optimiser would have made them a tenth of that. Pre-encoding the production plates is delivery
         work and belongs with visual QA — it changes the bytes, never the number of sources.
       */}
-      {venice.src !== null && (
-        <div className="env-plate env-plate-venice">
-          {/* eslint-disable-next-line @next/next/no-img-element -- §11.1: one source, never re-chosen. */}
-          <img className="env-venice" src={venice.src} alt={venice.alt} decoding="async" />
-        </div>
-      )}
-
       {/*
         The studio — the ground for states 10–12, and the photograph that used to be an inset inside
         About. `width` and `height` are the file's own, so the layer knows its ratio before the bytes
         arrive. C5's preflight P3.
+
+        **Beneath venice, not above it** — 16 September 2026. 09 → 10 is the only junction between
+        them, and it is a dissolve *out of whatever ground the Work is standing on*: the studio waits
+        underneath, whole, and the Work's ground — venice or an experience plate — clears off it. With
+        the studio above, only venice could be dissolved, and any other experience had to be taken away
+        first, which put venice back on screen for a moment whatever the visitor had been looking at.
       */}
       <div className="env-plate env-plate-studio">
         {/* eslint-disable-next-line @next/next/no-img-element -- §11.1: one source, never re-chosen. */}
@@ -113,6 +112,14 @@ export default function Environment() {
           decoding="async"
         />
       </div>
+
+      {venice.src !== null && (
+        <div className="env-plate env-plate-venice">
+          {/* eslint-disable-next-line @next/next/no-img-element -- §11.1: one source, never re-chosen. */}
+          <img className="env-venice" src={venice.src} alt={venice.alt} decoding="async" />
+        </div>
+      )}
+
 
       {/*
         ── The Work's experiences — C13, 7 September 2026 ───────────────────────────────────────────
@@ -135,10 +142,35 @@ export default function Environment() {
 
         **Which experience is showing is not a function of position**, so this plate is the one thing in
         the Environment that `motion/environment.ts` does not decide: `work-experiences.tsx` writes
-        `--exp-src` and `--exp-at` on the root from its own clock. The Environment still owns the
-        ground; the carousel owns which one.
+        `--exp-src` and `--exp-at` on the root when the visitor presses an arrow. The Environment still
+        owns the ground; the Work owns which one.
+
+        **Two boxes, because two different things decide this plate and they must not share a
+        transition.** The outer is the section's own presence — scroll, and therefore a pure function of
+        position with nothing eased on it. The inner is which experience the visitor chose — a press,
+        and therefore a dissolve. Putting both on one element gave the scroll term the press's 1250ms,
+        so scrolling out of the Work fast left the artist's photograph lingering over the publication's
+        ground after its own type had gone. It is the identical split `.v2-make-slot` and
+        `.v2-make-word` already make for the category, and for the identical reason.
       */}
-      <div className="env-plate env-plate-experience" aria-hidden="true" />
+      <div className="env-plate env-plate-experience" aria-hidden="true">
+        <div className="env-experience-image" />
+      </div>
+
+      {/*
+        **The room going down while the work is changed.**
+
+        It is above every plate and below §2's ground, so it dims whichever photograph the Work is
+        standing on — venice for the first experience, this layer's own plate for the rest — without
+        either of them knowing about it. That is what makes the exchange one language for any
+        `Work A → Work B`: the dim does not care which plate is underneath it, and there is no case in
+        the code for the first experience.
+
+        **It is the Environment's and not the Work's.** `.v2` is at 0.84 by the time the Work is
+        composed, so a scrim drawn inside the film layer would composite over the ground rather than be
+        one — the identical fault that put venice through the artist's photograph, recorded in C13.
+      */}
+      <div className="env-experience-dim" aria-hidden="true" />
 
       {/*
         §2's own ground, where §2 gives one — `#060605` at state 04 and `#050504` at state 05, the two
@@ -151,6 +183,15 @@ export default function Environment() {
         rather than the contract being seen. That is C4's, at the junctions.
       */}
       <div className="env-ground" />
+
+      {/*
+        **The rail's legibility field.** It belongs to the photograph rather than to the menu, which is
+        why it is a layer of the Environment and not a surface behind the Ledger: it composites with the
+        plates, it is under everything else on the page, and its strength is a measurement of whatever
+        plate is currently standing behind the rail. `src/motion/environment.ts` holds the measurements
+        and the curve; `globals.css` holds the shape. This file only says the Environment has one.
+      */}
+      <div className="env-legibility" aria-hidden="true" />
     </div>
   )
 }

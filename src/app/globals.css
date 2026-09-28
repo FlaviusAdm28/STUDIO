@@ -166,7 +166,14 @@ html {
 .env-plate {
   position: absolute;
   inset: 0;
-  filter: brightness(var(--env-exposure));
+  /*
+    **Contrast before brightness, and the order is the grade.** `--env-contrast` is 1 at every state and
+    every junction but one: across 10 → 11 it falls with the light, because a room lit by a single lamp
+    loses its modelling before it loses its average — `TIMING.about.passage` argues it and measures it.
+    `contrast()` pivots on mid-grey, so it has to act on the plate's full range and be taken down
+    afterwards; the other order would pull an already-dark frame up toward grey.
+  */
+  filter: contrast(var(--env-contrast, 1)) brightness(var(--env-exposure));
 }
 
 /*
@@ -243,7 +250,9 @@ html {
   --stone-flat: 0.25;
 
   filter:
-    contrast(calc(1 - (1 - var(--stone-flat)) * var(--env-stone, 0)))
+    contrast(
+      calc(var(--env-contrast, 1) * (1 - (1 - var(--stone-flat)) * var(--env-stone, 0)))
+    )
     brightness(
       calc(var(--env-exposure) * (1 + (var(--stone-lift) - 1) * var(--env-stone, 0)))
     )
@@ -496,6 +505,22 @@ html {
   transition: opacity var(--fade-exp-out) var(--curve);
 }
 
+/*
+  **The room after the person has left.** It carries the studio plate's own grade — the same cool lift,
+  the same saturation, the same hue — because it is the same room under the same light and a grade of
+  its own would be a second photograph rather than a second moment. Only the presence differs.
+*/
+.env-plate-method {
+  opacity: var(--env-method);
+  /*
+    **The first half of 13 → 14's one camera move**: the room pushed toward its window while its lamp
+    goes down. `--env-leave` is 0 everywhere else, so the Method and Questions stand on this plate
+    exactly as they were approved. The window is the room's one source of outside light — upper right.
+  */
+  transform: scale(calc(1 + var(--env-leave-by, 0) * var(--env-leave, 0)));
+  transform-origin: 88% 32%;
+}
+
 .env-plate-studio {
   opacity: var(--env-studio);
 
@@ -506,12 +531,20 @@ html {
   /* Into blue rather than into grey. */
   --cool-hue: -16deg;
 
+  /*
+    It redeclares `filter`, so it carries `--env-contrast` itself — and it is the plate that most needs
+    it: this is the room the passage takes the light out of. Same position in the chain as on
+    `.env-plate`, so the departing plate and the arriving one are graded identically and the exchange
+    between them is invisible for that reason as well as for the light's.
+  */
   filter:
+    contrast(var(--env-contrast, 1))
     brightness(
       calc(var(--env-exposure) * (1 + (var(--cool-lift) - 1) * var(--rl-blue, 0)))
     )
     saturate(calc(1 + (var(--cool-sat) - 1) * var(--rl-warm, 0)))
     hue-rotate(calc(var(--cool-hue) * var(--rl-blue, 0)));
+
 }
 
 /*
@@ -519,6 +552,7 @@ html {
   frame is chosen and then held — `04-visual-language.md` §5.
 */
 .env-hero,
+.env-hero-still,
 .env-venice,
 .env-studio {
   position: absolute;
@@ -550,6 +584,52 @@ html {
 }
 
 /*
+  ── Contact's frame of the footage, and the camera that lands on it ─────────────────────────────
+
+  **The found frame is a reframing, not a crop of state 01.** At the hero's own framing the figure
+  stands at 49–58% of the width, which leaves the question the dark ground left of centre and nothing
+  more — measured in Chrome, it was set at 55px and still grazed her dress. So Contact holds the same
+  shot closer, scaled from the frame's left edge: at 1.3 she stands at about 64–76% of the width, the
+  sun beside her, and the whole left half of the frame is dark ground for the question. The same world,
+  seen from nearer, at the end of the walk that brought the camera out of the studio.
+
+  `--env-frame` is 1 from state 13 on, where the hero is hidden until the plates cross, and 0 before
+  it — so state 01 resolves to `scale(1)` and is untouched by construction. `--env-return` is the last
+  of the push: the hillside arrives `--env-return-by` wider than this framing and closes onto it.
+
+  On the element rather than the plate, because the plate's own transform is the warm-stone crop and
+  the two are different cameras for different junctions.
+*/
+:root {
+  --env-frame-scale: 1.3;
+}
+
+/*
+  Narrowed, a portrait frame already crops the footage to its centre and the figure fills it; there is
+  no dark half to open. So the framing is anchored at the bottom-left instead of the middle, which lifts
+  her feet off the ground band the composition stands in — measured on the reframed footage at 390 ×
+  844, 1.12 from the corner stands them at about 560 against 590 at the hero's own framing, and keeps
+  her whole inside the frame's right edge.
+*/
+@media (max-width: 820px) {
+  :root {
+    --env-frame-scale: 1.12;
+    --env-frame-origin: 0% 100%;
+  }
+}
+
+.env-hero,
+.env-hero-still {
+  transform: scale(
+    calc(
+      (1 + (var(--env-frame-scale) - 1) * var(--env-frame, 0)) *
+        (1 - var(--env-return-by, 0) * var(--env-return, 0))
+    )
+  );
+  transform-origin: var(--env-frame-origin, 0% 50%);
+}
+
+/*
   §2's ground, at the two states it gives one instead of a plate — `#060605` at 04 and `#050504` at 05.
 
   **Over the plates, not under them**, and that is the junction rather than a preference: 04 → 05 is a
@@ -561,6 +641,29 @@ html {
   the whole frame, so this is the contract being expressible rather than the contract being seen. Closing
   that gap is the junctions' work — C4.
 */
+/*
+  **The method's room, and it is fixed because a ground must not travel.**
+
+  It was two layers on the section's own box — a gradient on `.method` and a scrim on its `::before` —
+  and `.method` is a 6,500px box in ordinary flow. Measured at 1440 × 749, the soft top edge of that ink
+  travelled **from y 898 to y −2** across About → Method: a line moving 900px up the screen over a
+  photograph that is fixed. Every attempt to make the transition stop reading as *a layer moving* failed
+  because the layer that was moving was never the transition's.
+
+  Here it cannot move. One flat veil of the studio's own ink over whichever plate is showing, at
+  `--m-room-at` — the section's own `--mroom`, published on the root by `scroll-stage.tsx`.
+
+  **0.20, and it is the only number.** It replaces `--mground` 0.10 and `--page-veil` 0.12 multiplied,
+  which came to 0.792 of the photograph; 0.80 is the same to within a percent, so the Method looks
+  exactly as it was approved — it simply stopped sliding.
+*/
+.env-room {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: rgb(var(--m-room) / calc(var(--m-room-at, 0) * var(--m-room-veil)));
+}
+
 .env-ground {
   position: absolute;
   inset: 0;
@@ -608,17 +711,55 @@ html {
   */
   --rail-on: calc((1 - max(var(--env-stone, 0), calc(1 - var(--page-ink, 1)))) * var(--rail-draw, 0));
 
-  --rail-lit: calc(
-    (var(--env-lit, 0) * (1 - var(--exp-at, 0)) + var(--exp-lit, 0) * var(--exp-at, 0)) *
-      var(--rail-on)
-  );
+  /*
+    **How present the Work's own plate is behind the rail**, and the three blends below take *this*
+    rather than `--exp-at`.
+
+    `--exp-at` is the carousel's answer to **which experience is showing** — a 0/1 written by
+    `work-experiences.tsx` on a clock, with no term for position in it, and never written back to 0
+    when the Work leaves. That is correct for what it is: the Work owns which ground, the Environment
+    owns whether there is one. `.env-plate-experience` already composes the two, and its presence is
+    exactly `--work-in * --env-venice`.
+
+    The three blends below were reading the carousel's flag on its own, so once the clock had turned
+    over once the rail went on wearing that photograph's measurements for the **rest of the document**
+    — through About, the Method, Questions and Contact, none of which the plate is behind. Seen in
+    Chrome at 1920 × 889 standing in Questions: `--exp-lit` 1 put `--rail-stone` at 1, so the menu was
+    printed in the page's near-black over a dark room, and `--exp-lift` 0.23 drew the legibility pool
+    as a pale patch behind it. The rail should have been the film's cream with nothing behind it at
+    all.
+
+    **It was invisible until Questions left warm stone** (`spine.ts`, 19 September 2026). Warm stone
+    put `--env-stone` at 1 there, and `--rail-on` is gated on it, so the leaked measurement was being
+    multiplied by zero at the one state it would have been most obvious on. Moving Questions onto the
+    method's room opened that gate; the fault is older than the frame it appeared in.
+
+    This is the gate the plate already has, applied to the measurement of the plate. Where the Work
+    *is* standing behind the rail — states 08 and 09 — `--env-venice` is 1 and this is `--exp-at`
+    exactly, so nothing there changes by a single value; across 09 → 10 it clears on the same term
+    that clears the photograph, so the rail's measurement crosses back to the Environment's with the
+    ground rather than a frame before or after it.
+  */
+  --exp-on: calc(var(--exp-at, 0) * var(--work-in, 0) * var(--env-venice, 0));
+
+  /*
+    **Which ink the rail is in is the site's, never the Work's** — design owner, 26 September 2026:
+    *"the rail is persistent navigation and its visual system must remain consistent across the entire
+    site, regardless of Work category."* The Work's plate used to supply its own `--exp-lit` here, and
+    the selected plate (median 0.189) was the only ground on the site past `railLitFor`'s 0.10 — every
+    Environment plate is 0.006 to 0.088 — so the carousel turning over was the one thing that ever
+    crossed the rail to near-black and drew the light pool behind it. The Work still measures how much
+    wash its plate needs (`--exp-field`, the same mechanism venice uses and capped at the same 0.40);
+    it no longer measures which ink to be. With no Work term here, `--rail-lift` is zero over it too.
+  */
+  --rail-lit: calc(var(--env-lit, 0) * (1 - var(--exp-on)) * var(--rail-on));
 
   /*
     The dark wash, and it **withdraws as the ink crosses**. Dark ink does not want a darkened ground,
     so on a lit plate this goes to nothing and the photograph is left completely alone.
   */
   --rail-field: calc(
-    (var(--env-field, 0) * (1 - var(--exp-at, 0)) + var(--exp-field, 0) * var(--exp-at, 0)) *
+    (var(--env-field, 0) * (1 - var(--exp-on)) + var(--exp-field, 0) * var(--exp-on)) *
       var(--rail-on) * (1 - var(--rail-lit))
   );
 
@@ -626,10 +767,7 @@ html {
     And the light lift, which is the same pool in the other polarity and arrives only with the
     crossing: it raises the darkest corner of a lit frame until dark ink clears it too.
   */
-  --rail-lift: calc(
-    (var(--env-lift, 0) * (1 - var(--exp-at, 0)) + var(--exp-lift, 0) * var(--exp-at, 0)) *
-      var(--rail-on) * var(--rail-lit)
-  );
+  --rail-lift: calc(var(--env-lift, 0) * (1 - var(--exp-on)) * var(--rail-on) * var(--rail-lit));
 
   /* How much treatment there is of either polarity — what the halo runs on. */
   --rail-treated: calc(var(--rail-field) + var(--rail-lift));
@@ -717,8 +855,8 @@ html {
   opacity: var(--rail-treated, 0);
   /*
     No transition. `--rail-field` is a pure function of scroll through the Environment's own presences,
-    and the Work's term crosses on `--exp-at`, which already carries the carousel's dip. A duration here
-    would be a second clock on a value that is resolved every frame.
+    and the Work's term crosses on `--exp-on`, which already carries the carousel's dip and the plate's
+    own presence. A duration here would be a second clock on a value that is resolved every frame.
   */
 }
 
@@ -1886,8 +2024,17 @@ a.act-open:focus-visible {
     #000 calc(var(--rail-reveal) - var(--rail-edge)),
     transparent var(--rail-reveal)
   );
+  /*
+    **The wipe is vertical, so neither property may cut horizontally.** The box is as wide as the word
+    it is showing, and in an exchange that is the *arriving* word — so leaving a long chapter for a short
+    one clipped the departing header at the box's right edge: Questions → Work cut 42px off *Questions*,
+    measured at 1920. The right inset is a negative slack as wide as the frame, and the mask is not clipped
+    to the border box (its gradient runs top to bottom, so repeating it sideways changes nothing). The
+    vertical edges are untouched.
+  */
+  mask-clip: no-clip;
   /* `max` because the reveal overshoots: a negative inset would expand the clip past the border box. */
-  clip-path: inset(0 0 max(0px, calc(100% - var(--rail-reveal))) 0);
+  clip-path: inset(0 -100vw max(0px, calc(100% - var(--rail-reveal))) 0);
 }
 
 /* ════════════════════════════════════════════════════════════════════════════════════════════════
@@ -2066,6 +2213,142 @@ a.act-open:focus-visible {
     --rail-from: 1;
     --rail-to: 1;
   }
+}
+
+/*
+  ── The folio mark · the running chapter's line in the index ────────────────────────────────────
+
+  **The index is all five chapters on fixed lines, and the running one reads `NN ·` where its word
+  stands** — design owner, 28 September 2026, approved in `prototypes/the-folio-mark-motion`. Same ink,
+  size and tracking as the words around it: the line is not highlighted, it is paginated. The point is a
+  middle dot in the list's own face, set a word-space after the folio, so it reads as a mark in the
+  column's running text rather than as an indicator beside it.
+
+  **The mark is re-set, not exchanged.** Its sets take no animation of their own and their two parts
+  carry it: leaving, the point lifts first and the folio follows; arriving, after the exchange's lag, the
+  folio is set and then its point. Both drift `--rail-mark-shift` in the direction the mark is travelling
+  down or up the column (`data-dir`, written by `ledger.tsx`) as they fade. Timings are
+  `TIMING.publication.mark`; the drift is composition, like the exchange's 0.89 and 1.11.
+*/
+.rail-folio-mark {
+  letter-spacing: 0.26em;
+}
+
+.rail-point {
+  margin-left: 0.2em;
+  letter-spacing: 0;
+}
+
+.rail-set.is-mark .rail-folio-mark,
+.rail-set.is-mark .rail-point {
+  display: inline-block;
+}
+
+.rail-slot {
+  --rail-mark-shift: 0.3em;
+}
+
+.rail-slot[data-dir='down'] {
+  --rail-mark-from: calc(-1 * var(--rail-mark-shift));
+  --rail-mark-to: var(--rail-mark-shift);
+}
+
+.rail-slot[data-dir='up'] {
+  --rail-mark-from: var(--rail-mark-shift);
+  --rail-mark-to: calc(-1 * var(--rail-mark-shift));
+}
+
+.rail-slot[data-swap] > .rail-set.is-mark {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+
+.rail-slot[data-swap] > .rail-in.is-mark .rail-folio-mark {
+  animation: rail-mark-in var(--rail-mark-in) var(--curve) var(--rail-lag) both;
+}
+
+.rail-slot[data-swap] > .rail-in.is-mark .rail-point {
+  animation: rail-mark-point-in var(--rail-mark-point-in) var(--curve)
+    calc(var(--rail-lag) + var(--rail-mark-point-after)) both;
+}
+
+.rail-slot[data-swap] > .rail-out.is-mark .rail-point {
+  animation: rail-mark-point-out var(--rail-mark-point-out) var(--curve) both;
+}
+
+.rail-slot[data-swap] > .rail-out.is-mark .rail-folio-mark {
+  animation: rail-mark-folio-out var(--rail-mark-out) var(--curve) var(--rail-mark-out-after) both;
+}
+
+@keyframes rail-mark-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--rail-mark-from, 0));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rail-mark-point-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rail-mark-point-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes rail-mark-folio-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(var(--rail-mark-to, 0));
+  }
+}
+
+/* Reduced motion keeps the order of the re-setting and drops the drift. */
+@media (prefers-reduced-motion: reduce) {
+  .rail-slot[data-dir] {
+    --rail-mark-from: 0;
+    --rail-mark-to: 0;
+  }
+}
+
+/*
+  **The running line keeps its word's measure.** `NN ·` is narrower than the word it stands for, and
+  lying down (≤ 900px) the index is a row, so without this every word after the mark moved sideways on
+  each change of chapter — measured at 390: ABOUT 61 → 79px. The word is held, unseen, in the same cell as
+  the mark, so the line is always as wide as its word and nothing to its right can move. In the column
+  it changes nothing: the line is the column's width either way.
+*/
+.ledger-word[aria-current] > .rail-slot {
+  display: grid;
+  justify-items: start;
+}
+
+.ledger-word[aria-current] > .rail-slot > .rail-in,
+.ledger-word[aria-current] > .rail-slot::after {
+  grid-area: 1 / 1;
+}
+
+.ledger-word[aria-current] > .rail-slot::after {
+  content: attr(data-hold) / '';
+  visibility: hidden;
 }
 
 /* ── The head ─────────────────────────────────────────────────────────────────────────────────── */
@@ -3326,6 +3609,30 @@ html[data-opening='running'] .ways a {
   `z-index: -1` inside an `isolation: isolate` section: it sits behind the section's own content and
   cannot escape behind the environment, which is what a bare negative index would do. `inset: -1px`
   because two adjacent scrims meeting on an exact pixel boundary show a hairline of plate between them.
+
+  ── **The scrim is atmosphere, so it is the frame's width and not the column's** ──────────────
+
+  **This is the vertical division the design owner reported on 21 September 2026**, and it was this
+  pseudo-element's own right edge. Measured in Chrome at 1920 × 889, standing in junction 13 → 14:
+  `.page-asked` is bounded (`max-width: 1418.67px`, left-aligned at x 0), so the scrim it carries was
+  **1,419px wide on a 1,910px frame**. The mask below softens the box's *top and bottom* and has never
+  touched its sides, so the remaining 491px of plate stood unscrimmed beside a scrim at full strength,
+  with a hard cut between them — a lighter rectangle in the top right with a vertical edge down its
+  left side. It only became visible at all here because state 14 is the first veil since state 9 that
+  is not zero (`TIMING.grounds.states`): the fault was always present and had nothing to show.
+
+  So the scrim keeps the section's *vertical* extent — it is that section's ground and must begin and
+  end with it — and takes the *viewport's* width. `100%` in a `right` offset resolves against the
+  containing block, so `100% - 100vw` is exactly the distance from the section's right edge to the
+  frame's, whatever the section is bounded to. Sections that are already full width resolve it to
+  `-1px` less the scrollbar and are unchanged, which is every other one: measured, `.closing` is
+  `max-width: none` at the full 1910, so **Contact renders identically**.
+
+  `100vw` counts the scrollbar and `html` is `overflow-x: clip`, so the overshoot is clipped rather
+  than scrolled — verified, `scrollWidth` is unchanged at 1920 with this applied.
+
+  **It is not a new layer and nothing is painted over the seam.** The seam is gone because the edge
+  that made it is outside the frame.
 */
 .publication [data-ground] {
   position: relative;
@@ -3336,6 +3643,7 @@ html[data-opening='running'] .ways a {
   content: '';
   position: absolute;
   inset: -1px;
+  right: calc(100% - 100vw);
   z-index: -1;
   pointer-events: none;
   /*
@@ -3409,11 +3717,28 @@ html[data-opening='running'] .ways a {
   --ground-to: 100%;
   --ground-top: 5%;
   --ground-bottom: 4%;
+
+  /*
+    **The publication's ink is held for this section by the driver, not here.** `--page-ink` is a
+    function of position and state 12 is placed inside this held frame, so the page crossed to
+    Questions' warm stone while the answer was still resolving in the room — light type on a ground
+    going light. `scroll-stage.tsx` composes `--page-ink` with the method's own `--mroom` at the point
+    it is written, which keeps the scrim, the inherited ink and **the rail** on one side of the
+    crossing instead of two. A section-scoped override could not have reached the rail.
+  */
 }
 
 /*
-  Questions — §2's warm stone, bright, and the longest run of type on the site. This is the one section
-  that needs paper edge to edge; the plate survives as warmth through it rather than as an image.
+  Questions — the method's room, and the longest run of type on the site.
+
+  **It asked for paper edge to edge and it does not any more** — design owner, 19 September 2026. §2
+  gives this state warm stone under dark ink; it stands on the photograph the method resolved on, in the
+  film's own light ink, and `TIMING.grounds` gives it a veil of **0**. These four numbers therefore paint
+  nothing at all: they are kept, unchanged, as the shape this section's scrim has if it is ever given one
+  again — dense the whole way down, because a list of rows has type on every line of its box.
+
+  What keeps the rows legible is the room itself: `.env-room` is a flat veil of the studio's ink over the
+  plate, fixed in the Environment, and it stands until Contact.
 */
 .page-asked {
   --ground-near: 1;
@@ -3421,6 +3746,24 @@ html[data-opening='running'] .ways a {
   --ground-to: 100%;
   --ground-top: 7%;
   --ground-bottom: 7%;
+
+  /*
+    **Questions begins inside the Method's trailing frame**, and `TIMING.distance.askedLead` argues
+    the distance and the measurement behind it. In short: `.method-stage` is sticky, so the last
+    frame-height of `.method` is the held frame scrolling out — structural, and empty, because the
+    Method has cleared entirely in place before it starts. Over that stretch `.env-room` is fixed and
+    the rail is fixed, so nothing on the screen moves at all: it was a viewport of dead scroll.
+
+    A negative head lets this section's list reach its sticky lock while that empty frame slides away
+    behind it. **It moves where Questions stands, not what Questions is** — nothing inside the
+    section shifts relative to anything else in it, and the Method is untouched: it still clears at
+    y 99 with its own frame held.
+
+    It is `margin-top` rather than a transform because the list's lock has to move with it — a
+    transform would paint it higher and leave its flow position, and therefore its sticky range,
+    exactly where it was.
+  */
+  margin-top: calc(-1 * var(--asked-lead, 0px));
 }
 
 /*
@@ -3432,7 +3775,13 @@ html[data-opening='running'] .ways a {
 .closing {
   --ground-angle: 180deg;
   --ground-near: 0;
-  --ground-far: 0.86;
+  /*
+    **0, where it was 0.86** — 26 September 2026, second pass: *"vídeo limpo… em vez de vídeo + overlay
+    cinzento/escuro."* The terms and the exit line it was measured for are gone; the question and its
+    sentence stand over the ground, the darkest band of the footage. Kept as a property, at zero, so
+    the section's ground mechanism is unchanged.
+  */
+  --ground-far: 0;
   --ground-from: 26%;
   --ground-to: 76%;
 }
@@ -3462,6 +3811,56 @@ html[data-opening='running'] .ways a {
 
 .page-asked {
   --band: var(--band-tight);
+  /*
+    **The reading zone, and it is the whole of the mechanism** — design owner, 20 September 2026.
+
+    Plain scroll space at the foot of the section. `.closing-frame` follows Questions in ordinary flow,
+    so this pushes the junction that releases the rows away from the moment they finish arriving, and
+    until that junction begins `--jrel1` … `--jrel7` are 1 by construction: nothing animates in here,
+    so stopping anywhere in it leaves the composition exactly as it stands.
+
+    Measured before this, the composition was complete 100px above the section's top and had begun
+    dissolving 150px below it — about 250px of stillness. `--asked-hold` is 1.5 viewports, which leaves
+    roughly 1,300px in which nothing at all changes.
+
+    It is deliberately *not* a pinned frame. Sticky would hold the composition against the top of the
+    viewport, and a visitor who opens three or four questions makes the block taller than the frame it
+    is stuck in — at which point the foot of the list cannot be scrolled to at all. Reading space that
+    cannot show you what you opened is not reading space.
+  */
+}
+
+/*
+  **The reading zone, and it is a box rather than a padding** — design owner, 20 September 2026.
+
+  It was `padding-bottom` on the section and that could not work: `.page-asked` is a grid, `.asked` is
+  one of its items, and a grid item's sticky child is confined to the item's own area — which is exactly
+  the list's height, so there was nowhere to stand. Measured, the composition scrolled clean out of the
+  zone that existed to let it be read.
+
+  The distance is this box's own foot, so the box is the list plus the hold and the list can stand
+  against the head margin for precisely that far. Nothing animates while it does: the junction that
+  releases the rows belongs to `.closing-frame`, which follows this in ordinary flow, so `--jrel1` …
+  `--jrel7` are 1 by construction for the whole of it.
+*/
+.asked-hold {
+  /*
+    **The distance is drawn as content, and it has to be.** `padding-bottom` was the obvious way to give
+    this box its foot and it does not work: a sticky element is constrained to its parent's **content
+    box**, and padding is outside it — so the box measured 1,936px, the content box measured the list's
+    own 602, and the sticky range was zero. Measured in Chrome, `.asked` tracked the page exactly, with
+    `position: sticky` computing and doing nothing.
+
+    An empty block after the list puts the same distance *inside* the content box, so the range is the
+    hold exactly and nothing has to know how tall the list is.
+  */
+  display: block;
+}
+
+.asked-hold::after {
+  content: '';
+  display: block;
+  height: var(--asked-hold, 150vh);
 }
 
 /*
@@ -3638,8 +4037,17 @@ html[data-opening='running'] .ways a {
 
   Both stay above the figure's head and clear of the lamp, which is where the photograph's own light is.
 */
+/*
+  **The section is runway and nothing else**, so its only job is to be the right length: the composition
+  above stands fixed in the frame and every movement of junction 10 → 11 is a fraction of this distance.
+
+  `--about-pin` is published by `transitions.ts` from `TIMING.distance.about`. It was `82vh` written
+  here, which is a scroll distance in a stylesheet — the one thing `03-choreography.md` does not allow,
+  and it cost the passage three quarters of its length: 840px at 1440 × 749 for a movement that holds,
+  falls, stands still and lifts again.
+*/
 .about {
-  height: 82vh;
+  height: var(--about-pin, 175vh);
   max-width: none;
   padding: 0;
   opacity: 1;
@@ -3676,21 +4084,32 @@ html[data-opening='running'] .ways a {
   max-width: calc(100vw - var(--about-x) * 2);
 }
 
-/* The Work's eyebrow register exactly: the section is named the way the Work named its statement. */
-.about-label {
-  --a-base-track: 0.26em;
-  white-space: nowrap;
-  margin: 0;
-  font-family: var(--v2-sans);
-  font-weight: 400;
-  font-size: clamp(0.5625rem, calc(9.5 / 1440 * 100vw), 0.8125rem);
-  text-transform: uppercase;
-  color: rgb(255 248 236 / 0.66);
-}
+/*
+  **`.about-label` is gone** — design owner, 20 September 2026. The eyebrow `About` stood over the
+  headline in the Work's own eyebrow register and is removed without replacement; `publication.tsx`
+  records what happened to the section's accessible name. `.about-headline`'s own `--i` values are
+  untouched, so nothing about About's arrival moved with it.
+*/
 
 .about-headline {
   --a-base-track: -0.014em;
-  margin: clamp(0.9rem, 2.4vh, 1.5rem) 0 0;
+  /*
+    **The band the eyebrow stood in, kept as the offset it always was** — 20 September 2026.
+
+    This was `clamp(0.9rem, 2.4vh, 1.5rem)`, the air *under* `.about-label`. With the label removed the
+    headline rose 15px at 1920 × 889, to y 152 — and that broke a relationship both sections are
+    composed on: `We stay close` and `Your experience` stand on the same axis **and the same vertical**,
+    measured at 261 × 167, which is what carries the eye from one room into the other.
+
+    `31 / 760` is not a new number. It is the Method's own — `--m-main-y` is authored as
+    `(112 + 31) / 760`, where 112 is the stage's top and 31 is exactly this band — so the two sections
+    now state the same offset in the same terms instead of arriving at it by accident. Measured: the
+    headline is back at y 167 and `.mmain` is at y 167.
+
+    The narrow frame gives it up: below 700 the Method's block stands on `--m-head` rather than on this
+    vertical, so there is no shared line to hold and the space belongs to the phone.
+  */
+  margin: calc(31 / 760 * 100vh) 0 0;
   font-family: var(--v2-serif);
   font-weight: 300;
   font-size: clamp(2.375rem, calc(78 / 1440 * 100vw), 6.25rem);
@@ -3846,15 +4265,19 @@ html[data-opening='running'] .ways a {
   the shirt and the desk is the wall's equivalent. One column, the Work's margin on both sides.
 */
 @media (max-width: 820px) {
-  .about {
-    height: 85vh;
-  }
+  /*
+    A thumb travels further for the same movement — `--about-pin` already carries the 1.5 every runway on
+    this site carries at `pointer: coarse`, so there is nothing to restate here. The 85vh that used to be
+    here was the same regression as the 82 it overrode.
+  */
 
   .about-claim {
     top: calc(var(--masthead, 0px) + 12vh);
   }
 
   .about-headline {
+    /* The eyebrow's band is not reserved here; see the wide rule for why the vertical is not shared. */
+    margin: clamp(0.9rem, 2.4vh, 1.5rem) 0 0;
     font-size: clamp(2.125rem, 10vw, 3.25rem);
   }
 
@@ -3912,8 +4335,8 @@ html[data-opening='running'] .ways a {
   a frame is composition and it changes with the screen — the same division `--plate-x` and the act's own type
   are under.
 
-  There are exactly three arithmetic compositions in this file, and all three are additions over the story's
-  own numbers rather than second opinions about them: `--mroom`, `--mlit` and `--mspread`.
+  There are exactly two arithmetic compositions in this file, and both are additions over the story's own
+  numbers rather than second opinions about them: `--mroom` and `--mlit`.
 */
 
 .method {
@@ -3948,39 +4371,38 @@ html[data-opening='running'] .ways a {
     is: two ends of one movement that must never need to know about each other.
 
     `--mroom` is **how far the material has been turned over** — 0 is ink on paper, 1 is paper on ink. It
-    rises on the approach (`--menter`, a distance rather than a beat) and falls again on the printing
-    (`--mreturn`, a beat). Every colour in this section is a mix on it, which is what makes the no-script
-    version correct for nothing: at rest it is 0, and 0 is the publication.
+    rises on the approach (`--menter`, a distance rather than a beat) and **it never comes back down**.
+
+    It used to: `* (1 - var(--mreturn, 0))` was the paper returning at the end of the section, and that
+    term is gone with the printing — design owner, 19 September 2026. Questions is written on this same
+    room and the material is not given back until Contact, so the one thing that turned it over turns it
+    over once. Measured before this: `--mreturn` was at 1 with the method's own last frame still on
+    screen, which is the *"passagem Method → Questions para branco"* the brief rules out.
+
+    **It is still 0 at rest, which is the whole reason it is a composition and not a constant**: every
+    colour in the section is a mix on it, so with nothing running the section is the publication's own ink
+    on its own paper. `TIMING.grounds` and `scroll-stage.tsx` carry the other end — the room is taken off
+    across junction 13 → 14, on position, and not by this.
 
     `--mlit` is **whether anything in the room is lit at all**. It rises with the room and falls when the
-    printing clears the frame. It exists so that light type never has to cross to dark type through a ground
-    crossing the other way — see `story.methodStory.printing.clears`, which is the argument, and
-    `timeline.ts`, which asserts the two never overlap.
+    composition clears the frame, which is the one stage of the printing that survived: what is written in
+    the room has to leave before Questions is written where it stood.
   */
-  --mroom: calc(var(--menter, 0) * (1 - var(--mreturn, 0)));
+  --mroom: var(--menter, 0);
   --mlit: calc(var(--menter, 0) * (1 - var(--mclear, 0)));
 
   /*
-    **The room itself, and the whole of the entrance.**
+    ── The section paints no ground at all now ──────────────────────────────────────
 
-    A background on the section's own box rather than on the frame, because the room has to exist before the
-    frame does: the box enters the viewport from below about a viewport before it locks, and the darkening
-    runs over that approach so the page is already a room by the time it is held.
+    `--mground` and the `background-image` that read it are gone, and `TIMING.grounds` gives states 11
+    and 12 a veil of **0** so the `[data-ground]` scrim paints nothing here either. Both were on a box in
+    ordinary flow, and both therefore slid up the screen over a fixed photograph — see `.env-room`,
+    which is where the room's ink lives now.
 
-    The gradient is the transition. There is no edge anywhere in it — the top `--room-edge` of the box ramps
-    from nothing to the room, so what the visitor sees is paper *becoming* dark rather than a dark panel
-    arriving under a light one. `04-visual-language.md` §2: a ground change is the slowest thing in the
-    system and nothing else moves during one, and nothing else does.
-
-    Above this box is About's own margin, and above that is a photograph of a dark room at night with one
-    lamp in it. That is not a coincidence and it is the reason the darkening starts as high as it does —
-    `story.methodArrival.begins`.
+    What the section still owns is its *material*: `--mroom` is unchanged, every colour in it is still a
+    `color-mix` on that number, and at rest it is 0, which is the publication on paper with no scripting
+    at all. Only the painting moved.
   */
-  background-image: linear-gradient(
-    to bottom,
-    rgb(var(--m-room) / 0) 0,
-    rgb(var(--m-room) / var(--mroom)) var(--room-edge)
-  );
 }
 
 /*
@@ -3988,42 +4410,62 @@ html[data-opening='running'] .ways a {
   are never over the composition — and it is exactly the same height, so the three held frames on this site
   are the same box.
 
-  `perspective` is what makes the section spatial rather than layered, and `perspective-origin` is set to the
-  focus: the point the questions stand on, the point the considerations recede toward, and the point they all
-  come back to. So the space itself is oriented around the one place the section resolves, and a word placed
-  further back is drawn closer to it — depth and meaning are the same axis here.
+  ── The space is gone, and that is the whole of C16 ──────────────────────────────────────────────
 
-  **There was a lamp here and it is gone**, which is worth recording because it was the obvious idea. A soft
-  radial lift at the focus, to give the space a subject and continue About's own single light source. It was
-  built, and on this ground it **contoured**: 0.055 of paper over this ink is a delta of twelve values, and a
-  delta that small spread across seven hundred pixels puts a visible banding ring every sixty. Eight bits is
-  eight bits, and the only fixes are a dither texture or a steeper gradient — the first is an image this
-  section does not want and the second is a spotlight, which is scenography.
+  This element carried a `perspective` and a `perspective-origin`, and everything in it stood at a real
+  depth inside that space: twelve considerations at twelve distances, three deliberate occlusions, a
+  rotation per word and a parallax camera under all of it. That was `decisions.md` §55 and §56, it was
+  measured, and it is now retired — design owner, 18 September 2026:
 
-  So the room is **flat ink**, evenly. That is also the better answer: `03-design-principles.md` §3 says
-  silence is material, and an even field of the publication's own ink is the material rather than a lit set
-  dressed to look like one. The depth is carried by scale, occlusion, the camera and the ink's own falloff,
-  all four of which are measured rather than atmospheric.
+    *"criando profundidade visual através de escala, posição e hierarquia tipográfica, NÃO através de
+    parallax"* · *"a composição deve ser suficientemente forte para funcionar quase parada"*
 
-  `overflow: hidden` keeps a near word that drifts from widening the page, and `pointer-events: none` says
-  what the section is: nothing in it is a control, and there is nothing to press.
+  **It is also what V2 authored in the first place.** §4 sets state 11 as *seven overheard lines, in
+  sequence and rising in scale: 15 · 16 · 17 · 18 · 21 · 26 · 36px* — a ladder of type on a flat frame.
+  Nothing in the Final Spec asks for a third dimension here. So this is not a new language being
+  invented against the design; it is V1's space being taken out from under V2's composition.
+
+  What the depth is carried by now is measured the same way it was: **2.4:1 of drawn type** (36 → 15px),
+  an ink falloff of 0.96 → 0.52 that runs with it, and position in a frame that has real negative space
+  in it. What is gone with the space is every rotation, every `translateZ`, the occlusions, and eleven
+  twelfths of the camera.
+
+  `perspective` is therefore absent, and with it the constraint that no wrapper between the frame and the
+  words may take an opacity, a filter or an overflow — that trap belonged to `preserve-3d` and no longer
+  applies. `overflow: hidden` stays, because a line placed near the right edge must not widen the page.
+
+  `pointer-events: none` says what the section is: nothing in it is a control, and there is nothing to
+  press. `implementation-reconciliation.md` C16.
 */
 .method-stage {
   position: sticky;
   top: var(--masthead);
   height: var(--stage-h);
   overflow: hidden;
-  perspective: var(--m-depth);
-  perspective-origin: var(--m-field-x) var(--m-focus-y);
   pointer-events: none;
 }
 
 :root {
   /*
+    ── The display axis, and both halves of the passage stand on it ──────────────────────────────
+
+    §2 anchors About at **x196** and the method's question and answer at **x196** as well, which is one
+    axis and not three — and it is a different vertical from `--page-x` (246), which is where the
+    *reading* grid of the questions and Contact starts. The method used to take `--page-x`, so the two
+    sections of one passage were composed 50px apart for no reason either of them could state.
+
+    Authored exactly as `.about-stage` authors its own: 196/1440 of the frame at and above the reference
+    width, and clamped in below it so it never crosses the rail. `--about-x` is still declared in
+    About's own block with the identical expression; collapsing the two into this one is About's edit
+    and belongs with the transition work, not here.
+  */
+  --v2-x: clamp(8vw, calc(20.024vw - 92.34px), calc(196 / 1440 * 100vw));
+
+  /*
     ── The two materials ─────────────────────────────────────────────────────────────────────────
     Written as bare triples so that every colour in the section can be composed with an alpha at the point of
-    use, which is what `--wd` needs: a word's distance decides its ink, and it cannot do that through a token
-    that has already had an opacity baked into it.
+    use, which is what `--wd` needs: a line's place in the sequence decides its ink, and it cannot do that
+    through a token that has already had an opacity baked into it.
 
     They are not new colours. `--m-room` is the ink of `--ink` at full strength — the same near-black, minus
     the 0.9 that makes ink on paper look like ink on paper rather than like a printed area. `--m-lit` is
@@ -4031,6 +4473,9 @@ html[data-opening='running'] .ways a {
   */
   --m-room: 24 23 20;
   --m-lit: 244 241 233;
+
+  /* How much of the room's own ink stands over the photograph. `.env-room` paints it, fixed. */
+  --m-room-veil: 0.2;
 
   /*
     **The band the room arrives in**, and the height of `.method`'s own padding.
@@ -4048,148 +4493,110 @@ html[data-opening='running'] .ways a {
   --room-edge: clamp(7rem, 20vh, 15rem);
 
   /*
-    ── The space ─────────────────────────────────────────────────────────────────────────────────
-    How deep the frame is, and how far back a word at the far edge of the composition stands. Between them
-    they decide how strongly the space reads as a space: a word at `--m-far` is drawn at
-    `--m-depth / (--m-depth + --m-far)` of its own size, which at 1400 and 620 is 0.69.
+    ── The ladder · §4, transcribed ──────────────────────────────────────────────────────────────
 
-    1400 rather than something shorter because a tight perspective on type is a fisheye: at 600 the far words
-    are half size and visibly distorted toward the origin, which reads as an effect. This reads as distance.
+    *"Seven overheard lines, in sequence and rising in scale: 15 · 16 · 17 · 18 · 21 · 26 · 36px — so the
+    field is chronological as well as spatial."* The ladder is the whole of the depth now, so it is
+    authored as its two ends and each line's `--wd` picks its rung:
 
-    **620 rather than §55's 520, and the depth was the whole diagnosis.** The old field ran from a nearest
-    word drawn at 24.4px to a farthest at 18.0 — six pixels of difference across a frame 1440 wide, with no
-    overlap, no shared baseline and no ground plane for the eye to measure them against. That is a
-    perspective that exists in the transform matrix and nowhere on the retina. The projection now takes 31%
-    instead of 27%, and — far more importantly — the type falls with it: see `--m-word` below.
+        --wd    1.000  0.952  0.905  0.857  0.714  0.476  0.000
+        px         15     16     17     18     21     26     36
+
+    **Anchored to the frame rather than to the root font size**, because a composition placed in
+    fractions of the frame has to be *set* in fractions of it too — the old field was in `rem`, so at
+    1920 the words stood in the same places at the same sizes and the frame simply got emptier around
+    them. Clamped at both ends: 48px at the top so the largest line stays a line and not a headline, and
+    a floor that keeps the faintest one readable on a phone.
+
+    2.4:1 against §56's 2.9:1, and the loss is deliberate — §56 bought its ratio to make a *perspective*
+    legible and there is no perspective to make legible any more. What the ratio has to do now is
+    hierarchy, and V2 authored the hierarchy it wants.
+
+    **Both ends of the ladder are clamped, and the fall is the difference between them.** The first
+    version clamped the top and the *fall* independently, which is not the same thing and is wrong in
+    the one place it matters: measured at 768, the top floored up to 20px while the fall floored up to
+    11.5, and the oldest line came out at **8.5px** — a ladder whose bottom rung falls out from under it
+    exactly where the frame gets small. Stating the far end as its own clamp means the ratio degrades
+    instead of collapsing: 2.40:1 at 1440 and above, 2.12:1 at 1100, 1.85:1 at 768, and never below 13px
+    at the faint end.
+
+    The ink runs with it, 0.96 at the newest line to 0.52 at the oldest: paper on this ink is a 15.9:1
+    ground, so the faintest line still measures **5.5:1** — the same floor §56 held, on the same
+    material. `--m-page-ink` and its fall are the same values on paper, and they are what the section is
+    set in when `--mroom` is 0: before the driver has run, and in the version with no scripting at all.
   */
-  --m-depth: 1400px;
-  --m-far: -620px;
-
-  /*
-    **The focus.** The point the questions stand on, the point the considerations are placed relative to, and
-    the point everything converges into. On the page's own axis, because that vertical runs the whole site —
-    the mark in the head margin, the studio's type over the work, the line under the plate, every label in the
-    publication — and the one moment this section resolves belongs on it.
-
-    38% down the frame rather than the middle: it leaves room for the composition above the questions and
-    below them, and it puts the answer where a page's first line sits rather than at its centre.
-    `04-visual-language.md` §5 — centring is reserved for the ceremonial, and this is a page.
-  */
-  /*
-    **Two axes, because the section holds two different kinds of composition.**
-
-    `--m-focus-x` is where the *reading* stands — the four questions and the answer — and it is the
-    publication's own origin, clear of the Ledger's rail like every other column in this half.
-
-    `--m-field-x` is where the twelve considerations are measured from, and it is `--mark-x`: the field
-    is a space rather than a column, it spreads both ways from its axis, and its coordinates are
-    fractions of the *frame*. Moving it to `--page-x` moved every word 174px right at 1440 and pushed the
-    right-hand ones off the edge — measured, 2 clipped at 1440 and 3 at 768. It does not need clearing
-    from the rail because it never collided with it: measured across the whole runway, no word intersects
-    the Ledger's box at any depth.
-  */
-  --m-focus-x: var(--page-x);
-  --m-field-x: var(--mark-x);
-  --m-focus-y: 38%;
-
-  /*
-    How much of the field's spread the frame can take, per axis. One at any ordinary size; they are only ever
-    lowered, and only for a frame too short to hold the composition — a phone on its side. Cheaper and more
-    honest than a third coordinate table: the layout is unchanged and it is simply drawn nearer the axis.
-  */
-  /*
-    **The horizontal fit is a ramp now, and it reaches 1 exactly at the reference frame.**
-
-    Measured on the running build with the widest consideration, *Nobody planned that.* — the field ran
-    off the right edge by 127px at 900 and 162px at 768, and 0 at 1440. Two measurements give the word's
-    own geometry: its authored `--wx` is 0.685 and it sets about 358px of type at the size clamp's floor,
-    so the frame holds the composition when
-
-        --m-xfit  ≤  (W − 8 − --mark-x − 358) / (0.685 · W)
-
-    which is 0.69 at 768, 0.79 at 900, 0.90 at 1100 and 1.00 at 1440. The ramp below sits under that bound
-    at every width and is 1 at and above 1440, so **the approved desktop composition does not move** — the
-    same discipline as the landscape override further down: the field is drawn nearer its axis rather than
-    re-authored, and every relationship inside it is preserved.
-
-    The floor is 0.46 rather than the ramp's own value because the ramp only reaches it below 400px, where
-    the phone's own coordinate table is in use: at 390 the ramp gave 0.475 and *Is everyone here?* still
-    ran 27px past the edge. Nothing between 400 and 1440 is touched by it. Lowering the floor further does
-    nothing — the last 11px are the word's own set width rather than its offset, and that is answered in
-    the narrow table's `--m-word` instead, where it belongs.
-  */
-  --m-xfit: clamp(0.46, calc(1 - (1440px - 100vw) / 2000px), 1);
-  --m-yfit: 1;
-
-  /*
-    How far a question travels in z as it arrives and leaves. It surfaces out of the space and sinks back into
-    it, which is the whole reason the questions are not a cross-fade. Deeper than §55's 300 in proportion to
-    the space itself, so the movement is still about a tenth of the question's own size — enough to read as
-    depth and not enough to read as a zoom.
-  */
-  --m-ask-z: -420px;
-
-  /*
-    ── The considerations ────────────────────────────────────────────────────────────────────────
-    One size and one ink at the front of the space, and how much of each is lost by the time a word is at the
-    back — so a word's distance decides its scale twice over: once in the type, once in the projection.
-    Everything else about a word is its four authored numbers.
-
-    **This is the fix, and it is the largest single change §56 makes.** §55 set the field at reading size and
-    let the projection carry the depth alone; the result was 24.4px at the front and 18.0 at the back, which
-    the eye reads as inconsistent type rather than as distance, because nothing in the frame overlapped and
-    nothing shared an edge to be measured against. The range is now **55.8px at the front and 19.2 at the
-    back — 2.9:1** — and the near words are large enough that the far ones pass behind them.
-
-    Legibility went the right way rather than being spent: paper on this ink is a 15.9:1 ground, so the ink
-    can fall much further than it could on paper and still measure. The range 0.96 → 0.52 puts the farthest
-    word at **5.5:1 at 19.2px** against §55's 4.86:1 at 18.6 on paper. Depth here is carried by scale,
-    position, occlusion, turn and the camera, and only leaned on by ink.
-
-    `--m-page-ink` and its fall are the same values on paper, and they are what the section is set in when
-    `--mroom` is 0 — before the driver has run, and in the version with no scripting at all.
-  */
-  --m-word: 3.875rem;
-  --m-word-fall: 2.3125rem;
+  --m-word: clamp(1.5rem, calc(36 / 1440 * 100vw), 3rem);
+  --m-word-far: clamp(0.8125rem, calc(15 / 1440 * 100vw), 1.25rem);
+  --m-word-fall: calc(var(--m-word) - var(--m-word-far));
   --m-ink: 0.96;
   --m-ink-fall: 0.44;
   --m-page-ink: 0.9;
   --m-page-fall: 0.3;
 
   /*
-    ── The camera ────────────────────────────────────────────────────────────────────────────────
-    How far the field drifts across the whole accumulation, as a fraction of the frame, for a word at the very
-    front. Multiplied by `1 - --wd`, so a word at the back travels a twelfth of it and the space separates
-    under movement — which is the one depth cue that cannot be faked by scale.
+    ── Where the section resolves ────────────────────────────────────────────────────────────────
 
-    The point is not the distance, it is that there is **never a frame where nothing is happening**. §55's
-    field was still between arrivals: scroll a notch in the gap between two questions and the frame did not
-    change, which is the exact feeling of a prototype of an interaction. At these values the nearest word
-    moves about a pixel for every ten the page does, which is calm at any speed and unmistakable when you
-    stop and start.
+    **About's own vertical, in this frame's coordinates.** `.about-claim` stands at `112 / 760` of the
+    viewport and `.about-stage` is fixed to the viewport; this stage begins below the head margin, so
+    the masthead comes off the same number and the two blocks land on the same line of the screen. That
+    is the *"alinhamento visual coerente"* the 19 September brief asks for, and it is why this is an
+    expression rather than a percentage: it is not a new position, it is About's.
 
-    The questions do not drift and neither does the answer. They stand at the focus, and the focus is the
-    vanishing point — nothing at the vanishing point moves when you walk toward it. That is correct, and it
-    also leaves a fixed reference in the frame against which everything else is visibly moving.
+    **The 31 is About's eyebrow, and it is there so the two statements land on the same line.** About's
+    claim is a label and then the headline; this block has no label on the axis — the section's name is
+    a running head in the margin — so measuring both from the top of the block would put `Your
+    experience` 36px (at 1920) above `We stay close`. What has to agree is the 78px statement, not the
+    top of the box: 112 + 31 of §2's own 760 puts the answer's cap line exactly where About's is.
 
-    `--m-drift-mid` is where along the ramp the authored composition is exact. 0.8 rather than 0.5, because
-    the frame worth composing is the full one: the twelve stand at 0.9 of the ramp, so at that moment every
-    word is within about ten pixels of where this file puts it, and the movement is spent getting there.
+    It was `38%` — §2's *x196, y262* for state 12, with the question at *bottom 142* as a separate
+    anchor. Both are given up together, and only together: the two are one block now, and a block cannot
+    stand on two verticals. The axis (`x196`) is untouched and is the thing both sections share.
   */
-  --m-drift-x: 0.045;
-  --m-drift-y: -0.13;
+  --m-main-y: max(var(--m-head), calc((112 + 31) / 760 * 100dvh - var(--masthead)));
+
+  /*
+    **The floor, and it is the section's own running label.** `.method-label` stands at the head of this
+    frame at `--mark-x`, and on a narrow frame `--mark-x` and `--v2-x` are the same 30 pixels — so where
+    About's vertical resolves above the label's band, the block is written straight through it. Measured
+    in Chrome at 390 × 844 and at 768 × 900: the expression above goes to zero on both (the phone's
+    masthead reserves 6rem for the rail lying down), and `Your experience` and `Method` were drawn on
+    top of each other.
+
+    So the floor is the label's own band — its offset from the head of the frame, its line, and a little
+    air — rather than zero. Above about 1100 the vertical is what wins and this is never reached.
+  */
+  --m-head: calc(clamp(0.5rem, 2vh, 1.5rem) + 2.5rem);
+
+  /*
+    ── The camera, reduced to a breath ───────────────────────────────────────────────────────────
+
+    §56 gave the field a parallax: near words travelled further than far ones, so the space separated
+    under movement. That is the one depth cue scale cannot fake — and it is also, by name, the thing the
+    18 September brief rules out. What is left is the reason the camera existed at all, which was never
+    depth: *there must never be a frame where nothing is happening*, because a held frame that does not
+    answer the wheel is the exact feeling of a prototype.
+
+    So the drift survives at **a quarter of its size and with no differential at all**: the whole field
+    moves as one plane, every line by the same amount, about 17 × 20px across the entire accumulation —
+    a pixel for every hundred the page travels. Nothing moves relative to anything else, so it is not a
+    parallax and it cannot read as one; it is the frame being alive between the three reveals.
+
+    `--m-drift-mid` is where along the ramp the authored composition is exact. 0.8 rather than 0.5,
+    because the frame worth composing is the full one: the field is complete at 0.9 of the ramp, so at
+    that moment every line is within about three pixels of where this file puts it.
+
+    Never eased — `story.methodStory.drift` and `scroll.ts`'s `ramp`. It is a camera, not a beat.
+  */
+  --m-drift-x: 0.012;
+  --m-drift-y: -0.03;
   --m-drift-mid: 0.8;
 }
 
 /*
-  Somebody who has asked for less movement gets the room, the questions, the accumulation, the convergence and
-  the printing — the entire choreography — with the **camera** switched off, and nothing else changed.
-
-  That is the whole of what a reduced-motion request is about here. Everything else in the section is opacity
-  and a ground going dark, and opacity is not what somebody asking for less movement is asking about
-  (`transitions.ts` makes the same argument about `--studio-settle`, which is the only other distance on the
-  site this block removes). The questions keep their travel in z: it is a tenth of their own size, it is the
-  thing that makes them surface rather than switch on, and taking it would remove a beat rather than a motion.
+  Somebody who has asked for less movement gets the room, the reveals, the departure and the printing —
+  the whole choreography — with the **camera** switched off, and nothing else changed. Everything else in
+  the section is now opacity, tracking and six pixels of settle, and opacity is not what somebody asking
+  for less movement is asking about (`transitions.ts` makes the same argument about `--studio-settle`).
 */
 @media (prefers-reduced-motion: reduce) {
   :root {
@@ -4199,152 +4606,146 @@ html[data-opening='running'] .ways a {
 }
 
 /*
-  How much of the composition is still spread out, and how much of it is still lit while it collapses.
+  **Nothing here is released any more.** `--mspread` and `--mkeep` stood here — one minus the convergence,
+  and the same number read as an opacity — and between them they took the whole field away so that the
+  answer could resolve out of the space it left. The design owner ruled that out on 19 September 2026:
+  *"NÃO removas as frases pequenas quando a composição principal aparece."* The field stands, the
+  composition is written among it, and the only exit in the section is the frame's own at the end.
 
-  `--mspread` is one minus the convergence, and it multiplies every offset in the field — so twelve words
-  collapse toward the focus on twelve different vectors from a single number, and nothing is animated
-  individually. `story.methodStory.converge`.
-
-  `--mkeep` is the same number read as an opacity, and it is deliberately **not** the same curve. Fading a
-  word in proportion to how far it has left to travel means every word is at half strength halfway there, and
-  the field reads as being cleared away rather than gathered up. Multiplying by three holds each word at full
-  ink until it is two thirds of the way in and then takes it out over the last third — so what the visitor
-  sees is twelve considerations arriving at one point, which is the argument, rather than twelve
-  considerations dissolving on the way to it, which is not.
+  What is left on this element is the camera's share and the section's arrival grammar.
 */
 .method-stage {
-  --mspread: calc(1 - var(--mgather));
-  --mkeep: min(1, calc(var(--mspread) * 3));
+  /* The camera's share, and every line in the frame takes the same one. */
+  --mdx: calc((var(--mdrift, 0) - var(--m-drift-mid)) * var(--m-drift-x) * 100%);
+  --mdy: calc((var(--mdrift, 0) - var(--m-drift-mid)) * var(--m-drift-y) * 100%);
+
+  /*
+    ── The composition arrives one line at a time, and nothing here decides when ─────
+
+    **Every arrival is a range on the section's own runway, resolved by the driver.** `--mw1` … `--mw7`,
+    `--mnote1` and `--mask-in` are each one element's own `0 → 1`, authored in
+    `TIMING.method.composed` and turned into a rise by `scroll.ts`. This file places them and says what
+    an arrival looks like; it holds no opinion about the order or the pauses.
+
+    **Three windows on About's junction stood here and they are gone** — design owner, 19 September 2026.
+    They could not produce what the brief asks for: a junction's `0 → 1` is priced, so equal fractions of
+    it are unequal distances and the "pequenas pausas" between the lines were not pauses anybody could
+    have felt. A beat of this section is 150vh of scroll wherever you stand in it.
+
+    Every element is still multiplied by `--mlit`, so nothing can be lit before the room is.
+  */
 }
 
 /*
-  A group: one question and the three considerations it brings. It exists so the DOM can hold the reading
-  order — question, then what the studio hears — while the stylesheet places everything.
+  The field's own box. It exists so the DOM can hold the reading order — the room speaking, in the order
+  it speaks — while the stylesheet places every line.
 
-  `preserve-3d` is load-bearing: without it this layer would flatten its children into a single plane and the
-  perspective would be lost. And it must never be given an opacity, a filter or an overflow of its own, each
-  of which forces the same flattening. That is why the convergence multiplies each word's own opacity instead
-  of fading a wrapper.
+  It carries no `transform-style` and needs none: there is no space to flatten. It still carries no
+  opacity of its own, but now only because each line's own arrival is what fades it.
 */
 .mgroup {
   position: absolute;
   inset: 0;
-  transform-style: preserve-3d;
 }
 
 /*
-  The section's name, held at the head of the frame on the page's axis. The only thing here that never moves.
+  **`.method-label` is gone** — design owner, 20 September 2026. The section's running label stood at the
+  head of the frame on `--mark-x` and said `Method` while the rail said `Method` a few pixels to its
+  left. It is removed without replacement.
 
-  It arrives with the room and it is **printed back with the answer**, which is the one thing about it that is
-  new: its ink crosses from paper to the room's light and back again, and a mark crossing that way while the
-  ground crosses the other passes through a frame where it cannot be seen. So it does what everything else in
-  the frame does — it clears, and then it is printed. `story.methodStory.printing`.
+  **`--m-head` below survives it and is deliberately not re-tuned.** It was written as the label's own
+  band, and it is now simply the frame's head margin — the floor that keeps the main composition off the
+  top edge on the narrow frames where About's vertical resolves above it. Lowering it would move the
+  approved composition on exactly those frames, which is not what removing a label is for.
 */
-.method-label {
+
+/*
+  ── How everything in the frame arrives ───────────────────────────────────────────────────────────
+
+  **One grammar for the whole section, and it is the publication's own.** `.publication [data-arrive]`
+  resolves a line by opening its tracking, raising the ink inside that movement and landing a six-pixel
+  settle last — *a phrase is found rather than switched on*. About is written onto the studio plate that
+  way; so is Contact; so, now, is this. That is §7 of the brief in one decision: About and the method
+  are two moments of the same film, and the second stops arriving in a vocabulary of its own.
+
+  It cannot literally *be* `[data-arrive]`, because that rule reads a junction fraction and everything
+  here is driven by the method's own beats. So it is the same three channels, read off `--wo` — the
+  element's own arrival, whichever beat of the section owns it.
+
+  `--wl` is what is left of the composition: the reveal and the release multiplied, plus the room being
+  lit at all. Every element in the frame is composed with it, so one number takes the whole thing away.
+*/
+.mword,
+.mnote {
+  --wo: 0;
+  /*
+    **They arrive and they stay** — design owner, 19 September 2026: *"NÃO removas as frases pequenas
+    quando a composição principal aparece… pensamentos espalhados pela sala + uma composição principal
+    que emerge entre eles."*
+
+    This was `--wo * --mkeep * --mlit`, where `--mkeep` was what was left of the field as `--mgather`
+    collapsed it into the point the composition resolved out of. There is no collapse and no `--mkeep`:
+    the only thing that ever takes these away is `--mlit`, which is the whole frame clearing at the end
+    of the section so that Questions can be written on the same room.
+  */
+  --wl: calc(var(--wo) * var(--mlit, 0));
   position: absolute;
-  left: var(--mark-x);
-  top: clamp(0.5rem, 2vh, 1.5rem);
-  opacity: max(var(--mlit, 0), var(--mprint, 0));
-  color: rgb(var(--m-room) / 0.65);
-  color: color-mix(
-    in oklab,
-    rgb(var(--m-lit) / 0.62) calc(var(--mroom) * 100%),
-    rgb(var(--m-room) / 0.65)
-  );
+  opacity: var(--wl);
+  /*
+    **Five pixels, and the brief puts a ceiling on it**: *"micro-movimento de ~4–6px no máximo… nada de
+    movimento vertical evidente."* `--m-rise` is `TIMING.method.composed.rise` and it is a pixel under
+    the six About and Contact settle on, because those resolve a whole composition at once and these
+    arrive one at a time — the same distance under one line reads as a line sliding rather than as a
+    line landing.
+  */
+  transform: translate3d(var(--mdx), calc(var(--mdy) + var(--m-rise, 5px) * (1 - var(--wo))), 0);
+  will-change: opacity, transform;
 }
 
 /*
-  A question, and the invitation before it — the same element, because the invitation is the first of them.
-
-  On the axis at the focus, and it surfaces: one range drives both the opacity and the distance, so the
-  question comes forward out of the space as it arrives and returns into it as it goes. `1 - value` is the
-  second reading of the same number, which is why there is no second beat for the movement.
-
-  **At 69px on a 1440 frame it is the largest thing in the room until the answer arrives**, and that is the
-  register the section was missing: §55 set the questions at 37px, which is a heading on a page, and a heading
-  on a page is what a visitor reads rather than what they are standing inside. It is still well under the
-  film's own 96, and it is light on dark at weight 300 — `04-visual-language.md` §5, scale is currency, and
-  what is being bought here is the difference between reading a question and being asked one.
-
-  15ch puts all five of them on exactly two lines at every width, so the block under the focus is the same
-  shape each time and the composition around it can be authored once.
-
-  `--ask` is set per question so the shared rule can read whichever cue belongs to it.
+  The tracking is listed separately because the question and its footnote are *children* of a placed
+  box rather than placed boxes themselves: `letter-spacing` inherits, so a value on the block would be
+  overridden by whatever each of them set for itself and the channel would silently do nothing. `--wo`
+  inherits instead, and each line opens its own tracking on top of its own rest value.
 */
+.mword,
+.mnote,
 .mask {
-  position: absolute;
-  left: var(--m-focus-x);
-  top: var(--m-focus-y);
-  margin: 0;
-  max-width: 15ch;
-  font-size: clamp(2rem, 4.8vw, 4.25rem);
-  font-weight: 300;
-  line-height: 1.16;
-  letter-spacing: -0.018em;
-  text-wrap: balance;
-  color: rgb(var(--m-room) / 0.9);
-  color: color-mix(
-    in oklab,
-    rgb(var(--m-lit) / 0.95) calc(var(--mroom) * 100%),
-    rgb(var(--m-room) / 0.9)
+  letter-spacing: calc(
+    var(--w-track, 0em) + var(--arr-track, 0.055) * 1em * (1 - var(--wo, 1))
   );
-  opacity: calc(var(--ask) * var(--mlit, 0));
-  transform: translateZ(calc(var(--m-ask-z) * (1 - var(--ask))));
-}
-
-.mask[data-ask='0'] {
-  --ask: var(--minvite, 0);
-}
-
-.mask[data-ask='1'] {
-  --ask: var(--mq1, 0);
-}
-
-.mask[data-ask='2'] {
-  --ask: var(--mq2, 0);
-}
-
-.mask[data-ask='3'] {
-  --ask: var(--mq3, 0);
-}
-
-.mask[data-ask='4'] {
-  --ask: var(--mq4, 0);
+  /* Restated rather than left to the rule above: this one is later, so it would replace it. */
+  will-change: opacity, transform, letter-spacing;
 }
 
 /*
-  A consideration. Everything about how it looks and where it stands comes from **four authored numbers** and
-  its own arrival:
+  ── A line of the field ───────────────────────────────────────────────────────────────────────────
 
-    --wx, --wy   where it stands, as an offset from the focus — a **fraction of the frame**, not a length, so
-                 the composition holds its proportions at every size. `--wy` is a fraction of `--stage-h`
-                 rather than of the viewport, which is the correction §56 made: the frame is the viewport
-                 less the head margin, and a field measured in `vh` slid out of its own box whenever that
-                 margin changed.
-    --wd         how far away it is, 0 at the front and 1 at the back. It drives four things at once — the
-                 distance in z, the type size, the ink and how much of the camera's movement it takes — so a
-                 word cannot be far away and loud, or far away and fast.
-    --wr         how far it is turned. Every word is rotated slightly **toward the focus**, which is what
-                 makes the space read as one space with a subject rather than as scattered type.
-    --wo         which of the twelve arrivals is its own.
+  Three authored numbers, where §56 needed four and a depth:
 
-  The transform is one line and it does the whole of the choreography: the word's own offset and its share of
-  the camera are added, the sum is multiplied by `--mspread` so the convergence takes the field and the drift
-  together, and the word turns square to the frame as it arrives. The `-0.5em` is outside all of it — it is
-  the word centring on its own coordinate, in its own type size, and it must not converge.
+    --wx, --wy   where the line's own top-left stands, as a **fraction of the frame** — not a length, so
+                 the composition holds its proportions at every size, and not an offset from a focus,
+                 because there is no longer a point everything is measured against. `--wy` is a fraction
+                 of the frame's height, which is the viewport less the head margin.
+    --wd         where it is on the ladder: 0 is the newest and largest, 1 the oldest and faintest. It
+                 drives the size and the ink together, so a line cannot be small and loud.
 
-  Opacity is the word's own arrival multiplied by what is left of the field and by whether the room is lit at
-  all, rather than a fade on a wrapper, because a wrapper with an opacity would flatten the perspective — see
-  `.mgroup`.
+  There is no fourth: `--wd` also decides which of the field's two waves a line belongs to, so nothing
+  here says *when* either.
+
+  **Set in the serif**, which is the correction §5 has been waiting for: *"Cormorant Garamond 300 for
+  every statement"*, and these are seven statements. They declared no family at all and inherited the
+  body's, which is the label face — the identical fault the block at the foot of this file lists for
+  About's headline and the resolve, fixed there and missed here. The question had it too.
 */
 .mword {
-  position: absolute;
-  left: var(--m-field-x);
-  top: var(--m-focus-y);
+  --w-track: -0.012em;
+  left: calc(var(--wx) * 100%);
+  top: calc(var(--wy) * 100%);
+  font-family: var(--v2-serif);
   font-size: calc(var(--m-word) - var(--wd) * var(--m-word-fall));
   font-weight: 300;
-  line-height: 1;
-  letter-spacing: -0.014em;
+  line-height: 1.05;
   white-space: nowrap;
   color: rgb(var(--m-room) / calc(var(--m-page-ink) - var(--wd) * var(--m-page-fall)));
   color: color-mix(
@@ -4352,264 +4753,343 @@ html[data-opening='running'] .ways a {
     rgb(var(--m-lit) / calc(var(--m-ink) - var(--wd) * var(--m-ink-fall))) calc(var(--mroom) * 100%),
     rgb(var(--m-room) / calc(var(--m-page-ink) - var(--wd) * var(--m-page-fall)))
   );
-  opacity: calc(var(--wo, 0) * var(--mkeep) * var(--mlit, 0));
 
   /*
-    **The knockout, and it is the second half of the occlusion.**
+    **A halo, and its job has changed.** §56 put one here to keep a far word from interleaving its
+    glyphs with a near one — an occlusion problem, and there are no occlusions left. What it does now is
+    hold a light line legible where it crosses the photograph's own lamp, which is the one part of the
+    frame with warmth in it: `--mground` made the room a veil over the studio plate rather than a
+    replacement for it, so this field stands on a photograph and not on flat ink.
 
-    Sorting twelve words by depth is free — they are real siblings at real z in one `preserve-3d` context,
-    so the browser draws the near ones last. But type has no ground of its own: a far word crossing behind a
-    near one simply interleaves its glyphs with it, which reads as a collision rather than as distance. It
-    was the one thing that looked like a bug in the first pass of this composition.
-
-    So every consideration carries a soft halo of the room's own colour, in `em` so it scales with the
-    word: the near word darkens the ink immediately around it, and the far word passing behind is suppressed
-    exactly where it crosses. It is the room seen between the letters, which is what would be there.
-
-    It exists **only in the room** — multiplied by `--mroom`, so on paper there is no shadow at all, and the
-    version with no scripting has none either. One shadow rather than a stack, at a radius small enough to
-    be a knockout rather than a glow.
+    Half the strength it had, for that lesser job, and still only in the room — multiplied by `--mroom`,
+    so on paper there is no shadow at all and the version with no scripting has none either.
   */
-  text-shadow: 0 0 0.34em rgb(var(--m-room) / calc(0.92 * var(--mroom)));
-
-  /* The camera's share for this word: the ramp re-centred on the composed frame, less the further it is. */
-  --dx: calc((var(--mdrift, 0) - var(--m-drift-mid)) * var(--m-drift-x) * (1 - var(--wd)));
-  --dy: calc((var(--mdrift, 0) - var(--m-drift-mid)) * var(--m-drift-y) * (1 - var(--wd)));
-
-  transform: translate3d(
-      calc((var(--wx) + var(--dx)) * var(--m-xfit) * var(--mspread) * 100vw),
-      calc((var(--wy) + var(--dy)) * var(--m-yfit) * var(--mspread) * var(--stage-h) - 0.5em),
-      calc(var(--wd) * var(--m-far) * var(--mspread))
-    )
-    rotateY(calc(var(--wr) * var(--mspread)));
+  text-shadow: 0 0 0.5em rgb(var(--m-room) / calc(0.55 * var(--mroom)));
 }
 
 /*
-  ── The composition ───────────────────────────────────────────────────────────────────────────
-  Twelve considerations, in the order the four questions bring them. This table is the whole layout of the
-  section and it is meant to be tuned here, by eye, in one place.
+  ── One line, one arrival ───────────────────────────────────────────────────────────────
 
-    1–3    Time · Place · Light            the moment
-    4–6    People · Names · Distance       who will be standing there
-    7–9    Silence · Pace · Colour         what it should feel like
-    10–12  Detail · Photographs · Memory   what should remain
+  **Each of the seven has a window of its own, and the driver owns every one of them.** `--mw1` … `--mw7`
+  are `TIMING.method.composed.lines` resolved as rises on the section's runway, so the order, the gaps and
+  the durations are all in one table in `timing.ts` and none of them is here. This is the whole of what
+  the stylesheet says about when a line arrives:
 
-  **It is composed, not scattered.** Each question puts one word near, one at mid distance and one at the
-  back, so the space gains depth with every question rather than filling front to back; and the four groups
-  are placed in four quarters of the frame in turn — upper right, lower left, upper left, lower right — so
-  the field builds by circling the focus rather than by accumulating in one place. Nothing stands in the band
-  the questions occupy, which is the left half of the frame between 34% and 62% of its height.
+  **Sets and `--m-lag` are gone with them.** Three sets of two or three, each on a fraction of About's
+  junction, could not do what the brief asks — *"quase uma a uma, com timings diferentes e pequenas
+  pausas entre elas"* — because a set is by construction one gesture and because a junction's fractions
+  are not equal distances. `--m-lag` went the same way: it was the breath between the statement and the
+  line under it, and those two are separate beats now.
 
-  **Three of the twelve are deliberately behind another**, and that is the second half of §56's answer to a
-  depth nobody could see. `Light` passes behind `Place`, `Names` behind `People`, `Detail` behind
-  `Photographs` — in each case a word at the back crossing one at mid distance or the front, at somewhere
-  between a half and a third of its size. Occlusion is the strongest depth cue there is and the only one that
-  cannot be mistaken for a difference in type size; the browser sorts them for free, because they are real
-  siblings at real depths in one `preserve-3d` context.
+  The ladder still decides size, ink and where a line stands; it no longer decides when.
+*/
+.mword[data-w='1'] { --wo: var(--mw1, 0); }
+.mword[data-w='2'] { --wo: var(--mw2, 0); }
+.mword[data-w='3'] { --wo: var(--mw3, 0); }
+.mword[data-w='4'] { --wo: var(--mw4, 0); }
+.mword[data-w='5'] { --wo: var(--mw5, 0); }
+.mword[data-w='6'] { --wo: var(--mw6, 0); }
+.mword[data-w='7'] { --wo: var(--mw7, 0); }
 
-  The values below are **authored offsets, not drawn positions**: the projection pulls everything toward the
-  perspective origin in proportion to its distance, so a word at `--wd: 0.9` lands at about 69% of the `--wx`
-  written here. Each line records where it actually lands, at 1440 × 900, and what it measures against the
-  room.
+/*
+  ── The composition ───────────────────────────────────────────────────────────────────────────────
+
+  Seven lines, in the order they are heard, rising as the afternoon goes on. This table is the whole
+  layout of the field and it is meant to be tuned here, by eye, in one place.
+
+  **Re-authored around the main composition** — design owner, 19 September 2026. The field used to have
+  the whole frame, with the bottom-left corner kept empty for the studio's question; the question is not
+  there any more. `Your experience` and `What makes it yours?` are one editorial block on About's own
+  axis and About's own vertical (`.mmain`), which takes the upper left — so the field is composed
+  *around* it: the right two thirds down to mid-frame, then the width of the frame below it. The brief
+  is exactly that shape — *"as frases secundárias podem ocupar a sala à volta, mas deve existir
+  claramente uma composição principal que ancora toda a cena."*
+
+  **It is composed against the photograph, not against an empty rectangle.** The room behind it is the
+  studio plate's second moment, and the plate is a fixed frame: measured on the running page, the lamp
+  stands at x 0.13–0.24 of the frame and y 0.53–0.86 of the stage, the desk closes the bottom from 0.82,
+  the plant occupies x 0.56–0.80 for the whole height, and the rail takes everything left of 0.10. The
+  block holds the wall left of the lamp; the field takes the panel over the plant and the right quarter,
+  and comes back across the frame under the block as the lines get larger.
+
+  **The rhythm is the argument, and until 20 September 2026 the table did not keep it.** The paragraph
+  here claimed the five small lines fell "at uneven distances" and they did not: `--wy` ran 0.06, 0.17,
+  0.28, 0.39, 0.50 — four identical steps of 0.11, which is 87px apart at 1920 × 889, measured. `--wx`
+  alternated between two verticals, 0.66/0.82/0.60/0.80/0.58, so the field also stood in two columns.
+  A staircase and two columns is a table, and what is written on it is meant to be overheard.
+
+  **Re-authored so the eye cannot draw either.** The intervals are now 0.068, 0.084, 0.163, 0.093,
+  0.110, 0.142 — every one different, with one deliberate silence in the middle (the 0.163 between
+  `Wait — look at this.` and `Leave it like that.`, the longest gap in the field) and the two at the
+  head close enough to be one exchange. The horizontals are spread across five values rather than
+  alternating between two, and none of them repeats.
+
+  **The one alignment left is the anchor, and it is now exact.** Lines 6 and 7 — the two largest, the
+  two that come back left under the block — both stand at 0.30. They used to be 0.33 and 0.30, which is
+  near enough to read as a mis-alignment and not near enough to read as one. One shared vertical, of
+  two lines, at two very different sizes, is what stops the field reading as scatter; five lines on two
+  verticals was the opposite problem.
+
+  **Nothing moved right.** `--wx` 0.82 was tuned against a 701-wide frame, where 0.84 clipped
+  `.method-stage` by a pixel; every line that moved moved *inward*, so that measurement still holds
+  with room to spare.
+
+  Each line records where it lands at 1920 × 889 and how wide it sets at that size.
 */
 
-/* Time — 662,160 · 53.5px · 12.9:1 */
+/*
+  Is everyone here? — 1267,146 · 20.0px · sets 127.
+
+  **The only line in the field that did not move**, and the reason is the margin note. `.mnote[data-n=
+  '1']` is authored at `left: 66%` / `top: 2.2%` — its own fixed position, not this line's — and it
+  reads as this line's caption because the two share an axis and stand 11px apart. Move this line and
+  the caption is captioning nothing.
+*/
 .mword[data-w='1'] {
-  --wx: 0.435;
-  --wy: -0.191;
-  --wd: 0.14;
-  --wr: -5deg;
-  --wo: var(--mw1);
+  --wx: 0.66;
+  --wy: 0.06;
+  --wd: 1;
 }
 
-/* Place — 1037,240 · 36.5px · 9.3:1 */
+/*
+  Nobody planned that. — 1526,200 · 21.3px · sets 177, clear of the right edge by 217.
+
+  **Under 0.82, and the frame that decides that ceiling is 701 wide.** The ladder's top clamps at 24px
+  below about 960, so this line stops getting smaller while the frame goes on getting narrower:
+  measured in Chrome at 701 × 900 — one pixel above the breakpoint, where the wide composition has to
+  survive — 0.84 put its last letter 1px outside the stage, and `.method-stage` clips. 0.795 is inside
+  that by a further 0.025 of the frame, so the measurement holds untouched.
+
+  It stands 54px under the first line — the closest pair in the field, and the two are heard as one
+  exchange rather than as two entries in a list.
+*/
 .mword[data-w='2'] {
-  --wx: 0.812;
-  --wy: -0.097;
-  --wd: 0.48;
-  --wr: -7deg;
-  --wo: var(--mw2);
+  --wx: 0.795;
+  --wy: 0.128;
+  --wd: 0.952;
 }
 
-/* Light — 1100,262 · 20.5px · 5.8:1 · emerges from behind Place's last glyph */
+/* Wait — look at this. — 1104,266 · 22.7px · sets 170 · on the dark panel left of the plant */
 .mword[data-w='3'] {
-  --wx: 0.998;
-  --wy: -0.073;
-  --wd: 0.9;
-  --wr: -10deg;
-  --wo: var(--mw3);
+  --wx: 0.575;
+  --wy: 0.212;
+  --wd: 0.905;
 }
 
-/* People — 115,592 · 55.8px · 13.4:1 · the nearest word in the room */
+/*
+  Leave it like that. — 1450,394 · 24.0px · sets 155.
+
+  **The silence.** 128px under the line before it, the longest gap in the field and half again the next
+  longest. The room stops speaking for a moment here, and it is the one interval that is meant to be
+  felt rather than just not counted.
+*/
 .mword[data-w='4'] {
-  --wx: 0.031;
-  --wy: 0.376;
-  --wd: 0.1;
-  --wr: -4deg;
-  --wo: var(--mw4);
+  --wx: 0.755;
+  --wy: 0.375;
+  --wd: 0.857;
 }
 
-/* Names — 245,628 · 34.8px · 8.9:1 · its cap tucks under People's baseline */
+/* Did you see that? — 1200,468 · 28.0px · sets 180 */
 .mword[data-w='5'] {
-  --wx: 0.148;
-  --wy: 0.498;
-  --wd: 0.52;
-  --wr: -7deg;
-  --wo: var(--mw5);
+  --wx: 0.625;
+  --wy: 0.468;
+  --wd: 0.714;
 }
 
-/* Distance — 864,708 · 19.9px · 5.6:1 */
+/* That wasn’t meant to happen. — 576,555 · 34.7px · sets 389, clear of the plant's left edge */
 .mword[data-w='6'] {
-  --wx: 0.774;
-  --wy: 0.711;
-  --wd: 0.92;
-  --wr: -10deg;
-  --wo: var(--mw6);
+  --wx: 0.3;
+  --wy: 0.578;
+  --wd: 0.476;
 }
 
-/* Silence — 144,96 · 52.4px · 12.7:1 */
+/* It’s starting. — 576,667 · 48.0px · sets 214 · the largest, on the wall beside the lamp */
 .mword[data-w='7'] {
-  --wx: 0.054;
-  --wy: -0.278;
-  --wd: 0.16;
-  --wr: -5deg;
-  --wo: var(--mw7);
-}
-
-/* Pace — 605,60 · 37.4px · 9.5:1 */
-.mword[data-w='8'] {
-  --wx: 0.445;
-  --wy: -0.367;
-  --wd: 0.46;
-  --wr: -7deg;
-  --wo: var(--mw8);
-}
-
-/* Colour — 1296,368 · 19.2px · 5.5:1 · the farthest, and the floor the whole field is measured against */
-.mword[data-w='9'] {
-  --wx: 1.204;
-  --wy: 0.113;
-  --wd: 0.94;
-  --wr: -11deg;
-  --wo: var(--mw9);
+  --wx: 0.3;
+  --wy: 0.72;
+  --wd: 0;
 }
 
 /*
-  The last group is ordered against the pattern on purpose: `Detail` is the far one and `Memory` the near.
-  Not for the joke — because `Memory` is the last consideration to arrive before everything converges, and
-  the last word in the frame before the answer should not be the faintest thing in it.
+  ── The margin notes ──────────────────────────────────────────────────────────────────────────────
+
+  **Two, and they are notes rather than labels.** The micro-caps register the rail, About's three
+  refusals and every section label on this site are set in — same family, same size, same tracking — so
+  nothing new is introduced typographically and there is no chance of one reading as a control.
+
+  **They are found rather than arrived at.** Both come with the third set, so they resolve as the last
+  of the field does — the annotation completing with the page it is written on. They are the faintest type
+  in the frame at 0.44, which is 4.7:1 on this ground at this size — above the 4.5 the caption register
+  is held to everywhere else, and no more present than a note in a margin should be.
+
+  The first sits on the page's own axis level with the first line, so it reads as the field's caption.
+  The second sits under the last thing overheard, which is the line it is true of.
 */
-
-/* Detail — 1095,616 · 21.2px · 5.9:1 · its cap tucks under Photographs' descenders */
-.mword[data-w='10'] {
-  --wx: 0.987;
-  --wy: 0.542;
-  --wd: 0.88;
-  --wr: -10deg;
-  --wo: var(--mw10);
+.mnote {
+  --w-track: 0.24em;
+  margin: 0;
+  font-family: var(--v2-sans);
+  font-size: clamp(0.5625rem, calc(9.5 / 1440 * 100vw), 0.8125rem);
+  font-weight: 400;
+  line-height: 1.5;
+  text-transform: uppercase;
+  color: rgb(var(--m-room) / 0.62);
+  color: color-mix(
+    in oklab,
+    rgb(var(--m-lit) / 0.44) calc(var(--mroom) * 100%),
+    rgb(var(--m-room) / 0.62)
+  );
 }
-
-/* Photographs — 950,592 · 35.6px · 9.1:1 */
-.mword[data-w='11'] {
-  --wx: 0.745;
-  --wy: 0.44;
-  --wd: 0.5;
-  --wr: -7deg;
-  --wo: var(--mw11);
-}
-
-/* Memory — 677,448 · 54.7px · 13.2:1 · last in, nearest, and it lands beside the focus */
-.mword[data-w='12'] {
-  --wx: 0.442;
-  --wy: 0.19;
-  --wd: 0.12;
-  --wr: -4deg;
-  --wo: var(--mw12);
-}
-
-/* ---------- The resolution, twice ---------- */
 
 /*
-  Where the section arrives, and it stands exactly where the questions stood — the focus, on the axis. That
-  is the argument in one decision: the place the studio was asking from is the place the answer appears, and
-  everything in the frame has just travelled into it.
+  Kept exactly as it happened — 994,699 at 1920 x 889 · sets 276 · beside the last line it is true of.
 
-  `preserve-3d` for the reason `.mgroup` has it: the answer comes forward in z, so this layer must not
-  flatten. No opacity of its own, for the same reason.
+  **It is `data-n` 1 because it is the only one left.** `Overheard, not directed` was removed on
+  20 September 2026 and `method.annotations` is a one-entry list now, so the map in `publication.tsx`
+  numbers this note 1 and the driver writes its arrival to `--mnote1`. Its position is unchanged — the
+  selector moved, the note did not.
 */
-.mresolve {
+.mnote[data-n='1'] {
+  --wo: var(--mnote1, 0);
+  left: 52%;
+  top: 76%;
+}
+
+/*
+  ── The process, signed · REMOVED ─────────────────────────────────────────────────────────────────
+
+  `OBSERVE — UNDERSTAND — SHAPE — PRESERVE` stood at the foot of the frame, then briefly under the main
+  composition as its signature, and was removed entirely by the design owner on 20 September 2026 —
+  copy, markup, timing, track and rules. It is not replaced and the idea is not rebuilt in other words:
+  the scene and the overheard phrases are what say it. `content/site.ts` carries the decision.
+*/
+
+/*
+  ── The main composition ──────────────────────────────────────────────────────────────────────────
+
+  **Three pieces of one editorial composition** — *"As três peças devem parecer partes da mesma
+  composição editorial, não três textos independentes."* It was four: the studio's note — *Nobody is
+  asked to answer. The studio is listening.* — stood under these in micro-caps and is not drawn.
+
+  **It inherits About, which is the section immediately before it and the reference the brief gives.**
+  `We stay close / to every detail.` stands on the page's axis, 112/760 of the viewport down, at About's
+  headline scale, with its evidence in a smaller serif beneath. This is the same axis and the same
+  vertical — measured, `We stay close` and `Your experience` both land at 261 x 167 at 1920 x 889 — and
+  the same ladder, so the passage from one room to the other keeps the eye in one place. Nothing here is
+  a new position: `--v2-x` is the axis both sections already stood on, and `--m-main-y` is About's own
+  vertical in this frame's coordinates.
+
+  **They are read in the order they arrive in, and that is the composition's argument** — design owner,
+  20 September 2026. It was not always so: the question used to be written third and arrive *first*.
+  Now `Your experience` opens the section ahead of the field's own first phrase, the line develops it
+  between the second burst and the third, and the question comes in among the closing phrases. Reading
+  order and arrival order are the same thing, which is what lets the block be read as one statement
+  being made rather than as three texts appearing.
+
+  **Nothing is released around it.** The field stands (`--mlit` is the only exit in the section), so what
+  the visitor ends on is *pensamentos espalhados pela sala + uma composição principal que emerge entre
+  eles* rather than a title left alone in an emptied frame.
+
+  It carries no camera. `--mdrift` moves the field as one plane; the block that anchors the scene does
+  not move at all, which is what makes the field read as breathing against it.
+*/
+.mmain {
   position: absolute;
-  left: var(--m-focus-x);
-  top: var(--m-focus-y);
+  left: var(--v2-x);
+  top: var(--m-main-y);
   /*
-    Sized by its widest line rather than by a measure. A `ch` limit here is measured in the *wrapper's* font
-    size, not in the answer's, which is how the first version of this box came out 224px wide and broke both
-    the answer and the two authored lines into wraps — the exact failure `01-validation.md` names. The
-    fallback keeps it inside the page's own margins on the narrowest frame.
+    Sized by its widest line rather than by a measure. A `ch` limit here would be measured in *this*
+    element's font size and not in the answer's — the failure that broke the answer and the line into
+    wraps the first time this box was written. The fallback keeps it inside the page's own margins on
+    the narrowest frame.
   */
   width: max-content;
-  max-width: calc(100vw - var(--mark-x) * 2);
-  transform-style: preserve-3d;
+  max-width: calc(100% - var(--v2-x) * 2);
+}
+
+.mmain > * {
+  position: relative;
+  margin: 0;
 }
 
 /*
-  **The answer, and it happens twice.**
+  **The answer, and it is the largest type in the publication.** 78px at weight 300 — About's headline
+  exactly, which is the scale the brief asks it to inherit. It resolves out of the stillness, in the
+  room's own light, on the axis that has run through the whole passage since About's headline was
+  written on this wall.
 
-  First out of the point everything collapsed into: the same construction the questions use, at three times
-  the distance, so the twelve considerations converge into a point and the answer emerges from that point in
-  the same movement, on one range. Then it stands in the dark room long enough to be the only thing there
-  (`resolve.holds`), the frame clears, the paper comes back, and it is **printed** — the same words, the same
-  size, the same place on the axis, in the publication's own ink on the publication's own paper.
-
-  `max()` of the two states rather than a cross-fade, and that is the whole reason there are two: light type
-  becoming dark type while the ground behind it becomes light passes through a frame where both have the same
-  luminance and the line cannot be read at all — measured at about 1.1:1. `timeline.ts` asserts the two never
-  overlap, and `actStory.printing.clears` is the same decision made about Chapter III's own type for the same
-  reason. The colour follows `--mroom` and needs no beat of its own: by the time the ink has crossed, the
-  light copy has gone and the printed one has not arrived.
-
-  **78px, and it is the largest type in the publication.** §55's 50 left the resolution as a small line in a
-  large frame, which was the complaint the whole of §56 answers. It is still a fifth under the film's own 96,
-  it is set at weight 300, and by the time it is printed it is dark on light — the quietest of the four ways
-  this site has to be loud. `04-visual-language.md` §5.
+  It used to happen twice — lit in the room, then printed on paper that came back. There is no paper:
+  the room the answer is lit in is the room Questions is written in.
 */
 .mresolve-answer {
-  margin: 0;
+  --ma: var(--manswer, 0);
   /* One line, at every width. 15 characters needs 596px at 83.5px and 196 at the 27.5px a 320 frame gives. */
   white-space: nowrap;
-  font-size: clamp(2.5rem, 5.8vw, 5.5rem);
+  font-family: var(--v2-serif);
+  font-size: clamp(2.375rem, calc(78 / 1440 * 100vw), 6.25rem);
   font-weight: 300;
-  line-height: 1.06;
-  letter-spacing: -0.02em;
+  line-height: 1.02;
+  /*
+    **Fixed, and it was the one thing that made this phrase travel** — design owner, 20 September 2026:
+    *"NÃO quero uma animação da frase a viajar de baixo para cima… deve parecer que a frase está a ser
+    revelada no espaço, e não que está a ser deslocada para o espaço."*
+
+    It was `calc(-0.014em + var(--arr-track, 0.055) * 1em * (1 - var(--ma)))` — the publication's
+    arrival grammar, where a line is *found* by opening its tracking and closing it. That grammar is
+    right for a caption and wrong for the largest type on the site: measured during the play at
+    1920 × 889, the phrase set **679.8px wide and contracted to 600.3** as it arrived. Eighty pixels of
+    horizontal collapse toward a left anchor is a phrase being moved into place, whatever the opacity is
+    doing, and at 100px of serif it is the most visible thing in the frame.
+
+    **`.mresolve-lines` is the reference and it never had this**: it declares one fixed
+    `letter-spacing` and arrives on opacity alone, which is why the design owner reads that one as
+    correct. So this is now the same mechanism at a different scale — the rest value, stated once, and
+    the phrase is revealed at the width it will keep.
+
+    What survives is the 5px settle in `transform` below, because `.mresolve-lines` has that too and it
+    is the behaviour this was told to adopt.
+  */
+  letter-spacing: -0.014em;
   color: rgb(var(--m-room) / 0.9);
   color: color-mix(
     in oklab,
     rgb(var(--m-lit) / 0.95) calc(var(--mroom) * 100%),
     rgb(var(--m-room) / 0.9)
   );
-  opacity: max(calc(var(--manswer, 0) * var(--mlit, 0)), var(--mprint, 0));
-  transform: translateZ(calc(var(--m-ask-z) * 3 * (1 - var(--manswer, 0)) * var(--mlit, 0)));
+  opacity: calc(var(--ma) * var(--mlit, 0));
+  transform: translateY(calc(var(--m-rise, 5px) * (1 - var(--ma))));
+  will-change: opacity, transform;
 }
 
 /*
-  And the two authored lines under it — **on paper only**. They do not exist in the room.
+  **The second piece, at About's own principle register.** 30px against the answer's 78 — the exact
+  relationship About has between `We stay close / to every detail.` and `Built exclusively / for you.`,
+  which is the continuity the brief asks for by name. It was 17px, a caption under a headline; at 30 it
+  is the second voice of a composition.
 
-  In §55 they arrived in the dark under the answer and then the section ended, which made the last frame of
-  the piece the same frame as the one before it with a caption added. Putting them after the printing means
-  the composition the visitor leaves on is fuller than any frame in the room was, and the last thing that
-  happens in the method is the thought being finished rather than the light going out.
-
-  Opacity only: the movement is over, the ground has stopped changing, and this is the sentence that explains
-  what just happened rather than part of it happening.
+  **It has a beat of its own now.** It used to be the statement's arrival trailed by `--m-lag`, which is
+  fine for a line that belongs to the one above it and impossible for a line that has to arrive *after*
+  something else has happened in the room — the brief of 19 September 2026 reads the three pieces as a
+  progression, so each is its own window (`TIMING.method.composed`). This one lands between the second
+  burst of the field and the third: the idea developing while the room goes on speaking.
 */
 .mresolve-lines {
-  margin: clamp(0.9rem, 2.2vh, 1.6rem) 0 0;
-  font-size: clamp(1.3125rem, 2.05vw, 1.875rem);
+  margin-top: clamp(0.7rem, 1.9vh, 1.2rem);
+  font-family: var(--v2-serif);
+  font-size: clamp(1.375rem, calc(30 / 1440 * 100vw), 2.375rem);
   font-weight: 300;
-  line-height: 1.32;
+  line-height: 1.16;
   letter-spacing: -0.008em;
-  color: var(--ink-quiet);
-  opacity: var(--mlines, 0);
+  /* The room's light, a step under the answer's. It never reaches paper. */
+  color: rgb(var(--m-room) / 0.72);
+  color: color-mix(
+    in oklab,
+    rgb(var(--m-lit) / 0.74) calc(var(--mroom) * 100%),
+    rgb(var(--m-room) / 0.72)
+  );
+  opacity: calc(var(--mline-in, 0) * var(--mlit, 0));
+  transform: translateY(calc(var(--m-rise, 5px) * (1 - var(--mline-in, 0))));
+  will-change: opacity, transform;
 }
 
 .mresolve-lines span {
@@ -4617,224 +5097,287 @@ html[data-opening='running'] .ways a {
 }
 
 /*
-  ---------- The method, recomposed ----------
+  **The third piece, and the last thing to arrive.** 19px against the line's 30 and the answer's 78,
+  which is About's own ladder held one step closer than it was. It was 17, and About's reading column
+  is 16 — *"menor ainda / mais delicado"* — but at 17 it was the weakest thing in the frame: measured at
+  1920 × 889 it set 21px under a 38px line and read as a footnote to the block rather than its
+  conclusion. **Raised on the design owner's direction, 20 September 2026**, to 25px at that frame,
+  inside the 24–26 they asked for.
+
+  **This is close to a value that was rejected, and the note is here so it is not re-derived.** At 20px
+  against the line's 30 the two read as one size in two lengths and the third step was gone. 19 is one
+  pixel under that on the 1440 frame the table is authored on — it survives because the step is carried
+  by ink and voice as well as size, and because the frame the owner judged it on is wider, where 25
+  stands against 38. **If it ever reads as one size in two lengths again, this is the number that did
+  it.**
+
+  Delicate here is ink as much as size — 0.62 against the line's 0.74 and the answer's 0.95 — and a
+  breath above it a little wider than the line's own, because the line finishes the answer's sentence
+  and this is the studio speaking.
+
+  **It closes the composition rather than opening it** — design owner, 19 September 2026. It used to be
+  the first thing in the section, arriving before the frame locked; the three pieces are read as a
+  progression now, and this is the conclusion: it arrives out of the stillness, after the field is
+  complete and the statement and its line are standing. `timeline.ts` derives its beat from that
+  stillness rather than authoring one, which is why it is the only arrival in the section with no window
+  of its own.
+
+  §3's *survive* still reads with the answer two lines above rather than one: the question's last word
+  is the answer's first, `yours` → `Your`, and both are on the same axis in the same block.
+*/
+.mask {
+  --wo: var(--mask-in, 0);
+  --w-track: 0.006em;
+  /*
+    A breath above it, and it is no longer a wide one — design owner, 20 September 2026. Measured at
+    1920 × 889 the old `3.8vh` set 34px against the 17px that binds the headline to the line, so the
+    question hung under the block as an annotation instead of closing it. `2.3vh` is 20px there: still
+    more than the line's own 17, because this is a different voice, and no longer twice it.
+  */
+  margin-top: clamp(1rem, 2.3vh, 1.6rem);
+  max-width: 26ch;
+  font-family: var(--v2-serif);
+  font-size: clamp(1rem, calc(19 / 1440 * 100vw), 1.625rem);
+  font-weight: 300;
+  line-height: 1.55;
+  color: rgb(var(--m-room) / 0.6);
+  color: color-mix(
+    in oklab,
+    rgb(var(--m-lit) / 0.62) calc(var(--mroom) * 100%),
+    rgb(var(--m-room) / 0.6)
+  );
+  opacity: calc(var(--wo) * var(--mlit, 0));
+  transform: translateY(calc(var(--m-rise, 5px) * (1 - var(--wo))));
+  will-change: opacity, letter-spacing, transform;
+}
+
+/*
+  **`.mquiet` is gone with the fourth piece.** *Nobody is asked to answer. The studio is listening.* stood
+  in micro-caps under the question and the design owner reduced the composition to three pieces on
+  19 September 2026. The copy is still in `site.ts`, recorded as not drawn; nothing else in this file
+  refers to the class.
+*/
+
+/*
+  ---------- The method, recomposed for a narrow frame ----------
 
   **At 700 rather than at 900, which is where the rest of the publication turns.** That is not an
-  inconsistency, it is the difference between what the two compositions need: a rail needs a *measure* beside
-  it and gives up when the second column falls under 50 characters, and a field needs *width* and gives up
-  when there is no width left to place anything in. Measured at 768 — a tablet held upright — the wide field
-  still reads as a space; the column reaches 300 and leaves the right half of the frame empty. So the tablet
-  keeps the space and the phone gets the column.
+  inconsistency, it is the difference between what the two compositions need: a rail needs a *measure*
+  beside it and gives up when the second column falls under 50 characters, and a field needs *width* and
+  gives up when there is no width left to place anything in. Measured at 768 — a tablet held upright —
+  the wide field still reads as a composition; the column reaches 300 and leaves the right half of the
+  frame empty. So the tablet keeps the field and the phone gets a column.
 
-  **Not the wide composition scaled down, and under §56 not even the same shape.** A frame this narrow cannot
-  hold a word 120% of the width to the right of the axis, and the type that reads as *distance* at 1440 reads
-  as *small* at 390 — so the space is rebuilt: shallower, tighter, and taller than it is wide.
+  **Not the wide composition scaled down, and not the same shape.** A frame 390 wide cannot hold a line
+  set at 36px *and* place it, and the seven lines are between 14 and 28 characters — at 390 the longest
+  of them sets 320px at 24px, which is the whole frame less its margins. So the field becomes a column:
+  every line starts on one of two verticals, the ladder is kept but compressed, and the rhythm that was
+  horizontal on a wide frame becomes vertical here.
 
-  Five decisions, and each answers something the wide version could take for granted.
+  Three decisions, and each answers something the wide version could take for granted.
 
-  The **depth is shortened** (`--m-far`) and the perspective with it, because a phone's frame is a third of
-  the width and the same z would put the farthest word at 11px.
+  The **ladder is kept as high as the frame allows** — 24px at the newest line and 12.5 at the oldest,
+  which is 1.9:1 against the wide frame's 2.4. The ratio is what makes the field chronological, so it
+  gives way last and never entirely. At 12.5px on this ground the faintest line still measures 5.5:1,
+  which is the same floor the wide field holds.
 
-  The **scale range is kept as high as the frame allows**: 38.7px at the front and 16.7 at the back, which is
-  2.3:1 against the wide frame's 2.9. That is the number §56 exists to protect — everything else here gives
-  way before it does. On this ground 16.7px still measures 5.5:1, which is the same floor the wide field
-  holds and better than the 15px §55 ended up at on paper.
+  The **main composition stands at the head of the frame**, where the wide one does and where About's
+  own claim does: the answer, the question, the line and the note, on the page's axis. It is the one
+  thing about this frame that did not have to be re-solved — a block at the top of a column is what a
+  column is for — and it is why the field moved down instead.
 
-  The **focus moves up** to 30%, because the composition now needs more room below the axis than above it:
-  the frame is tall, and a question of three lines needs the space under it.
+  The **field runs under it**, seven lines from a third of the way down to just above the signature, on
+  the same two verticals they always alternated between. They are 0.085 of the frame apart rather than
+  0.095: the block above them costs the column about a fifth of its height and the ladder gives up its
+  spacing before it gives up a line.
 
-  The **offsets are re-authored**, not scaled: a column with a gap in it — six considerations above the
-  question's own band, six below, and nothing at all inside it. Two of the three occlusions survive, between
-  different pairs, because the pairs that overlap on a wide frame are not the ones that end up adjacent here.
-
-  And the **camera is shortened with the frame**, because a drift authored as a fraction of a 691px frame
-  moves a word half as far as the same fraction of an 800px one and needs to be a larger fraction to read.
+  The **margin notes move to the two edges of the column**, which is what a margin is on a frame this
+  narrow: the first at the head of the field, the second below the last line it annotates.
 */
 @media (max-width: 700px) {
   :root {
-    --m-depth: 1000px;
-    --m-far: -420px;
-    --m-focus-y: 30%;
-    --m-ask-z: -260px;
-    /*
-      2.65rem set *Is everyone here?* — 17 characters at this file's measured 0.476em — to 343px, which
-      against a 390 frame leaves 11px between `--mark-x` and the edge for a word that also has to be
-      *placed*. Measured: it ran 11px past the right edge at every fit the spread could give it, because
-      the overflow was the set width and not the offset. 2.45rem brings it to 317 and gives the near words
-      36px of frame to be composed in. The fall is unchanged, so the depth ratio the section reads by is
-      exactly what it was.
-    */
-    --m-word: 2.45rem;
-    --m-word-fall: 1.275rem;
-    --m-ink-fall: 0.44;
-    --m-drift-x: 0.05;
-    --m-drift-y: -0.16;
+    /* 24px at the newest line, 13 at the oldest — the ladder, compressed but not flattened. */
+    --m-word: clamp(1.25rem, 6.2vw, 1.75rem);
+    --m-word-far: clamp(0.8125rem, 3.35vw, 1rem);
     /* Shorter with the frame: a 180px ramp is a quarter of a phone's viewport and reads as a long fade. */
     --room-edge: clamp(5rem, 15vh, 8rem);
+    /* A fraction of a 390px frame is a third of the distance it is of a 1440 one, so it is raised. */
+    --m-drift-x: 0.02;
+    --m-drift-y: -0.05;
   }
 
-  .mask {
-    font-size: clamp(1.625rem, 8.2vw, 2.25rem);
-    max-width: 13ch;
-  }
-
+  /*
+    **The block is sized against the width here, not against 1440.** Measured at 390 × 844: the answer
+    sets 15 characters, so anything over 30px wraps a line that must never wrap. 30 · 19 · 15 holds the
+    same three-step ladder the wide frame has, at a third of its size — and the steps stay visible,
+    which matters more here than the exact ratio, because 30 and 19 are only eleven pixels apart.
+  */
   .mresolve-answer {
-    font-size: clamp(1.875rem, 8.6vw, 2.75rem);
+    font-size: clamp(1.625rem, 7.7vw, 2.25rem);
   }
 
   .mresolve-lines {
-    font-size: clamp(1.0625rem, 4.6vw, 1.25rem);
+    font-size: clamp(1rem, 4.8vw, 1.25rem);
+    margin-top: clamp(0.7rem, 1.8vh, 1.1rem);
+  }
+
+  .mask {
+    font-size: clamp(0.8125rem, 3.8vw, 1rem);
+    margin-top: clamp(0.9rem, 2.2vh, 1.4rem);
+    max-width: 22ch;
   }
 
   /*
     ── The narrow composition ────────────────────────────────────────────────────────────────
-    Twelve words on a frame a third as wide and, once the head margin is taken, seven eighths as tall. Six
-    considerations stand above the question's band and six below it, and nothing is inside the band itself —
-    `--wy` between -0.25 and +0.20 above, +0.28 and +0.58 below, with the question occupying 0.30 to 0.50 of
-    the frame. The wide composition can leave that band clear by going wide; here there is no wide to go.
+    Two verticals — the page's own axis at `--v2-x`, and a second at 0.34 of the frame — and the seven
+    lines alternate between them as they rise. Recorded positions are at 390 × 844, where the frame is
+    380 × 649 and `--v2-x` resolves to 31px.
 
-    Recorded positions are at 390 × 780, where the frame is 390 × 691.
+    **The field starts at 0.42 of the frame**, because the main composition has the head of the column.
+    Measured in Chrome at 390 × 844, where the frame is 380 × 649: the block runs from y 252 to y 436 —
+    the answer on one line, the question on two, and the footnote wrapping to two more — so a field
+    beginning at 0.32 put `Is everyone here?` straight through that footnote. From 0.42 to 0.83, seven
+    lines 0.0717 apart, the column is full and the signature keeps its own band at the foot. The
+    horizontal relationships are untouched: every line stands on one of the same two verticals.
   */
 
-  /* Time — 156,38 · 37.3px */
+  /* Is everyone here? — 129,468 · 13.1px */
   .mword[data-w='1'] {
-    --wx: 0.347;
-    --wy: -0.259;
-    --wd: 0.14;
-    --wr: -3deg;
+    --wx: 0.34;
+    --wy: 0.42;
   }
 
-  /* Place — 39,93 · 26.6px */
+  /* Nobody planned that. — 31,514 · 13.6px */
   .mword[data-w='2'] {
-    --wx: 0.034;
-    --wy: -0.2;
-    --wd: 0.5;
-    --wr: -2deg;
+    --wx: 0.08;
+    --wy: 0.492;
   }
 
-  /* Light — 117,107 · 17.4px · crosses behind Place */
+  /* Wait — look at this. — 129,561 · 14.1px */
   .mword[data-w='3'] {
-    --wx: 0.314;
-    --wy: -0.2;
-    --wd: 0.9;
-    --wr: -5deg;
+    --wx: 0.34;
+    --wy: 0.563;
   }
 
-  /* People — 31,397 · 38.7px · the nearest word in the room */
+  /* Leave it like that. — 31,608 · 14.7px */
   .mword[data-w='4'] {
-    --wx: 0.008;
-    --wy: 0.287;
-    --wd: 0.1;
-    --wr: -2deg;
+    --wx: 0.08;
+    --wy: 0.635;
   }
 
-  /* Names — 172,425 · 26.1px */
+  /* Did you see that? — 129,654 · 16.2px */
   .mword[data-w='5'] {
-    --wx: 0.448;
-    --wy: 0.384;
-    --wd: 0.52;
-    --wr: -4deg;
+    --wx: 0.34;
+    --wy: 0.687;
   }
 
-  /* Distance — 86,460 · 17.0px */
+  /* That wasn’t meant to happen. — 31,701 · 18.9px · the one line that takes the full column */
   .mword[data-w='6'] {
-    --wx: 0.205;
-    --wy: 0.506;
-    --wd: 0.92;
-    --wr: -4deg;
+    --wx: 0.08;
+    --wy: 0.758;
   }
 
-  /* Silence — 55,155 · 36.7px */
+  /* It’s starting. — 31,734 · 24.2px */
   .mword[data-w='7'] {
-    --wx: 0.073;
-    --wy: -0.08;
-    --wd: 0.16;
-    --wr: -3deg;
+    --wx: 0.08;
+    --wy: 0.83;
   }
 
-  /* Pace — 242,131 · 27.7px */
-  .mword[data-w='8'] {
-    --wx: 0.654;
-    --wy: -0.131;
-    --wd: 0.46;
-    --wr: -5deg;
-  }
-
-  /* Colour — 234,183 · 16.7px · the farthest */
-  .mword[data-w='9'] {
-    --wx: 0.736;
-    --wy: -0.049;
-    --wd: 0.94;
-    --wr: -5deg;
-  }
-
-  /* Detail — 164,536 · 17.9px · crosses behind Photographs */
-  .mword[data-w='10'] {
-    --wx: 0.477;
-    --wy: 0.651;
-    --wd: 0.88;
-    --wr: -4deg;
-  }
-
-  /* Photographs — 39,522 · 26.6px */
-  .mword[data-w='11'] {
-    --wx: 0.034;
-    --wy: 0.551;
-    --wd: 0.5;
-    --wr: -2deg;
-  }
-
-  /* Memory — 101,605 · 38.0px · last in, nearest */
-  .mword[data-w='12'] {
-    --wx: 0.197;
-    --wy: 0.604;
-    --wd: 0.12;
-    --wr: -2deg;
+  /*
+    17px under the last line it annotates. This was `[data-n='2']`; the note above it — and the right
+    margin it was pushed into to clear `.method-label` — went on 20 September 2026 with the label and
+    the first annotation. Nothing here had to move: the survivor kept its own place and took the lower
+    number.
+  */
+  .mnote[data-n='1'] {
+    left: var(--v2-x);
+    right: auto;
+    top: 89%;
   }
 }
 
 /*
-  ---------- A frame too short to hold a space ----------
+  ---------- A frame too short to hold a composition ----------
 
-  A phone held sideways, or a window dragged short. The vertical is what is scarce, so the field is flattened
-  toward the axis rather than allowed to run off the top and bottom of the frame: every offset is already a
-  fraction of the frame, but at 291px of height a fraction of 0.6 is most of it, so the focus moves to the
-  middle and the type comes down with the frame. Sized against the height, because a `vw` scale answers the
-  wrong question here — the same correction the act's own type carries.
+  A phone held sideways, or a window dragged short. Measured at 844 × 390, the held frame is **834 × 218**
+  — a fifth of the height the composition is authored on, with all of the width. The wide field does not
+  survive being flattened into it: laid out at these proportions, `It's starting.` and `What makes it
+  yours?` landed on the same 27 pixels, the second margin note crossed the question's footnote, and the
+  section's own label was written over the first note.
+
+  So the frame is read the way its shape asks to be read — **two columns instead of one frame**. The
+  seven lines become a single left-hand column, stacked tight and in the same order at the same ladder;
+  the main composition — the answer, the question, the line and the note — takes the right-hand half,
+  which on a landscape phone is 400px of otherwise empty frame. The signature stays at the foot of the
+  left column, where a colophon belongs, and the first margin note moves to the head of the right one.
+
+  **This is the one frame where the block gives up About's axis**, and it gives it up last, in the order
+  `CLAUDE.md` sets: the block is still one composition with one hierarchy, which is what the brief is
+  about, and there is no version of a 218px frame that holds a field *and* a four-step block on the same
+  vertical. What it keeps is the thing that matters — the question is read as part of the answer's
+  composition and never as a stray line in another part of the room.
+
+  Nothing is dropped and nothing is re-worded. What changes is that the composition stops being a field
+  with space in it and becomes a page with two columns on it, because at 218px tall there is no space to
+  compose in. Sized against the height rather than the width, because a `vw` scale answers the wrong
+  question here — the same correction the act's own type carries.
 */
 @media (max-height: 560px) and (orientation: landscape) {
   :root {
-    --m-focus-y: 44%;
-    /*
-      The field is drawn nearer the axis rather than re-authored. At 844 × 390 the frame is 291 tall and the
-      focus sits 128 into it, so the narrow table's +0.60 would put the last word past the bottom edge —
-      clipped rather than composed. These bring the whole spread inside it and keep every relationship in it.
-    */
-    --m-xfit: 0.72;
-    --m-yfit: 0.55;
-
-    /*
-      And the space is made shallower with the type, for the reason it is on a phone held upright: the
-      projection and the type were both taking a share, and the farthest word came out below the floor this
-      file holds everywhere else.
-    */
-    --m-far: -300px;
-    --m-word: 2.125rem;
-    --m-word-fall: 0.9375rem;
-    --m-drift-y: -0.1;
+    --m-word: clamp(1.125rem, 6.4vh, 1.75rem);
+    --m-word-far: clamp(0.75rem, 3.4vh, 1rem);
     --room-edge: clamp(4rem, 18vh, 7rem);
   }
 
-  .mask {
-    font-size: clamp(1.375rem, 6.2vh, 2rem);
+  /* The right column, anchored from the top — there is no foot to spare on a 218px frame. */
+  .mmain {
+    left: 55%;
+    top: 8%;
+    width: calc(45% - var(--v2-x) * 0.5);
+    max-width: none;
   }
 
   .mresolve-answer {
-    font-size: clamp(1.625rem, 7.4vh, 2.25rem);
+    font-size: clamp(1.25rem, 6.6vh, 2rem);
   }
 
   .mresolve-lines {
-    font-size: clamp(0.9375rem, 3vh, 1.125rem);
+    font-size: clamp(0.875rem, 3.4vh, 1.125rem);
+    margin-top: clamp(0.35rem, 1.6vh, 0.7rem);
+  }
+
+  .mask {
+    font-size: clamp(0.75rem, 2.6vh, 0.9375rem);
+    margin-top: clamp(0.4rem, 1.8vh, 0.8rem);
+  }
+
+  /*
+    ── The left column ───────────────────────────────────────────────────────────────────────
+    One vertical at 0.145 of the frame, seven lines 0.105 apart, and the widest of them — `That wasn't
+    meant to happen.` at 19.4px — sets 218px against the 338 the column has before the right one starts.
+
+    **0.145 rather than 0.09, and the section's own label is why.** The column has to start below the
+    head margin or beside it, and there is no room below: at 0.09 the first line ran from x 75 and
+    `.method-label` occupies 42–102 on the same rows, so the two were written over each other (measured
+    at 844 × 390). Moving the column right of the label costs nothing — the left half has width to
+    spare and the vertical is what is scarce — where compressing the column downward would have pushed
+    the last line through the foot.
+
+    Recorded at 844 × 390, where the frame is 834 × 218.
+  */
+  .mword[data-w='1'] { --wx: 0.145; --wy: 0.005; }
+  .mword[data-w='2'] { --wx: 0.145; --wy: 0.105; }
+  .mword[data-w='3'] { --wx: 0.145; --wy: 0.21; }
+  .mword[data-w='4'] { --wx: 0.145; --wy: 0.315; }
+  .mword[data-w='5'] { --wx: 0.145; --wy: 0.42; }
+  .mword[data-w='6'] { --wx: 0.145; --wy: 0.525; }
+  .mword[data-w='7'] { --wx: 0.145; --wy: 0.655; }
+
+  /* The note moves to the right column, under the footnote. It was `[data-n='2']`; see the wide table. */
+  .mnote[data-n='1'] {
+    left: 55%;
+    right: auto;
+    top: 72%;
   }
 }
 
@@ -4845,12 +5388,136 @@ html[data-opening='running'] .ways a {
   flush to the axis, separated by the same hairline the sections are. Nothing here is composed to be looked
   at — it is a list somebody scans, and the design of it is that there is almost none.
 */
+/*
+  **The list stands in the frame while the reading zone is spent** — design owner, 20 September 2026:
+  *"a composição permanece completamente estável… o visitante pode ler as perguntas e interagir com
+  elas."*
+
+  Without this the hold was scroll space the composition scrolled *out of*: measured at 1920 × 889, at
+  700px into the zone the rows sat at viewport −509 to 215, so most of what the visitor was being given
+  time to read was already above the fold. Sticky at the head margin — the same offset `.method-stage`
+  uses — holds it exactly where it composed, for as long as the section's own foot lasts.
+
+  **The `max-height` is the safety valve and it is the reason this is safe to do.** Stuck at the top of
+  the frame, a block taller than the frame has a foot nothing can scroll to. Closed, the seven rows with
+  the anchor's answer open set 724px against the ~740 available, so nothing happens here in the shipping
+  case; open three or four more and the list scrolls inside itself rather than losing its foot. Reading
+  space that cannot show you what you opened is not reading space.
+*/
 .asked {
   display: grid;
+  position: sticky;
+  top: var(--masthead);
+  max-height: calc(100dvh - var(--masthead) - var(--band-tight));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  /*
+    **The valve has no chrome.** `overflow-y: auto` drew a classic Windows scrollbar down the middle of
+    the composition and took 15px of measure with it — measured, the list reported `scrollHeight` 606
+    against `clientHeight` 602, so four pixels of sub-pixel overflow were enough to put a bar through
+    the questions. Hidden, the overflow still scrolls by wheel, touch and keyboard in the only case it
+    exists for: a visitor who has opened more answers than the frame can hold.
+  */
+  scrollbar-width: none;
 }
 
+.asked::-webkit-scrollbar {
+  display: none;
+}
+
+/*
+  **Where the frame cannot hold the list, it does not try** — and these blocks are here, after the rules
+  they override, rather than in the narrow tables above: those sit earlier in the file than `.asked`, so
+  at equal specificity the base rule won and the override did nothing. Measured at 390 × 844 with the
+  media query written up there, `.asked` still computed `sticky` and the seventh row's `+` still failed
+  its hit test.
+
+  The seven rows with the anchor's answer open are taller than a phone's frame less its head margin, so
+  holding them against the top clips the foot — the last row fell outside the stuck box and stopped
+  answering at all. So the list is ordinary flow again and the reading zone is shorter with it: space to
+  read *through* rather than space to stand still in, which is what reading on a phone is anyway.
+
+  Nothing else changes. The three moments still fire on scroll, still play on their own clock, and the
+  release is still the junction's.
+*/
+@media (max-width: 700px) {
+  .asked {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .asked-hold::after {
+    height: 60vh;
+  }
+}
+
+/* A frame this short cannot hold the list at all, for the same reason. */
+@media (max-height: 560px) and (orientation: landscape) {
+  .asked {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .asked-hold::after {
+    height: 50vh;
+  }
+}
+
+/*
+  ── The hairline, and it is drawn rather than simply there ──────────────────────────────
+
+  **The row is ruled first and written second** — `TIMING.questions.faq.rule` argues the verb. The
+  line is what opens the space the question then resolves in, so it has to be able to arrive *before*
+  the ink, and a `border-top` on a box whose opacity carries the ink cannot.
+
+  **The border stays, at `transparent`, and the paint moves to a pseudo-element.** It is one pixel per
+  row and six rows, and the brief is *mantém as posições*: dropping the border to draw the line with an
+  absolutely positioned element instead would take six pixels out of the list's height and move every
+  row under the first one. The border holds the layout; `::before` does the drawing.
+
+  `scaleX` from the axis outward, and the ink with it, so the line resolves rather than wipes: at
+  half it is half as long and half as dark. Nothing about this is a movement — a rule *is* a length,
+  which is why the gesture is on the rule and not on the type. `TIMING.questions.faq.rule` records
+  the measurement that rules the alternative out.
+*/
 .ask {
-  border-top: 1px solid var(--rule);
+  position: relative;
+  border-top: 1px solid transparent;
+}
+
+.ask::before {
+  content: '';
+  position: absolute;
+  /* −1, because the border it stands in for is outside the padding box this is positioned against. */
+  inset: -1px 0 auto;
+  height: 1px;
+  background: var(--rule);
+  transform: scaleX(var(--qr, 0));
+  transform-origin: left center;
+  opacity: calc(var(--qr, 0) * var(--rel-rule, 1));
+  will-change: opacity, transform;
+}
+
+/*
+  **Nothing is drawn above the anchor**, which is the composition's own rule and not this mechanism's:
+  the section opens on it, so there is no line there to draw. `content: none` rather than a zero, so
+  the row has no pseudo-element to keep a style for at all.
+*/
+.ask:first-child::before {
+  content: none;
+}
+
+/*
+  **No line above the first question** — design owner, 20 September 2026: *"Quero que a primeira pergunta
+  seja a primeira âncora real da composição."* The section's `page-rule` went with it, so there is nothing
+  drawn above the anchor at all. The hairlines between the rows stay: those are the list's own structure
+  and the closing line is the persist rule, which belongs to junction 13 → 14 rather than to the list.
+*/
+.ask:first-child {
+  border-top: 0;
 }
 
 .ask:last-child {
@@ -4895,7 +5562,12 @@ html[data-opening='running'] .ways a {
 .ask-q::after {
   content: '+' / '';
   flex: none;
-  font-size: 1.0625rem;
+  /*
+    Small, and the same size on every row including the anchor: the mark is the control and the control
+    is not part of the hierarchy. *"'+' pequeno alinhado à direita"*, and nothing turns, bounces or
+    scales — the glyph is simply the other glyph.
+  */
+  font-size: 0.9375rem;
   line-height: 1;
   color: var(--ink-quiet);
   transition: color var(--fade-nav-hover) var(--curve);
@@ -4934,32 +5606,58 @@ html[data-opening='running'] .ways a {
   animation: answer var(--fade-answer) var(--curve) both;
 }
 
+/*
+  **And the row's own height, so a swap is not a jump.**
+
+  `name` makes this an exclusive accordion: opening one closes its sibling, and natively that close is
+  instant — the composition would snap by the height of the answer that just went. *"a anterior fecha
+  suavemente… sem salto brusco da composição."*
+
+  `::details-content` is what makes it animatable at all: it is the box the browser collapses, and with
+  `interpolate-size` its `auto` height can be interpolated. Both ends move — the one closing gives its
+  height back over the same duration the one opening takes it — so the rows between them travel once,
+  smoothly, instead of stepping.
+
+  It is scoped to `.asked` rather than set on `:root`, because `interpolate-size` changes what every
+  size transition in its subtree is allowed to do and nothing else on this page asked for that. Where
+  `::details-content` is not supported the row simply opens and closes instantly, which is exactly what
+  it did before.
+*/
+.asked {
+  interpolate-size: allow-keywords;
+}
+
+.ask::details-content {
+  block-size: 0;
+  overflow: hidden;
+  transition:
+    block-size var(--fade-answer) var(--curve),
+    content-visibility var(--fade-answer) allow-discrete;
+}
+
+.ask[open]::details-content {
+  block-size: auto;
+}
+
+/*
+  Opacity and five pixels — *"opacity + micro translate de 4–6px"*. The row's own height is the
+  browser's, instantly, so this is the ink arriving into space that is already there rather than a
+  height being animated.
+*/
 @keyframes answer {
   from {
     opacity: 0;
+    transform: translateY(5px);
   }
+  /*
+    `var(--q)` rather than `1`: the animation fills forwards, so a literal would pin the answer at
+    full ink and override the row's own arrival for the rest of the section's life. With the custom
+    property it lands on whatever the question is at, which is 1 whenever a press could have happened.
+  */
   to {
-    opacity: 1;
+    opacity: var(--q, 1);
+    transform: translateY(0);
   }
-}
-
-/* ---------- Contact ---------- */
-
-/*
-  The ask. The largest type in the publication, and still smaller than anything the film said.
-
-  A question rather than an instruction, so it is set as one thing with room around it and nothing under it
-  competing — `05-storyboard.md` §8 Beat 6, whose named failure mode is a headline and a button.
-*/
-.page-ask {
-  margin: 0;
-  max-width: 22ch;
-  font-size: clamp(1.75rem, 3.2vw, 3rem);
-  font-weight: 300;
-  line-height: 1.14;
-  letter-spacing: -0.014em;
-  color: var(--ink);
-  text-wrap: balance;
 }
 
 .write {
@@ -5082,10 +5780,12 @@ a.write-line:focus-visible {
     font-size: clamp(1.375rem, 6.4vw, 1.875rem);
   }
 
-  .page-ask {
-    font-size: clamp(1.5rem, 7.4vw, 2.25rem);
-  }
-
+  /*
+    Narrowed, the two authored lines become three and that is correct — `decisions.md` §54 measured
+    that a display line over 24 characters wraps on a 320 frame, and the second line is 33. The
+    authored break is the desktop composition; a phone is not that frame. What it keeps is the scale
+    relationship: one step up from the old 7.4vw, so the statement still opens the frame.
+  */
   .page-close {
     font-size: 1.0625rem;
   }
@@ -5099,12 +5799,41 @@ a.write-line:focus-visible {
   }
 }
 
+/*
+  ── The Method leaving, in layers · 26 September 2026 ──────────────────────────────────────────────
+
+  Each part carries its own `--mlit`: the section's (the room's arrival, less the scrubbed guarantee
+  `--mclear`) times what is left of its own leaving, `--mout-*`, which the driver plays on
+  `TIMING.method.leaves` — the main composition in read order, the thoughts each at its own moment, the
+  note last. So the frame empties as a thought ending rather than as one block, and the room stands
+  empty for a breath before Questions is written in it.
+*/
+.mresolve-answer { --mlit: calc(var(--menter, 0) * (1 - var(--mclear, 0)) * (1 - var(--mout-a, 0))); }
+.mresolve-lines { --mlit: calc(var(--menter, 0) * (1 - var(--mclear, 0)) * (1 - var(--mout-l, 0))); }
+.mask { --mlit: calc(var(--menter, 0) * (1 - var(--mclear, 0)) * (1 - var(--mout-q, 0))); }
+/* Each thought's sideways step as it leaves — `TIMING.method.leaves.thoughts.drift`, 4–7px. */
+.mword[data-w='1'] { translate: calc(var(--mdx1, 0px) * var(--mout-w1, 0)) 0; }
+.mword[data-w='2'] { translate: calc(var(--mdx2, 0px) * var(--mout-w2, 0)) 0; }
+.mword[data-w='3'] { translate: calc(var(--mdx3, 0px) * var(--mout-w3, 0)) 0; }
+.mword[data-w='4'] { translate: calc(var(--mdx4, 0px) * var(--mout-w4, 0)) 0; }
+.mword[data-w='5'] { translate: calc(var(--mdx5, 0px) * var(--mout-w5, 0)) 0; }
+.mword[data-w='6'] { translate: calc(var(--mdx6, 0px) * var(--mout-w6, 0)) 0; }
+.mword[data-w='7'] { translate: calc(var(--mdx7, 0px) * var(--mout-w7, 0)) 0; }
+.mword[data-w='1'] { --mlit: calc(var(--menter, 0) * (1 - var(--mclear, 0)) * (1 - var(--mout-w1, 0))); }
+.mword[data-w='2'] { --mlit: calc(var(--menter, 0) * (1 - var(--mclear, 0)) * (1 - var(--mout-w2, 0))); }
+.mword[data-w='3'] { --mlit: calc(var(--menter, 0) * (1 - var(--mclear, 0)) * (1 - var(--mout-w3, 0))); }
+.mword[data-w='4'] { --mlit: calc(var(--menter, 0) * (1 - var(--mclear, 0)) * (1 - var(--mout-w4, 0))); }
+.mword[data-w='5'] { --mlit: calc(var(--menter, 0) * (1 - var(--mclear, 0)) * (1 - var(--mout-w5, 0))); }
+.mword[data-w='6'] { --mlit: calc(var(--menter, 0) * (1 - var(--mclear, 0)) * (1 - var(--mout-w6, 0))); }
+.mword[data-w='7'] { --mlit: calc(var(--menter, 0) * (1 - var(--mclear, 0)) * (1 - var(--mout-w7, 0))); }
+.mnote[data-n='1'] { --mlit: calc(var(--menter, 0) * (1 - var(--mclear, 0)) * (1 - var(--mout-n1, 0))); }
+
 /* ══════════════ Junction 13 → 14 · persist · the rule does not move ══════════════ */
 
 /*
   C8's first junction, and the prototype the model is judged on. Everything here reads
-  `--jrel1…8`, `--jcross`, `--jhead`, `--jtell`, `--jsize` and `--jres1…5`, which the driver
-  writes on `.publication` from the junction's own `0 → 1`. Not one duration is declared in this
+  `--jrel1…8`, `--jcross` and `--jsize`, which the driver writes on `.publication` from the junction's
+  own `0 → 1`. Contact's own composition is not on this track any more — see the Contact block below. Not one duration is declared in this
   block, and not one delay: a stagger is *n* spans, never one span with offsets, because offsets
   replay on the way back up and spans simply run backwards.
 
@@ -5157,22 +5886,64 @@ a.write-line:focus-visible {
     unstuck. This is not a scroll destination — `#contact` still owns the anchor.
   */
   scroll-margin-top: var(--masthead);
-  --rule-y: calc(529 / 760 * 100vh);
-  --closing-pin: 72vh;
+  /*
+    **610 / 760, at every frame now** — 24 September 2026. §8's 529 put the question in the sky; the
+    found frame's dark ground begins at about the middle of the height, so the rule is lowered into it
+    and the question stands on the ground rather than against the light. It was already 610 on narrow
+    frames for the same reason. The same line on both sides of the junction, so nothing travels.
+  */
+  --rule-y: calc(610 / 760 * 100vh);
+  /* §8's table, hoisted from `.persist`: the wide measure is 1048 of `--page-w`, right edge only. */
+  --j-wide: 0.963;
+  /*
+    **The room left of the figure, and Contact is composed in it** — 24 September 2026. In the found
+    frame (`--env-frame-scale`, 1.3 from the left edge) the figure's calm stretch stands from about 64%
+    of the width — 63% on a 1.6 frame, where the footage is cropped at the sides — and the wind takes
+    her dress about four points further left. So the room ends at 57%, which clears the widest pose by
+    about 60px at 1440 × 900 and 100 at 1920 × 889, measured on the reframed footage. The size is that room over the second line's own measure: 12.3em of its size,
+    measured on the rendered line, at 0.92 of the first — 11.3 of the first line's. The question is sized to it and the rule
+    shortens to a fraction of it: §8's gesture is unchanged — once, right edge only — and what it
+    shortens *to* is the measure of the question it now carries, instead of 732 of a publication column
+    that no longer stands behind it.
+  */
+  /*
+    **52, where it was 57** — 26 September 2026. 57 cleared her in the calm stretch C22 held the footage
+    in; the footage runs at its own speed now, and at 1920 × 889 the wind takes the dress to 1078px, where
+    57 ended the question at 1098 — the question mark stood on the hem. 52 ends it about a hundred
+    pixels short of the widest flare seen.
+  */
+  --c-room: calc(52vw - var(--page-x));
+  --c-size: clamp(1.875rem, calc(var(--c-room) / 11.3), 5.25rem);
+  --c-rule: calc(var(--c-room) * 0.62);
+  /*
+    **How far above the frame's foot the composition stands** — 26 September 2026. The question and its
+    sentence are the lower left corner of the frame now, not a statement hung from a rule, so this is
+    the one number that places them: the line under the sentence sits this far off the bottom edge.
+  */
+  --c-foot: clamp(3.5rem, 13vh, 9rem);
+  /*
+    **`--closing-pin` is published rather than declared** — 22 September 2026. It was `72vh` here,
+    which is `persistSpans.length` written down a second time: `persisting.total × SECONDS_TO_VH`,
+    and the driver already divides by exactly that. The sheet was retimed and this literal would have
+    stayed at 72 while the junction ran 122, so the frame would have let go a third of the way
+    through it. `transitions.ts` publishes it, along with the settle below.
+  */
   /*
     **The settle, and it is what stops the ending being a wall.**
 
     The junction finishes with Contact composed and the rule on its writing line. Ending the document at
     that instant would mean the visitor reaches the composition and the page stops in the same frame —
-    the composition would be arrived at and over at once. So the frame stays stuck for a further 24vh
-    after the last thing resolves: about a third of the junction's own length, which is long enough to
-    read four lines and short enough that it never reads as empty scroll.
+    the composition would be arrived at and over at once. So the frame stays stuck after the last thing
+    resolves: long enough to read four lines, short enough that it never reads as empty scroll.
 
     It is deliberately *inside* the pin rather than after it. Scroll past the pin and the frame unsticks
-    and Contact travels away, which is a page ending; held, the last thing the site does is stand still
-    with the line it never removed. That is the threshold §8 asks for rather than a stop.
+    and Contact travels away, which is a page ending; held, the last thing the site does is stand
+    still with the line it never removed. That is the threshold §8 asks for rather than a stop.
+
+    `--closing-settle` is `TIMING.distance.closingSettle`, published by `transitions.ts`; it used to be
+    `24vh` here, which is a scroll distance in a stylesheet and the one thing
+    `docs/development/03-choreography.md` does not allow. The value is unchanged.
   */
-  --closing-settle: 24vh;
   /*
     **The container's height, derived rather than tuned.**
 
@@ -5186,6 +5957,29 @@ a.write-line:focus-visible {
     frame in place. With it, `max scroll − junction end` is exactly `--closing-settle` at every viewport.
   */
   height: calc(100vh + var(--closing-pin) - var(--rule-y) + var(--closing-settle));
+}
+
+/*
+  **Narrowed, the figure is in the middle of the frame, and the composition goes under her feet.**
+
+  A portrait frame crops the hero's 2:1 footage to its centre, so the figure stands across most of the
+  width — at 768 × 1024 she is two thirds of the frame's height, feet at about 0.72 of it, measured on
+  the reframed footage. There is no dark half beside her, so the composition goes into the grass under
+  her feet: the rule at 650 / 760, the question capped at 5.6vw so its two lines stand between her feet
+  and the rule, and the room the whole column.
+
+  C7's order: the meaning, the hierarchy and the mechanism are kept; the desktop coordinate is what
+  gives way.
+*/
+@media (max-width: 820px) {
+  .closing {
+    --rule-y: calc(650 / 760 * 100vh);
+    --c-room: calc(100vw - var(--page-x) - var(--mark-x));
+    --c-size: clamp(1.75rem, 5.6vw, 2.75rem);
+    --c-rule: calc(var(--c-room) * 0.6);
+    --c-foot: clamp(3rem, 10vh, 6rem);
+  }
+
 }
 
 /*
@@ -5210,8 +6004,12 @@ a.write-line:focus-visible {
     It had never been seen, because `--jsize` never left 0 before the frame was held. Re-derived against
     the measure the comment always claimed: 1048 / 1088 and 732 / 1088.
   */
-  --j-wide: 0.963;
-  --j-narrow: 0.673;
+  /*
+    **The two measures are declared on `.closing` now, not here.** Same numbers, same argument above;
+    they moved up one level because the chapter entry that stands on this line has to end exactly
+    where the line ends, and a sibling cannot read a custom property off this element. Nothing about
+    the survivor changed — it still reads them, from the cascade instead of from itself.
+  */
   /*
     The left origin, and it never moves — §8's table. `--mark-x` is the axis every other thing on this
     page stands on, so the rule begins where the type begins.
@@ -5224,14 +6022,20 @@ a.write-line:focus-visible {
     out 553px wide inside a 390 frame and the document scrolled sideways. The fraction is still V2's;
     what it is a fraction *of* is now the space that actually exists.
   */
-  width: min(
-    calc(100% - var(--page-x) - var(--mark-x)),
-    calc(
-      var(--page-w) * (var(--j-wide) + (var(--j-narrow) - var(--j-wide)) * var(--jsize, 0))
-    )
-  );
-  /* 2px → 1px, animated once, with the measure. §8's table. */
-  height: calc(2px - 1px * var(--jsize, 0));
+  width: min(calc(100% - var(--page-x) - var(--mark-x)), calc(var(--page-w) * var(--j-wide)));
+  height: 2px;
+  /*
+    **Questions' closing line, and it ends with Questions** — 26 September 2026: *"Atualmente existe uma
+    animação envolvendo a última linha no fundo de Questions. Essa animação já não faz sentido para o
+    novo conceito."* It no longer shortens into Contact's measure and crosses the passage. Contact draws
+    its own line, under its own sentence, and the list's structure is each row's own hairline, which
+    leaves after its words.
+
+    **So it is not drawn at all.** Seen in Chrome at 1920 × 889: pinned at `--rule-y`, where §8 put the
+    survivor, it stood ~200px under the last row — a line belonging to nothing, once there is no bridge
+    for it to be. The element stays, because the closing frame is held by it; only its ink is gone.
+  */
+  visibility: hidden;
   /*
     **The ink crosses with the ground, never on its own clock** — §8's table says so, and that is why
     one property drives both. V2's endpoints are rgba(23,22,19,.50) → rgba(247,239,226,.50); the
@@ -5239,7 +6043,26 @@ a.write-line:focus-visible {
     crossing runs between the two inks this page actually has, so the coupling is demonstrable now
     and the target values land with the environment.
   */
-  background: color-mix(in srgb, var(--ink-quiet) calc(var(--jcross, 0) * 100%), var(--rule));
+  /*
+    ── The same hairline as every other rule on the site ────────────────────────────────
+
+    **It was three times the ink of the hairlines it comes from** — design owner, 22 September 2026:
+    *"Quero que a linha que chega ao Contact tenha inicialmente ESSE MESMO REGISTO: mesma delicadeza,
+    mesma espessura, mesma qualidade de ink."*
+
+    `.ask::before`, the rule between two questions, is `1px` of `--rule` — `rgb(242 233 220 / 0.22)`
+    once `--page-ink` has crossed. This was `color-mix(--ink-quiet × --jcross, --rule)`, which lands on
+    `--ink-quiet` at Contact: **0.66 alpha**. Over the hero plate's dark foreground that is a rendered
+    value of about 160 against the hairlines' 67 — the same object, arriving three times heavier than
+    it left. That is the whole of why it read as furniture rather than as setting.
+
+    **And §8 is not lost by removing the mix, because `--rule` already crosses.** The token is itself
+    `color-mix(… var(--page-ink))`, and state 13 → 14's `--page-ink` is driven on `leaving.cross` —
+    `persisting.crosses`, the very window §8 gives to *the ink crossing with the ground*. The crossing
+    still happens, in the same frames, on the same number; what is gone is a second brightening on top
+    of it that no other rule on this site pays.
+  */
+  background: var(--rule);
 }
 
 /*
@@ -5253,113 +6076,559 @@ a.write-line:focus-visible {
 }
 
 /*
-  **Release in place** — §1's first law. The rows fall to zero *where they stand*: no reflow, no
-  collapse, no movement, so the list lets go rather than switching off. One property per row, 40ms
-  apart in V2's sheet, which is 0.0111 of the junction here.
-*/
-.ask:nth-child(1) { opacity: var(--jrel1, 1); }
-.ask:nth-child(2) { opacity: var(--jrel2, 1); }
-.ask:nth-child(3) { opacity: var(--jrel3, 1); }
-.ask:nth-child(4) { opacity: var(--jrel4, 1); }
-.ask:nth-child(5) { opacity: var(--jrel5, 1); }
-.ask:nth-child(6) { opacity: var(--jrel6, 1); }
-.ask:nth-child(7) { opacity: var(--jrel7, 1); }
-.ask:nth-child(8) { opacity: var(--jrel8, 1); }
+  **The row's own opacity is the release and nothing else now.** It used to be
+  `calc(var(--q) * var(--jrelN))`, the arrival and the release multiplied on one box — which was right
+  while the row had a single arrival. It has two: `--qr` draws the hairline and `--q` writes the
+  question `rule.leads` later, and a number on the box would gate the rule with the ink and make
+  *ruled first, written second* impossible to express.
 
-/*
-  Contact resolving, on the far side of the held-empty frame.
+  So the arrival moved down onto the parts (`.ask-q`, `.ask-a`, `.ask::before`) and what is left here
+  is §1's release in place, which is the one thing that is still true of the whole row: it falls to
+  zero *where it stands* — no reflow, no collapse, no movement — so the list lets go rather than
+  switching off. One property per row, 40ms apart in V2's sheet, which is 0.0111 of the junction here.
 
-  §8: the headline at 2.60s, *"Tell us about it."* at 2.80s **directly above the rule**, then the
-  label, the arrow and the three lines at 3.20s on a 120ms stagger. Contact's composition here is
-  the studio's own and is not being redesigned, so the five staggered spans are mapped onto the five
-  things it actually has, in document order.
-
-  `.page-last` no longer carries `data-reveal`: the junction resolves Contact now, and an observer
-  fading the same section in on its own clock would be a second opinion about when it arrives.
+  `--q` and `--qr` are set per row by `publication.tsx`, which point them at the channels of the
+  row's own place in the sequence — `--qi1` … `--qi6` for the ink and `--qr1` … `--qr6` for the
+  rules. The fallback of 0 on each is what makes the section start empty rather
+  than composed. **Those six count the questions, not the rows of this list** — the anchor is
+  the first child here and has no entry in that numbering at all, because its arrival is a separate
+  system (`.ask-anchor`, `--qa`). What it does share is this release: `--jrel1` is its, by position,
+  because §1's release in place is the junction's and belongs to the whole composition.
 */
 /*
-  **Contact composed around the pinned line, at §8's own offsets.**
+  **Second pass, 26 September 2026 — the words and the hairline leave separately.** The row no longer
+  carries one opacity: `--rel` is its words' release and `--rel-rule` its hairline's, a beat later
+  (`persisting.releases.ruleLags`), so the list thins in the order it was read — the anchor, then the
+  rows in pairs — and the structure is the last of it to go. Each part multiplies its own arrival by
+  its release, so arriving and leaving still cannot disagree. The release itself is a clock (the
+  driver's `--jgone*`), because spread over scroll it fitted in two wheel notches and read as a block.
+*/
+/* `--jgone*` is played by the driver (0 standing → 1 gone); `--jclear` is the scroll's guarantee. */
+.ask:nth-child(1) { --rel: calc((1 - var(--jgone1, 0)) * var(--jclear, 1)); }
+.ask:nth-child(2) { --rel: calc((1 - var(--jgone2, 0)) * var(--jclear, 1)); --rel-rule: calc((1 - var(--jgoner2, 0)) * var(--jclear, 1)); }
+.ask:nth-child(3) { --rel: calc((1 - var(--jgone3, 0)) * var(--jclear, 1)); --rel-rule: calc((1 - var(--jgoner3, 0)) * var(--jclear, 1)); }
+.ask:nth-child(4) { --rel: calc((1 - var(--jgone4, 0)) * var(--jclear, 1)); --rel-rule: calc((1 - var(--jgoner4, 0)) * var(--jclear, 1)); }
+.ask:nth-child(5) { --rel: calc((1 - var(--jgone5, 0)) * var(--jclear, 1)); --rel-rule: calc((1 - var(--jgoner5, 0)) * var(--jclear, 1)); }
+.ask:nth-child(6) { --rel: calc((1 - var(--jgone6, 0)) * var(--jclear, 1)); --rel-rule: calc((1 - var(--jgoner6, 0)) * var(--jclear, 1)); }
+.ask:nth-child(7) { --rel: calc((1 - var(--jgone7, 0)) * var(--jclear, 1)); --rel-rule: calc((1 - var(--jgoner7, 0)) * var(--jclear, 1)); }
 
-  Every `top` below is `(authored y − 529)` over the 760 frame §8 measures on, so each block states its
-  distance *from the survivor* rather than from the top of a page. That is what makes the coincidence
-  structural: move the frame, change the viewport, and the writing line is still the rule, because the
-  rule is the origin every one of these is measured from.
+/*
+  **The ink, and it is the question's rather than the row's.** `--q` is on `.ask-q` and not on `.ask`
+  because the row now holds two arrivals that must not be multiplied together: the rule has to be able
+  to draw while the question is still nothing, and anything that gates the whole box gates the rule
+  with it.
 
-    y152   the headline          −377   §2's *"92px serif y152"*
-    y468   the copy block        −61    §8's block top; +21px type +16px gap resolves onto y529
-    y529   THE RULE               0     the frame's own top edge
-    below  the three lines, the colophon — §8's *"settle last"*
+  The mark fades with the question and not separately — it is inside this box — which is correct: a
+  `+` standing over a line that has nothing written on it is a control offering to open an answer to a
+  question that has not been asked yet.
+*/
+.ask-q {
+  opacity: calc(var(--q, 0) * var(--rel, 1));
+  will-change: opacity;
+}
 
-  The section takes no flow height: the rule is alone in the frame's flow, which is what lets the frame's
-  top edge and the survivor be the same line. `--band` and the section's own padding go with it.
+/*
+  The answer follows the same number, for the one case that needs it: a row left open while the
+  visitor scrolls back above its trigger. Without this the question would fade out from under an
+  answer that stayed lit. When the row is opened normally `--q` is 1 and this is 1, so the press is
+  unaffected.
+*/
+.ask-a {
+  opacity: calc(var(--q, 0) * var(--rel, 1));
+}
+
+/*
+  **Nothing in this section travels, including the rows** — design owner, 21 September 2026: *"Nenhuma
+  pergunta deve entrar com translateY… A entrada deve ser uma revelação… O elemento já está na sua
+  posição final."*
+
+  It was fourteen pixels for every row but the anchor, and the fourteen were the argument: a row was
+  *moved* into place from under the line above. So the distance is gone rather than reduced, and what
+  is left is the one channel that was always doing the revealing — the ink. The row is composed where
+  it stands and only becomes visible there; there is no second property to keep in proportion, no
+  `transform` to compose with the release at 13 → 14, and nothing for a hand to drag.
+
+  The anchor's own zero was a special case (`.ask:first-child { --q-rise: 0 }`) and it is gone with the
+  rule it was an exception to: there is no exception left, because there is no travel left.
+
+  A row that has not arrived is not pressable either. Without this the section's whole hit area exists
+  before any of it is visible, and a visitor scrolling in would open a question they cannot see.
+*/
+.ask {
+  pointer-events: var(--q-hit, auto);
+}
+
+/*
+  `--q-hit` is set per row by `publication.tsx`, beside the two channels that arrive it. It was an
+  `nth-child` table here, which meant the driver's numbering and the list's DOM order had to agree in
+  two files; now the element that knows its own index states it once.
+
+  The anchor never had one and does not need one: there is nothing in it to press.
+*/
+
+/*
+  **The anchor** — *"a primeira pergunta pode ter mais presença/escala porque é a porta de entrada."*
+  One step of scale and nothing else: 24px against the other rows' 20 at 1920 × 889, which is the same
+  1.2 : 1 the publication's own ladder uses between a principle and its reading column. It is open from
+  the first frame (`publication.tsx` argues why), so the section answers something before it is touched.
+
+  Deliberately not a different weight, colour or family: the composition has to settle into something
+  even once all seven are standing, and a row that is *typographically* different never stops being the
+  exception.
+*/
+.ask:first-child .ask-q {
+  /*
+    **The register of a statement, not of a larger question** — design owner, 21 September 2026: *"deve
+    ter maior presenca que as FAQs — aproximadamente o registo de um statement editorial, nao o tamanho
+    de uma FAQ."*
+
+    It was `clamp(1.5rem, 2.1vw, 2rem)`: 32px against the rows' 20, a step of 1.6 : 1. That is a larger
+    question, which is exactly what the brief rules out — near enough to the list to be read as part of
+    it.
+
+    **This is `.page-lead`'s own rung**, declared identically rather than approximated, so the anchor
+    lands on a step of the publication's existing ladder instead of inventing one between two of them:
+    24 → 40px, which is **2 : 1** against the rows at 1920 × 889. Above it there is only `.page-ask` at
+    48, which the stylesheet calls the largest type in the publication and which belongs to Contact; and
+    the Method's statement is 100, so this is still unmistakably the publication speaking and still
+    plainly quieter than the film.
+
+    It is the only row with room above it as well: the section opens on it, so the line that would have
+    separated it from something is gone and the space is the composition's.
+  */
+  font-size: clamp(1.5rem, 2.6vw, 2.5rem);
+  line-height: 1.2;
+  padding-bottom: clamp(0.85rem, 1.9vh, 1.35rem);
+}
+
+/*
+  ── The anchor ─────────────────────────────────────────────────────────────
+
+  **It is type and not a control**, so the two things that say *control* are taken away and nothing
+  else is: the mark is not drawn and the cursor does not change. Everything above still applies to it
+  — the size step, the missing rule overhead, the arrival channel, the release — because it is still
+  `.ask:first-child`, which is what keeps it part of the same composition rather than a block sitting
+  on top of one.
+
+  `content` is `none` rather than an empty string: an empty `::after` is still a flex item and still
+  takes the `gap`, so the question would be set to a measure that stops short of the axis for a mark
+  that is not there.
+*/
+.ask-anchor .ask-q {
+  cursor: auto;
+  /*
+    **Its own channel.** `.ask-q` above resolves on `--q`, which is a row's ink; the anchor is not a
+    row and must not be able to be moved by anything the list is doing. `--qa` is the driver's, played
+    on `TIMING.questions.anchor.over` off the anchor's own trigger.
+  */
+  opacity: calc(var(--qa, 0) * var(--rel, 1));
+}
+
+.ask-anchor .ask-q::after {
+  content: none;
+}
+
+/*
+  The anchor's answer sits under it at the reading register, with air rather than a rule between them —
+  *"A resposta fica imediatamente abaixo, com escala menor e bastante espaço."* It is one editorial
+  block inside the room, which is the thing §4 asks this section not to look like a FAQ about.
+
+  **It is the same measure and the same foot it had as a disclosure's body**, restored unchanged when
+  the anchor stopped being one: what was removed was the press, never the paragraph. Nothing under it
+  moved, so the six questions stand where they stood.
+*/
+.ask-anchor .ask-a {
+  padding-bottom: clamp(2rem, 4.6vh, 3.25rem);
+}
+
+/*
+  **The answer takes the list's own container and not a measure of its own** — design owner,
+  21 September 2026: *"O bloco da resposta deve ter exactamente a mesma largura editorial/container
+  horizontal que a lista das 6 perguntas… A resposta nao deve parecer um bloco estreito
+  independente."*
+
+  Two limits were making it one, and both are removed here rather than in the rules they come from,
+  because both are correct everywhere else: `max-width: 46ch` was this block's own, from when it was a
+  disclosure's body; `.prose p` caps every paragraph in the publication at `--measure`, which is what
+  a reading column is for. Measured at 1920 x 889 the list runs 1,088px and the answer wrapped at
+  about 460 — a narrow block standing against full-width rules, which is exactly what was reported.
+
+  The text is untouched; only where it is allowed to break has changed.
+*/
+.ask-anchor .ask-a,
+.ask-anchor .ask-a p {
+  max-width: none;
+}
+
+/*
+  **Its own channel, because it is the second half of one moment.** `--qa-body` is played
+  `anchor.body.leads` behind the question and over its own duration, so the claim resolves and its
+  evidence follows it — About's own order, one section earlier. It is deliberately not the question's
+  own number: the two would then be one fade of a whole block, which is the thing this section is
+  being taken away from. And it is deliberately not `--q`, which belongs to the rows.
+*/
+.ask-anchor .ask-a {
+  /* The anchor's answer is detail and leaves early (`--jgoneb`); its question is the last to go. */
+  opacity: calc(var(--qa-body, 0) * (1 - var(--jgoneb, 0)) * var(--jclear, 1));
+}
+
+/*
+  ══════════════ Contact · state 14 · the hero's frame, returned ══════════════
+
+  **Direction B, *"Chapter One, outra vez"*** — design owner, 24 September 2026. The site opens on the
+  hillside with its name at the foot of the sky, a tagline under it and a folio in the far corner. It
+  closes on the same footage, on the same axis and in the same corner, and the words have changed hands:
+
+      state 01                         state 14
+      Chapter One                      Is there something / that deserves its own experience?
+      Where moments become digital.    hello@… · +351 … / WHATSAPP · TELEGRAM
+      I of III                         YOUR CHAPTER
+
+  **The rule is the origin.** `.page-last` hangs off the sticky frame whose top edge is Questions'
+  surviving rule, so `top: 0` here *is* the line: the question stands on it, the address is written
+  under it, and the folio is placed from the frame's own foot. Nothing is measured and nothing drifts.
+
+  **The figure is the constraint, and `--c-room` is it written down** (declared on `.closing`, because
+  the rule reads it too). At every desktop frame the hero's dress reaches about 47% of the width in the
+  wind — measured off the running footage — which is why *Chapter One* ends where it does. `--c-room`
+  is the dark ground between the axis and her; the question is sized to fill it and the rule is drawn to
+  a fraction of it, so the type never walks into her whatever the frame.
+
+  **Scroll does not write any of this** (`TIMING.contact.composes`). Every part reads a channel the
+  driver *plays* after the persist track asks — `--c-q1`, `--c-q2`, `--c-reach`, `--c-reaches`,
+  `--c-folio` — and the verb is one: the ink rises inside a tracking that closes, and each part settles
+  toward the rule. No duration lives here; the only clocked transition is the folio answering a hand,
+  on `--fade-chapter`.
 */
 .page-last {
+  /*
+    **The whole viewport, not the band under the rule** — 26 September 2026. The frame is still sticky
+    at `--rule-y` (that is how Questions' list is held and released), but Contact is no longer composed
+    on that line: it is two corners of the screen. So the section is hung one `--rule-y` above the
+    frame's top and is exactly the viewport, and the two corners are placed from its own edges.
+  */
   position: absolute;
   left: 0;
   right: 0;
-  top: 0;
+  top: calc(-1 * var(--rule-y));
+  height: 100vh;
   display: block;
-  padding: 0 var(--mark-x) 0 var(--page-x);
-  max-width: calc(var(--page-w) + var(--page-x) + var(--mark-x));
+  padding: 0;
+  max-width: none;
+  /* The box is the viewport; only what is written in it is pressable. */
+  pointer-events: none;
 }
 
-.page-last > * {
+/*
+  **The one verb.** `--c` is a part's own played channel, already eased by the driver. The ink finishes
+  in the first 70% of it and the settle takes the whole — so a line is *found*, as the publication's own
+  arrival grammar finds one, rather than switched on.
+*/
+.contact-line,
+.contact-note,
+.contact-begin {
+  --c-k: calc(1 - var(--c, 0));
+  opacity: clamp(0, calc(var(--c, 0) / 0.7), 1);
+  transform: translateY(calc(var(--c-settle, 8px) * var(--c-k)));
+  will-change: opacity, transform;
+}
+
+.contact-line {
+  letter-spacing: calc(-0.014em + 0.05em * var(--c-k));
+}
+
+/*
+  ── The question and its answer · lower left ──────────────────────────────────────────────────────
+
+  On the hero's axis (`--page-x`) and in the room left of the figure (`--c-room`, declared on
+  `.closing`). An inline block, so its width *is* the question's widest line — which is the measure the
+  line under the sentence grows to.
+*/
+.contact-compose {
   position: absolute;
   left: var(--page-x);
-  right: var(--mark-x);
+  bottom: var(--c-foot);
+  display: inline-block;
 }
 
-/* §2: 92px serif at y152. */
-.page-last > .page-part:nth-child(1) {
-  top: calc((152 - 529) / 760 * 100vh);
-  opacity: var(--jhead, 0);
+.contact-ask {
+  margin: 0;
+  font-family: var(--v2-serif);
+  font-weight: 300;
+  font-size: var(--c-size);
+  line-height: 1.04;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.contact-line {
+  display: block;
+}
+
+.contact-line + .contact-line {
+  font-size: 0.92em;
+  line-height: 1.12;
 }
 
 /*
-  §8: *"2.80s 'Tell us about it.' directly above the rule"*, block top y468. The 61px between this and
-  the survivor is the whole of §8's arithmetic — 21px of type and a 16px gap over a 21px rule row — so
-  this is the one offset that must not be rounded to taste.
+  ── Tell us where it begins. ──────────────────────────────────────────────────────────────────────
+
+  **The frame's only interaction, and nothing about it is a button** — no box, no fill, no arrow, no
+  underline of its own. What says *this answers* is that it breathes while everything else is still, and
+  that it stands on a line.
+
+  `--listen` (0 → 1) is written on the root by `contact-listen.tsx` on `TIMING.contact.listens`, already
+  eased. `--breath` (0 ↔ 1) is the rest cycle, `TIMING.contact.breathes`. The breath is carried into the
+  listening rather than stopped: every term that reads it is multiplied by `1 − --listen`, so as the hand
+  arrives the breath gives way continuously to the opening.
 */
-.page-last > .page-part:nth-child(2) {
-  top: calc((468 - 529) / 760 * 100vh);
-  opacity: var(--jtell, 0);
+@property --breath {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
 }
 
-/*
-  Below the line, settling last. §8 gives the three lines the 3.20s slot group on a 120ms stagger, so
-  each takes its own span rather than the block taking one — a stagger is *n* spans, never one with
-  offsets, or it replays instead of reversing.
-*/
-.page-last > .page-terms {
-  top: calc(40 / 760 * 100vh);
-
-  /*
-    **Three terms, three columns.** It inherits `.page-part`'s rail-and-column grid, which is built for a
-    label beside a measure — so three siblings fell into it as 310 / 478 / wrap, and the third sat under
-    the first with the second orphaned beside it. Measured at 1440. They are three equal statements and
-    they read across, not down; the stagger below already gives them their order in time.
-  */
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: clamp(1.5rem, 3vw, 2.75rem);
-  align-items: start;
-}
-
-/* Under 820 there is no measure for three columns; they stack and keep the same stagger. */
-@media (max-width: 820px) {
-  .page-last > .page-terms {
-    grid-template-columns: minmax(0, 1fr);
-    row-gap: 0.6rem;
+@keyframes contact-breath {
+  0%,
+  100% {
+    --breath: 0;
+  }
+  50% {
+    --breath: 1;
   }
 }
 
-.page-terms > .page-note:nth-child(1) { opacity: var(--jres1, 0); }
-.page-terms > .page-note:nth-child(2) { opacity: var(--jres2, 0); }
-.page-terms > .page-note:nth-child(3) { opacity: var(--jres3, 0); }
-
-.page-last > .colophon {
-  top: calc(168 / 760 * 100vh);
-  opacity: var(--jres4, 0);
+.contact-begin {
+  --c: var(--c-begin, 0);
+  --c-settle: 6px;
+  --l: var(--listen, 0);
+  --rest: calc(1 - var(--l));
+  position: relative;
+  margin-top: calc(var(--c-size) * 0.5);
+  font-family: var(--v2-serif);
+  font-weight: 400;
+  font-size: clamp(1.125rem, calc(var(--c-size) * 0.36), 1.75rem);
+  line-height: 1.2;
 }
+
+/* Only once the frame is composed and held, and never for somebody who asked for less motion. */
+.publication[data-contact='held'] .contact-begin {
+  animation: contact-breath var(--contact-breath, 5400ms) ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .publication[data-contact='held'] .contact-begin {
+    animation: none;
+  }
+}
+
+.contact-begin-press {
+  position: relative;
+  display: inline-block;
+  margin: 0;
+  padding: 0.35em 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+
+/*
+  **No box on focus.** Seen in Chrome: after a key had been pressed, a mouse press drew the outline as a
+  rectangle round the sentence — the button the direction rules out. Focus has its own indicator here,
+  and a stronger one: `contact-listen.tsx` treats keyboard focus as a hand, so the line grows to the
+  question's measure and the sentence becomes *We're listening.*
+*/
+.contact-begin-press:focus-visible {
+  outline: none;
+}
+
+/*
+  **The sentence recomposing itself, not two labels crossfading.** Both phrases stand on the same left
+  axis. The first opens — its tracking parts, first slowly — and only then thins; the second is found
+  inside that opening, wide, and closes to its own measure. They share the frame only while both are
+  faint and both are tracked apart, so what the eye reads is the line re-forming rather than one string
+  swapped for another.
+
+    --listen   0 ────── .30 ───── .50 ── .65 ────── .92 ── 1
+    rest       breath → opening ─────── thinning ─ gone
+    heard                        found wide ──────── closed
+
+  At rest the breath is tracking and a little ink only: tracking grows to the right and ink has no
+  direction, so the left edge — the axis everything here stands on — never moves.
+*/
+/*
+  **The two phrases never share a legible frame** — seen in Chrome, 26 September 2026: with the windows
+  overlapping, a hand leaving at the middle stopped on *We're listening* printed over *Tell us where it
+  begins*, which reads as a fault. So the first is gone by .55 and the second is not found before it,
+  and each loses a little focus at its faint end — the line goes soft, empties for a breath, and comes
+  back as the other sentence.
+*/
+.contact-begin-rest {
+  --out: clamp(0, calc((var(--l) - 0.25) / 0.3), 1);
+  display: inline-block;
+  letter-spacing: calc(0.012em + 0.022em * var(--breath) * var(--rest) + 0.17em * var(--l));
+  opacity: calc((0.8 + 0.2 * var(--breath) * var(--rest) + 0.2 * var(--l)) * (1 - var(--out)));
+  filter: blur(calc(1.6px * var(--out)));
+}
+
+.contact-begin-heard {
+  --in: clamp(0, calc((var(--l) - 0.55) / 0.37), 1);
+  position: absolute;
+  left: 0;
+  top: 0.35em;
+  letter-spacing: calc(0.02em + 0.22em * (1 - var(--in)));
+  opacity: var(--in);
+  filter: blur(calc(1.6px * (1 - var(--in))));
+}
+
+/*
+  **The line, and it does not breathe.** It reads `--listen` and nothing else: at rest it runs under the
+  sentence, and listening it grows from the axis to the question's own measure — slowly enough that the
+  growing is seen. Width rather than a scale, so the hairline stays one pixel at every length.
+
+  `--begin-w` is the sentence's width at rest in its own ems, measured in Chrome on the served face;
+  `100%` is the block, which is the question.
+*/
+.contact-begin-line {
+  --begin-w: 9.35em;
+  position: absolute;
+  left: 0;
+  top: calc(100% + 0.05em);
+  width: calc(var(--begin-w) + (100% - var(--begin-w)) * var(--l));
+  height: 1px;
+  background: color-mix(in srgb, var(--ink) calc(42% + 18% * var(--l)), transparent);
+}
+
+/*
+  ── The contacts · under the line ──────────────────────────────────────────────────────────────────
+
+  **Third in the hierarchy, on the same axis** — design owner, 26 September 2026, second review: the
+  question, then *Tell us where it begins.*, then these — smaller than they have ever been, no rule
+  between them and the line above, the right of the frame left to the footage.
+
+  **Only the type is protected.** They stand on moving footage with no scrim, so each glyph carries a
+  shadow of its own: black, wide, all but unoffset and faint — not an effect you can see, only the
+  reading staying steady over a bright frame. The tight second layer holds the hairlines of the serif.
+
+  While the hand is on the sentence they gain presence rather than moving: more ink and a growth of
+  13% from their own left edge.
+*/
+.contact-note {
+  --c-settle: 6px;
+  margin-top: calc(var(--c-size) * 0.62);
+  transform-origin: 0 0;
+  /*
+    1 → 1.13 across the gesture, from the note's own top-left corner — fourth review: *"agora que o tempo
+    parou, esta informação tornou-se mais presente."* It rides `--listen`, so it grows as slowly as the
+    world stops and never reads as a zoom; the axis it stands on does not move.
+  */
+  transform: translateY(calc(var(--c-settle) * var(--c-k))) scale(calc(1 + 0.13 * var(--listen, 0)));
+  pointer-events: auto;
+  text-shadow:
+    0 1px 14px rgb(0 0 0 / 0.42),
+    0 0 2px rgb(0 0 0 / 0.22);
+}
+
+.contact-note-lines {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  font-family: var(--v2-serif);
+  /*
+    500, not the question's 300: at 16px Cormorant's hairlines vanished on the landscape half of the
+    loop, where the note stands on the brightest cloud band. Seen in Chrome at 1920 × 889.
+  */
+  font-weight: 500;
+  /* 16px at 1920 — fourth review: *"claramente legíveis como informação real"* (~15–16). */
+  font-size: clamp(0.9375rem, 0.84vw, 1.0625rem);
+  line-height: 1.5;
+}
+
+.contact-note-reaches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  margin: 0.5rem 0 0;
+  font-family: var(--v2-sans);
+  /* 11.5px at 1920 (~11–12). */
+  font-size: clamp(0.6875rem, 0.6vw, 0.8125rem);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.contact-between {
+  margin: 0 0.8em;
+  opacity: 0.6;
+}
+
+.contact-link {
+  color: color-mix(in srgb, var(--ink) calc(80% + 20% * var(--listen, 0)), transparent);
+  text-decoration: none;
+  transition: color var(--fade-nav-hover) var(--curve);
+}
+
+.contact-note-reaches .contact-link {
+  color: color-mix(in srgb, var(--ink) calc(70% + 26% * var(--listen, 0)), transparent);
+}
+
+.contact-link:hover,
+.contact-link:focus-visible,
+.contact-note-reaches .contact-link:hover,
+.contact-note-reaches .contact-link:focus-visible {
+  color: var(--ink);
+}
+
+.contact-link:focus-visible {
+  outline: 1px solid color-mix(in srgb, var(--ink) 40%, transparent);
+  outline-offset: 0.3rem;
+}
+
+.contact-link[aria-disabled='true'],
+.contact-note-reaches .contact-link[aria-disabled='true'] {
+  cursor: default;
+}
+
+/* Nothing in the frame can be pressed before it has begun to be written. */
+.publication:not([data-contact='playing']):not([data-contact='held']) .page-last * {
+  pointer-events: none;
+}
+
+/*
+  **The scene drawing in, while time is stopping** — second review, 26 September 2026: *"o hover deve
+  fazer a cena recolher ligeiramente… o mundo exterior ficou mais silencioso."* On the footage itself:
+  17% less light, 13% more contrast and 6% more colour — deeper rather than greyer, so the warmth the
+  frame had at rest is kept as it darkens. 9 / 10 (the third pass) could not be seen; the fourth review
+  asked for it to be present. No overlay, no vignette: the picture itself is exposed down.
+  With no hand the attribute is absent and nothing is applied at all.
+*/
+/*
+  **The chosen frame arriving.** Absent at rest and everywhere but Contact's listening; it dissolves in
+  over the second half of the gesture — after the world has visibly begun to slow — and stands whole
+  when the gesture completes. `TIMING.contact.listens.holdAt` is the frame.
+*/
+.env-hero-still {
+  /*
+    0.55 → 0.9, not earlier: seen in Chrome, a wider window left two silhouettes of her side by side for
+    half a second whenever the live footage was in another pose. Late in the gesture the live footage is
+    nearly still and the scene has already drawn in, so the two meet briefly and quietly.
+  */
+  opacity: clamp(0, calc((var(--listen, 0) - 0.55) / 0.35), 1);
+  pointer-events: none;
+}
+
+:root[data-listen] .env-hero,
+:root[data-listen] .env-hero-still {
+  filter: brightness(calc(1 - 0.17 * var(--listen, 0))) contrast(calc(1 + 0.13 * var(--listen, 0)))
+    saturate(calc(1 + 0.06 * var(--listen, 0)));
+}
+
 
 /* ═════════════════════════════ V2 · the state layer, 01 → 05 ═════════════════════════════ */
 
@@ -6760,7 +8029,6 @@ a.write-line:focus-visible {
 .mresolve-answer,
 .mresolve-lines,
 .page-lead,
-.page-ask,
 .page-asked .page-label,
 .ask-q {
   font-family: var(--v2-serif);
@@ -6772,9 +8040,7 @@ a.write-line:focus-visible {
   serif statement and a micro-cap beside it, and they are the same class in two states.
 */
 .page-last .page-label,
-.page-note,
-.about-label,
-.method-label {
+.page-note {
   font-family: var(--v2-sans);
 }
 
@@ -6838,24 +8104,33 @@ a.write-line:focus-visible {
   --a-p: var(--jp10);
 }
 /*
-  **The resolve is not on the arrival grammar, and it must not be put back on it.**
+  **The main composition is not on the arrival grammar, and it must not be put back on it.**
 
-  `.mresolve-answer` carries its own authored gate — `max(--manswer × --mlit, --mprint)` — which is what
-  holds it out of the room until the twelve considerations have gathered and then prints it on paper.
-  Giving it `data-arrive` as well put `.publication [data-arrive]` (0,2,0) over `.mresolve-answer` (0,1,0)
-  and the answer was simply present from the first frame of the section: seen in Chrome at 40% of the
-  method's runway, *Your experience* standing in the middle of the field while the questions were still
-  surfacing around it. The rule stays for anything else inside the resolve that wants it; the answer and
-  the two lines are gated by the method's own story and by nothing else.
+  Every element of `.mmain` carries its own authored gate off the section's own beats — `--manswer` for
+  the answer and its line, `--mask-in` for the question and its footnote — which is what holds each of
+  them out of the room until the composition is ready for it. Giving them `data-arrive` as well would put
+  `.publication [data-arrive]` (0,2,0) over `.mresolve-answer` (0,1,0), and the answer was then simply
+  present from the first frame of the section: seen in Chrome at 40% of the method's runway, *Your
+  experience* standing in the middle of the field while the lines were still arriving around it.
 */
-.mresolve [data-arrive] {
-  --a-p: var(--jp11);
-}
 .page-asked [data-arrive] {
   --a-p: var(--jp12);
 }
-.page-last [data-arrive] {
-  --a-p: var(--jp13);
+
+/*
+  **The closing frame is not hit-tested until its own junction begins.**
+
+  `.page-last` is absolutely positioned with no height of its own, so Contact's composition lays out
+  over Questions long before anything delivers it. Invisible at `opacity: 0` and still pressable:
+  measured at 1920 × 889, `.page-ask` — *Tell us about it.* — covered 633–1137 × 542–706 while the
+  questions were being read, and `elementFromPoint` returned it for rows 5 and 6. Those two `+` were
+  not broken; they were covered.
+
+  `data-closing` is the driver's, written from junction 13 → 14's own position. This is a hit-testing
+  gate and changes nothing about how Contact arrives or what it looks like while it does.
+*/
+.publication:not([data-closing='1']) .closing-frame {
+  pointer-events: none;
 }
 
 /*
@@ -7573,6 +8848,16 @@ a.v2-ident-open:focus-visible {
 }
 
 /*
+  The running chapter's line is where the visitor already is: it is not a door, so it does not answer
+  the pointer. Its ink stays the index's own, whatever the hand does.
+*/
+.ledger-word[aria-current],
+.ledger-word[aria-current]:hover {
+  color: color-mix(in srgb, var(--rail-ink) calc(var(--rail-ink-at, 0) * 100%), var(--rail-ink-quiet));
+  cursor: default;
+}
+
+/*
   **And once it is lying down it belongs at the head, not at §5's y236.**
 
   236/760 is where the rail *stands* — the coordinate the travelling word lands on, on a frame wide enough
@@ -7611,6 +8896,65 @@ a.v2-ident-open:focus-visible {
       transparent 100%
     );
     padding-bottom: clamp(1.75rem, 5vh, 2.5rem);
+  }
+}
+
+/*
+  ── The index on a phone: a table of contents, not a sentence that wraps ─────────────────────────
+
+  Mobile review, 28 September 2026. Lying down, the five chapters were a wrapping row of 9px tracked
+  capitals: at 390 they filled one line with uneven gaps and a word-wide hole after the running `NN ·`
+  (its held measure); at 320 CONTACT fell alone onto a second line. It read as an accident, not an index.
+
+  Below 768 the same five lines, in the same order, are set on **three columns and two rows** —
+
+      WORK        ABOUT       METHOD
+      QUESTIONS   CONTACT
+
+  — so every line has a fixed place whatever is running, and `NN ·` stands where its word would, at the
+  head of its column rather than beside a gap. Nothing is added and nothing removed: the folio, the mark,
+  the running header and every destination are the desktop's own.
+
+  **It fits the band already reserved.** `--masthead` has held two 44px index rows since the rail lay down
+  (see the `max-width: 900px` block), so each row is now a real 44px box — 88px in the 96 reserved — and
+  no section below the head moves. The press areas tile: 44px tall, and widened by half the column gap on
+  each side, so neighbours meet and never overlap.
+
+  The type is the index's own register, a little larger (10.5 → 12px against 9) and a little less
+  tracked (0.2em against 0.24) so the widest column, QUESTIONS, still leaves room for its gap at 320.
+
+  The band's ground holds its strength over both rows before it fades. The old gradient was spent by the
+  second row, so on a phone the page's type read through CONTACT. Same scrim, same `--jp9` gate.
+
+  768 and wider are untouched.
+*/
+@media (max-width: 767.98px) {
+  .ledger {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--page-scrim) calc(var(--jp9, 0) * 92%), transparent) 0%,
+      color-mix(in srgb, var(--page-scrim) calc(var(--jp9, 0) * 90%), transparent) 78%,
+      transparent 100%
+    );
+  }
+
+  .ledger-index ul {
+    --index-gap: clamp(1.5rem, 8vw, 2.5rem);
+    display: grid;
+    grid-template-columns: repeat(3, max-content);
+    column-gap: var(--index-gap);
+    row-gap: 0;
+  }
+
+  .ledger-word {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    margin: 0 calc(var(--index-gap) / -2);
+    padding: 0 calc(var(--index-gap) / 2);
+    font-size: clamp(0.65625rem, 2.9vw, 0.75rem);
+    letter-spacing: 0.2em;
+    line-height: 1.4;
   }
 }
 
@@ -8594,4 +9938,63 @@ a.v2-ident-open:focus-visible {
     is gone, and the occasions leave per-occasion on the approved windows.
   */
   opacity: clamp(0, calc((var(--jp4) - 0.7) / 0.3), 1);
+}
+
+/*
+  ── Where `#questions` lands ── past the list's lock (`.asked` is sticky at `--masthead`) by
+  `--asked-lands`, the point the FAQ sequence fires, and 2px more so `afterLock >= faq.afterLock` is
+  already true on arrival. Navigation QA, 27 September 2026: landing on the lock itself fired the anchor
+  alone, and the rail's *Questions* opened on a chapter with no questions in it until the hand scrolled
+  another third of a screen. The list stands still past the lock, so this moves where a press lands and
+  nothing else — the anchor and the rows still arrive on their own clocks.
+
+  **Never past the start of the passage 13 → 14.** Where the reading zone is short (≤ 700px the list is
+  not sticky and the zone is 60vh) the FAQ point lies beyond the passage's start, and landing there put
+  the passage at its end. `--asked-fits` is 0 there (`scroll-stage.tsx` measures it) and the press lands
+  on the lock. Wherever the zone is long enough it is 1 and nothing changes.
+*/
+.asked-hold {
+  scroll-margin-top: calc(var(--masthead) - 2px - var(--asked-lands, 0) * var(--asked-fits, 1) * 100vh);
+}
+
+/*
+  ── Where `#method` lands ──────────────────────────────────────────────────────────────────────
+
+  **On the composed frame, not on the empty room** — QA, 26 September 2026. The anchor was the section's
+  top, above the lock, where no beat has fired: a press on *Method* opened on the lamp and nothing else.
+  The frame locks one `--room-edge` below the top and then runs `--method-pin`; `--method-lands` is the
+  fraction of that runway where the whole composition has been triggered and the leaving has not begun.
+  `.method` carries no `data-state`, so this moves where a press lands and nothing else.
+*/
+.method {
+  scroll-margin-top: calc(-1 * (var(--room-edge) + var(--method-pin) * var(--method-lands, 0)));
+}
+
+/*
+  ── Where `#contact` lands ─────────────────────────────────────────────────────────────────────
+
+  **A destination is a place, and the place is the composed frame.**
+
+  `.page-last` is `position: absolute` at the top of the held frame, so its document position is
+  `persistTop + --rule-y` — a point **inside** junction 13 → 14 rather than at the end of it. With
+  §8's sheet at its old length that happened to be 0.81 of the junction, which is past the headline,
+  so the rail's *Contact* landed on a composition that was nearly finished and nobody noticed.
+
+  The passage made that an accident worth removing. The sheet is 122vh now and the same document
+  position is 0.48 of it — the bottom of the dip. Measured in Chrome at 1440 × 849: pressing
+  *Contact* in the rail scrolled to y 29222 and arrived in the dark, with `--state` still 13, no
+  headline, no rule ink and nothing written. The visitor had asked for a section and been given the
+  inside of a transition.
+
+  So the anchor is offset to the middle of the settle, which is the one stretch of this junction
+  where the composition is finished and nothing at all is changing. It is derived rather than
+  chosen — the element's own position less `--rule-y` is `persistTop`, and the rest is the runway
+  and half the pause after it, both of which `story.ts` already owns.
+
+  **It cannot disturb the state measurement.** `place()` reads `scroll-margin-top` off the elements
+  carrying `data-state`, and that is `.closing` — which keeps `var(--masthead)` and is untouched
+  here. This moves where a press lands and nothing else.
+*/
+.page-last {
+  scroll-margin-top: calc(var(--rule-y) - var(--closing-pin) - var(--closing-settle) / 2);
 }

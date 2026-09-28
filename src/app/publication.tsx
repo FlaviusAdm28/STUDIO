@@ -1,4 +1,5 @@
 import { site, where } from '@content'
+import ContactListen from './contact-listen'
 
 /**
  * **The studio's own pages, after the film.**
@@ -46,6 +47,14 @@ import { site, where } from '@content'
 export default function Publication() {
   const { about, method, questions, contact } = site.publication
 
+  /*
+    **The anchor is the first question and it is no longer one of the rows.** Destructured here rather
+    than indexed at the call site so the tuple stays the single source for *which* question opens the
+    section: reordering `site.ts` reorders this, and there is no `0` written anywhere to disagree with
+    it. `rows` is a readonly tuple of seven, so `anchor` is never `undefined`.
+  */
+  const [anchor, ...secondary] = questions.rows
+
   return (
     /* `data-junction-host` is where junction 13 -> 14 writes its properties; see `data-segment` in
        `page.tsx` for why the position model no longer reaches for a presentation class. */
@@ -70,7 +79,7 @@ export default function Publication() {
 
         No scrim. The plate is a dark room and the type is the film's light ink on it.
       */}
-      <section className="page about" id={where.about} data-state={10}>
+      <section className="page about" id={where.about} data-state={10} aria-label={about.label}>
         {/*
           `data-in` names the group an element belongs to — statement, support or detail — and `--i` its
           place in that group. The driver's `data-about` says which groups the hand has reached; each one
@@ -79,9 +88,13 @@ export default function Publication() {
         */}
         <div className="about-stage">
           <div className="about-claim">
-            <h2 className="about-label" data-in="statement" style={{ ["--i" as string]: 0 }}>
-              {about.label}
-            </h2>
+            {/*
+              **The eyebrow is gone** — design owner, 20 September 2026, and it is not replaced. `About`
+              stood here at `--i` 0, over the headline, and the rail already names the chapter three
+              pixels away. The headline keeps the `--i` values it was authored with — 1 and 2, not 0 and
+              1 — so removing the label above it does not quietly move About's arrival; the section's
+              name now reaches a screen reader through the landmark's `aria-label` instead.
+            */}
             <p className="about-headline">
               {about.headline.map((line, i) => (
                 <span key={line} data-in="statement" style={{ ["--i" as string]: i + 1 }}>
@@ -116,25 +129,40 @@ export default function Publication() {
 
       {/*
         ── The method ────────────────────────────────────────────────────────────────────────────────
-        **The studio's questions, and what it hears in the answers.** The one held frame outside the film,
-        and the only section of the publication driven by scroll position rather than by arriving.
+        **What is said in the room on the day, and the studio's one question after it.** The held frame
+        outside the film, and the only section of the publication driven by scroll position.
 
-        There is no prose here and no process. Four questions surface out of the space one at a time, each
-        brings three considerations with it, twelve accumulate at their own distances, and then every one of
-        them converges into the point the questions stood on — which is where the answer comes forward. The
-        visitor is taken through the method instead of being told about it. `decisions.md` §55.
+        **Recomposed 18 September 2026 on the design owner's brief**, and the brief is three things:
+        the section is an *editorial composition inside the empty room* rather than lines centred on a
+        background; a very few marginal annotations and a signed process belong in it; and the movement
+        comes down until the composition would hold almost still. `implementation-reconciliation.md`
+        C16 is the record.
 
-        **The DOM order is the reading order.** Every word is real text in the order the studio would say it
-        — question, then what it hears — so a screen reader gets the whole method as a sequence of questions
-        and answers, and the spatial composition is entirely the stylesheet's business. Nothing here is
+        What went with that brief is V1's spatial field: the `perspective` space, the twelve
+        considerations at twelve depths, the three occlusions, the rotations and the parallax camera.
+        §3 asks for depth *através de escala, posição e hierarquia tipográfica, NÃO através de
+        parallax*, which is also what §4 authors — seven lines rising 15 → 36px and nothing about a
+        third dimension. So the field is flat, the depth is typographic, and the only thing left moving
+        is the reveal itself.
+
+        **The DOM order is the reading order** — the room first, its margin notes, the process, then the
+        question and the answer — so a screen reader gets the section as prose in the order the studio
+        would say it, and the composition is entirely the stylesheet's business. Nothing here is
         interactive and nothing is a control.
+      */}
+      {/*
+        **No `data-ground`.** The room is `.env-room`, fixed in the Environment. This section's scrim was
+        drawn on its own 6,500px box, so it slid up the screen over a fixed photograph — and because
+        `--page-veil` crosses to 1.0 on junction 12 → 13 while the viewport is still inside this section,
+        it also turned the room into a full-strength wash and then into white paper before Questions had
+        arrived. That is the *"fundo branco"* the design owner ruled out on 18 September 2026. The ink
+        register is untouched; only the painting moved.
       */}
       <section
         className="method"
-        data-ground
         data-segment="method"
         id={where.method}
-        aria-labelledby="method-label"
+        aria-label={method.label}
       >
         {/*
           One viewport, held for `--method-pin` and no longer. Everything in it is absolutely positioned
@@ -146,25 +174,29 @@ export default function Publication() {
         */}
         <div className="method-stage" data-segment-frame>
           {/*
-            The section's name, and the one thing in the frame that never moves. It stands for the whole of
-            the section the way the mark stands in the head margin — a running label rather than a heading,
-            which is also why there is no rule above it: a hairline that never scrolls is chrome.
+            **The running label is gone** — design owner, 20 September 2026, and it is not replaced. It
+            stood at the head of the frame and said `Method` while the rail said `Method` on the same
+            screen, a few pixels to its left. The section's name reaches a screen reader through the
+            landmark's `aria-label` now, which is where a name belongs when nothing needs to be drawn.
           */}
-          <h2 className="page-label method-label" id="method-label">
-            {method.label}
-          </h2>
 
           {/*
-            **The seven overheard lines, and this is a holding render rather than the composition.**
+            ── The field · §4's seven overheard lines, composed ────────────────────────────────────
 
-            §4 sets them in sequence, rising 15 · 16 · 17 · 18 · 21 · 26 · 36px, at x196 with the question
-            at bottom 142 — a chronological field, and none of that exists yet. What they are placed in is
-            the field this section already had: seven of the twelve `.mword` slots, at coordinates and
-            opacities that were tuned for a different composition. It is legible and it is driven, and it
-            is not V2. The scale ladder and the placement are the composition phase's.
+            **This is the composition now, where it used to be a holding render.** §4 sets them *"in
+            sequence and rising in scale: 15 · 16 · 17 · 18 · 21 · 26 · 36px — so the field is
+            chronological as well as spatial"*, and that is what `globals.css` now places: seven lines
+            distributed across the frame, growing as the afternoon goes on, with the largest of them —
+            `It's starting.` — the last thing written in the room before the studio asks its question.
 
-            The four questions and their twelve considerations that stood here are gone with the copy —
-            `content/site.ts` records why.
+            **They arrive as one field** — design owner, 18 September 2026: *as sete frases devem surgir
+            como um campo/composição, não como sete entradas independentes*, and *o espaço já estava
+            assim; eu é que comecei a reparar nele*. There is no grouping attribute and no stagger;
+            `globals.css` gives all seven the same arrival, which is About's own junction rather than a
+            beat of this section, so what reveals them is the room's light.
+
+            The order of the array is the chronology and is therefore copy; the scale ladder, the
+            positions and the three groupings are composition and live in the stylesheet.
           */}
           <div className="mgroup">
             {method.overheard.map((line, i) => (
@@ -174,27 +206,55 @@ export default function Publication() {
             ))}
           </div>
 
-          {/* 62px at x196, bottom 142 in V2. Here it is the field's own question slot. */}
-          <p className="mask" data-ask="1">
-            {method.question}
-          </p>
-
-          {/* And the one line that says nothing is being asked of anybody. */}
-          <p className="mask" data-ask="2">
-            {method.note}
-          </p>
+          {/*
+            **One note in the margin of the field**, and it was two. Micro-caps, at the register About's
+            three refusals and the rail are set in, placed against the field rather than against the
+            page. It is an annotation and not a label: nothing here can be pressed and nothing is a
+            heading. `Overheard, not directed` was removed on 20 September 2026 and is not replaced —
+            `content/site.ts` argues why. The map is unchanged, so the survivor is `data-n` 1 now and
+            `globals.css` carries its position on that selector.
+          */}
+          {method.annotations.map((note, i) => (
+            <p className="mnote" data-n={i + 1} key={note}>
+              {note}
+            </p>
+          ))}
 
           {/*
-            The resolution, and it arrives **through** the convergence rather than after it: it comes forward
-            out of the same point the twelve words are collapsing into, while the last of them is still
-            arriving. Then the two lines, once it has landed.
+            **OBSERVE — UNDERSTAND — SHAPE — PRESERVE is gone** — design owner, 20 September 2026, and
+            it is not replaced and not rebuilt in other words: *"A ideia do 'método' já está a ser
+            comunicada pela própria cena e pelas frases ambientais."* The section's conclusion is the
+            composition itself, standing, and then the room clearing into Questions.
           */}
-          <div className="mresolve">
+
+          {/*
+            ── The main composition ───────────────────────────────────────
+
+            **Three pieces of one editorial composition** — design owner, 19 September 2026:
+            *"YOUR EXPERIENCE / Built around what makes yours unique. / What makes it yours?… As três
+            peças devem parecer partes da mesma composição editorial, não três textos independentes."*
+
+            They used to be four, and before that two ends of a room — §2 anchors the question at
+            *x196, bottom 142* and the answer at *x196, y262*. The studio's note that stood under them
+            (*Nobody is asked to answer…*) is not drawn any more; `content/site.ts` records the copy and
+            says so.
+
+            **The order they are read in is not the order they arrive in.** The question is written last
+            and arrives first — before the section's own top, while the room is still coming up to light
+            — so there is a new idea in About's own territory immediately, rather than after the field.
+            The answer and its line resolve above it out of the stillness, with the field standing.
+            One element, one arrival: the question is not duplicated anywhere.
+
+            The stack is About's, which is the reference the brief gives and the section immediately
+            before this one: statement, second voice, and a quieter line under both. `globals.css` owns
+            every size and the one axis they share.
+          */}
+          <div className="mmain">
             <p className="mresolve-answer">{method.answer}</p>
-            {/* One line now, where V1 authored two. §4 sets it as a single 17px line. */}
             <p className="mresolve-lines">
-              <span data-arrive="support">{method.line}</span>
+              <span>{method.line}</span>
             </p>
+            <p className="mask">{method.question}</p>
           </div>
         </div>
       </section>
@@ -210,22 +270,147 @@ export default function Publication() {
         it works before hydration, without JavaScript, and from the keyboard. The mark is a `+` that
         becomes a `−`, drawn in CSS, and the only thing that fades is the ink of the answer.
       */}
-      <section className="page page-asked" id={where.questions} data-state={13} data-reveal data-ground>
-        <hr className="page-rule" />
+      <section
+        className="page page-asked"
+        data-state={13}
+        data-reveal
+        data-ground
+        aria-label={questions.label}
+      >
+        {/*
+          **The label is gone** — design owner, 20 September 2026, and it is not replaced: *"O menu/rail
+          lateral já identifica o capítulo."* It was `questions.label` in the section's own head, which
+          said `QUESTIONS` while the rail said `QUESTIONS` on the same screen. The copy is still in
+          `site.ts` because the landmark's accessible name is made from it.
+        */}
+        {/*
+          **The section's rule is gone** — design owner, 20 September 2026, with the hairline that stood
+          above the first row. Nothing is drawn above the anchor now: *"Quero que a primeira pergunta
+          seja a primeira âncora real da composição."*
+        */}
 
-        <div className="page-part">
+        {/*
+          ── The rows, and each one is its own small revelation ────────────────────────
+
+          Three moments — the anchor, then two groups of three — fired at the distances
+          `TIMING.questions` authors **after the list's sticky lock**, which is the one place every
+          element in this section already stands at its final screen position. Two channels on each
+          row: `--g{n}r{i}` draws the hairline out from the axis and `--g{n}i{i}` brings the question's
+          ink up in the space it opened. Scroll only fires them; both then play on their own clocks and
+          hold, and the hand cannot scrub either one.
+
+          They used to stand at full ink from the frame the section scrolled into view, which is what
+          read as a page rather than as a composition.
+
+          **The first row is not a row at all.** *"'What do you actually create?' deixa de ser um
+          accordion. É uma âncora editorial. Sem +, sem -, sem resposta, sem `<details>`."* It is a block
+          of type standing at the head of the list — nothing to press, nothing to open, nothing to
+          close — so the section is *introduced* rather than answered before it is touched.
+
+          `content/site.ts` still carries its answer and is untouched: what was removed is the
+          disclosure, not the copy.
+        */}
+        {/*
+          **The reading zone is this box, and the list stands inside it.** The hold used to be padding on
+          the section, and that does not work: `.page-asked` is a grid and `.asked` is one of its items,
+          so the item's grid area is exactly its own content and a sticky child has no room to travel.
+          Measured — the composition scrolled straight out of the zone meant for reading it.
+
+          The box carries the distance as its own foot, so its height is the list plus the hold, and the
+          list can stand against the head margin for exactly that far. `globals.css` owns both.
+        */}
+        {/*
+          `data-asked-frame` is the box the list stands in and `data-asked-list` is the list itself.
+          The driver needs both to find the sticky lock: the frame's top is where the list would sit
+          in ordinary flow (the frame is never stuck, so its rect is honest), and the list's own
+          computed `top` is the head margin it stands under. Attributes rather than class selectors,
+          like every other thing this driver measures.
+        */}
+        {/*
+          **The rail's *Questions* lands here, on the list's lock** — QA, 26 September 2026. On the
+          section it landed ~700px above the lock, on the Method's empty room with the rail still on
+          METHOD, and nothing was written until the hand scrolled on. The section keeps `data-state`
+          and its own `scroll-margin-top`, so the state measurement is untouched — the `#contact`
+          arrangement exactly.
+        */}
+        <div className="asked-hold" data-asked-frame id={where.questions}>
+        <div className="asked" data-asked-list>
           {/*
-            The heading, and V2 gives it no words of its own: §2's anchor is a 64px heading at y86 and the
-            board says *seven rows, one heading*, but §4 authors no string for it. So the state's own name
-            stands there and the line that used to explain the section is gone with the eight rows it
-            described — `content/site.ts` records that this is flagged rather than invented.
-          */}
-          <h2 className="page-label" data-arrive>{questions.label}</h2>
-        </div>
+            **The anchor.** The same class the rows carry, so it keeps the list's own hairline logic,
+            its release at 13 → 14 — and `.ask-anchor` takes away the two things a disclosure has that
+            this does not: the mark and the cursor. It stays the first child of `.asked`, which is
+            what keeps the column, the axis and §1's release exactly as they were.
 
-        <div className="asked">
-          {questions.rows.map((row) => (
-            <details className="ask" key={row.q}>
+            **Its arrival is not the list's.** It is not `--q1`, it is not in `arrive.at`, and it is
+            not played by the loop below: `TIMING.questions.anchor` states it and the driver gives it
+            a pass of its own. It is revealed where it stands, nothing about it travels, and the six
+            below cannot begin until it has held.
+          */}
+          {/*
+            **Its own channels, and neither is a row's.** `--qa` resolves the question and `--qa-body`
+            brings its answer up behind it. Nothing here is indexed, nothing here is `--qN`, and there
+            is no rule channel because nothing is drawn above the first row.
+
+            **They are not restated on this element and must not be.** The rows re-point a generic
+            `--q` at their own `--qN`, because six rows share one stylesheet rule and each needs a
+            different number. There is one anchor, so `globals.css` reads the driver's names directly
+            and they inherit from `.publication`. Writing `--qa: var(--qa, 0)` here would be a
+            self-reference: the property is invalid at computed-value time, `var()` takes the
+            fallback, and the anchor renders at zero opacity for ever — which is exactly what it did.
+          */}
+          <div className="ask ask-anchor">
+            <p className="ask-q">{anchor.q}</p>
+            {/*
+              **The answer is back, and it is fixed editorial content** — design owner, 21 September
+              2026: *"A resposta/texto que já existe para essa pergunta deve voltar imediatamente
+              abaixo dela. É conteúdo editorial fixo, não accordion."* Same copy, same class, same
+              measure and same foot as when it was a disclosure's body; what it no longer is, is
+              something that can be opened or closed. `site.ts` was never touched.
+            */}
+            <div className="ask-a prose">
+              {anchor.a.map((line) => (
+                <p key={line}>{line}</p>
+              ))}
+            </div>
+          </div>
+
+          {secondary.map((row, i) => {
+            /*
+              The row's place in the sequence, and it is only its document order: there are no groups
+              to belong to any more. `TIMING.questions.faq` decides when each one opens, including the
+              breath that still makes the six read as three and three.
+            */
+            const n = i + 1
+            return (
+            <details
+              className="ask"
+              key={row.q}
+              /*
+                **One open at a time, and the browser does it.** `name` makes a native exclusive
+                accordion: opening one closes its sibling, pressing the open one closes it and leaves
+                none open, and every bit of that survives without scripting and without hydration —
+                which is the whole reason this section was built on `<details>` in the first place.
+
+                None of them is open to begin with, where the first row used to be: the anchor answers
+                nothing now, so an open row underneath it would be a second door.
+              */
+              name="asked"
+              /*
+                **The row points its three generic locals at its own channels.** `--qr` draws the
+                hairline, `--q` brings the question's ink up in the space it opened, and `--q-hit` is
+                what keeps a row that has not arrived from being pressable.
+
+                The index is the row's place in the sequence and nothing else — the anchor is not in
+                this numbering, and neither is any grouping. Set here rather than through an
+                `nth-child` table in the stylesheet, so document order is the only thing that has to
+                line up with the driver.
+              */
+              style={{
+                ["--q" as string]: `var(--qi${n}, 0)`,
+                ["--qr" as string]: `var(--qr${n}, 0)`,
+                ["--q-hit" as string]: `var(--qh${n}, auto)`,
+              }}
+            >
               <summary className="ask-q">{row.q}</summary>
               <div className="ask-a prose">
                 {row.a.map((line) => (
@@ -233,7 +418,9 @@ export default function Publication() {
                 ))}
               </div>
             </details>
-          ))}
+            )
+          })}
+        </div>
         </div>
       </section>
 
@@ -324,69 +511,128 @@ export default function Publication() {
         <div className="closing-frame" data-segment-frame>
           <hr className="persist" data-junction="13-14" />
 
+          {/*
+            ── Contact · the last frame of Chapter One ────────────────────────────────────────────
+
+            **26 September 2026.** The footage full-bleed and at its own speed, and two corners of one
+            axis: the contacts upper left as a small editorial note, and lower left the question and the
+            one sentence that answers it. `YOUR CHAPTER` is removed, and nothing stands in for it.
+
+                hello@chapterone.com                       ← a note, not a panel
+                +351 910 000 000
+                WhatsApp · Telegram · Instagram
+
+                Is there something
+                that deserves its own experience?
+                Tell us where it begins.                   ← the frame's only interaction
+                ──────────                                 ← its line, which does not breathe
+
+            **Scroll does not write any of this.** The persist track brings the frame to the hillside and
+            asks; the channels below are `play()`ed by the driver on `TIMING.contact.composes` and hold.
+            What happens under the hand is `contact-listen.tsx`, on a clock of its own.
+          */}
           <section className="page page-last" id={where.contact}>
-            <div className="page-part">
-              <h2 className="page-label" data-arrive="detail" style={{ ["--a-n" as string]: 0 }}>
-                {contact.label}
-              </h2>
-              <p className="page-ask" data-arrive>
-                {contact.ask}
+            {/*
+              The rail carries `Contact` lit for the whole state, so the label is written for the
+              landmark and drawn nowhere — `.a11y` is the project's one screen-reader-only pattern.
+            */}
+            <h2 className="page-label a11y">{contact.label}</h2>
+
+            {/*
+              **The question and its answer, lower left.** One block whose width is the question's own,
+              so the line under the sentence can grow to exactly that measure.
+            */}
+            <div className="contact-compose">
+              <p className="contact-ask">
+                {contact.ask.map((line, i) => (
+                  <span
+                    className="contact-line"
+                    key={line}
+                    style={{ ['--c' as string]: `var(--c-q${i + 1}, 0)` }}
+                  >
+                    {line}
+                  </span>
+                ))}
               </p>
-            </div>
-
-            {/*
-              **Second, not last — §8's order, and it is the reason the rule reads as a writing line.**
-              *"2.80s 'Tell us about it.' directly above the rule"*, and the geometry underneath it:
-              block top y468 + 21px type + 16px gap = **y529**, the rule. So this block sits immediately
-              above the survivor and nothing may come between them. It used to be third, below the three
-              conditions, which put two blocks between the sentence and the line it is written on.
-            */}
-            <div className="page-part">
-              <p className="write" data-arrive="support">
-            {/*
-              **The line carries a mark now, not a word.** V1 put *Write to us* here and made it the link;
-              §8 gives the row an arrow bottom-aligned above a 1px rule and no text at all. Still composed
-              and inert while `address` is null — the line stands and does not offer a press it cannot
-              honour.
-            */}
-            {contact.write.address === null ? (
-              <span className="write-line" aria-disabled="true">
-                {contact.write.mark}
-              </span>
-            ) : (
-              <a
-                className="write-line"
-                href={`mailto:${contact.write.address}`}
-                aria-label={contact.ask}
+              <ContactListen
+                begins={contact.begins}
+                listening={contact.listening}
+                href={
+                  contact.write.address === null
+                    ? null
+                    : `mailto:${contact.write.address}?subject=${encodeURIComponent(contact.subject)}`
+                }
+              />
+              {/*
+                **The contacts, under the line** — design owner, 26 September 2026, second review:
+                *"prefiro os contactos junto da composição principal, no canto inferior esquerdo"*. Third
+                in the hierarchy. Every one is its own way to write and every one reads `site.ts`, so the
+                printed line and its link can never point at two places. WhatsApp
+                and Telegram are composed from the one number the studio has given; Instagram has no
+                handle in the project, so it is written and inert until one is.
+              */}
+              <div
+                className="contact-note"
+                id="contact-note"
+                style={{ ['--c' as string]: 'var(--c-note, 0)' }}
               >
-                {contact.write.mark}
-              </a>
-            )}
-          </p>
-            </div>
-
-            {/*
-              **Three lines, and they settle last.** §4 sets them as micro-caps with no label and no
-              paragraph — each is the whole of its claim. §8 puts them below the rule, on the right
-              margin, arriving on the last of the staggered slots.
-            */}
-            <div className="page-part page-terms">
-              {contact.terms.map((term, i) => (
-                <p className="page-note" key={term} data-arrive="detail" style={{ ["--a-n" as string]: i + 1 }}>
-                  {term}
+                <p className="contact-note-lines">
+                  {contact.write.address === null ? (
+                    <span className="contact-link" aria-disabled="true">
+                      {contact.direct.email}
+                    </span>
+                  ) : (
+                    <a
+                      className="contact-link"
+                      href={`mailto:${contact.write.address}?subject=${encodeURIComponent(
+                        contact.subject,
+                      )}`}
+                    >
+                      {contact.direct.email}
+                    </a>
+                  )}
+                  <a className="contact-link" href={`tel:${contact.direct.phone.dials}`}>
+                    {contact.direct.phone.reads}
+                  </a>
                 </p>
-              ))}
+                <p className="contact-note-reaches">
+                  {contact.direct.reach.map((one, i) => {
+                    const href =
+                      one.via === 'whatsapp'
+                        ? `https://wa.me/${contact.direct.phone.dials.replace('+', '')}`
+                        : one.via === 'telegram'
+                          ? `https://t.me/${contact.direct.phone.dials}`
+                          : one.handle === null
+                            ? null
+                            : `https://instagram.com/${one.handle}`
+                    return (
+                      <span key={one.word}>
+                        {i > 0 && (
+                          <span className="contact-between" aria-hidden="true">
+                            {contact.direct.between}
+                          </span>
+                        )}
+                        {href === null ? (
+                          <span className="contact-link" aria-disabled="true">
+                            {one.word}
+                          </span>
+                        ) : (
+                          <a className="contact-link" href={href} target="_blank" rel="noreferrer">
+                            {one.word}
+                          </a>
+                        )}
+                      </span>
+                    )
+                  })}
+                </p>
+              </div>
             </div>
 
             {/*
-              **Nothing closes the page now.** V1 ended on `01-vision.md`’s pull-quote — *What happens
-              once deserves more than information.* — as the last thing on the site. §8 lists what
-              resolves in state 14 and a closing line is not among them: ground, Ledger, one rule, the
-              headline, *"Tell us about it."*, then the section label, the arrow and the three lines.
-              The rule is the ending, and the studio’s name under it is the colophon rather than a
-              sentence.
+              `contact.tell`, `contact.terms` and the colophon stay in `content/site.ts` and are not
+              drawn — design owner, 22 September 2026: after About, the Method and seven questions, three
+              more claims at the threshold is the studio arguing after the argument is finished.
             */}
-            <p className="colophon">{site.title}</p>
           </section>
         </div>
       </div>

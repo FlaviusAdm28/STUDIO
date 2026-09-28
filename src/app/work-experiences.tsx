@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { railFieldFor, railLiftFor, railLitFor } from '@/motion/environment'
+import { railFieldFor } from '@/motion/environment'
 import { site, projects } from '@content'
 import { TIMING, clamp01, smoothstep } from '@/motion'
 
@@ -329,22 +329,14 @@ export default function WorkExperiences() {
     root.style.setProperty('--exp-at', first ? '0' : '1')
     if (!first) root.style.setProperty('--exp-src', `url(${workOf(shown).plate})`)
     /*
-      **And what the rail needs over this plate.** Which ink to be printed in, how much dark wash, and
-      how much light lift — all three are functions of what is actually standing behind the Ledger, and
-      here that is whichever project the clock is showing. The Environment cannot know it: this is the
-      one ground on the site that changes on time rather than on scroll.
-
-      The project's three measurements are in `content/site.ts`; the curves are `motion/environment.ts`;
-      `globals.css` blends these with the Environment's own by `--exp-at`.
-
-      **The ink crosses inside the film's own dip.** `--work-swap` is 0 in the middle of the exchange —
-      it is what stops two categories being legible together — and this is written on the same beat, so
-      the rail changing register is never seen happening any more than the category is.
+      **And how much wash the rail needs over this plate — and nothing else about the rail.** This is
+      the one ground on the site that changes on time rather than on scroll, so the Environment cannot
+      measure it; the project's `lum` is in `content/site.ts` and the curve is `motion/environment.ts`.
+      The rail's *ink* is not the Work's to choose: the rail is the site's navigation and keeps one
+      register over every category (design owner, 26 September 2026). Written inside the film's own
+      dip, on the same beat as the category, so a change in the wash is never seen happening.
     */
-    const rail = workOf(shown).rail
-    root.style.setProperty('--exp-lit', String(railLitFor(rail.mid)))
-    root.style.setProperty('--exp-field', String(railFieldFor(rail.lum)))
-    root.style.setProperty('--exp-lift', String(railLiftFor(rail.floor)))
+    root.style.setProperty('--exp-field', String(railFieldFor(workOf(shown).rail.lum)))
   }, [shown])
 
   const hold = (held: boolean) => {

@@ -41,7 +41,7 @@ import { site } from '@content'
  * absent, the grounds beneath it still stand, and nothing is ever seen to be missing.
  */
 export default function Environment() {
-  const { hero, venice, studio } = site.environment
+  const { hero, venice, method, studio } = site.environment
 
   return (
     /*
@@ -68,6 +68,22 @@ export default function Environment() {
           src={hero.src}
           muted
           loop
+          playsInline
+          preload="auto"
+          aria-hidden="true"
+          tabIndex={-1}
+        />
+        {/*
+          **The frame Contact's listening comes to rest on** — design owner, 26 September 2026: *"a
+          pausa deve parecer uma escolha cinematográfica, não uma consequência técnica do cursor."* The
+          same file, never played: `contact-listen.tsx` parks it on `TIMING.contact.listens.holdAt`, and
+          the live footage dissolves into it as it slows — the loop's own grammar of one shot dissolving
+          into the next. Same plate, same framing, so the two are one picture when they meet.
+        */}
+        <video
+          className="env-hero-still"
+          src={hero.src}
+          muted
           playsInline
           preload="auto"
           aria-hidden="true"
@@ -101,6 +117,30 @@ export default function Environment() {
         the studio above, only venice could be dissolved, and any other experience had to be taken away
         first, which put venice back on screen for a moment whatever the visitor had been looking at.
       */}
+      {/*
+        **The same room, once the person has left.**
+
+        It is *beneath* the studio plate and that ordering is the whole mechanism: across 10 → 11 this
+        stands whole while the plate above it clears off it, so what dissolves is the one thing the two
+        frames do not share — the person at the desk. The lamp, the wall, the plant and the books are in
+        both, pixel for pixel, so nothing about them so much as flickers.
+
+        There is no animation here and none was added. `environment.ts` crosses the two on the dissolve
+        it already uses for 09 → 10, and §2's own exposure goes on falling underneath it, which is the
+        light in the room going down while the room empties.
+      */}
+      <div className="env-plate env-plate-method">
+        {/* eslint-disable-next-line @next/next/no-img-element -- §11.1: one source, never re-chosen. */}
+        <img
+          className="env-studio env-method"
+          src={method.src}
+          width={method.width}
+          height={method.height}
+          alt={method.alt}
+          decoding="async"
+        />
+      </div>
+
       <div className="env-plate env-plate-studio">
         {/* eslint-disable-next-line @next/next/no-img-element -- §11.1: one source, never re-chosen. */}
         <img
@@ -182,6 +222,19 @@ export default function Environment() {
         state 03 and paints pure black over the whole frame — so this is the contract being expressible
         rather than the contract being seen. That is C4's, at the junctions.
       */}
+      {/*
+        **The method's room.** The one ground on this site that used to be painted by its own section,
+        and therefore the one that used to travel: `.method` is a 6,500px box in ordinary flow, so the
+        soft top edge of its ink moved 900px up the screen across About → Method while the photograph
+        behind it stood still. Fixed here, it cannot move, and the passage happens inside a frame that
+        is genuinely locked.
+
+        It is over the plates and under §2's own ground, for the same reason `.env-experience-dim` is:
+        it dims whichever photograph the room is standing on without either of them knowing about it.
+        `--m-room-at` is the section's own `--mroom`, published on the root by `scroll-stage.tsx`.
+      */}
+      <div className="env-room" aria-hidden="true" />
+
       <div className="env-ground" />
 
       {/*

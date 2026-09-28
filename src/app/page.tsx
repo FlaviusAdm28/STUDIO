@@ -205,6 +205,50 @@ export default function Home() {
           */
           .page { scroll-margin-top: 0; }
           /*
+            Contact's anchor is offset past its own junction in the scripted version, because the
+            section sits at the top of a held frame and the composition resolves below it. Without
+            scripting there is no frame and no junction, so the section is simply where it is and
+            the offset would overshoot it. Named rather than left to .page above, because both
+            selectors match this element and the rule is worth being able to find.
+          */
+          .page-last { scroll-margin-top: 0; }
+          /*
+            Questions arrives on three separate systems now, and without a driver every channel in
+            all three is its zero fallback: the anchor on --qa and --qa-body, and the two FAQ groups
+            on --qi1..6 for the ink and --qr1..6 for the hairlines. So the row, its rule and its type are all put
+            back at full ink, in place, with nothing to arrive: the disclosure itself is native and
+            still opens on the press. The rule has to be named too, because it is drawn with scaleX
+            and an unset channel leaves the line at zero length as well as zero ink.
+          */
+          .ask { opacity: 1 !important; pointer-events: auto !important; }
+          .ask-q, .ask-a { opacity: 1 !important; }
+          .ask::before { opacity: 1 !important; transform: none !important; }
+          /* No driver, no reading zone to stand through: the list is ordinary flow again. */
+          .asked { position: static; max-height: none; overflow: visible; }
+          .asked-hold::after { display: none; }
+          .closing-frame { pointer-events: auto !important; }
+          /*
+            Contact writes itself on a clock the driver plays, so without one every part of it is its
+            zero fallback. The frame is put back composed and pressable, at rest.
+          */
+          .contact-line, .contact-note, .contact-begin { --c: 1 !important;
+            opacity: 1 !important; transform: none !important; }
+          .page-last * { pointer-events: auto; }
+          .page-last { pointer-events: auto !important; }
+          /*
+            And it is written in the publication's ink, which without a driver never crosses to light:
+            the closing frame stands on paper like every other section here, or the address and the
+            folio are dark type on the dark environment beneath it.
+          */
+          .closing { background: var(--paper); height: auto; padding-top: 30vh; }
+          /*
+            No junction to hold, so the frame is in flow: the rule, the question standing on it in the
+            room above, and the address and the folio in a box below it the height of the frame they
+            would have had.
+          */
+          .closing-frame { position: static; }
+          .page-last { position: relative; top: auto; height: 60vh; }
+          /*
             And About is a frame written by scroll position: its composition stands fixed in the viewport
             and arrives on the junction's own progress, so without scripting it would be pinned and empty.
             This is the composed alternative: the section in flow, everything present, in order, with the
@@ -218,7 +262,7 @@ export default function Home() {
             letter-spacing: var(--a-base-track, normal) !important; }
           /*
             And the method is a held frame driven by scroll position, so without scripting there is no frame
-            and no choreography — only the first state of it, which is a label and one line. So it is told
+            and no choreography — only the first state of it, which is one line. So it is told
             down the page instead: the invitation, then each question with what the studio hears in the
             answer beside it, then the resolution. The same things, in the same order, with the space and
             the convergence removed rather than the content. 05-storyboard.md §10.
@@ -226,14 +270,26 @@ export default function Home() {
           .method { height: auto; padding-top: 0; background-image: none; }
           .method-stage { position: static; height: auto; display: grid; gap: 4vh;
             padding: 6vh var(--mark-x) 0; perspective: none; background-image: none; }
-          .method-label { position: static; opacity: 1 !important; color: var(--ink-quiet); }
+          /* .method-label went with the label itself on 20 September 2026; the section is named by
+             its landmark now, and a landmark needs no rule here. */
           .mgroup { position: static; display: block; }
-          .mask, .mword, .mresolve { position: static; opacity: 1 !important;
+          /*
+            Everything the frame places is absolutely positioned and gated on its own arrival, and with
+            no driver every one of those arrivals is its zero fallback. So the whole composition is put
+            back into flow and lit: the lines, the margin note, the question and its
+            footnote. The tracking goes back to each element's own rest value for the same reason the
+            opacity does — the arrival opens it, and here nothing arrives.
+          */
+          .mask-block, .mnote, .mword, .mresolve { position: static; opacity: 1 !important;
             transform: none !important; }
+          .mword, .mnote, .mask, .mquiet {
+            letter-spacing: var(--w-track, normal) !important; }
+          .mask-block { width: auto; }
           .mask { margin: 0 0 0.75vh; max-width: 32ch; font-size: clamp(1.25rem, 4vw, 1.75rem);
             color: var(--ink); }
           .mword { display: inline-block; margin-right: 1.25em; font-size: 1.0625rem;
-            color: var(--ink-quiet); }
+            color: var(--ink-quiet); text-shadow: none; }
+          .mnote, .mquiet { color: var(--ink-quiet); }
           .mresolve { width: auto; }
           /*
             The room never arrives here, so nothing is ever turned over: --mroom stays 0, every colour in the
@@ -266,8 +322,14 @@ export default function Home() {
             margin: 0 var(--mark-x) 0 var(--page-x); }
           .page-last { position: static; display: grid; row-gap: var(--part-gap);
             padding: var(--band-close) var(--mark-x) clamp(3.5rem, 9vh, 6rem) var(--page-x); }
-          .page-last > * { position: static; left: auto; right: auto; top: auto;
+          .page-last > * { position: static; left: auto; right: auto; top: auto; width: auto;
             opacity: 1 !important; }
+          /*
+            The chapter entry is a row anchored to the rule in the scripted version; in flow it is
+            simply a line with a mark at each end, and the rule above it is the page's own again.
+            (No backticks in here -- this stylesheet is a template literal.)
+          */
+          .chapter-entry { display: flex; align-items: baseline; gap: 0.85rem; }
           .page-terms > .page-note { opacity: 1 !important; }
         `}</style>
       </noscript>

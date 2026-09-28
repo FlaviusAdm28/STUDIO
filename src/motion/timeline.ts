@@ -60,6 +60,8 @@ import {
   type Price,
 } from './story'
 import { junctions, states, type Runway, type Verb } from './spine'
+import { TIMING } from './timing'
+import { site } from '@content'
 
 /** Trims the float noise of adding two decimals, so a derived value is the number it should be. */
 const r = (n: number): number => Math.round(n * 1e6) / 1e6
@@ -436,105 +438,108 @@ export const actSpans = {
 /**
  * The method's own runway, resolved from `methodStory`.
  *
- * Four questions of identical shape, twelve considerations chained off them, one stillness, one
- * convergence and one resolution. Every position below is derived: the only absolute in the section is the
- * invitation's `at`, which is zero because it is the frame's first state.
+ * **The composition is authored here now, and it was derived before** — design owner, 19 September 2026.
+ * Twelve considerations used to be chained off four questions, three per question, `stagger` apart: one
+ * shape repeated, and the positions fell where the chain put them. Nothing draws that shape any more
+ * (C16), and the brief for what replaced it is a rhythm rather than a repetition — *"timings diferentes
+ * e pequenas pausas entre elas. Não quero intervalos mecânicos iguais"* — which is a thing you write
+ * down, not a thing you derive. So `method.composed` states every arrival and this resolves them.
  *
- * The words are resolved as **rises rather than cues** — they arrive and they stay. What takes them away is
- * the convergence, which is one property over the whole field rather than twelve departures, so no word
- * carries an exit of its own.
+ * Everything downstream is still derived and none of it moved: the stillness is measured from the last
+ * thing to arrive, the resolution from the stillness and the clearing from the resolution. Change a
+ * line's `at` in `timing.ts` and the whole tail ripples exactly as it always did.
+ *
+ * The arrivals are **rises rather than cues** — they arrive and they stay. What takes the field away is
+ * the convergence, one property over the whole of it, so no line carries an exit of its own. The
+ * question is the exception and it is not in the field: `ask` stands through the convergence, because
+ * it is one half of the composition the section resolves into.
  */
 export const methodSpans = (() => {
-  const invite = cue(method.opening.at, method.opening)
+  /** An authored `[at, over]` in beats, as the range the driver rises across. */
+  const authored = ([at, over]: readonly [number, number]): Span => ({ from: at, to: r(at + over) })
 
-  /* Each question chains off the one before it having completely gone. */
-  const questions: Cue[] = []
-  const words: Span[] = []
-  let at = r(invite.gone + method.asking.after)
+  const words = method.composed.lines.map((line) => authored(line as readonly [number, number]))
+  const notes = method.composed.notes.map((note) => authored(note as readonly [number, number]))
 
-  for (let q = 0; q < 4; q += 1) {
-    const asked = cue(at, method.asking)
-    questions.push(asked)
-
-    /*
-      The considerations arrive from the question's own **arrival**, not from its departure, so they are in
-      the frame with the thing that asked. Three of them, `stagger` apart.
-    */
-    for (let w = 0; w < 3; w += 1) {
-      const from = r(asked.enter.from + method.asking.words.afterQuestion + w * method.asking.words.stagger)
-      words.push({ from, to: r(from + method.asking.words.fadeIn) })
-    }
-
-    at = r(asked.gone + method.asking.between)
-  }
-
-  /** The last word fully lit — where the stillness is measured from. */
-  const gatheredFrom = words.reduce((latest, span) => Math.max(latest, span.to), 0)
-
-  const gatherFrom = r(gatheredFrom + method.gathered.holds)
-  const gather: Span = { from: gatherFrom, to: r(gatherFrom + method.converge.fade) }
+  /* The main composition's first two pieces, in the order they are read. `composed` argues both. */
+  const answer = authored(method.composed.answer as readonly [number, number])
+  const line = authored(method.composed.line as readonly [number, number])
 
   /*
-    The resolution's start is solved from the overlap rather than authored as a delay: `whenConvergedIs` is
-    how far through the convergence it appears, and the curve is inverted to find the beat that produces it
-    — the same trick `annotation` uses against the darkening, and `iiiStudio` against the travel.
+    **The studio's question, authored with the field's last phrases** — design owner, 20 September
+    2026. It was the one chained arrival in the section, derived off the room being complete plus a
+    stillness; it is stated now, because what was decided about it is that it comes in *among* the
+    closing phrases. Only the beat is authored — the fade is the question's own.
   */
-  const answerFrom = r(
-    gather.from + unsmoothstep(method.resolve.whenConvergedIs) * (gather.to - gather.from),
+  const ask: Span = { from: method.composed.ask, to: r(method.composed.ask + method.resolve.fade) }
+
+  /**
+   * **The last thing in the room fully lit, and the question is now one of them.**
+   *
+   * The seven lines, the margin note, and all three pieces of the composition: the whole of what the
+   * studio puts in the frame. It used to exclude the question, because the question was derived from
+   * it; with the question authored alongside the field there is nothing circular about counting it,
+   * and counting it is the point — `gathered.holds` is the gap *after* the composition is complete.
+   *
+   * The colophon was here too until it was removed on 20 September 2026.
+   */
+  const gatheredFrom = [...words, ...notes, answer, line, ask].reduce(
+    (latest, span) => Math.max(latest, span.to),
+    0,
   )
-  const answer: Span = { from: answerFrom, to: r(answerFrom + method.resolve.fade) }
+
 
   /*
-    **The camera.** From the frame's first beat to the instant the field starts collapsing, and no further —
-    `method.drift.holdsPastTheGathering` is the authored zero that says so. Nothing else in the section runs
-    for this long, which is the point: it is the one range that is underneath everything rather than beside
-    it.
+    **The camera.** From the frame's first beat to the instant the composition begins to resolve, and no
+    further — `method.drift.holdsPastTheResolution` is the authored zero that says so. A frame that is
+    being written into should not also still be being walked through; the same argument the authored zero
+    always made, against the beat that replaced the convergence.
   */
   const drift: Span = {
     from: 0,
-    to: r(gather.from + method.drift.holdsPastTheGathering),
+    to: r(ask.from + method.drift.holdsPastTheResolution),
   }
 
   /*
-    ── The printing ──────────────────────────────────────────────────────────────────────────────
-    The room gives the page back. Chained in Chapter III's own order, and each link is the reason the one
-    before it had to finish: the light type leaves an intact dark room, the paper returns to an empty frame,
-    and the answer is printed on a page that has arrived. `story.methodStory.printing`.
+    ── The clearing ──────────────────────────────────────────────────────────────────────────────
+    What is left of the printing, and it is the stage that was never about paper: the composition leaves
+    the room it was lit in. The room stays — Questions is written on the same photograph — so there is no
+    return, no printed answer and no two lines on a page. `story.methodStory.printing`.
   */
-  const clearFrom = r(answer.to + method.resolve.holds)
-  const clear: Span = { from: clearFrom, to: r(clearFrom + method.printing.clears) }
-
-  const returnFrom = r(clear.to + method.printing.thenWaits)
-  const returns: Span = { from: returnFrom, to: r(returnFrom + method.printing.returns) }
-
   /*
-    Solved from the overlap rather than authored as a delay, exactly as `answer` is against the convergence:
-    what was decided is that the line arrives on a ground that is nearly paper and finishes on paper exactly.
-    `actSpans.wayOut` does the same arithmetic against the act's own printing.
+    **Chained off the whole composition standing.** `gathered.holds` is the one suspension the section
+    has left — the three pieces on the axis, the seven thoughts around them, the whole of it lit and
+    nothing moving — and the clearing is what ends it. It was `sign.to + resolve.holds`; the signature
+    is gone and `resolve.holds` with it.
   */
-  const printFrom = r(
-    returns.from + unsmoothstep(method.printing.whenReturnedIs) * (returns.to - returns.from),
-  )
-  const print: Span = { from: printFrom, to: r(printFrom + method.printing.printFade) }
-
-  const linesFrom = r(print.to + method.printing.linesAfter)
-  const lines: Span = { from: linesFrom, to: r(linesFrom + method.printing.linesFade) }
+  const clearFrom = r(gatheredFrom + method.gathered.holds)
+  /*
+    **The leaving is played, and this span is its guarantee** — 26 September 2026. `leaves` is where the
+    layered exit (`method.leaves`, a clock) is triggered; `clear` is what is left of the scrubbed clearing,
+    the last quarter of the same window, so it still ends exactly where it always did.
+  */
+  const leaves = r(clearFrom - TIMING.method.leaves.leads)
+  const clear: Span = {
+    from: r(clearFrom + method.printing.clears * TIMING.method.leaves.guardAfter),
+    to: r(clearFrom + method.printing.clears),
+  }
 
   return {
-    invite,
-    questions: questions as readonly Cue[],
     words: words as readonly Span[],
-    /** Where the twelve stand with nothing moving. Not a range — the assertions read it. */
-    gatheredFrom,
-    gather,
-    drift,
+    /** The marginalia, which stands in the room with the field. */
+    notes: notes as readonly Span[],
+    /** The main composition, in the order it is read: the statement, its line, and the question last. */
     answer,
+    line,
+    ask,
+    /** Where the room stands with nothing moving. Not a range — the assertions read it. */
+    gatheredFrom,
+    drift,
+    /** Where the layered leaving is triggered. */
+    leaves,
     clear,
-    returns,
-    print,
-    lines,
     /** The last frame the section composes. `METHOD_BEATS` is checked against it. */
-    endsAt: lines.to,
+    endsAt: clear.to,
   }
 })()
 
@@ -674,30 +679,41 @@ export const persistSpans = (() => {
   /** A cue with a duration, as a range. */
   const span = (at: number, over: number): Span => ({ from: f(at), to: f(at + over) })
 
-  /**
-   * §8's staggers, as a fan of ranges rather than one range with a delay in it.
-   *
-   * The same construction `methodSpans.words` uses for the twelve considerations, and for the same
-   * reason: a stagger is *n* beats that happen to be related, not one beat with an offset. Each row
-   * gets its own span, so each is independently a pure function of position — which is what keeps the
-   * stagger reversible. A shared range with a CSS delay would not reverse; it would replay.
-   */
-  const fan = (at: number, over: number, stagger: number, count: number): readonly Span[] =>
-    Array.from({ length: count }, (_, i) => span(at + i * stagger, over))
-
+  /*
+    §8's staggers stay a set of ranges rather than one range with a delay in it: each row gets its own
+    span, so each is independently a pure function of position and the stagger reverses rather than
+    replays. `releases` and `rules` below build them.
+  */
   return {
     /** Nothing happens here, and that is the cue. §8's opening 400ms hold. */
     holdsUntil: f(persisting.holds),
 
     /**
-     * The list letting go — one span per row, 40ms apart. Eight, because this build has eight rows
-     * where V2 has seven; the fan is sized from the DOM's count rather than from the spec's, so the
-     * copy pass can change the number without touching this.
+     * **Where the list is told to let go** — the trigger; the release itself is a clock
+     * (`persisting.releases.clock`), played by the driver.
      */
-    releases: fan(persisting.releases.at, persisting.releases.over, persisting.releases.stagger, 8),
+    lets: f(persisting.releases.asks),
 
-    /** The ground turning and the rule's ink crossing with it. One range, because §8 gives one. */
+    /**
+     * **The light going down over the plate that is leaving**, and the light coming back up on the
+     * one that arrives. The two ends of `contact.passage`, and the floor is whatever lies between
+     * them — `dusk.to` to `dawn.from` — which is where the exchange has to sit.
+     */
+    dusk: span(persisting.dusk.at, persisting.dusk.over),
+    dawn: span(persisting.dawn.at, persisting.dawn.over),
+
+    /**
+     * The plates changing places, the scrim crossing with them, and the rule's ink crossing with
+     * both. One range, because §8 gives one and because they are one movement: *the ground turns
+     * under the rule*.
+     */
     crosses: span(persisting.crosses.at, persisting.crosses.over),
+
+    /** The camera pushing toward the room's window as it darkens. `contact.passage.leaves`. */
+    leaves: span(persisting.leaves.at, persisting.leaves.over),
+
+    /** The same push on the hillside, landing on Contact's framing. `contact.passage.returns`. */
+    returns: span(persisting.returns.at, persisting.returns.over),
 
     /**
      * The held-empty frame. Not a range anything fades across — a range in which **nothing is
@@ -706,25 +722,17 @@ export const persistSpans = (() => {
      */
     empty: span(persisting.empty.at, persisting.empty.over),
 
-    headline: span(persisting.headline, persisting.arrives),
-    tells: span(persisting.tells, persisting.arrives),
-
-    /** Measure and weight, animated once, right edge only. §8's table. */
-    resizes: span(persisting.resizes.at, persisting.resizes.over),
-
-    /** Label, arrow and the three lines — five, 120ms apart. */
-    resolves: fan(
-      persisting.resolves.at,
-      persisting.resolves.over,
-      persisting.resolves.stagger,
-      persisting.resolves.count,
-    ),
+    /**
+     * **The trigger for Contact's own composition**, as a point on the junction. Past it the frame
+     * writes itself on `TIMING.contact.composes`; back past `empty.from` it lets go.
+     */
+    asks: f(persisting.asks),
 
     /** How far the junction runs, in viewport-hundredths. The one place seconds become distance. */
     length: r(T * SECONDS_TO_VH),
 
-    /** The last thing to finish, as a fraction. Asserted to be exactly the junction's end. */
-    endsAt: f(persisting.resolves.at + (persisting.resolves.count - 1) * persisting.resolves.stagger + persisting.resolves.over),
+    /** The last thing the scroll decides. Asserted to fall inside the junction. */
+    endsAt: f(persisting.asks),
   }
 })()
 
@@ -806,11 +814,20 @@ export const stateEntries: ReadonlyArray<{
       /* The work whole, lit and unnamed — the beat the aperture finishes. */
       case 9:
         return actSpans.frame.to
-      /* The method's frame from its first beat; its resolution from the beat the answer arrives. */
+      /*
+        The method's frame from its first beat; its resolution from the beat the composition is whole.
+
+        **That is the question's arrival and it used to be the answer's** — 19 September 2026. The three
+        pieces are read in order now (`TIMING.method.composed`) and the statement is the *first* of
+        them, 0.34 of a beat into the frame: anchoring the state there would have put state 12 almost
+        on top of state 11 and left junction 11 → 12 with nothing in it. §2's state 12 is a board — the
+        answer, its line and the studio's question composed together — so the state begins where that
+        board is complete, which is the last of the three to arrive.
+      */
       case 11:
         return 0
       case 12:
-        return methodSpans.answer.from
+        return methodSpans.ask.from
       default:
         return null
     }
@@ -1665,76 +1682,97 @@ if (process.env.NODE_ENV !== 'production') {
     It has to fit. Same assertion as `BEATS` and `ACT_BEATS`, and the same failure it prevents: a ripple edit
     that pushes the resolution past the end of the held frame is a beat nobody ever reaches.
   */
-  if (methodSpans.endsAt > METHOD_BEATS) {
+  /*
+    **The frame is released at `METHOD_BEATS` and the section ends one viewport later**, because
+    `.method` is the pin plus the held frame's own height: a sticky element's range is its parent's
+    content box less itself, so the last viewport of the box is the frame scrolling out of view. The
+    driver's `m` is not clamped at `METHOD_BEATS`, so a span may legitimately resolve inside that tail
+    — and since 21 September 2026 the clearing does, deliberately (`TIMING.method.gathered.holds`).
+
+    So what is checked is the **section**, not the pin: the composition has to finish leaving before
+    Questions' own top, with a breath left over. `tail` is one viewport in this runway's beats, and
+    `perMethodBeat` is what a beat costs.
+  */
+  /*
+    **Measured on `coarse`, because that is the binding case.** The tail is one viewport whatever the
+    runway costs, so in *beats* it shrinks as a beat gets more expensive: a beat is 150vh on a wheel
+    and 225vh on a thumb, which makes the same viewport 0.67 beats and 0.44. Checking `fine` would
+    pass a clearing that ran off the end of the section on touch.
+  */
+  const methodPerBeat = Math.max(
+    parseFloat(TIMING.distance.method.fine),
+    parseFloat(TIMING.distance.method.coarse),
+  ) / TIMING.distance.methodBeats
+  const methodTail = r(100 / methodPerBeat)
+  const methodEnds = r(METHOD_BEATS + methodTail)
+  const methodBreath = r(methodEnds - methodSpans.endsAt)
+  if (methodSpans.endsAt > methodEnds) {
     complain(
-      'The method does not fit inside its own frame.',
-      `it resolves at ${methodSpans.endsAt} beats and the frame is released at ${METHOD_BEATS}. Raise ` +
-        `METHOD_BEATS to at least ${r(methodSpans.endsAt + 0.05)} — methodPin follows it, and nothing is retimed.`,
+      'The method is still clearing when Questions begins.',
+      `it resolves at ${methodSpans.endsAt} beats and the section ends at ${methodEnds} ` +
+        `(${METHOD_BEATS} of pin plus ${methodTail} of trailing frame). The two compositions would be ` +
+        `on screen together. Lower gathered.holds, or raise METHOD_BEATS — methodPin follows it.`,
+    )
+  } else if (methodBreath < 0.1) {
+    complain(
+      'The method clears with nothing between it and Questions.',
+      `${methodBreath} beats stand between the clearing finishing and the section ending — about ` +
+        `${Math.round(methodBreath * methodPerBeat * 8.89)}px ` +
+        `at 1920 x 889. The passage needs a breath, not a cut: lower gathered.holds.`,
     )
   }
 
   /*
-    **The field has to stand still before it is taken apart.** The accumulation is what the section is for,
-    and a convergence that begins while the last words are still arriving is a shuffle rather than a
-    gathering. `gathered.holds` is the gap and it is a real one — the words are chained off the questions and
-    the convergence off the words, so a short enough hold closes it silently.
+    **The question has to arrive among the field's last phrases, not after them.**
+
+    This replaces the assertion that guarded the opposite rule. Until 20 September 2026 the question
+    was derived off the room being complete plus `gathered.holds`, and what was checked was that the
+    stillness before it was real. The design owner reversed the relationship — *"deve entrar juntamente
+    com as frases finais do campo de pensamentos… não a antecipar"* — so what is worth checking is the
+    overlap: the question opens inside the third burst, and it is still the last thing to finish.
+
+    It is authored now, so nothing derives it back into place if the beat is moved; this is the only
+    thing standing between `composed.ask` and the two readings it must not have — asked before the room
+    has anything in it, or asked into a room that has already finished.
   */
-  const standing = r(methodSpans.gather.from - methodSpans.gatheredFrom)
-  if (standing < 0.15) {
+  const thirdBurst = methodSpans.words[5]?.from ?? 0
+  const fieldLit = methodSpans.words.reduce((latest, span) => Math.max(latest, span.to), 0)
+  if (methodSpans.ask.from < thirdBurst) {
     complain(
-      'The considerations never stand still.',
-      `the last one is lit at ${methodSpans.gatheredFrom} and the convergence starts at ` +
-        `${methodSpans.gather.from} — ${standing} beats of stillness. Raise gathered.holds; that pause is ` +
-        `the composition the whole section is built to produce.`,
+      'The studio asks before the room has finished speaking.',
+      `composed.ask opens at ${methodSpans.ask.from} and the field's last burst does not begin until ` +
+        `${thirdBurst}. The question closes a composition the space is already populated with; ahead of ` +
+        `that burst it is asked into a room still filling up.`,
+    )
+  }
+  if (methodSpans.ask.from > fieldLit) {
+    complain(
+      'The question waits for the room instead of arriving with it.',
+      `the field is fully lit at ${fieldLit} and composed.ask does not open until ` +
+        `${methodSpans.ask.from}. It is meant to come in among the closing phrases, not after them — ` +
+        `that pause was the old chained reading and the design owner replaced it.`,
     )
   }
 
   /*
-    And the resolution must arrive **inside** the convergence rather than after it. If it starts once the
-    field has gone, the frame empties and one more line appears on paper — which is the failure the brief for
-    this section names: the answer has to be the consequence of the movement, not a heading following it.
+    **The statement lands while the room is still filling**, which is what makes it the anchor rather
+    than a heading over a finished frame: *a composição principal deve nascer ENTRE essas frases.*
   */
-  if (methodSpans.answer.from <= methodSpans.gather.from || methodSpans.answer.from >= methodSpans.gather.to) {
+  if (methodSpans.answer.to >= methodSpans.gatheredFrom) {
     complain(
-      'The resolution is not inside the convergence.',
-      `the field gathers from ${methodSpans.gather.from} to ${methodSpans.gather.to} and the answer begins ` +
-        `at ${methodSpans.answer.from}. Keep resolve.whenConvergedIs between 0 and 1 — everything before it ` +
-        `has to still be moving when it comes forward.`,
+      'The statement arrives after the room has finished filling.',
+      `composed.answer closes at ${methodSpans.answer.to} and the last of the room is lit at ` +
+        `${methodSpans.gatheredFrom}. It is meant to be born among the field, not after it.`,
     )
   }
 
   /*
-    **The light type must be gone before the paper starts coming back**, and this is the assertion that
-    keeps it that way through any retiming.
-
-    It is not a matter of taste. Paper-coloured type on ink and ink type on paper are the same two values
-    swapped, so a ground crossing one way while its type crosses the other passes through a frame where the
-    two have the same luminance — measured at about 1.1:1, which is invisible. §56 avoids it by sequencing
-    rather than by tuning: the type leaves, the empty room lightens, the answer is printed. Overlap the two
-    and the resolution washes out for a stretch of scroll in the middle, on a section whose whole job is to
-    deliver that line. `actStory.printing.clears` guards the same crossing in Chapter III.
+    **The two printing assertions are gone with the printing.** They checked that the light type cleared
+    before the paper started coming back, and that the answer was printed inside that return — the
+    ~1.1:1 frame `story.methodStory.printing.clears` argues at length. There is no return: the room the
+    composition is lit in is the room Questions is written in, so nothing crosses and there is nothing
+    to keep apart. The clearing itself is still asserted by `endsAt` above.
   */
-  if (methodSpans.clear.to > methodSpans.returns.from) {
-    complain(
-      'The room lightens while the light type is still in it.',
-      `the type clears by ${methodSpans.clear.to} and the paper starts returning at ` +
-        `${methodSpans.returns.from}. Raise printing.thenWaits — light type and dark type cross through a ` +
-        `frame where neither can be read, and that frame is the resolution.`,
-    )
-  }
-
-  /*
-    And the printed answer must arrive **inside** the return rather than after it, for the reason the answer
-    itself must arrive inside the convergence: a line that appears once the ground has finished moving is a
-    heading on a page, and this one is supposed to be the consequence of the page coming back.
-  */
-  if (methodSpans.print.from <= methodSpans.returns.from || methodSpans.print.from >= methodSpans.returns.to) {
-    complain(
-      'The answer is not printed during the return.',
-      `the paper returns from ${methodSpans.returns.from} to ${methodSpans.returns.to} and the answer is ` +
-        `printed at ${methodSpans.print.from}. Keep printing.whenReturnedIs between 0 and 1.`,
-    )
-  }
 
   /*
     The room has to have somewhere to arrive over. `methodArrival` is the one distance in the section stated
@@ -1755,15 +1793,17 @@ if (process.env.NODE_ENV !== 'production') {
     would look like a bug rather than a retiming.
   */
   const methodGaps: ReadonlyArray<readonly [string, number]> = [
-    ['asking.after', method.asking.after],
-    ['asking.hold', method.asking.hold],
-    ['asking.between', method.asking.between],
-    ['asking.words.afterQuestion', method.asking.words.afterQuestion],
     ['gathered.holds', method.gathered.holds],
-    ['resolve.holds', method.resolve.holds],
-    ['printing.thenWaits', method.printing.thenWaits],
-    ['printing.linesAfter', method.printing.linesAfter],
-    ['drift.holdsPastTheGathering', method.drift.holdsPastTheGathering],
+    ['drift.holdsPastTheResolution', method.drift.holdsPastTheResolution],
+    /*
+      And every authored gap in the composition, which is where the chaining moved to: the arrivals are
+      stated rather than derived now, so two of them landing on the same frame is an ordering mistake
+      this file can still catch. Each entry is the distance from one arrival to the next, in order.
+    */
+    ...method.composed.lines.slice(1).map(
+      (line, i) =>
+        [`composed.lines[${i + 1}]`, r(line[0] - method.composed.lines[i][0])] as const,
+    ),
   ]
 
   for (const [name, gap] of methodGaps) {
@@ -1774,6 +1814,137 @@ if (process.env.NODE_ENV !== 'production') {
           `things in the frame at once.`,
       )
     }
+  }
+
+  /*
+    ── Questions · three moments, two triggers, and the frame they all happen in ─────────────
+
+    Everything in this section is a distance after the **lock**, where `.asked` stops being carried up
+    the screen and stands. Nothing in this file can see the lock — it is a rendered position the
+    driver measures — so what is checked here is that the offsets authored against it are positive,
+    ordered, and small enough to fit in the frame the lock creates.
+
+    **There are two triggers and three moments**, which is deliberate: the FAQ sequence is fired once
+    and its second group is a delay in seconds rather than a place, so a visitor who stops scrolling
+    still sees the composition finish.
+  */
+  const askAnchor = TIMING.questions.anchor
+  const askFaq = TIMING.questions.faq
+
+  /*
+    **Nothing may be revealed above the lock.** A negative offset puts a beat back on the approach,
+    where the list is still travelling with the page — which is the exact fault this origin replaced,
+    and it would come back silently as a minus sign.
+  */
+  for (const [name, at] of [
+    ['anchor.afterLock', askAnchor.afterLock],
+    ['faq.afterLock', askFaq.afterLock],
+  ] as ReadonlyArray<readonly [string, number]>) {
+    if (at < 0) {
+      complain(
+        'A Questions beat fires before the composition has stopped moving.',
+        `questions.${name} is ${at}. The origin is the sticky lock, so anything negative is on the ` +
+          `approach — where the whole list is still being carried up the screen by page scroll, and ` +
+          `whatever is revealed there is revealed on the move.`,
+      )
+    }
+  }
+
+  /*
+    **The HOLD is the hierarchy.** If the FAQ sequence fires before `anchor.afterLock + anchor.hold`,
+    the anchor stops being the section's opening and becomes the head of a list again — which is what
+    the separation exists to prevent, and it would arrive as a one-character edit nobody re-measured.
+  */
+  const askHeld = r(askFaq.afterLock - askAnchor.afterLock)
+  if (askHeld < askAnchor.hold) {
+    complain(
+      'The FAQ sequence fires before the anchor has held.',
+      `questions.anchor.afterLock is ${askAnchor.afterLock} and hold is ${askAnchor.hold}, so ` +
+        `nothing may fire before ${r(askAnchor.afterLock + askAnchor.hold)}. faq.afterLock is ` +
+        `${askFaq.afterLock}, which leaves ${askHeld} viewport heights — the anchor would still be ` +
+        `arriving when the list starts.`,
+    )
+  }
+
+  /*
+    **The breath has to be one**, and it is a duration rather than a distance now, so the only thing
+    that can go wrong is it being absent: at zero the six rows run at one flat interval and the three
+    and three the section is composed in stop existing.
+  */
+  if (askFaq.breath <= 0) {
+    complain(
+      'The FAQ sequence has no breath in it.',
+      `questions.faq.breath is ${askFaq.breath}s. Without it the six rows arrive at one interval and ` +
+        `read as a single cascade rather than as two halves of one build.`,
+    )
+  }
+
+  /*
+    **And the breath has to fall inside the sequence.** `breathAfter` at 0 or at `rows` puts it before
+    the first row or after the last, where it is a delay on the whole thing rather than a pause in it.
+  */
+  if (askFaq.breathAfter <= 0 || askFaq.breathAfter >= askFaq.rows) {
+    complain(
+      'The FAQ breath falls outside the sequence.',
+      `questions.faq.breathAfter is ${askFaq.breathAfter} and there are ${askFaq.rows} rows. It has ` +
+        `to divide them, not precede or follow them.`,
+    )
+  }
+
+  /*
+    **The rows are meant to overlap, and there is still a ceiling.** Since 21 September 2026 the
+    interval is deliberately shorter than a row — *"As entradas devem sobrepor-se… a lista esta a
+    formar-se"* — so two to three lines in flight is the intended reading, not a fault. What is worth
+    catching is the far end: past four the six stop being a sequence at all and arrive as one block,
+    which is the thing the stagger exists to prevent.
+  */
+  const askRow = r(askFaq.rule.leads + askFaq.over)
+  const askInFlight = r(askRow / askFaq.stagger)
+  if (askInFlight > 4) {
+    complain(
+      'The FAQ rows overlap too far to read as a sequence.',
+      `a row takes ${askRow}s and they open ${askFaq.stagger}s apart, so ${askInFlight} are arriving ` +
+        `at once. Shorten faq.over, or widen the stagger.`,
+    )
+  }
+
+  /*
+    **Every beat has to fit inside the stuck frame, with reading left over.**
+
+    The lock lasts exactly as long as `distance.asked` — the foot drawn under the list is what the
+    sticky element has to travel in, so when it runs out the composition starts scrolling away again.
+    A beat authored past it would fire on a frame that is moving, which is the fault the lock exists
+    to remove, arriving from the other end.
+  */
+  const askZone = parseFloat(TIMING.distance.asked.fine) / 100
+  const askReading = r(askZone - askFaq.afterLock)
+  if (askReading <= 0) {
+    complain(
+      'The FAQ sequence fires after the reading zone has run out.',
+      `questions.faq.afterLock is ${askFaq.afterLock} and distance.asked is ${askZone} viewport ` +
+        `heights. The list is only stuck for that far; past it the composition is travelling again.`,
+    )
+  } else if (askReading < 0.4) {
+    complain(
+      'Questions has almost no reading zone left.',
+      `${askReading} viewport heights stand between the FAQ trigger and the end of the lock. The ` +
+        `section exists to be read standing still; lengthen distance.asked or bring the trigger in.`,
+    )
+  }
+
+  /*
+    **Every row has to belong to a group.** `faq.size` and `faq.groups` multiply out to how many
+    questions the section can reveal, and `content/site.ts` decides how many there are. A question
+    with no channel would simply never arrive — invisible, pressable by nothing, and silent.
+  */
+  const askRows = site.publication.questions.rows.length - 1
+  if (askRows !== askFaq.rows) {
+    complain(
+      'The FAQ sequence does not cover the questions.',
+      `content/site.ts has ${askRows} questions under the anchor and questions.faq.rows is ` +
+        `${askFaq.rows}. Every row needs a channel, or it never arrives — invisible, pressable by ` +
+        `nothing, and silent.`,
+    )
   }
 
   /*
@@ -1824,7 +1995,7 @@ if (process.env.NODE_ENV !== 'production') {
     complain(
       'Junction 13 → 14 does not fit its own distance.',
       `its last cue finishes at ${persistSpans.endsAt} of the junction and the sheet is ${persisting.total}s ` +
-        `long. Raise persisting.total, or shorten resolves — the junction cannot end after it has ended.`,
+        `long. Raise persisting.total, or bring asks forward — the junction cannot end after it has ended.`,
     )
   }
 
@@ -1837,12 +2008,9 @@ if (process.env.NODE_ENV !== 'production') {
   {
     const inside = (x: number) => x > persistSpans.empty.from && x < persistSpans.empty.to
     const scheduled: ReadonlyArray<readonly [string, Span]> = [
-      ...persistSpans.releases.map((s, i) => [`releases[${i}]`, s] as const),
       ['crosses', persistSpans.crosses],
-      ['headline', persistSpans.headline],
-      ['tells', persistSpans.tells],
-      ['resizes', persistSpans.resizes],
-      ...persistSpans.resolves.map((s, i) => [`resolves[${i}]`, s] as const),
+      ['leaves', persistSpans.leaves],
+      ['returns', persistSpans.returns],
     ]
     for (const [name, span] of scheduled) {
       if (inside(span.from) || inside(span.to)) {
@@ -1857,16 +2025,77 @@ if (process.env.NODE_ENV !== 'production') {
   }
 
   /*
-    The rule's measure and weight animate *once*, at 2.90s. §8's table says the y and the left origin
-    are *"never animated"* — so if the resize ever started before the ground had finished crossing, the
-    line would be moving while it was still changing colour, and the survivor would read as two things.
+    **The exchange happens in the dark, and nowhere else.** `contact.passage` is the answer to two
+    photographs that share no value anywhere — the studio's one lamp against the hillside's sky — and
+    the whole of that answer is that the plates pass each other while the light is at its floor. If
+    the crossing ever reached outside `[dusk.to, dawn.from]` the frame would carry both pictures at
+    once for as far as it overhung, which is the double exposure this passage was built to remove.
   */
-  if (persistSpans.resizes.from < persistSpans.crosses.to) {
+  if (persistSpans.crosses.from < persistSpans.dusk.to || persistSpans.crosses.to > persistSpans.dawn.from) {
     complain(
-      'The rule resizes before the ground has finished crossing.',
-      `resizes starts at ${persistSpans.resizes.from} and crosses ends at ${persistSpans.crosses.to}. ` +
-        'The survivor has to be one line the whole way through; changing its measure while its ink is ' +
-        'still crossing is what makes it read as a replacement.',
+      'The plates change places outside the dark.',
+      `crosses runs ${persistSpans.crosses.from}–${persistSpans.crosses.to} and the floor is ` +
+        `${persistSpans.dusk.to}–${persistSpans.dawn.from}. Move crosses inside it, or open dusk ` +
+        'earlier and dawn later — a crossing seen in light is two photographs in one frame.',
+    )
+  }
+
+  /*
+    And the light has to be back before anything is written on it. §8 gives Contact a held-empty frame
+    and then a headline; a dawn still rising under the headline would be the environment arriving
+    *after* the type it is the ground for, which is the one order this junction cannot have.
+  */
+  if (persistSpans.dawn.to > persistSpans.empty.from) {
+    complain(
+      'The light is still coming up when the frame is meant to be standing empty.',
+      `dawn ends at ${persistSpans.dawn.to} and the empty hold opens at ${persistSpans.empty.from}. ` +
+        '§8 asks for the environment to land and then hold; finish the lift before the hold.',
+    )
+  }
+
+  /*
+    **The two assertions about the rule's resize are retired with the resize** — 26 September 2026.
+    The closing rule no longer carries into Contact (`TIMING.environment.persisting` says why); it
+    releases in place with the rows, which the empty-frame assertion above already covers.
+  */
+
+  /*
+    And the camera has to have stopped before the frame stands empty. The composition is written on a
+    frame that has landed; a return still easing under the held-empty beat would be the ground moving
+    in the one stretch §8 defines as nothing happening.
+  */
+  if (persistSpans.returns.to > persistSpans.empty.from) {
+    complain(
+      'The camera is still returning when the frame is meant to be standing empty.',
+      `returns ends at ${persistSpans.returns.to} and the empty hold opens at ${persistSpans.empty.from}. ` +
+        'Let the camera land first; Contact is written on a frame that has stopped moving.',
+    )
+  }
+
+  /*
+    **One camera, not two.** The push into the room and the push across the hillside are the same move
+    on two plates, so the second must begin before the first has stopped — otherwise the camera halts
+    in the dark and starts again, which is exactly the sequence of separate gestures this replaced.
+  */
+  if (persistSpans.returns.from > persistSpans.leaves.to) {
+    complain(
+      'The camera stops between the room and the hillside.',
+      `leaves ends at ${persistSpans.leaves.to} and returns opens at ${persistSpans.returns.from}. ` +
+        'Open the second half of the push before the first one lands.',
+    )
+  }
+
+  /*
+    **The trigger comes after the empty frame, never inside the passage.** Contact's composition plays on
+    a clock once it is asked for; asked for early, it would be writing over a ground still arriving —
+    and it releases below `empty.from`, so the two thresholds have to leave the empty frame between them
+    or a small reverse flick would release and re-trigger the composition in the same breath.
+  */
+  if (persistSpans.asks < persistSpans.empty.to) {
+    complain(
+      'Contact is asked for before the frame has stood empty.',
+      `asks is ${persistSpans.asks} and the empty hold ends at ${persistSpans.empty.to}. ` +
+        '§8 lands the environment, holds it empty, and only then writes on it.',
     )
   }
 

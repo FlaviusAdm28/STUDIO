@@ -2389,3 +2389,805 @@ label + headline → paragraph → rule → principle → refusals and is whole 
 4. **Breathing room.** The groups sit inside the camera's settle and the last one is written by ~0.6 of
    09 → 10; the frame is then still for ~1,000px (1,050 at 1920 × 889, 1,025 at 1440, 975 at 390)
    before state 10's darkening and release.
+
+---
+
+## C16 · The method is an editorial composition, not a space · **18 September 2026** · design owner brief
+
+**Status: implemented for states 11 and 12's composition. The About → Method *transition* is explicitly
+deferred and nothing in it was touched — see "What was deliberately not done" below.**
+
+### The brief
+
+Six instructions, taken from the design owner's direction of 18 September 2026:
+
+1. *"Pensa no Method como uma composição editorial dentro do quarto vazio. Não como uma lista de frases
+   centradas num background. As frases devem parecer pensamentos/fragmentos que habitam o espaço."*
+2. *"criando profundidade visual através de escala, posição e hierarquia tipográfica, **NÃO** através de
+   parallax."*
+3. Micro-annotations in caps — *"pequenas notas de margem / indicações editoriais relacionadas com o
+   processo"* — discreet, typographically refined, and **few**: *"poucas são melhores."*
+4. `OBSERVE · UNDERSTAND · SHAPE · PRESERVE` as a signature of the process, *"não uma checklist de
+   agência"*, never a large title.
+5. *"Quero REDUZIR a animação actual do Method… A composição deve ser suficientemente forte para
+   funcionar quase parada… Evita stagger excessivo. Evita que cada frase tenha uma animação própria."*
+6. *"O About e o Method devem parecer dois momentos do mesmo filme"* — presence and absence, person and
+   space, proximity and process, legible without reading a word.
+
+### What this supersedes
+
+**`decisions.md` §55 and §56 — the spatial field — are retired.** The section carried a `perspective`
+and a `perspective-origin`; twelve considerations stood at twelve real depths inside it, three of them
+deliberately occluding each other, every one rotated toward the focus, with a differential parallax
+camera underneath. It was measured, it was tuned by eye, and instruction 2 rules out its central device
+by name.
+
+**It is also a return to V2 rather than a departure from it.** §4 authors state 11 as *"seven overheard
+lines, in sequence and rising in scale: 15 · 16 · 17 · 18 · 21 · 26 · 36px — so the field is
+chronological as well as spatial"*, and §2's anchors put the question at *62px serif, x196, bottom 142*
+and the answer at *104px serif, x196, y262*. Nothing in the Final Spec asks for a third dimension here.
+The space was V1's, underneath a composition V2 had already authored flat.
+
+### What was built
+
+**The field.** Seven lines, flat, placed as fractions of the frame, set in Cormorant 300, rising 15 →
+36px on §4's ladder with the ink running with it (0.96 → 0.52 — the faintest still measures 5.5:1, the
+floor §56 held). Both ends of the ladder are clamped independently so the ratio degrades rather than
+collapses: 2.40:1 at 1440 and above, 2.12:1 at 1100, 1.85:1 at 768, never under 13px.
+
+**Composed against the photograph.** The lamp (x 0.13–0.24, y 0.53–0.86 of the frame), the desk (below
+0.82), the plant (x 0.56–0.80) and the rail (left of 0.10) are the fixed obstacles; every line stands in
+the upper wall band, the panel between the lamp and the plant, or the right quarter. The bottom-left
+corner is left empty because the studio's question arrives there.
+
+**Two margin notes** — `Overheard, not directed` and `Kept exactly as it happened` — in the micro-caps
+register the rail and About's three refusals already use, at 0.44 ink (4.7:1). Two, not more.
+
+**The signature** — four words at the foot of the frame on the page's axis, hairline-separated, in the
+register every label on the site shares. A colophon, not a list: `<p>` and `<span>`, never an `<ol>`,
+because a list element tells a screen reader this is a numbered procedure.
+
+**One axis.** `--v2-x` is V2's x196, and the method's question, answer, signature and first note now
+stand on it. The section used to take `--page-x` (246), so the two halves of one passage were composed
+50px apart. `.about-stage` still declares the same expression under its own name; collapsing the two
+touches About and belongs with the transition work.
+
+**One arrival grammar.** Everything in the frame resolves the way About and Contact do — the tracking
+closes, the ink rises inside it, six pixels of settle land last. That is instruction 6 as a mechanism
+rather than as a resemblance.
+
+**The movement, reduced.** Seven lines arrive in **three** reveals (`--mw1`, `--mw4`, `--mw7`), the notes
+and the signature in a fourth (`--mw10`), the question last (`--mw12`). The convergence no longer
+gathers: the field is released in place, with ten pixels of lift, on `--mgather`. The camera survives at
+a quarter of its size **with no differential** — one plane, about 17 × 20px across the whole
+accumulation — which keeps the frame answering the wheel without being a parallax.
+
+**No beat was authored, re-priced or invented.** Every span above already existed in `methodSpans`; what
+changed is how many things consume them. `--mw2/3/5/6/8/9/11`, `--minvite` and all four question cues are
+still resolved and published and are now read by nothing. **Open:** rebuilding `methodSpans` to match
+what is drawn is a separate change with its own assertions to re-argue.
+
+### One defect found and fixed, and it was not in the brief
+
+**The method's resolution was unreadable, and had been.** `--page-ink` is a function of position, and
+state 12 is placed **inside** the method's held frame — so `TIMING.grounds.cross` turned the page from
+the studio's ink to Questions' warm stone about 400px into junction 12, while the frame was still held
+and `--manswer` was still rising. Measured at 1440 × 749: ink 1.00 at 3,600px into the section, 0.00 at
+4,000px. `Your experience` therefore resolved **light on a ground that had already gone light** — the
+~1.1:1 frame `story.methodStory.printing` exists to prevent, arriving from outside the section rather
+than from its own beats. The three-stage printing then ran on a page that had already been given back,
+and the rail crossed to dark ink over a room that was still dark.
+
+`scroll-stage.tsx` now composes `--page-ink` with the method's own `--mroom` at the point it is written:
+the page stays the studio's ink until `printing.returns` gives it back, and then falls to paper on the
+section's own curve. Outside the method the second term is zero. The veil is deliberately left alone —
+junction 12 still takes it 0.60 → 1.00 across the resolution, which with the ink held is the room going
+fully dark around the answer, and that is `resolve.holds` performed rather than contradicted. It is
+composed in the driver rather than scoped to `.method` because a section-scoped override cannot reach
+the Ledger.
+
+### What was deliberately not done
+
+**The About → Method transition is untouched, on the design owner's instruction of 18 September 2026.**
+
+> **Superseded the same day by C17.** The design owner confirmed both photographs as they are and
+> reversed the approach: the difference between the two rooms became the subject rather than something
+> to be corrected or hidden. The diagnosis below is what C17 was built against and is kept for that.
+
+The diagnosis stands and is recorded here so the work can resume against it:
+
+- Junction 10 → 11 is **903px at 1440 × 749** — about 1.1 viewports — and six things happen inside it at
+  once: About's type leaves (`jp10` 0.04 → 0.30), the page veil crosses 0 → 0.55 in **108px**, the studio
+  plate dissolves 1 → 0, the exposure falls 1.02 → 0.12 on the same curve, the method's room gradient
+  runs 0 → 0.98, and the method plate stands at full presence underneath from the first frame.
+- **The two plates are not the same room.** Measured on the files: `method.png` is **+60% mean
+  luminance** (33.3 against `image19aug26.png`'s 20.7), warmer (R mean +18.7) and higher in contrast, and
+  it carries a **hard-edged daylight window projected on the right wall that does not exist in the other
+  plate** — the per-cell difference reaches 50–76 levels of 255 across the right quarter. The desk
+  contents, the chair and the plant differ as well. At the middle of the junction the frame is a
+  half-and-half average of two visibly different photographs, and the right quarter *brightens* while
+  everything else darkens, which is the moment the eye reads a second image arriving.
+- **The design owner is re-shooting the plate** to the About frame's own camera, perspective, furniture,
+  lamp position, scale, colour temperature and light, with the absence of the person as the only
+  narrative change and no new light source. The transition is to be re-implemented and re-validated
+  against the new plate; the deep-exposure staging offered as an alternative was declined.
+
+### Verified in Chrome, 18 September 2026
+
+`npm run typecheck`, `npm run lint` and `npm run build` clean.
+
+Composition measured element by element at **1920 × 985**, **1440 × 749**, **768 × 929**, **390 × 844**
+and **844 × 390** (landscape): no horizontal overflow at any of them, and no box intersects another at
+the fully composed frame. Two collisions were found this way and fixed rather than left: at 390 the
+first margin note was written over `.method-label` (moved to the right margin) and the field ran through
+the question's band (the column now stops at 0.55); at 844 × 390 the field and the question landed on the
+same rows (the frame is now read as two columns, the field left of the right-hand page).
+
+The section's three moments were seen at 1440: the field complete with the question standing, the answer
+alone and light in a fully dark room, and the answer printed dark on paper with its line beneath it.
+
+**Not verified:** iOS Safari, which cannot be tested from this environment.
+
+---
+
+## C17 · About → Method is a passage of time in one room · **18 September 2026** · design owner brief
+
+**This supersedes C16's deferral.** C16 recorded that the transition was paused pending a re-shot plate.
+The design owner has since confirmed both photographs as they are — `image19aug26.png` and
+`method.png` — and reversed the approach: *"Em vez de esconder essas diferenças, quero usá-las como
+parte da narrativa."* The two rooms are not continuous, and that is now the subject rather than the
+fault.
+
+    ABOUT   a pessoa está presente · o estúdio está habitado · a luz é quente e baixa
+    METHOD  a pessoa já saiu · o espaço permanece · a luz mudou · entrou outra atmosfera no quarto
+
+    "o mesmo espaço, algum tempo depois" — and never "acabou uma secção e carregou outra imagem"
+
+### What was making it artificial
+
+Three findings, all seen in Chrome at 1440 × 749 before anything was changed.
+
+**1 · The window drew itself, and that is the frame the eye catches.** `method.png` carries a
+hard-edged daylight window on the right wall that `image19aug26.png` does not have — 50 to 76 levels of
+255 across the right quarter. With the plates crossing over the whole junction in falling but still
+substantial light, that window is **the only thing in the frame whose luminance is rising while
+everything else falls**. It is legible as a positive shape by **jp10 ≈ 0.35** and unmistakable at
+**0.44**. That, and not the person going transparent, is the moment the brain says *another photograph*.
+
+**2 · The light and the exchange were on the same curve, so the darkness was never used.** Exposure ran
+1.02 → 0.12 and the plate mix ran 0 → 1 across the identical span, which guarantees that the frame is at
+half light exactly where the plates are at half each. There was no frame that was dark *and* not
+mid-exchange. Narrowing the window alone could not have fixed this: the light has to go first.
+
+**3 · Nothing was ever still.** About's type released over `[0.04, 0.30]` and the page veil crossed
+0 → 0.55 in **108px**, both on top of a photograph that was already changing. And the whole passage was
+**840px — about 1.1 viewports**, nine wheel notches for the entire thing.
+
+### The choreography
+
+**Four movements on junction 10 → 11, and the plates are exchanged in the one where nothing can be
+seen.** `TIMING.about.passage` holds every number and argues each of them.
+
+    0.00 → 0.22   the room stands. About's type leaves it (`release`, now ending exactly at `holds`)
+                  and nothing else in the frame moves at all.
+    0.22 → 0.54   the light goes down, 1.02 → 0.09. The person loses definition because the light
+                  leaves them, which is what happens to a silhouette when a room goes dark.
+    0.40 → 0.58   the image loses its definition with it — contrast 1 → 0.30. It **trails** the light
+                  rather than sharing its window; see below.
+    0.60 → 0.72   the still frame. The plates change places inside it.
+    0.74 → 1.00   the empty room comes up to state 11's own exposure and the contrast returns with it.
+                  The new light — the window on the right — arrives as part of that rise rather than
+                  as a shape that draws itself.
+
+**The floor is a grade, not a level, and that is the whole mechanism.** The first build put the exchange
+at an exposure of 0.04, which does hide 70 levels of difference — and measured **2.66 mean luminance out
+of 255** in Chrome. That is the black screen the brief rules out, and it was also pointless: state 11's
+own room composites at about 15, so a floor that deep makes the second half a further darkening instead
+of the empty room coming up.
+
+So the exposure falls to `floor` **and the contrast falls to `softens` with it**. That is the brief in
+its own words — *"a pessoa começa a perder definição; a imagem torna-se mais silenciosa"* — and it is
+what actually happens in the room being photographed: a space lit by one lamp is a high-contrast space,
+and when that lamp is the thing going out, what collapses first is the modelling, not the average. The
+image goes quiet before it goes dark.
+
+It is also the arithmetic that works. What has to disappear is the *difference* between the plates,
+which after `contrast(c) brightness(b)` is `70 · c · b`; what has to stay is the *field*, which is
+`(127.5 − 107.5 · c) · b`. Darkness alone puts both on one lever. Splitting them lets the difference fall
+to under two levels while the field holds at **9.4 measured on the running page** — three and a half
+times brighter than the black floor it replaces, with the lamp still reading against it.
+
+**`contrast()` is applied before `brightness()`** — it pivots on mid-grey, so it has to act on the
+plate's full range and be taken down afterwards. `globals.css` owns the order, on `.env-plate` and again
+on `.env-plate-studio`, which redeclares `filter` and is the plate the passage takes the light out of.
+§11.1 permits the *grade* to change, and a contrast is a grade; `--env-contrast` is **1 at every other
+state and junction on the site**, so nothing else pays for it.
+
+**And the softening trails the light, which took a second pass to find.** Run on one window, the crush
+lifts the blacks faster than the brightness takes them down, and on a plate this dark — mean 24 of 255,
+so nearly every pixel is a long way below the mid-grey pivot — the lift wins for the first third of the
+fall. Composited frame by frame off the real plates: the room went **+43% brighter** between 0.24 and
+0.36 and the right quarter nearly four times brighter, before it began to go down at all. A grey bloom,
+which is the exact opposite of *a atmosfera começa a escurecer muito subtilmente*, and the spot
+screenshots did not show it — only the dense trace did. Starting the crush at 0.40 puts it entirely
+inside the second half of the fall, where there is no longer enough brightness left for the lift to
+show. Re-composited: **0.0% bloom**, monotone throughout, residual ripple across the floor under one
+level of 255.
+
+**The passage was given room to be a passage.** `.about`'s `height: 82vh` was a scroll distance written
+into a stylesheet — the one thing `03-choreography.md` does not allow — and it was buying the whole
+four-movement sequence 840px. It is now `TIMING.distance.about` at **175vh**, published as `--about-pin`
+beside the three held-frame runways and carrying the same 1.5 for a thumb. At 1440 × 749 the junction is
+**1,550px, about two viewports**; each movement has 340 to 500px of its own. It retimes nothing — every
+number in `TIMING.about` is a fraction of this junction — and About's own composition is untouched,
+because `.about-stage` is fixed in the viewport and arrives on junction 09 → 10.
+
+**Nothing was added.** No parallax, no 3D, no transform, no blur, no particles, no new element and no new
+animation. The passage is two graded numbers on one photographic element and the opacity of one plate.
+
+### Verified in Chrome, 18 September 2026
+
+`npm run typecheck`, `npm run lint`, `npm run build` clean. The only console assertion is the
+pre-existing junction 13 → 14 shortfall (0.398 against 0.405), which is between Questions and Contact and
+is not touched by any of this.
+
+**Measured on the running page at 1440 × 749**, rendered-frame luminance of 255:
+
+    jp10   exposure  contrast  plates      frame mean   right quarter
+    0.05     1.020     1.00    studio        25.60          6.78
+    0.39     0.526     1.00    studio        11.82          3.23      ← used to peak at +43% here
+    0.56     0.090     0.30    98 / 2         8.78          7.76
+    0.62     0.090     0.30    54 / 46        9.38          8.89      ← the exchange, mid
+    0.75     0.090     0.32    0 / 100       11.27          9.62
+    0.89     0.110     0.77    method        13.21         12.09
+    1.00     0.120     1.00    method        15.00         15.19
+
+The right quarter — where the two photographs differ most — moves **1.9 levels across the entire
+exchange**, and its maximum is pinned at 39 in all three frames of it: the window does not draw itself
+anywhere. From the floor to state 11 the frame rises monotonically 8.8 → 15.0, so the empty room comes
+*up*.
+
+**Seen, not only measured.** At 0.39 the room is quiet with the person still one solid silhouette, one
+plant, no window and no doubling anywhere. At 0.62 the frame is a soft dark room with a warm centre and
+no trace of two pictures in it. At 0.89 the empty room is resolving — lamp, desk edge, and the window
+arriving as light on the right. At 1.00 the Method's own composition begins on it.
+
+**Reversal is exact.** Parked at y 19200 from above and from below, once the input spring settles, every
+published value is identical to four decimal places — the passage is a pure function of position, as
+everything else on this site is.
+
+**390 × 844**, driven in a same-origin frame: the same four movements over 1,830px, floor frame at mean
+10.27 with no black screen and no doubling, and the empty room arriving with the rail and the label. No
+horizontal overflow.
+
+**The no-scripting version** against `next start` with scripts disabled: About renders whole in flow and
+the Method follows it on paper. `--env-contrast` falls back to 1 and `--about-pin` to 175vh, and the
+noscript block's own `height: auto` overrides the runway as it did before.
+
+**Not verified:** iOS Safari, which cannot be tested from this environment.
+
+### The Method, unchanged
+
+C16's composition is exactly as it was — the seven lines on §4's ladder, the two margin notes, the
+signature, the question at `bottom 142` on the axis, the three reveals, the flat field. Re-measured after
+the runway change at 1440 × 749: **zero collisions, no overflow**. Nothing in the section reads the
+junction that was re-choreographed.
+
+---
+
+## C18 · Twilight, and a composition that was already there · **18 September 2026** · design owner brief
+
+Two corrections to C17 and C16, both from watching the passage on video. The concept, the photographs
+and About are untouched.
+
+### 1 · The floor was right in kind and too deep
+
+*"há um intervalo demasiado negro entre About e Method… Pensa em crepúsculo, não blackout."*
+
+C17 put the plate exchange at `floor: 0.09 · softens: 0.30`. That hid the exchange and overshot the
+passage: composited off the real plates, the frame spent **614px under a mean of 12 and 476px under 10**
+— most of a viewport of near-black between the two rooms.
+
+**The correction is a different point on the same trade, not a shallower dip.** What has to stay small
+is the *ratio* of the two plates' difference to the field they sit in, and after `contrast(c)
+brightness(b)` that ratio is `70·c / (127.5 − 107.5·c)` — it depends on the **contrast alone**. So
+crushing further and lifting the light hides the exchange *better* while leaving the room brighter:
+
+    floor · softens    field    Δ/field    under 12    under 10
+    0.090 · 0.30        9.5      0.220       614px       476px
+    0.115 · 0.22       13.2      0.148       107px         0px
+
+The room now settles at **13.2 against state 11's own 15.0**, a real fall from About's 25.7 and a gentle
+recovery, and it never goes below 10 at any frame. The darkest stretch is **107px instead of 614**, and
+the still frame itself is 217px instead of 310. `holds` 0.22 → 0.20, `falls` 0.54 → 0.56, `lifts` 0.74 →
+0.70, `soft` [0.40, 0.58] → [0.42, 0.575], `cross` [0.60, 0.72] → [0.58, 0.685]. About's `release` ends
+at `holds` as before.
+
+### 2 · The Method was building itself
+
+*"o Method começa demasiado vazio e depois vai adicionando frases progressivamente… parece uma animação
+de loading"* · *"o espaço já estava assim; eu é que comecei a reparar nele."*
+
+C16 gave the section five arrivals on its own clock — three reveals of the field on `--mw1`, `--mw4` and
+`--mw7`, the notes and signature on `--mw10`, the question on `--mw12` — spread across about 2,900px of
+runway, all of it *after* the junction had finished. So the visitor arrived in an empty room and watched
+it be written. That is also half of why the dark read as a blackout: there was nothing on the far side of
+it for almost two viewports.
+
+**The composition now arrives on About's own junction, and what reveals it is the room's light.**
+`TIMING.method.composed` is `[0.46, 0.72]` of junction 10 → 11 — it closes before the empty room has
+finished coming up — and every element is already multiplied by `--mlit`, which rises with `--menter`
+across the same stretch. Measured on the page, the composition's opacity **equals `--menter` at every
+frame**. There is no arrival to watch: the type is lit because the room is lit.
+
+  - **`--mfield`** carries the seven lines *and* the signature, in one movement. No grouping attribute,
+    no stagger — §5 of the brief: *OBSERVE — UNDERSTAND — SHAPE — PRESERVE deve já pertencer à
+    composição*, and a colophon is part of the page it is printed on.
+  - **`--mnoticed`** is the only thing that happens afterwards and it carries three elements — the two
+    margin notes and the studio's question. They are not a second arrival of the composition; they are
+    what you find in it once you have taken it in, which is what a margin note is. It reads `--mw1`, the
+    earliest span the method's clock has, so it lands about a viewport after the room.
+
+Nothing else in the section reads a beat until the convergence. `--minvite`, all four question cues and
+`--mw2 … --mw12` are published and read by nothing; rebuilding `methodSpans` to match what is drawn
+stays open, as C16 left it.
+
+**The layout is untouched** — the seven lines, their ladder, their coordinates, the two notes, the
+signature and the question are exactly as C16 composed them. Only how they gain presence changed.
+
+### Verified, 18 September 2026
+
+`npm run typecheck`, `npm run lint`, `npm run build` clean.
+
+**1440 × 749**, the junction measured at 1,540px:
+
+    jp10    exposure  contrast  studio  method  menter  field  notes/question
+    0.244     0.983     1.00     1.00    0.00    0.00    0.00      0.00
+    0.374     0.591     1.00     1.00    0.00    0.00    0.00      0.00
+    0.504     0.174     0.56     1.00    0.00    0.00    0.00      0.00
+    0.634     0.115     0.22     0.47    1.00    0.05    0.03      0.00   ← the exchange, dead centre
+    0.765     0.116     0.31     0.00    1.00    0.45    0.45      0.00
+    0.895     0.119     0.78     0.00    1.00    0.89    0.89      0.00
+
+Rendered-frame luminance of 255 across the exchange, measured on the page: **12.29 → 12.62 → 13.31**,
+with the right quarter — where the two photographs differ most — moving **11.64 → 11.89 → 12.44** and
+its maximum pinned at 37 throughout. So the window never draws itself, at a floor 31% brighter than
+C17's. Seen at 0.635: a soft dark room with the desk and the wall still legible and no trace of two
+pictures in it.
+
+The composition is **whole 100px past the method's flow top** — as the room finishes coming up — and the
+notes and the question land at +900 to +1100. Nothing between them.
+
+**390 × 844**: the same four movements, the same floor (0.115 · 0.27 at jp10 0.747), the composition's
+opacity again equal to `--menter` at every frame, the notes and question at about +900, and state 14
+reachable at the document's last pixel.
+
+**Not verified:** the final visual pass at normal and slow scroll speed, and iOS Safari. The Chrome
+window went `visibilityState: hidden` partway through this session — occluded by another window — which
+stops `requestAnimationFrame` and makes the compositor return stale frames to a screenshot. Every number
+above was taken with the driver snapped deterministically (`read()` with no timestamp, which takes the
+exact frame rather than the eased one), and the luminance measurements were taken while the window was
+still in front; the moving picture has not been re-watched since.
+
+---
+
+## C19 · The Method is a photograph again, and the crossing is spatial · **18 September 2026** · design owner brief
+
+*"A transição está demasiado escura… A fotografia do METHOD deve ser tão visualmente presente e legível
+quanto a fotografia do ABOUT. A magia deve estar na TRANSIÇÃO entre as duas fotografias. Não em escurecer
+o Method."*
+
+Phase 1 only: the photograph, the light and the atmosphere. **The Method's words and layout are not
+touched** — C16's composition and C18's arrival are exactly as they were, by instruction.
+
+### What was hiding the photograph — and it was not the exposure
+
+Three layers multiplied, and the exposure was the smallest of them. Decomposed off the real plate at
+1440 × 749 (the model reproduces the measured state-11 frame to within 1.5%):
+
+    layer                                        mean     sd
+    the plate, graded  brightness(0.12)           4.55    3.17
+      + .method background  --mground 0.45       12.85    1.74
+      + [data-ground]::before  --page-veil 0.55  15.17    0.79
+    ────────────────────────────────────────────────────────────
+    ABOUT for comparison  exposure 1.02, no veils 23.76   22.81
+
+**The photograph had 3% of its own range left on screen, against About's 102% — 34× weaker — and 3% of
+About's rendered detail.** And the two flat ink veils cost more than the exposure did: after
+`brightness(0.12)` the picture still had a standard deviation of 3.17, and the veils took it to 0.79,
+removing three quarters of what was left while *raising* the mean from 4.6 to 15.2. That is why it read
+as a flat grey wash rather than as a dark room. **The veils were not darkening the photograph, they were
+replacing it with their own tone.**
+
+    --mground    `.method`'s own background-image, `--mroom × 0.45`   →  0.10
+    --page-veil  `[data-ground]::before`, TIMING.grounds.states[11]   →  0.12  (12: 0.60 → 0.14)
+    exposure     §2's column, spine.ts state 11                       →  0.80  (12: 0.20 → 0.86)
+
+**0.80 is the brightest grade that keeps every one of the seven lines above 4.5:1 without moving a
+single word.** Checked line by line against the local ground each one actually sits on: worst 4.59:1
+(`Nobody planned that.`, which sits on the window). At 0.88 that line drops to 4.35 and fails, so 0.80 is
+the ceiling the existing composition allows. The plate keeps 63% of its range and renders at 73% of
+About's detail. §2 authored the .12 column when the Method was a flat ink room with type in it; it is a
+photograph now, and the design owner has ruled the column.
+
+### Why the crossing had to stop being a dissolve
+
+**A uniform crossfade between these two plates cannot be hidden at a brightness worth looking at.** The
+difference relative to the field is `70·c / (127.5 − 107.5·c)` — it depends on the **contrast alone**, so
+darkening only moves both terms together. Composited off the real plates at the midpoint, a uniform
+dissolve has exactly two outcomes and both were seen:
+
+  - **at full light** — the person is a translucent blob, the plant is doubled and the window is fully
+    drawn. This is what raising the grade alone would have shipped.
+  - **crushed enough to hide all three** — a featureless grey with the room gone. This is what C17 and
+    C18 shipped, and it is the complaint.
+
+So the plates are exchanged **across the frame instead of across time**. The departing plate is cleared
+left to right behind an edge two thirds of the frame wide, and the direction is the narrative: the person
+is centre-left and is the one thing that is *supposed* to vanish, so they go first, over an empty desk
+that has already resolved behind them; the window's daylight on the right wall is the **last** thing to
+arrive, which is what makes it read as light reaching across the room rather than as a picture being
+swapped.
+
+**It is not a wipe.** Five stops across the band at the smoothstep alphas (0, .156, .5, .844, 1) — the
+same approximation the rail's legibility field uses, because a two-stop ramp leaves a shoulder the eye
+finds. At `--env-cross: 0` the band's far edge sits at 0% and the plate is whole; at 1 its near edge sits
+at 100% and the plate is gone. There is no frame in which a line exists to be seen.
+
+`--env-cross` is published by `environment.ts` and is *how far along* the travel is; `globals.css` owns
+the band's width, because how far a thing travels across a frame is composition — the same division
+`--env-pan` is under. Junction 10 → 11 is now the one junction where plate presence is **not** an
+opacity: both plates stand at full strength across the whole of it and the mask decides what is seen
+where. The two steps that creates are invisible by construction — the method plate reaches 1 while the
+mask is completely opaque, and the studio plate reaches 0 after it is completely clear. The rail reads a
+`share()` of the frame rather than the opacity, so its legibility field still measures the ground.
+
+### And the dip is small now, because it is no longer doing the hiding
+
+`floor` 0.09 → **0.62**, `softens` 0.22 → **0.86**, and the windows widened. With the crossing spatial,
+the light only has to do what it says: go down, and come back. 0.62 against About's 1.02 and state 11's
+0.80 is about two thirds of a stop — the room quieting, and no more. `softens` is the last of the old
+device, kept because a little less definition helps the person let go, and because it is one number
+rather than a mechanism.
+
+    jp10   exposure  contrast  sweep   what is on screen
+    0.00     1.02      1.00     0.00   About, whole — wall, lamp, person, desk, plant, books
+    0.31     0.84      0.99     0.03   the same room, the light going down, nothing else moved
+    0.55     0.62      0.86     0.48   the person dissolving; the empty desk already resolved behind
+    0.79     0.65      0.88     0.95   the room empty, the window's light arriving on the right
+    1.00     0.80      1.00     1.00   Method, whole — and the window is the new light, not a shape
+
+### Verified, 18 September 2026
+
+`npm run typecheck`, `npm run lint`, `npm run build` clean. Live values at **1440** and at **390 × 844**
+match the composited prediction at every sampled frame; both plates present across the junction with the
+mask deciding; `--page-veil` 0.12, `--mground` 0.10, exposure resolving to 0.80 at state 11 and 0.86 at
+state 12.
+
+**Judged visually on the real pixels, but rendered rather than watched.** The Chrome window went
+`visibilityState: hidden` — occluded by another window, and Windows refused every programmatic attempt to
+raise it — which stops `requestAnimationFrame` and makes the compositor hand stale frames to a
+screenshot; two screenshots taken at the same scroll position came back showing different moments, which
+is how it was caught. So every frame above was composited off the two real PNGs through the exact filter
+chain the stylesheet applies, in order, and looked at as an image. That is what rejected the uniform
+crossfade and the deep dip and chose the sweep.
+
+**Outstanding:** the passage has not been watched in motion at normal or slow scroll speed since this
+change, and the seven lines have not been seen sitting on the brighter room. Both need the window in the
+foreground. iOS Safari cannot be tested from this environment.
+
+---
+
+## C20 · The Method's words are revealed in three waves · **18 September 2026** · design owner brief
+
+Phase 2. **C19's transition is approved and frozen** — the photograph, the exposure, the sweep, the
+grading and the layers are untouched here, and so are the layout, the positions, the sizes and the copy.
+Only when each element gains its presence changed.
+
+*"as palavras estavam aqui e estão a revelar-se à medida que entro."*
+
+### What was wrong, and it was not a matter of taste
+
+C18 put the whole field on one window, `composed: [0.46, 0.72]` of junction 10 → 11. Measured on the
+running page, that was not "a little too static" — it was **no entrance at all**:
+
+    jp10   --menter   line op   translateY
+    0.695    0.204     0.185       0
+    0.825    0.674     0.674       0
+    0.955    0.992     0.992       0
+
+Every element had **identical opacity at every frame, exactly equal to `--menter`**, and `translateY`
+read **0 at every sample**. The reason: the window closed at jp10 0.72, and `--menter` — which is what
+lights the room and therefore the type on it — is only **0.20** there. The six-pixel settle and the
+tracking were real, and both were spent while the type was four fifths invisible. What was left on
+screen was one uniform fade of the whole field. *"as palavras simplesmente estão lá."*
+
+### The three waves
+
+Both field windows now sit **inside the range where the room is lit** (jp10 0.62 → 1.00), so the
+movement happens where it can be seen. `TIMING.method.composed`:
+
+    wave 1  near   jp10 [0.70, 0.93]   the three largest lines on the ladder
+    wave 2  far    jp10 [0.79, 0.99]   the four smallest, a breath later
+    wave 3  --mw1  (method beat)       the two margin notes, the signature, the question
+
+**The wave travels along the ladder, not along the copy.** `near` carries `Did you see that?`, `That
+wasn't meant to happen.` and `It's starting.` — the three the eye lands on first — and `far` the four
+smallest, which are found after. That is how a page is actually read, and it means the grouping is
+already authored: it is `--wd`, the same number that decides each line's size and ink. No line has a
+window of its own. **Within a wave nothing staggers: two moments in the field, not seven.**
+
+The 0.09 between them is about 140px at 1440 — countable only if you are scrolling deliberately slowly.
+
+**The signature moved from wave 1 to wave 3**, on instruction: the third wave is *apenas os detalhes
+secundários — micro-anotações, OBSERVE — UNDERSTAND — SHAPE — PRESERVE, pergunta*. C18 had it arriving
+with the field on the argument that a colophon belongs to its page; it still does, but the visitor is no
+longer asked to read it at the same moment as the page.
+
+**Movement:** opacity, the publication's own tracking channel, and `--arr-rise` — **6px**, inside the
+4–8 the brief allows, and the same value About and Contact settle on. Nothing else. No new mechanism,
+no new property, no per-element timing.
+
+### One thing worth knowing about the settle
+
+`.method-stage` sticks at `methodTop + 64`, and junction 10 → 11 ends at about `methodTop + 92` — so for
+most of waves 1 and 2 **the held frame is still travelling into its lock**, and the six pixels are
+concurrent with the stage's own scroll rather than read against a still frame. What carries the wave
+there is the opacity difference, which is large and plainly visible. The settle reads as a settle in the
+last stretch before the lock and fully in wave 3, which resolves inside the held frame.
+
+Moving waves 1 and 2 later, into the held frame, would need a channel between `--jp10` and `--mw1` that
+`methodSpans` does not currently resolve — which is the rebuild C16 left open and this does not reopen.
+
+### Verified in Chrome, 18 September 2026 — window visible, in motion
+
+`npm run typecheck`, `npm run lint`, `npm run build` clean.
+
+**1440 × 749**, settled frames:
+
+    jp10   --menter   NEAR op / ty    FAR op / ty     wave 3
+    0.700    0.217     0    / 6.9     0    / 6.4        0
+    0.793    0.558     0.23 / 4.5     0.01 / 6.3        0
+    0.891    0.883     0.73 / 1.9     0.45 / 3.3        0
+    0.957    0.994     0.99 / 0.9     0.83 / 1.4        0
+    1.000    1.000     1    /  —      1    /  —         0
+    +880px   (held)    1               1               0.55
+
+**In motion, both speeds, sampled every frame of a real driven scroll.** A hard flick (900px in 420ms,
+37 frames): NEAR leads FAR throughout — 0.18/0, 0.47/0.21, 0.87/0.58 — so the wave survives being
+rushed and is over in under half a second, which reads as one arrival with depth in it. A deliberate
+slow pass (900px in 4s, 568 frames): the gap holds at 0.25–0.30 of opacity through the middle of the
+reveal — 0.13/0, 0.36/0.11, 0.67/0.38, 0.98/0.73 — so the two stages are plainly separate without ever
+being countable as seven.
+
+**Seen, not only measured.** At jp10 0.83 the three near lines are surfacing 3.5px low while the four
+far ones are barely-there ghosts and the room is fully legible beneath them — attention finding a
+composition, not elements loading. At 0.91 the near lines are standing and the far ones are still
+resolving. At `methodTop + 880` the field is whole and the marginalia, the signature and the question
+are resolving over it at 0.55.
+
+**390 × 844**: identical behaviour — NEAR 0.06/FAR 0 at jp10 0.739, NEAR 0.71/FAR 0.43 at 0.887, settle
+7px → 0.5px, wave 3 at 0.81 by `methodTop + 900`.
+
+**Not verified:** iOS Safari, which cannot be tested from this environment.
+
+---
+
+## C21 · The Method's composition, and Questions in the room · **19 September 2026** · design owner brief
+
+Three briefs in one session, recorded together because they are one section. The implementation is in
+the tree; `docs/development/SESSION-HANDOFF.md` (19 September) is the operating summary.
+
+### What was decided
+
+**The field arrives in bursts, on the section's own beats.** Seven separate starts spread across
+About's junction became three clusters on the method's runway — *"o scroll funciona como TRIGGER de
+pequenas sequências autónomas… densidade maior, não velocidade maior"*. No arrival got faster. The
+channel moved because a junction's `0 → 1` is priced and equal fractions of it are unequal distances;
+a beat of this section is 150vh wherever you stand in it.
+
+**The main composition is three pieces on About's own ladder**, arriving in the order they are read:
+`YOUR EXPERIENCE` (78px), `Built around what makes yours unique.` (30px), `What makes it yours?` (17px).
+The fourth piece — *Nobody is asked to answer. The studio is listening.* — is no longer drawn; the copy
+is kept in `content/site.ts` and says so.
+
+**The field is not cleared when the composition arrives.** `--mgather` and `--mkeep` are retired —
+*"pensamentos espalhados pela sala + uma composição principal que emerge entre eles"*.
+
+**Questions is read in the Method's room, and the environment changes at Contact.**
+
+### Three departures from V2, and this is the record of them
+
+1. **§2 gives state 13 `hero · sky band, graded`.** It stands on the method plate instead, so that
+   `About → Method → Questions` is one room and `Questions → Contact` is the one change of environment.
+   §11.2 is not violated: nothing new is loaded, and warm stone is still never an asset. The grade is
+   retired for as long as state 13 is not on the hero plate (`environment.ts`, `stoneAt`).
+2. **§2's *x196, y262* for state 12** is given up with the two-anchor composition it belonged to. The
+   axis (`x196`) is kept and is what both sections share; the block stands on About's own vertical.
+3. **State 12's entry is the question's arrival, not the answer's.** The statement is the *first* of the
+   three pieces now; anchoring the state there would leave junction 11 → 12 with nothing in it. §2's
+   state 12 is a board, so the state begins where that board is complete.
+
+### What is open
+
+The section's composition and rhythm are not finished — the direction is approved and small adjustments
+of spacing and timing are expected. Nothing about the architecture is open.
+
+---
+
+## C22 · Contact is the hero's frame returned, and it writes itself · **24 September 2026** · design owner brief
+
+The design owner stopped the Contact work, asked for a design evaluation against Questions, and chose
+**direction B, *"Chapter One, outra vez"***: the site closes on the footage, axis, folio system and
+image–text relationship of state 01, and the question passes to the visitor. The implementation is in
+the tree; `docs/development/SESSION-HANDOFF.md` (24 September) is the operating summary.
+
+### What was decided
+
+```
+state 01                         state 14
+Chapter One                      Is there something / that deserves its own experience?
+Where moments become digital.    hello@… · +351 …  /  WHATSAPP · TELEGRAM
+I of III                         YOUR CHAPTER
+```
+
+- **The composition is state 01's.** The question stands on the hero's axis (`--page-x`, 259 at 1920,
+  the same as `--x196`), in the dark ground left of the figure, one statement in two lines at 1 : 0.88.
+  The address takes the tagline's place under the rule. **YOUR CHAPTER is the folio**, in `.v2-of`'s
+  own corner (`38 / 1440` right, `44 / 760` from the foot) and register. No centred card, no panel.
+- **The figure is the constraint.** `--c-room` is the ground between the axis and her (44.5% of the
+  width at desktop); the question is sized to it and the rule shortens to 78% of it.
+- **Questions' closing rule survives the whole passage** and is the line Contact is written on — §7's
+  node, restored. `persisting.retires` (22 September) is removed.
+- **Scroll owns the passage; a clock owns Contact.** TRIGGER → PLAY → HOLD, the model Questions and the
+  Method already run. The persist track ends by *asking* (`persisting.asks`); the headline, the address
+  and the folio play on `TIMING.contact.composes` and hold. Back past `persisting.empty` the whole
+  composition releases at once (0.5s) — it is never played backwards — and re-entering replays it.
+
+### The passage, 13 → 14
+
+The rows release in place → the lamp's light goes down to a floor of **0.30** (was 0.16, which read as
+black) with the contrast softened → the rule, alone in the room, shortens to Contact's measure → the
+plates cross in the soft floor under it → the hillside arrives **6% closer** than state 01 and the camera
+eases back to the hero's exact framing while the light comes up (`persisting.returns`,
+`contact.passage.returns`, `--env-return`) → the frame holds empty with one rule → Contact is asked for.
+
+### Departures, and this is the record of them
+
+1. **§8 scheduled the headline and the lines under it on the junction's sheet.** They are a clock now,
+   by the design owner's instruction. This extends C8's list of clocks by one: Contact's arrival.
+2. **§8's y152 headline is given up.** The question stands on the rule, where state 01's title stands.
+3. **§8's rule measure (1048 → 732)** keeps its wide end; the narrow end is the question's measure.
+4. **Narrow frames (≤ 820px) lower the rule to 610 / 760.** A portrait crop puts the figure across the
+   middle with her feet at ~0.64 of the height; §8's y529 put the question across her legs at 390.
+   C7's order: the desktop coordinate gives way.
+5. **§4's `Tell us about it.` and the three terms stay undrawn** (unchanged from 22 September).
+
+### What is open
+
+- WhatsApp and Telegram are composed from `direct.phone`, which is still the reserved pattern
+  `+351 910 000 000`; they are only as real as that number.
+- iOS Safari not verified.
+
+## C23 · Contact is the last cinematic moment, and a hand slows the world · **26 September 2026** · design owner brief
+
+Supersedes C22 wherever they disagree. `docs/development/SESSION-HANDOFF.md` (26 September) is the
+operating summary.
+
+### What was decided
+
+```
+hello@chapterone.com                 ← upper left, on the question's axis: a small editorial note
++351 910 000 000
+WHATSAPP · TELEGRAM · INSTAGRAM
+
+                                     [ the footage, full-bleed, at its own speed ]
+Is there something
+that deserves its own experience?
+Tell us where it begins.             ← the frame's only interaction; the text breathes
+──────────                           ← its line, which does not
+```
+
+- **`YOUR CHAPTER` is removed** from the markup and from `content/site.ts`, and nothing replaces it.
+- **The footage runs at its own speed at rest.** C22's found frame (`TIMING.contact.still` — seek, slow
+  motion, stop) is retired, and with it C22's departure from §11.1's *"an environment paused"*.
+- **A hand on *Tell us where it begins.* is the one thing that changes time** — `--listen`, 0 → 1 on
+  `TIMING.contact.listens` (2.2s in, 1.6s out, from wherever it is). It opens the sentence and
+  recomposes it into *We're listening.*, grows the line to the question's measure, slows the footage
+  from 1 to 0.07, turns the light very slightly (brightness +5%, contrast −7%, saturation −12%) and
+  gives the contacts presence. Input-caused, so it is a clock C8 already allows. A press holds it; Esc,
+  a second press, or leaving Contact lets it go. `src/app/contact-listen.tsx`.
+- **At rest only the sentence breathes** — tracking and ink, `TIMING.contact.breathes` (5.4s). The left
+  axis is measured stable; the line reads `--listen` only.
+- **Questions' closing rule no longer crosses into Contact.** `persisting.resizes`, `--jsize` and their
+  two assertions are removed; the rule releases on the list's eighth span and is not drawn, because
+  pinned at `--rule-y` it stood ~200px under the last row with nothing to bridge.
+
+### The passage, 13 → 14, retimed
+
+Hold 0.8s (was 0.4) → the list releases → dusk to a floor of **0.42** (was 0.30) → the plates cross in
+it → the hillside comes up at its own speed → a 0.4s empty frame → `asks`. The camera push into the
+room and across the hillside is halved (`leaves` 0.05, `returns` 0.04). `total` 5.3s.
+
+### Departures
+
+1. **§2's state-14 exposure, 0.72 → 0.9**, and `.closing`'s scrim 0.86 → 0.48. Compared in Chrome at
+   1920 × 889 on both halves of the loop: at 0.72 under the scrim the landscape half was one
+   grey-green mass. The question stands over the ground, the darkest part of the frame, and loses
+   nothing.
+2. **`--c-room` 57vw → 52vw.** At native speed the wind takes the dress to ~1078px at 1920; at 57 the
+   question mark stood on the hem.
+3. **§7's survivor is given up**, by instruction: Questions' last line is Questions'.
+
+### What is open
+
+- Instagram is written and inert: the project has no handle and none was invented
+  (`direct.reach[2].handle`).
+- WhatsApp and Telegram still derive from the reserved `+351 910 000 000`.
+- iOS Safari, and hover on a real touch device, not verified.
+
+### Second pass, the same day · design owner review
+
+- **The line stays under the sentence** — confirmed by the design owner after seeing it.
+- **Slow motion: 1 → 0.3, then pause.** 0.07 showed ~2 frames a second of the 30fps file and read as
+  lag. The rate now falls 1 → 0.75 → 0.5 → 0.3 on the gesture's curve (`listens.slowest`, reached at
+  `slowAt` 0.8), runs slow briefly, and the footage is **paused** on a whole frame; leaving plays it at
+  0.3 and brings it back up. The rate moves in 0.05 steps. `opening.tsx`'s per-frame `roll()` was
+  resuming any pause, so it now respects `data-still` on the footage.
+- **Questions' release is a clock.** Spread over scroll it fitted in two wheel notches and read as one
+  block. Past `persisting.releases.asks` it plays on `releases.clock`: the anchor first, the six rows in
+  pairs, each row's hairline a beat after its words; back above, the list returns at once. `--jclear`
+  (on the breath) guarantees nothing of the list meets the crossing.
+- **No grey veil.** `contact.passage.floor` 0.42 → 0.8 and `softens` 0.5 → 1 — light down with contrast
+  out was the grey. The plates cross over a longer window in near-full light.
+- **The film's own transformation ends the passage.** At the instant the crossing opens (hero still at
+  0) the footage is taken to 0.3s of the file (`contact.arrives`): its moving sky comes through the room,
+  and its own dissolve brings the figure in while Contact is written.
+- **Contact without a global filter:** state 14 exposure 1, `.closing` scrim 0. Legibility is the type's
+  own halo on the note; the question stands on the ground.
+- Contacts lowered by `clamp(1.75rem, 5.5vh, 3.75rem)`; hover growth 6% → 4%.
+
+Open: the pause lands wherever the loop is at the end of the gesture, so it may hold on the landscape
+rather than the figure.
+
+### Third pass, the same day · design owner review
+
+- **The contacts are back in the lower-left block**, under the sentence's line and on its axis — third
+  in the hierarchy, smaller than ever (Cormorant ~14px, micro-caps ~10px at 1920), no rule between.
+  Legibility is the type's own: a wide, faint, all but unoffset black `text-shadow` (14px at 0.42 plus a
+  2px hairline layer). No scrim.
+- **The hover draws the scene in** instead of lifting it: brightness 1 → 0.91, contrast 1 → 1.10, colour
+  untouched.
+- **The press is an ordinary `mailto:` link** (`hello@chapterone.com`, subject *Where it begins*). The
+  button that held the listening and paused the footage for good is gone; that hold read as the page
+  having locked. Verified: the page is never unloaded and the footage returns to rate 1 when the hand
+  leaves.
+- **Method → Questions leaves in layers** (`TIMING.method.leaves`, a clock, triggered `leads` 0.3 of a
+  beat before the old clearing): the main composition in read order (0 – 1.1s), the seven thoughts at
+  scattered moments (0.7 – 2.05s), the note last (to 2.1s), then the room empty — about 600px of scroll
+  with no type — before Questions writes itself. `--mclear` remains only as the guarantee over the last
+  fifth of `printing.clears`.
+- **Questions → Contact has no light dip at all** (`passage.floor` 1). The grey was the room's flat veil
+  (`.env-room`) lying over the arriving footage; it now leaves on the breath, before the plates cross,
+  so the crossing is two clean photographs and the window's light is seen falling across the hills.
+
+### Fourth pass, the same day · judged by eye, not by numbers
+
+- **Method → Questions:** the leaving is spread over ~5.3s (`TIMING.method.leaves`) — the composition
+  first (statement → line → question, 0.2s apart), then the seven thoughts one every 0.45s in scattered
+  order, each drifting 4–7px sideways (`--mdx*`), the note last — triggered 0.8 of a beat before the old
+  clearing. Questions' anchor now waits for the empty room to stand `emptyHolds` (1.1s) unless the
+  Method's frame is already past its guarantee (a jump from the rail never waits).
+- **Questions → Contact is played, not scrubbed.** The scroll only starts it (`persisting.startsBefore`,
+  0.62 of a viewport before the closing frame locks, while the list still stands — `distance.asked`
+  +50vh gives it the room); the sheet then runs in real seconds (7.4s) and rewinds over 1.6s. Order:
+  the rows' words in pairs from the bottom up with the anchor's answer → each hairline 0.55s after its
+  words → *What do you actually create?* alone, then gone → a moment of room with no type → the veil
+  lifts → the footage crosses in → Contact writes itself once the frame has locked. The rail names
+  Contact from the end of the crossing. State 14's page veil is 0 (it was laying Questions' scrim over
+  the arriving footage).
+- **Contacts:** 16px / 11.5px at 1920; hover growth 1 → 1.13.
+- **Hold frame:** 4.4s of the hero file (`listens.holdAt`) — her profile against the sun. A second,
+  never-played copy of the footage (`.env-hero-still`) is parked there and the live footage dissolves
+  into it over `--listen` 0.55 → 0.9 as it slows (1 → 0.3 → pause); leaving reverses it.
+- **Light:** brightness 1 → 0.83, contrast 1 → 1.13, saturation 1 → 1.06 on both footage layers.

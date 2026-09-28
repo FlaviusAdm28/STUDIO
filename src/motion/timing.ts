@@ -462,24 +462,354 @@ export const TIMING = {
       between: 0.03,
       words: { afterQuestion: 0.08, fadeIn: 0.2, stagger: 0.07 },
     },
-    /** The camera. Never eased, and it must not run past the convergence. */
-    drift: { holdsPastTheGathering: 0 },
-    gathered: { holds: 0.28 },
-    /** Twelve considerations collapsing into the point the questions stood on. */
-    converge: { fade: 0.46 },
-    resolve: { whenConvergedIs: 0.6, fade: 0.26, holds: 0.3 },
-    /** Three stages, and they must not overlap or the answer cannot be read. */
-    printing: {
-      clears: 0.22,
-      thenWaits: 0.04,
-      returns: 0.4,
-      whenReturnedIs: 0.62,
-      printFade: 0.26,
-      linesAfter: 0.1,
-      linesFade: 0.22,
+    /** The camera. Never eased, and it stops when the studio's question closes the composition. */
+    drift: { holdsPastTheResolution: 0 },
+
+    /**
+     * ── TRIGGER → PLAY → HOLD ─────────────────────────────────────────────────────────────────
+     *
+     * **Scroll triggers a beat of this section; the beat then plays on its own clock** — design owner,
+     * 20 September 2026: *"SCROLL = TRIGGER DOS BEATS. TEMPO REAL = ANIMAÇÃO DENTRO DE CADA BEAT…
+     * Pensa em cada beat como TRIGGER → PLAY → HOLD e não SCROLL → SCRUB."*
+     *
+     * **This is a departure from C8 and it is deliberate.** `implementation-reconciliation.md` C8 reads
+     * *"scroll owns progression; time owns only what the visitor did not cause"* and reserves a clock
+     * for three things — the Hero's arrival, the Work aside and interface response. This is a fourth,
+     * taken by the design owner with the reason stated: every wheel notch was re-scrubbing the
+     * percentage of an arrival that was already in flight, so a large serif statement fading in was
+     * being stepped by the hand instead of being watched. **What C8 still owns is untouched: scroll
+     * decides *when* each beat fires, in the beat it was always authored at.** Nothing about the order,
+     * the placement or the narrative timings moved — only what drives the 0 → 1 once it has started.
+     *
+     * **The camera and the clearing are not played and must not be.** `--mdrift` is the visitor's own
+     * movement through the space (`ramp`, never eased) and `--mclear` is the section handing over to
+     * Questions; both stay pure functions of scroll, which is also what keeps Method → Questions
+     * exactly as it was.
+     *
+     * `perBeat` is the one number: a beat of this section's authored `over` becomes this many seconds
+     * of real time. Authoring it once rather than a duration per channel is what preserves the relative
+     * pacing the section was tuned with — the statement is the longest arrival in the frame because its
+     * `over` is the widest, and it stays that way.
+     *
+     *     the statement   over 0.65  ->  2.21s
+     *     the line        over 0.36  ->  1.22s
+     *     the question    over 0.40  ->  1.36s
+     *     a phrase        over 0.26  ->  0.88s
+     *
+     * **Reversal is symmetric**, which is what keeps *replay from the first frame* honest: scrolling
+     * back above a beat's trigger plays it out over the same duration rather than snapping it off, and
+     * coming down again plays it in. Nothing is remembered between crossings.
+     *
+     * **Reduced motion takes the end of the beat, not the play.** Somebody who has asked for less
+     * motion gets the triggered state immediately; the trigger itself is still scroll's.
+     */
+    play: { perBeat: 3.4 },
+    /**
+     * **The whole composition standing, and it is the section's conclusion** — design owner,
+     * 20 September 2026: *"A conclusão do Method deve ser simplesmente a composição principal + uma
+     * pequena suspensão antes de Questions."*
+     *
+     * It was 0.28 and it was the gap *before* the question — the room complete, nothing moving, and
+     * then the studio asking. The question is authored with the field now (`composed.ask`), so there
+     * is nothing left to wait for and this is the gap on the other side of it: three pieces on the
+     * axis, seven thoughts around them, the whole of it lit and still, before the frame clears.
+     *
+     * 1.11 was what the frame had: `composed.ask` closes at 2.22, the clearing needs `printing.clears`
+     * before `METHOD_BEATS` at 3.6, and this was the distance between them. Removing the signature and
+     * bringing the question forward half a beat freed it, and the composition is what the section is
+     * for, so the composition is what holds it.
+     *
+     * **1.13, and the ceiling is the pin and not a preference** — design owner, 21 September 2026,
+     * after watching the recording: *"A transicao ainda parece que o Method esta a ser puxado /
+     * deslocado para cima antes de Questions aparecer… Quero que o Method faca um CLEAR / RELEASE no
+     * proprio lugar."*
+     *
+     * It was moved to 1.41 the day before, to spend 0.30 of a beat on the section's trailing viewport
+     * and shorten the empty stretch after it. **That was wrong and the recording caught what the
+     * numbers could not.** `.method-stage` is sticky inside `.method`, and `.method` is padding + pin
+     * + the stage's own height: once the pin runs out the stage is no longer held, and the last
+     * viewport of the box is the frame being carried up the screen by ordinary page scroll. Measured
+     * in Chrome at 1920 x 889, with 1.41:
+     *
+     *     w -1.00   stageY   99   --mclear 0.10     the pin ends here; the frame starts moving
+     *     w -0.90   stageY   10   --mclear 0.50     half the ink left, the frame 89px up
+     *     w -0.80   stageY  -79   --mclear 0.90     178px up
+     *
+     * So the composition was performing its exit *while being dragged out of frame* — `uma pagina
+     * sobe`, exactly what the brief rules out. Nothing in the clearing moved it; the section did.
+     *
+     * **1.13 puts the whole clearing back inside the pin.** It resolves at beat 3.55 against
+     * `METHOD_BEATS` 3.6, so the last of the ink is gone while the frame is still held at y 99 and the
+     * exit happens in the plane it was composed in.
+     *
+     * **The empty stretch after it is structural and this number cannot reach it.** It is the
+     * trailing viewport — ~889px in which the photograph is fixed (`.env-room`), the rail is fixed,
+     * and the only thing moving is an empty stage. Removing it means shortening `.method-stage`,
+     * which is the frame the composition is placed in.
+     */
+    gathered: { holds: 1.13 },
+    /**
+     * **The question's own fade, and that is all this is now.**
+     *
+     * `holds` is gone with the chaining. The question used to be the one arrival in the section that
+     * was derived — *asked after the room has finished speaking* — and `resolve.holds` was how long
+     * the finished frame then stood. The design owner reversed the first on 20 September 2026 (the
+     * question arrives **with** the field's last phrases, `composed.ask`), which left `gathered.holds`
+     * as the only gap between the composition being complete and the frame clearing. Two names for one
+     * suspension is one more than the section has.
+     */
+    resolve: { fade: 0.4 },
+    /**
+     * **What is left of the printing, which is the clearing** — design owner, 19 September 2026.
+     *
+     * There were four stages: the light type cleared, the paper came back, the answer was printed on
+     * it and the two lines followed. Three of them are gone, and the reason is the section after this
+     * one: *"Não quero a passagem Method → Questions para branco… Questions deve começar e continuar
+     * inicialmente sobre o mesmo method.png."* The paper's return is what took the room away, and it
+     * took it away while the section's own last frame was still on screen — measured on the running
+     * page, `--mreturn` was at 1 with most of a viewport of the method still to scroll.
+     *
+     * So the room does not give the page back at all. The type clears into it, the room stands, and
+     * Questions is written on the same photograph. The one stage that survives is the one that was
+     * never about paper: the composition has to *leave* before anything else is written where it
+     * stood. `clears` is that, and it is untouched.
+     *
+     * **The no-scripting version is unaffected**, which is the test of whether this was a material
+     * change or a beat: `--mroom` is still 0 at rest, so the section still resolves to the
+     * publication's own ink on its own paper with nothing running.
+     */
+    printing: { clears: 0.22 },
+    /**
+     * ── The Method leaving, in layers · design owner, 26 September 2026 ──────────────────────────
+     *
+     * *"Neste momento o conteúdo está a desaparecer demasiado como um único bloco… Explora uma saída por
+     * camadas: composição principal; pequenos pensamentos; ambiente vazio; pequeno hold; Questions
+     * começa… passagem de um pensamento para outro, não de desmontagem de um componente."*
+     *
+     * TRIGGER → PLAY, the model the section's arrivals already run: the scroll decides the frame the
+     * leaving begins on (the start of `printing.clears`, after the composition has stood for
+     * `gathered.holds`) and then it plays. Clock seconds:
+     *
+     *     0.00 – 1.10   the main composition, the statement first, the question last — read order
+     *     0.70 – 2.05   the seven thoughts, each at its own moment: not in their order on the page
+     *     1.30 – 2.10   the margin note, with the last of them
+     *     2.10 –        the room, empty, breathing — until Questions is written in it
+     *
+     * `--mclear`, the old scrubbed clearing, stays as the guarantee over the last quarter of
+     * `printing.clears` only — so a flick still leaves the room empty inside the pin, and an ordinary
+     * hand never meets it.
+     */
+    leaves: {
+      /*
+       * **Fourth review, 26 September 2026** — *"Ainda vejo a saída do Method demasiado como um único
+       * bloco… os pequenos pensamentos desaparecem individualmente, com pequenos atrasos claramente
+       * perceptíveis… a sensação de que os pensamentos estão a abandonar a sala um a um."* The third
+       * pass had every thought leaving inside ~1.3s, overlapping; the eye grouped them. Now:
+       *
+       *     0.00 – 1.40   the composition, statement → line → question, 0.2s apart
+       *     1.30 – 4.90   the seven thoughts, one every 0.45s, never in their order on the page, each
+       *                   drifting 4–7px sideways as it thins
+       *     4.30 – 5.30   the margin note, last
+       *     5.30 – 6.40   the room, empty (`emptyHolds`) — and only then may Questions begin
+       */
+      main: { at: 0, over: 1.0, stagger: 0.2 },
+      /**
+       * One delay per thought, in `overheard` order — 0.45s apart, scattered, so each leaving is seen on
+       * its own. `drift` is each one's sideways step as it goes, in px; never more than 8.
+       */
+      thoughts: {
+        at: 1.3,
+        over: 0.9,
+        delays: [0.9, 2.25, 0, 1.8, 0.45, 2.7, 1.35],
+        drift: [-6, 5, 7, -5, 6, -7, 4],
+      },
+      notes: { at: 4.3, over: 1.0 },
+      /** The empty room, held, before Questions may write itself. Clock seconds. */
+      emptyHolds: 1.1,
+      /** Back above the trigger, everything returns at once over this. */
+      returns: 0.6,
+      /** The share of `printing.clears` the scrolled guarantee waits before it begins. */
+      guardAfter: 0.8,
+      /**
+       * **How far before the old clearing the leaving is triggered, in beats of the section.** The
+       * composition stands complete for a third of a beat and then begins to leave; 0.8 of the 1.13
+       * suspension is spent on the leaving so it has ~1,400px of held frame to happen in at 1920 × 889,
+       * and the scrolled guarantee is met only by a flick.
+       */
+      leads: 0.8,
     },
     /** The approach, in viewport heights rather than beats — it is a layout distance. */
     arrival: { begins: 0.86, settles: 0.05 },
+    /**
+     * **Where the rail's *Method* lands, in beats after the composition is complete** — QA, 26
+     * September 2026. It landed on the section's top, before any beat had fired, so a press on
+     * *Method* opened on an empty room. Just past `gatheredFrom` every arrival has been triggered and
+     * plays in, and the leaving (`leaves`, 0.33 beats later) has not begun.
+     */
+    lands: { afterGathered: 0.08 },
+
+    /**
+     * ── The field, in bursts · design owner, 19 September 2026 ────────────────────────────
+     *
+     * *"Quero que o scroll funcione mais como TRIGGER de pequenas sequências autónomas. Dentro de cada
+     * sequência podem entrar 2–4 frases com pequenos delays diferentes entre elas… Densidade maior, não
+     * velocidade maior."*
+     *
+     * **Nothing here got faster.** Every arrival still opens over 0.24 to 0.30 of a beat — 36 to 45vh,
+     * the same as the version before it — and no line is hurried. What changed is where they *start*:
+     * seven starts spread evenly across 2.6 beats became **three clusters** with real quiet between
+     * them. Measured at 1440 × 900, where a beat of this section is 1,350px:
+     *
+     *     burst A   3 lines   starts 107 and 147px apart    the room filling
+     *     ·         573px of nothing
+     *     burst B   2 lines   starts 134px apart            the afternoon turning
+     *     ·         586px of nothing
+     *     burst C   2 lines   starts 94px apart             the two largest, and the moment it starts
+     *
+     * A wheel notch is about 100px and a flick is most of a viewport, so one advance of the hand lands
+     * inside a burst and two or three thoughts appear with different small delays between them — and the
+     * next advance is quiet. That is the density the brief asks for, and it costs the section **2,240px
+     * of field against 4,100** at the same viewport.
+     *
+     * **The delays inside a burst are all different**, which is the other half of *"não quero intervalos
+     * mecânicos iguais"* applied one level down: 0.08 and 0.11 inside A, 0.10 inside B, 0.07 inside C.
+     *
+     * The order is still the copy's — `site.ts` authors the seven as one afternoon and the array's order
+     * is the chronology — and the bursts respect it, so the ladder rises with the sequence: the three
+     * smallest, then the middle pair, then the two largest.
+     */
+    composed: {
+      /**
+       * Seven arrivals, `[at, over]` in beats of this section, in three bursts.
+       *
+       *   A -0.10  Is everyone here?  -0.02  Nobody planned that.   0.09  Wait — look at this.
+       *   B  0.92  Leave it like that.                              1.02  Did you see that?
+       *   C  1.62  That wasn’t meant to happen.                     1.69  It’s starting.
+       *
+       * **The first burst opens inside the light rather than after it.** Its three windows start above
+       * the section's own top, where `--menter` is still climbing — measured, 0.73 at −200px and 0.99 at
+       * the top — and every line in the frame is multiplied by that light, so they arrive *with* the
+       * room instead of into a room that is already finished. It also buys the composition below its
+       * anchor 300px sooner: the statement lands at 0.22, while these three are still settling.
+       */
+      lines: [
+        [-0.1, 0.26],
+        [-0.02, 0.24],
+        [0.09, 0.28],
+        [0.92, 0.24],
+        [1.02, 0.28],
+        [1.62, 0.26],
+        [1.69, 0.3],
+      ],
+
+      /**
+       * The one margin note, and it belongs to the last line it is true of, inside the third burst.
+       *
+       * It was two. `Overheard, not directed` arrived at 0.43, with the tail of the first burst, and
+       * was removed on 20 September 2026 — `content/site.ts` carries the argument. Nothing else moved:
+       * the survivor keeps the window it was authored with.
+       */
+      notes: [[1.78, 0.26]],
+
+      /*
+        **OBSERVE — UNDERSTAND — SHAPE — PRESERVE is removed** — design owner, 20 September 2026, and
+        it is not replaced and not rebuilt with other words: *"A ideia do 'método' já está a ser
+        comunicada pela própria cena e pelas frases ambientais. Não precisamos de a explicar
+        novamente."* `composed.sign` and the `--msign-in` track are gone with it.
+      */
+
+
+      /*
+        ── The main composition, in the order it is read ─────────────────────────────────────
+
+        **The three pieces arrive in their own order, and that is the whole of this brief** — design
+        owner, 19 September 2026:
+
+            YOUR EXPERIENCE                          first — it establishes the subject
+            Built around what makes yours unique.    after — the idea developing
+            What makes it yours?                     last — the question, the conclusion
+
+        It was the other way round: the question opened the section and the answer resolved above it at
+        the end. That produced the right *frame* and the wrong *reading* — the eye met a small question
+        first and the statement arrived as an afterthought over it.
+
+        **They are interleaved with the field and not blocked against it.** Each piece lands between
+        bursts, so the composition is built while the room goes on speaking rather than in a pause cut
+        out of it: the statement inside the first burst's tail, the line between the second and the
+        third, the question after all seven are standing. *A composição principal deve nascer ENTRE
+        essas frases, não substituir a cena.*
+      */
+
+      /**
+       * **`Your experience`, and it is the first thing in the Method** — design owner, 20 September
+       * 2026: *"YOUR EXPERIENCE deve começar a entrar IMEDIATAMENTE quando saímos do About e entramos
+       * no Method… a primeira âncora visual do Method, equivalente ao papel que 'We stay close to every
+       * detail' tinha no About."*
+       *
+       * It was 0.22 — about 300px into the held frame, *after* the first three thoughts had opened. The
+       * reading that produced was room → phrases → wait → subject, and the brief rules it out by name.
+       *
+       * **It opens at the lock, and that is a position and not a delay** — design owner,
+       * 20 September 2026: *"A entrada acontece NO PRÓPRIO EIXO/POSIÇÃO FINAL… sem subir do fundo…
+       * deve parecer que a frase está a ser revelada no espaço, e não que está a ser deslocada para o
+       * espaço."*
+       *
+       * **The frame is `sticky` and it is still travelling on the approach**, which is what the design
+       * owner was seeing. Measured at 1920 × 889: `.method-stage` locks at `methodTop + 78`, and only
+       * there does the block stand at its authored 261 × 167. At the old `−0.37` the statement was
+       * revealed **556px before that**, so it was uncovered at y 723 and carried up the screen to 167 by
+       * the frame beneath it. Nothing in the animation moved it — the room did — and no amount of
+       * easing inside the beat could have fixed that, because the travel was the page scrolling.
+       *
+       * So zero is the lock: the phrase is revealed at the axis it keeps, at the size it keeps, and the
+       * only thing that changes is how much of it there is. `globals.css` fixed the other half of the
+       * same fault — its tracking was animated, which contracted it 80px horizontally as it arrived.
+       *
+       * **This gives up being born *during* the room's lighting, and the two cannot both be had.**
+       * `--menter` finishes within 50px of the lock, so anything revealed while the room is still
+       * coming up is by construction revealed while the frame is still rising. The design owner chose
+       * the axis, and the axis is the thing About and this section share.
+       *
+       * `over` is unchanged and is now only a duration: 0.65 beats through `play.perBeat` is 2.21s, the
+       * longest arrival in the frame, which is what keeps it the anchor.
+       */
+      answer: [0, 0.65],
+
+      /**
+       * **The line, as the idea developing.** It opens after the statement has stood alone for a beat
+       * and lands between the second burst and the third, which is what keeps the composition from
+       * reading as one block being typed out: something else has happened in the room in between.
+       */
+      line: [1.18, 0.36],
+
+      /**
+       * **`What makes it yours?`, and it arrives with the last of the field** — design owner,
+       * 20 September 2026: *"deve entrar juntamente com as frases finais do campo de pensamentos…
+       * a pergunta que fecha a composição depois de o espaço já estar povoado. Não a antecipar."*
+       *
+       * **It is authored now and it used to be the one chained arrival.** It was derived off the whole
+       * room being lit plus `gathered.holds` of stillness — *asked after the room has spoken* — which
+       * put it at 2.32, a third of a beat after the last phrase had finished. The design owner replaced
+       * that relationship with this one: it comes in *among* the closing phrases rather than after a
+       * pause cut out for it.
+       *
+       * 1.82 sits inside the third burst — `That wasn't meant to happen.` opens at 1.62 and
+       * `It's starting.` at 1.69 — so the question and the last two things overheard in the room are
+       * one moment. With `resolve.fade` it closes at 2.22, the last thing in the section to arrive.
+       *
+       * Only the beat is authored: the fade is `resolve.fade`, which is the question's own and is the
+       * slowest arrival in the frame.
+       */
+      ask: 1.82,
+
+      /**
+       * The settle, in pixels, and it is the whole of the movement. The brief allows 4 to 6 and asks
+       * for nothing vertical to be *evident*; 5 is inside it and a pixel under the 6 the publication
+       * settles on elsewhere, because these lines arrive one at a time and a travel that reads as a
+       * gesture on a whole composition reads as a slide on a single line.
+       */
+      rise: 5,
+    },
   },
 
   /* ─────────────────────────────────────────────────────────────────────────────────────────────
@@ -848,6 +1178,76 @@ export const TIMING = {
   },
 
   /* ─────────────────────────────────────────────────────────────────────────────────────────────
+     THE LEDGER'S OWN SYNC — **viewport heights**
+
+     Added 20 September 2026, design owner: *"O menu/rail esquerdo está a mudar de capítulo demasiado
+     tarde em relação à experiência visual… quero que o capítulo mude quando a nova secção passa a ser
+     visualmente dominante."*
+
+     **This is the only thing in the file that moves a state without moving what the state looks like.**
+     `--state` is unchanged and so is `data-film-state`: the grounds, the plates, the exposures, the
+     rail's own ink and the Work's carousel all keep reading the film's real position. What leads is a
+     separate walk of the same table, published as `data-rail-state`, and the only thing that reads it
+     is which of the five words the Ledger lights.
+     ───────────────────────────────────────────────────────────────────────────────────────────── */
+  ledger: {
+    /**
+     * **How far ahead of a state's own entry the rail may name its chapter, in viewport heights.**
+     *
+     * A state begins where its section begins, which is correct for everything that stands *on* the
+     * ground and wrong for the one thing that describes it. Measured at 1920 x 889:
+     *
+     *   ABOUT -> METHOD     About's composition is released 1,200px above `.method`'s top and the room
+     *                       lights over the last 600 — so the Method owns the screen from about
+     *                       y 22,800, and the rail was still saying ABOUT until y 23,450.
+     *   METHOD -> QUESTIONS the held frame is **completely cleared at y 28,000** (`--mclear` reaches 1)
+     *                       and `.questions` does not begin until y 29,247 — so the rail said METHOD
+     *                       for 1,150px of a room with nothing of the Method left in it.
+     *
+     * 0.58 of a viewport is 516px at that frame, which lands both: the Method is named at y 22,934,
+     * with the room lighting and About gone; Questions is named at y 28,634, with its heading in the
+     * lower third of the frame and the Method's own composition a third of a screen behind it.
+     *
+     * It is a distance and not a fraction of a junction, because what it is measured against is how
+     * far up the screen the incoming section has come — which is a viewport, in any frame.
+     */
+    lead: 0.58,
+
+    /**
+     * **Which chapter changes lead, and it is one of the five now.**
+     *
+     * It was `[11, 13]`. **State 13 is removed** — design owner, 21 September 2026, watching the
+     * recording: *"o menu ja muda para QUESTIONS e ficamos demasiado tempo apenas com a fotografia
+     * vazia… Isto parece atraso/loading, nao um hold intencional."*
+     *
+     * The lead was doing to Questions exactly what it was built to stop the Method doing, from the
+     * other side. Measured at 1920 x 889: the Method's frame clears at y 28,000 and the Questions
+     * composition cannot be revealed until its list locks at y 29,247, because until then the whole
+     * section is still being carried up the screen (`questions.anchor.afterLock`). That is 1,247px of
+     * empty room whatever the rail says. With the lead, the rail named QUESTIONS at y 28,634 and then
+     * stood over **613px of nothing** — a chapter announced and not delivered, which reads as a page
+     * that has not loaded. Without it the rail names Questions at the state's own entry, y 29,163,
+     * and the composition begins 84px later: a breath, not a wait.
+     *
+     * **The empty room is not removed and is not this number's to remove.** It is the distance
+     * between the Method's tail and the Questions section, and it belongs to both of them. What
+     * changes is only which chapter is named while the visitor crosses it — and the Method's own
+     * name over the end of the Method's own runway is the honest answer.
+     *
+     * ABOUT -> METHOD is untouched and keeps the lead for the reason above it: the Method owns the
+     * screen from y 22,800 and its section does not begin until 23,450, so there the rail really was
+     * naming a chapter that had already gone.
+     *
+     * The three that were never here are still left alone deliberately. State 08 is the dock: the
+     * rail is *born* there, inside a composition `TIMING.dock` times to the frame, and leading it
+     * would light the index before the numeral it is drawn out of. State 10 and state 14 are ordinary
+     * flow sections whose composition begins where the section does, so there is no gap between
+     * arriving and being dominant for a lead to close.
+     */
+    leads: [11],
+  },
+
+  /* ─────────────────────────────────────────────────────────────────────────────────────────────
      STATE 09 · THE WORK — **fractions of junction 09 → 10 (`--jp9`)**
 
      Added 7 September 2026, design owner. Two things live here, and both exist because state 09 had
@@ -1110,10 +1510,90 @@ export const TIMING = {
     push: 0.04,
 
     /**
-     * **About released in place**, early in 10 → 11 — the type leaves the wall before the method's room
-     * goes dark around it (`method.arrival`), so the lamp goes out on an empty room.
+     * **About released in place**, early in 10 → 11 — the type leaves the wall before the light does, so
+     * what the visitor is left looking at when the room starts to go down is the room and the person in
+     * it, with nothing written on them.
+     *
+     * It ends exactly where `passage.holds` begins — 18 September 2026. It used to end at 0.30 and the
+     * plate dissolve started at 0.00, so About's own sentences were being taken off a photograph that
+     * was already changing underneath them. Nothing in the frame was ever still.
      */
-    release: [0.04, 0.3],
+    release: [0.04, 0.2],
+
+    /**
+     * ── Junction 10 → 11 · the passage of time in one room ──────────────────────────────
+     *
+     * **Both frames are photographs and both are meant to be looked at** — design owner, 18 September
+     * 2026. The two plates are not continuous and that is the subject, not the fault: About is the room
+     * with somebody in it under one warm lamp; Method is the same room after they have gone, with
+     * another quality of light in it. The junction is the time between.
+     *
+     *     0.00 → holds   the room stands. About's type has just left it.
+     *     holds → falls  the light goes down — 1.02 to `floor`. A change of light, not an extinction.
+     *     soft           the image loses a little of its definition with it, and only a little.
+     *     cross          the empty room is uncovered, left to right, behind a very soft edge.
+     *     lifts → 1.00   the light comes back to state 11's own, and the window's daylight with it.
+     *
+     * ── Why the crossing is spatial and not a dissolve ────────────────────────────────────
+     *
+     * **A uniform crossfade between these two plates cannot be hidden at a brightness worth looking
+     * at.** What has to disappear is the difference between them, and after `contrast(c) brightness(b)`
+     * that difference relative to the field is `70·c / (127.5 − 107.5·c)` — it depends on the contrast
+     * alone. Composited off the real plates at the midpoint: at full light the person is a translucent
+     * blob, the plant is doubled and the window is fully drawn; crushed far enough to hide all three,
+     * the frame is a featureless grey and the room is gone. Those were the only two outcomes a uniform
+     * dissolve had, and the second one is what shipped.
+     *
+     * So the plates are exchanged **across the frame instead of across time**. `cross` is when the
+     * uncovering travels, `globals.css` owns how wide and how soft its edge is, and the direction is the
+     * narrative: **left to right**, so the person — centre-left, and the one thing that is *supposed* to
+     * vanish — dissolves first, the empty desk is already resolved behind it, and the window's light on
+     * the right wall is the **last** thing to arrive. Rendered frame by frame: at no point are two
+     * coherent photographs superimposed, there is no doubled plant, and the new light reads as light
+     * reaching across the room rather than as a picture being swapped.
+     *
+     * It is not a wipe and it must never become one: the edge is two thirds of the frame wide with a
+     * smoothstep across it, so there is no line to see anywhere in its travel, and it spans most of the
+     * junction so nothing about it is quick.
+     *
+     * ── And the dip is now small, because it is no longer doing the hiding ────────────────────
+     *
+     * `floor` was 0.09 and `softens` 0.22 — a well deep enough to make 70 levels of difference
+     * invisible, and deep enough that the passage read as *"um intervalo demasiado negro"*. With the
+     * crossing spatial, the light has nothing to hide and only has to do what it says: go down, and come
+     * back. 0.62 against About's 1.02 and state 11's 0.80 is about two thirds of a stop — the room
+     * quieting, and no more than that. `softens` 0.86 is the last of the old device, kept because a
+     * little less definition helps the person let go and because it is one number, not a mechanism.
+     *
+     * `contrast()` pivots on mid-grey, so it is applied **before** `brightness()`; the other order
+     * would pull a dark frame up toward grey. `globals.css` owns the order.
+     */
+    passage: {
+      holds: 0.14,
+      falls: 0.5,
+      lifts: 0.74,
+      floor: 0.72,
+      /**
+       * What is left of the room's contrast at the bottom — the one lamp's modelling, gone. Below about
+       * 0.25 the frame stops reading as a room at all and becomes a flat fog; above about 0.35 the
+       * window on the right wall is findable again. 0.30 is the middle of that, measured.
+       */
+      softens: 0.86,
+      /**
+       * When the image loses its definition, against `[holds, falls]` for when it loses its light. It
+       * starts late and finishes late, for the reason argued above, and it reaches the floor before the
+       * plates begin to change places.
+       */
+      soft: [0.34, 0.58],
+      /**
+       * Where the two plates change places. It opens after `soft` has closed and shuts before `lifts`
+       * opens, so the exchange runs entirely inside the still frame and never while either the light or
+       * the definition is moving. Measured across it on the real plates: the worst single pixel moves
+       * 4.6 levels of 255 and the right quarter's mean — where the two photographs differ most — moves
+       * **1.9**.
+       */
+      cross: [0.2, 0.88],
+    },
 
     /**
      * **Where the stage may exist at all, on scroll.** The groups resolve on a clock, so a jump away —
@@ -1141,6 +1621,203 @@ export const TIMING = {
      `veil` 0 shows the photograph whole, 1 is the paper the publication used to be.
      `ink`  0 is the publication's dark ink, 1 is §2's light ink (#f2e9dc at Contact).
      ───────────────────────────────────────────────────────────────────────────────────────────── */
+  /* ─────────────────────────────────────────────────────────────────────────────────────────────
+     QUESTIONS · state 13 — **fractions of junction 12 → 13, then seconds**
+
+     Added 20 September 2026, design owner: *"A entrada actual de Questions está demasiado 'bloco de
+     página': a estrutura inteira aparece de uma vez e quebra a linguagem cinematográfica que
+     construímos no Method… Quero que Questions pareça uma composição que se vai formando, não uma
+     lista que está a ser revelada pelo scroll."*
+
+     The section had no arrival of its own at all. Only its label carried `data-arrive`; the seven rows
+     stood at `opacity: 1` from the frame the section scrolled in, which is why it read as a page rather
+     than as a composition. What replaces that is the Method's own grammar — **scroll triggers a moment,
+     the moment plays on a clock** (`TIMING.method.play` argues the model and records the departure from
+     C8; this is the same one, in the same room).
+     ───────────────────────────────────────────────────────────────────────────────────────────── */
+  /* ──────────────────────────────────────────────────────────────────────────────────
+     QUESTIONS · **THREE NARRATIVE MOMENTS, AND THREE AUTONOMOUS SYSTEMS**
+
+     Design owner, 21 September 2026, and this table replaces everything that was here before rather
+     than adjusting it: *"Nao tentes resolver isto apenas alterando q1/q2/q3, nth-child ou offsets. A
+     ANCHOR precisa de um canal/estado de animacao proprio… A anchor NAO deve participar no mesmo
+     driver temporal das FAQs."*
+
+         Questions
+           |-- anchor      autonomous reveal -> HOLD
+           |-- faq group 1 autonomous reveal -> HOLD      three rows, read as one composition
+           |-- faq group 2 autonomous reveal -> HOLD      three rows, read as one composition
+
+     **A beat is a narrative state and not a wheel event** — *"UM BEAT != UM EVENTO DE MOUSE WHEEL."*
+     It was six triggers for six rows, one per gesture, which is what made the section read as a list
+     being fed in rather than as a composition being revealed. There are three moments now and there
+     will not be more: scroll crosses the runway and fires the next state, and the state plays itself.
+
+     Every position below is in **viewport heights from the section's own top**, negative above it. It
+     is a layout distance and not a fraction of a junction, for the reason `methodArrival` is: what
+     decides when something should appear is where it stands on the screen, and that is the same
+     movement on any frame.
+     ───────────────────────────────────────────────────────────────────────────────── */
+  questions: {
+    /**
+     * ── BEAT 1 · THE ANCHOR ──────────────────────────────────────────────────────
+     *
+     * **The section's opening, and it is not a question in a list.** `What do you actually create?`
+     * with its answer under it: one editorial block that is already composed where it belongs and
+     * simply gains presence. The principle is the Method's statement — nothing arrives, nothing
+     * travels, nothing is dragged, and scroll decides only the frame it begins on.
+     *
+     * It shares no array, no loop, no channel and no numbering with the rows. `globals.css` gives it a
+     * register of its own as well (`.page-lead`'s rung, 24 → 40px against the rows' 17 → 20), so the
+     * hierarchy is typographic as well as temporal.
+     */
+    anchor: {
+      /**
+       * **Where it fires, and it is measured from the lock rather than from the section's top.**
+       *
+       * Design owner, 21 September 2026, after watching the recording rather than the numbers: *"the
+       * entire Questions composition is still moving upward from below as the section enters… They
+       * must NOT be inside any transform/translate/moving track that is being driven by scroll."*
+       *
+       * **The track was `.asked` itself.** It is `position: sticky` under the head margin, so on the
+       * approach it is still travelling with the page — the list is in ordinary flow until its top
+       * reaches `--masthead`, and only then does it stand. Measured at 1920 × 889: the anchor's old
+       * trigger at −0.78 uncovered it at **y 800**, and the page then carried it up **700px** to the
+       * y 99 it keeps. Nothing in the animation moved it; the section did — every element reported
+       * `transform: none` and an unchanging *document* position the whole way, which is why measuring
+       * the document rather than the screen missed it completely.
+       *
+       * **So zero is the lock**, exactly as `TIMING.method.composed.answer` resolved the identical
+       * fault for the Method's statement one section earlier: the phrase is revealed at the axis it
+       * keeps, at the size it keeps, and the only thing that changes is how much of it there is.
+       *
+       * The driver measures the lock (`scroll-stage.tsx`, `askedLock`) rather than taking a number
+       * from here, because where it falls is the sum of two `clamp()`s — the head margin and the
+       * section's own band — and so moves with the viewport. At 1920 × 889 it is `where13` 0.064; a
+       * constant authored here would be right on one frame and wrong on the rest.
+       *
+       * 0 is *at* the lock. Nothing may be negative: above the lock the composition is still moving.
+       */
+      afterLock: 0,
+
+      /**
+       * **The longest arrival in the section and nothing else comes near it.** The Method's statement
+       * is 2.21s and is the anchor of that frame; this is the same role in a quieter register. Slower
+       * is most of what presence is.
+       */
+      over: 1.5,
+
+      /**
+       * **The answer, which is the second half of the same moment.** It resolves behind the question
+       * rather than with it — About's own order one section earlier: the claim, then its evidence.
+       * `leads` is a third of the question's arrival, so the two overlap for most of their length and
+       * read as one block coming up, never as two things animated in turn. The pair ends at 1.7s.
+       */
+      body: { leads: 0.5, over: 1.2 },
+
+      /**
+       * **The HOLD, and it is what makes this a moment rather than the head of a list.**
+       *
+       * In viewport heights after `at`, so the first group cannot fire before `at + hold`. It is
+       * stated here, on the anchor, rather than as a gap inside the rows' own table: the list does not
+       * get to decide how long the thing above it is allowed to stand.
+       *
+       * 0.34 is ~300px at 889. The anchor's own arrival runs 1.7s end to end, so the block is finished
+       * and completely still well before anything else is asked.
+       *
+       * **It has to equal `faq.afterLock` exactly**, and `timeline.ts` asserts it does. It was 0.36
+       * against a trigger of 0.34 — two numbers written in separate edits that never matched — and
+       * the assertion had been reporting it on every load since. The 0.02 was worth nothing visually;
+       * an assertion nobody reads is worth less.
+       */
+      hold: 0.34,
+    },
+
+    /**
+     * ── BEAT 2 · THE FAQ SEQUENCE ────────────────────────────────────────────────
+     *
+     * **One trigger, one sequence, six entries** — design owner, 21 September 2026: *"um unico avanco
+     * de scroll dispara UMA sequencia autonoma de todas as FAQs... FAQ 1 -> 2 -> 3 -> pequeno respiro
+     * -> 4 -> 5 -> 6 -> tudo completo -> HOLD."*
+     *
+     * **The groups are gone as a structure and survive only as a breath.** It was `size: 3` and
+     * `groups: 2` with a gap between them, which is two compositions; the brief asks for one build
+     * with a pause in the middle of it. So there are six rows, one interval between each, and one
+     * longer interval after the third. Nothing here is a scroll position except the trigger.
+     */
+    faq: {
+      /**
+       * **Where the sequence fires, in viewport heights after the lock.** 0.34 is
+       * `anchor.afterLock + anchor.hold`, so the anchor has stood before anything is asked. The origin
+       * is the lock because above it the whole list is still being carried up the screen, and anything
+       * revealed there is revealed on the move (`anchor.afterLock`).
+       *
+       * It is the only position in the sequence. Everything below is time.
+       */
+      afterLock: 0.34,
+
+      /** How many rows it writes, in document order. `timeline.ts` checks it against the copy. */
+      rows: 6,
+
+      /**
+       * **The interval between entries, in seconds** — *"aproximadamente 200-300ms de intervalo entre
+       * entradas, nao varios segundos"*, and 0.25 is the middle of that.
+       *
+       * **0.165, and the rows now overlap on purpose** — design owner, 21 September 2026: *"As
+       * entradas devem sobrepor-se… NAO esperar que uma termine para comecar a seguinte… Quero que o
+       * olho perceba: a lista esta a formar-se."*
+       *
+       * It was 0.25 against a 0.52s row, which left each line almost finished before the next began —
+       * `pergunta 1 carregou / pergunta 2 carregou`. At 0.165 against 0.45s there are **between two
+       * and three lines in flight at any moment**, so what the eye follows is the list forming rather
+       * than six arrivals in a queue. The whole build is 1.38s where it was 2.12s.
+       */
+      stagger: 0.165,
+
+      /**
+       * **The breath, and where it falls.** One longer interval after the third row, so the six still
+       * read as three and three without either half being a moment the scroll has to ask for.
+       *
+       * **0.11 now, not 0.35.** The brief authors the intervals directly — *"~150-180ms… ~250-300ms…
+       * ~150-180ms"* — so the breath is only what lifts the middle gap above the others: 0.165 + 0.11
+       * is 0.275s against 0.165 everywhere else. At 0.35 it was a 0.6s hole, which read as the
+       * sequence stopping to load the second half.
+       *
+       *     0.000  0.165  0.330   · breath ·   0.605  0.770  0.935     complete at 1.385s
+       */
+      breath: 0.11,
+      breathAfter: 3,
+
+      /**
+       * ── How a row is revealed ────────────────────────────────────────────────
+       *
+       * **The row is ruled first and written second**, which is how a page is set and is the same
+       * grammar the Method uses one section earlier: the room lights, and then type resolves in it.
+       * The ground arrives before the thing standing on it, so the reveal has a direction without
+       * anything travelling.
+       *
+       *     0ms    the hairline begins to draw from the axis outward
+       *     120ms  the question's ink begins, in the space the rule has just opened
+       *     280ms  the rule is at full measure and full ink
+       *     450ms  the row is finished and still
+       *
+       * **450ms is the brief's own** — *"Cada linha pode ter ~400-500ms de reveal"* — and against a
+       * 0.165 interval it is what puts two to three lines in flight at once. It was 660ms, then 520;
+       * the row is not the thing that shrank most, the waiting between rows is.
+       *
+       * **Why the rule and not the type carries the gesture.** The type cannot move: nothing may
+       * travel, and tracking is ruled out both by the brief and by the Method's own measurement — an
+       * animated `letter-spacing` contracted its statement 80px horizontally and read as the phrase
+       * being moved into place. A rule has no such problem, because a rule *is* a length: drawing it
+       * is the one thing in this composition that can be a gesture without being a movement.
+       */
+      rule: { over: 0.28, leads: 0.12 },
+
+      /** Seconds the question's ink takes once it has begun, `rule.leads` after its row opens. */
+      over: 0.33,
+    },
+  },
+
   grounds: {
     /*
       **The scrim crosses in the empty frame, never under type.**
@@ -1150,12 +1827,57 @@ export const TIMING = {
       about 1.1:1, where nothing can be read. It is the identical failure `actStory.printing.clears` was
       built to avoid, and the answer is the same one — separate the two in time.
 
-      Here that is free, because at a junction the outgoing section has already gone and the incoming one
-      has not arrived: `arriving.empty` holds the frame empty until 0.18. So the whole cross is spent
-      inside [0.04, 0.16] — begun after the junction has visibly started, finished before the first line
-      of the next section appears. Nothing is ever on screen while the ground is mid-cross.
+      **It was [0.04, 0.16] and that was wrong for the one junction it is visible on** — design owner,
+      21 September 2026: *"Contact comeca a aparecer demasiado cedo, enquanto Questions ainda esta
+      visualmente presente... Nao quero qualquer coexistencia prolongada das duas composicoes."*
+
+      The old window rested on *"at a junction the outgoing section has already gone"*, which is true
+      of every section that leaves before its junction and **false of Questions**: §7's persistent rule
+      makes the list release *in place, during* 13 → 14 (`environment.persisting.releases`, 0.4 → 1.3
+      of that table's 3.6, so 0.111 → 0.361 of the junction and ~0.42 with the stagger). The ground
+      therefore finished crossing at 0.16 with the six questions still at about 86% ink — Contact's
+      photograph standing under Questions' composition, which is exactly the coexistence reported.
+
+      **This is the only junction where the window does anything.** `states` below carries veil 0 and
+      ink 1.0 for states 9 through 13; the single crossing on the site is 13 → 14, 0 → 0.62. So moving
+      it costs nothing anywhere else — checked state by state rather than assumed.
+
+      **The two run on different progress variables, which is why the first correction missed.** The
+      release is on the persist track (`persistTrack`, its own span in viewport-hundredths); this
+      window is on `--junction-at`. Measured in Chrome at 1920 x 889, on the `--junction-at` scale the
+      whole tail reads:
+
+          0.78 -> 0.88   the list releases in place  (--jrel1 .. --jrel7)
+          0.88 -> 0.95   the rule's ink crosses      (--jcross)
+          ~0.98          Contact's headline is written
+          1.00           state 14
+
+      So [0.88, 0.97] is the only window that is after Questions and before Contact. It runs with
+      `--jcross`, which is what §8 asks for — the ink crosses *with the ground, not on its own clock* —
+      and it finishes in the empty frame before the headline.
+
+      **And it is what gives the section its reading hold.** The sequence is complete at w 0.4 after
+      the lock and the ground now waits until w 1.95: about 1,380px in which the composition stands
+      finished and absolutely nothing changes. With the old window the ground began turning at w 0.85,
+      which left 400px of stillness and then 934px of Contact's photograph under Questions' full
+      composition — the *coexistencia prolongada* that was reported.
     */
-    cross: [0.04, 0.16],
+    /*
+      ⚠ **And 13 → 14 does not read this any more** — 22 September 2026. Everything argued above is
+      the record of how the window got to [0.88, 0.97] and why it had to be after the release and
+      before the headline; all of it is still true of the *order*. What changed is the unit.
+
+      The plates now change places on §8's own sheet (`environment.persisting`), because the passage
+      that hides the exchange — the light going down, the plates passing in the dark, the light
+      coming back up — has to be one movement with them, and §8 is the only thing that describes
+      this junction beat by beat. The scrim and the ink cross with the plates or the hero arrives
+      wearing Questions' register, so `scroll-stage.tsx` crosses this pair on `leaving.cross` too.
+
+      It is kept, at its measured value, because it is still the default for every other state in
+      the table — all of which cross by zero, so it does nothing anywhere else, exactly as the note
+      above says. Changing it is now a change to nothing; changing `persisting` is the lever.
+    */
+    cross: [0.88, 0.97],
 
     /*
       **`veil` is how much scrim, `ink` is which material it is made of** — 0 is the publication's paper
@@ -1177,10 +1899,56 @@ export const TIMING = {
         own light ink, so 09 → 10 changes nothing in the register at all and the Ledger keeps its ink.
       */
       { state: 10, veil: 0.0, ink: 1.0 } /*  studio 1.02 — the room, and the type on its wall */,
-      { state: 11, veil: 0.55, ink: 1.0 } /* studio .12  — the method's own dark room       */,
-      { state: 12, veil: 0.6, ink: 1.0 } /*   studio .20 — the payoff, still in the room     */,
-      { state: 13, veil: 1.0, ink: 0.0 } /*  warm stone  — §2's ground 160–171, dark ink     */,
-      { state: 14, veil: 0.62, ink: 1.0 } /* hero .72     — the dawn threshold, light ink    */,
+      /*
+        **0.12 and 0.14, where these were 0.55 and 0.60 — design owner, 18 September 2026.**
+
+        They were the larger half of what was hiding the Method's photograph. Decomposed off the real
+        plate: after `brightness(0.12)` the picture still had a standard deviation of 3.17; `--mground`
+        took it to 1.74 and this scrim took it to **0.79** — the two flat ink layers removed three
+        quarters of what the exposure had left, and *raised* the mean from 4.6 to 15.2 while doing it.
+        That is why it read as a flat grey wash rather than as a dark room: the veils were not darkening
+        the photograph, they were replacing it with their own tone.
+
+        A twelfth is still a scrim — it holds the register and keeps the ink consistent — and it leaves
+        the photograph on screen. `implementation-reconciliation.md` C19.
+      */
+      /*
+        **0 — the method paints no scrim.** Its room is `.env-room`, fixed in the Environment, because
+        this scrim is drawn on `.method`'s own 6,500px box and slid 900px up the screen across the
+        passage. The ink register is unchanged; only where it is painted moved.
+      */
+      { state: 11, veil: 0.0, ink: 1.0 } /*  studio .80 — the room, and the light in it       */,
+      /*
+        **Nothing crosses here any more, so there is no window to hold back.** State 12 carried
+        `cross: [0.52, 0.78]` — its own late crossing, authored on 18 September so that the room would
+        carry into Questions' entrance before the page turned. Questions *is* the room now, so 12 and 13
+        are the same ground and the same ink, and a window over a crossing of zero is a number that
+        cannot be read off the page.
+      */
+      { state: 12, veil: 0.0, ink: 1.0 } /*  studio .80 — the room, and the light in it      */,
+      /*
+        **Questions stands in the room** — design owner, 19 September 2026: *"Questions deve começar e
+        continuar inicialmente sobre o mesmo method.png / mesmo ambiente da sala… Só quero abandonar
+        essa atmosfera quando entrarmos em CONTACT."*
+        §2's own column gives this state warm stone under dark ink, and that is the departure: it is
+        recorded on the state itself (`spine.ts`, state 13) rather than twice. Here it means the veil
+        and the ink simply do not move across 12 → 13 — the longest run of type on the site is written
+        in the film's own light ink on the photograph the method resolved on.
+      */
+      { state: 13, veil: 0.0, ink: 1.0 } /*  the same room, and the same light in it         */,
+      /*
+        **And the change of environment is here**, which is the other half of the same instruction:
+        `ABOUT → METHOD → QUESTIONS` is one room and `QUESTIONS → CONTACT` is the one place it is left.
+        The scrim arrives with the hero plate underneath it; the room's own ink comes off on the same
+        junction (`scroll-stage.tsx`, `--m-room-at`).
+      */
+      /*
+        **Veil 0 from the fourth review, 26 September 2026.** 0.62 was the depth of Contact's own foot
+        scrim, which is 0 now (`.closing`, `--ground-far`) — so the one thing it still did was lay
+        Questions' section scrim over the arriving footage while the passage ran, seen in Chrome as the
+        landscape arriving dull. The footage is clean from the first frame it is on screen.
+      */
+      { state: 14, veil: 0, ink: 1.0 } /* hero 1        — no veil, light ink                */,
     ],
   },
 
@@ -1265,6 +2033,24 @@ export const TIMING = {
      * arriving one commits, which is what stops the two words being legible at once.
      */
     chapter: { out: 660, in: 1020, lag: 270 },
+
+    /**
+     * **The folio mark changing page** — the running chapter's line in the index, `NN ·`.
+     *
+     * Design owner, 28 September 2026, approved in `prototypes/the-folio-mark-motion` (3030): the index
+     * is all five chapters on fixed lines, and the running one reads its folio and a point where its word
+     * stands. The words keep `chapter`'s exchange exactly; the mark is not exchanged like a word, it is
+     * re-set on another page:
+     *
+     *   leaving   the point lifts first (`pointOut`), the folio follows `outAfter` later (`out`)
+     *   arriving  after `chapter.lag` the folio is set (`in`), and `pointAfter` later its point (`pointIn`)
+     *
+     * Both drift ≈3px in the direction of travel as they fade — the amplitude is composition and lives in
+     * `globals.css` beside the exchange's scales. One curve, no spring, no scale. The arrival waits the
+     * exchange's own lag, so the mark settles while the word it replaces is already on its way into the
+     * head: one change, read in order.
+     */
+    mark: { out: 420, outAfter: 60, pointOut: 260, in: 760, pointAfter: 200, pointIn: 520 },
     /** About's arrival: the room, then the mark, then the words. */
     about: {
       image: { fade: 1500, settle: 14 },
@@ -1281,18 +2067,224 @@ export const TIMING = {
      THE ENVIRONMENT · its own lifetime — **BEATS OF SCROLL**
      ───────────────────────────────────────────────────────────────────────────────────────────── */
   environment: {
-    /** The plate persisting through the film. */
+    /**
+     * ── Junction 13 → 14 · §8's sheet, and the one change of environment in the second half ──────
+     *
+     * **Retimed on 22 September 2026, and lengthened from 3.60s to 6.10s.** Design owner: *"Rever
+     * também a transição actual Questions → Contact. Quero que seja mais smooth, cinematográfica…
+     * Não quero divisão vertical, rectângulos, hard cuts, duas imagens claramente empilhadas,
+     * overlays pretos pesados, sensação de mudança de página."*
+     *
+     * ## What was wrong, measured in Chrome at 1440 × 905
+     *
+     * Two photographs were legible in one frame. The studio's lamp and its lit window stood inside
+     * the hillside and the dawn sky at 0.34 of the crossing, with the window's bright column reading
+     * as a vertical edge down the right of the composition — *exactly* the two faults reported. That
+     * is what a plain dissolve does when the two plates are a dark interior lit by one lamp and an
+     * open landscape under a rising sky: they share no value anywhere, so every intermediate frame
+     * is a double exposure.
+     *
+     * It is the identical problem `TIMING.about.passage` solved for 10 → 11, and the answer is the
+     * same one: **the light goes down, the plates change places in the dark, and the light comes back
+     * up on the other one.** What it needed that it did not have is distance — the whole junction was
+     * 72vh, of which the list's own release took a third and the exchange got about 120px.
+     *
+     * ## What the 6.10s bought on 22 September — superseded by the 24 September sheet below
+     *
+     *     0.00 – 0.40   nothing. §8's opening hold.
+     *     0.40 – 1.58   the list releases in place, eight rows 40ms apart
+     *     1.65 – 2.30   `dusk` — the room's light goes down over the plate that is leaving
+     *     2.30 – 2.85   `crosses` — the plates change places, **inside the dark**
+     *     2.30 – 3.05   the floor: nothing but a dark frame
+     *     3.05 – 4.30   `dawn` — the light comes up on the hero, and it is the footage returning
+     *     1.65 – 2.20   `resizes` — §8's one authored gesture, while the room's light is going down
+     *     2.30 – 2.85   `retires` — the rule goes with the room, on the frames the plates cross
+     *     4.75 – 5.10   the held-empty frame: the ground and the Ledger
+     *     5.20          the statement
+     *     5.45          the card
+     *     5.94 – 6.10   the address, then the two other ways to reach it, 120ms apart
+     *
+     * **`dusk` and `dawn` are not a scrim.** They are the Environment's own exposure, which is what
+     * *a change of light* is; a black sheet laid over the frame is the *overlay preto pesado* the
+     * direction rules out, and it would flatten the photograph instead of darkening it. The floor is
+     * `contact.passage.floor` and it is a real exposure with the sky still in it, not a blackout.
+     *
+     * **The sheet runs on the persist track and so does the exchange.** `environment.ts` used to
+     * cross the plates on `grounds.cross`, which is a fraction of junction 13 → 14 on `p`, while the
+     * room's ink came off on `crosses`, which is a fraction of *this* table — two parameterisations
+     * of one movement, and the comments on both already said they should be one. They are one now:
+     * the driver hands the Environment this track's own progress, and every part of the exchange —
+     * the plates, the scrim, the ink over the outgoing plate and the light itself — reads it.
+     *
+     * The one thing that still cannot: **the persist track is longer than the junction's own tail.**
+     * The track opens `--rule-y` above state 14 and state 14 is reached at about 0.48 of it, so the
+     * second half of §8's sheet plays after the state has changed. That is correct rather than a
+     * compromise — the state is *Contact*, and Contact writing itself is what the sheet describes.
+     */
+    /*
+     * ── 24 September 2026 · Contact is the hero's frame returned, and it writes itself ────────────
+     *
+     * Design owner, direction B, *"Chapter One, outra vez"*: *"O scroll NÃO deve scrubbar a animação
+     * interna do Contact. O scroll apenas controla a transição… TRIGGER → PLAY → HOLD."*
+     *
+     * So this sheet is **the passage and nothing after it**. It ends by *asking* (`asks`), and what the
+     * question does after that is `TIMING.contact.composes`, on a clock.
+     *
+     * ## Second pass, the same day — one camera move, and one frame at the end of it
+     *
+     * Design owner, after watching the first pass: *"a transição parece uma sequência de crossfades em
+     * vez de uma única decisão cinematográfica… o footage continua a mudar depois de a composição já ter
+     * aparecido."* Both were true, and the second was the footage's own doing: the hero loop is 12.1s of
+     * *landscape → the figure dissolving in → the figure → the landscape dissolving back*, so whatever
+     * the page did the world kept changing shots behind the composition.
+     *
+     * So the passage is now **one forward camera move**: the studio is pushed toward its own window
+     * while the lamp dies (`leaves`), the outside world dissolves in under the same push, and the push
+     * carries on across the hillside until it lands on Contact's own framing (`returns`) — and stops.
+     * The footage is taken into the figure's shot while it is still hidden and brought to rest at that
+     * landing (`TIMING.contact.still`), so the frame Contact is written on is found once and held.
+     *
+     *     0.00 – 0.40   nothing. §8's opening hold.
+     *     0.40 – 1.58   the list releases in place, eight rows 40ms apart
+     *     1.50 – 2.30   `dusk` — the lamp's light goes down, never to black
+     *     1.50 – 2.90   `leaves` — the camera pushes toward the room's window as it darkens
+     *     1.60 – 2.20   `resizes` — alone in the darkening room, the rule finds Contact's measure
+     *     2.30 – 2.90   `crosses` — the plates change places in the soft floor, under the rule
+     *     2.30 – 4.50   `returns` — the same push, on the hillside, landing on Contact's framing
+     *     3.00 – 4.50   `dawn` — the light comes up on the footage the site opened on
+     *     4.60 – 5.50   the held-empty frame: the footage comes to rest, one rule, the Ledger
+     *     5.50          `asks` — once the footage is still, Contact is written on it, on its clock
+     *
+     * **The rule survives the whole passage, which is §7 restored rather than departed from.** The one
+     * object that crosses from the studio into the open is Questions' closing rule, never re-created,
+     * and the line the visitor is left to write on.
+     */
+    /*
+     * ── 26 September 2026 · the rule is Questions' again, and the passage is one breath ───────────
+     *
+     * Design owner: *"Atualmente existe uma animação envolvendo a última linha no fundo de Questions.
+     * Essa animação já não faz sentido para o novo conceito… Questions termina → pequeno hold/silêncio
+     * → o conteúdo de Questions desaparece naturalmente → o mesmo mundo visual continua → Contact
+     * emerge."* So `resizes` is gone: the closing rule releases in place with the rows it closes (the
+     * eighth span of the fan was always its), and Contact draws its own line under its own sentence.
+     *
+     *     0.00 – 0.80   nothing — Questions has ended and the frame is allowed to stand
+     *     0.80 – 1.98   the list and its rule let go in place
+     *     1.90 – 2.70   `dusk` — the lamp goes down, to a softer floor than before
+     *     1.90 – 3.30   `leaves` — a small push toward the window, half of what it was
+     *     2.70 – 3.30   `crosses` — the plates change places inside that floor
+     *     2.70 – 4.80   `returns` — the same small push, landing on Contact's framing
+     *     3.30 – 4.80   `dawn` — the footage the site opened on, at its own speed
+     *     4.80 – 5.20   the frame stands — no longer waiting for the footage to stop
+     *     5.20          `asks`
+     */
+    /*
+     * ── 26 September 2026, second pass · the list dissolves, and the film changes state ──────────
+     *
+     * Design owner, after seeing the first pass: *"as Questions desaparecem demasiado como um único
+     * bloco… o anchor/pergunta principal desaparece primeiro; depois os elementos dissolvem-se em
+     * pequenos grupos… as linhas/estrutura desaparecem naturalmente… usa o próprio movimento do vídeo…
+     * o mesmo espaço/filme mudou de estado"*, and *"o tratamento atual cria uma espécie de filtro
+     * cinzento/escuro… Não gosto desse efeito."*
+     *
+     *     0.00 – 0.60   Questions has ended; nothing moves
+     *     0.60 – 1.10   the anchor — the question the section opened on — goes first
+     *     0.85 – 1.67   the six rows, in three pairs: the words first, each row's hairline a beat after
+     *     1.80 – 2.50   `dusk` — a breath of light, never a grey floor (`contact.passage`)
+     *     1.80 – 3.30   `leaves` — the room drifts toward its window
+     *     2.50 – 3.50   `crosses` — the window's world comes through: the footage, from its first shot
+     *     3.50 – 4.40   `dawn` — the light is back, and the footage is already moving on its own
+     *     4.40 – 4.80   the frame stands
+     *     4.80          `asks` — and the footage's own dissolve brings the figure in as Contact writes
+     */
+    /*
+     * ── Fourth review, 26 September 2026 · the sheet is played, and the order is the argument ─────
+     *
+     * *"Não consigo perceber claramente uma nova animação de saída das Questions… detalhe → estrutura →
+     * pergunta → silêncio → Contact, e não Questions → fade all → Contact."* Seen in the recordings:
+     * whatever this sheet said, a wheel carried the hand through it in a second and the eye saw one
+     * fade. So **the scroll now only starts it** (`starts`, a fraction of the junction's scroll) and the
+     * sheet plays in real seconds — the closing frame is held to the end of the document, so nothing
+     * on the page moves while it does. Back above the junction it rewinds over `rewinds`.
+     *
+     *     0.00 – 0.30   Questions has ended; nothing moves
+     *     0.30 – 2.05   detail — the rows' words leave in pairs from the bottom up, with the anchor's
+     *                   answer; each row's hairline half a second after its words (structure)
+     *     2.05 – 3.30   *What do you actually create?* stands alone
+     *     3.30 – 4.20   and goes
+     *     4.20 – 4.70   silence — the room, no type
+     *     4.40 – 5.00   the room's veil lifts (`dusk`, which is no longer a darkening)
+     *     5.00 – 6.20   `crosses` — the footage comes in through the room, moving
+     *     6.80 – 7.30   the frame stands; `asks` — Contact writes itself while the footage's own
+     *                   dissolve brings the figure in
+     */
     persisting: {
-      holds: 0.4,
-      releases: { at: 0.4, over: 0.9, stagger: 0.04 },
-      crosses: { at: 1.3, over: 0.9 },
-      empty: { at: 2.2, over: 0.3 },
-      headline: 2.6,
-      tells: 2.8,
-      arrives: 0.2,
-      resizes: { at: 2.9, over: 0.3 },
-      resolves: { at: 3.2, over: 0.04, stagger: 0.12, count: 4 },
-      total: 3.6,
+      /**
+       * **Where the passage is started: this many viewports before the closing frame locks** — while
+       * the list is still standing under the head margin, at the start of the extra stretch
+       * `distance.asked` gives it, so the list lets go in place rather than on its way off the top.
+       */
+      startsBefore: 0.62,
+      /** Back above the junction, the whole passage runs backwards over this. Seconds. */
+      rewinds: 1.6,
+      holds: 0.3,
+      /**
+       * **The list letting go**, played on its own clock from `asks` (a second of the sheet). Clock
+       * seconds inside. Back above it the list returns at once over `clock.returns`. The breath
+       * (`dusk`) clears anything still standing, so nothing of the list can meet the crossing.
+       */
+      releases: {
+        asks: 0.3,
+        clock: {
+          /**
+           * The six rows' words, in pairs from the bottom up: `stagger` inside a pair, `groupGap`
+           * between pairs — detail leaving in three visible steps.
+           */
+          rows: { at: 0, over: 0.7, per: 2, stagger: 0.15, groupGap: 0.45 },
+          /** The anchor's answer is detail too, and goes with the first pair. */
+          body: { at: 0.2, over: 0.8 },
+          /** Each row's hairline outlives its words by this much: the structure goes second. */
+          ruleLags: 0.55,
+          /** *What do you actually create?* — the last thing standing, alone, and then gone. */
+          question: { at: 3.0, over: 0.9 },
+          /** Coming back up into Questions: the list returns at once, over this. */
+          returns: 0.5,
+        },
+      },
+      /** A breath of the room's light, once the list has let go. */
+      dusk: { at: 4.4, over: 0.6 },
+      /**
+       * **The camera drifting toward the room's window.** It opens with the breath and closes with the
+       * crossing, so the studio is being walked out of for exactly as long as it is on screen.
+       * `contact.passage.leaves` is how far.
+       */
+      leaves: { at: 4.4, over: 1.6 },
+      /**
+       * **The exchange, longer than it was and in near-full light.** The footage is taken to its first
+       * shot the instant this opens (`contact.arrives`), so what comes through the room is the moving
+       * sky and the ridges — the film's own weather — rather than a still being laid over a still.
+       * `timeline.ts` asserts it stays between the breath's two halves.
+       */
+      crosses: { at: 5.0, over: 1.2 },
+      /** The light coming back up, on the footage the site opened on. */
+      dawn: { at: 6.2, over: 0.6 },
+      /**
+       * **The same push, continued on the hillside, and it lands on Contact's framing.** The world
+       * arrives a little wider than Contact holds it — `contact.passage.returns` — and the camera goes
+       * on moving forward, in the direction it was already moving through the room, until it is
+       * exactly the found frame. It opens on the frame the plate becomes present and stops before the
+       * frame stands empty: the composition is written on a frame that has landed.
+       */
+      returns: { at: 5.0, over: 1.8 },
+      /**
+       * §8's held-empty frame. Shorter than it was: it no longer waits for the footage to come to
+       * rest, because the footage no longer does. `timeline.ts` asserts nothing the scroll drives is
+       * scheduled inside it.
+       */
+      empty: { at: 6.8, over: 0.5 },
+      /** Where Contact is asked to write itself, on the played sheet. */
+      asks: 7.3,
+      total: 7.4,
     },
     /** The Ledger relighting. */
     relighting: {
@@ -1304,6 +2296,210 @@ export const TIMING = {
     },
   },
 
+
+  /* ─────────────────────────────────────────────────────────────────────────────────────────────
+     CONTACT · state 14 — **the change of environment into it**
+
+     One block, because Contact is one composition. The frame's own order is §8's sheet
+     (`environment.persisting`) and its arrival is §arriving's shared windows; neither is repeated
+     here. What is here is the *passage* — how dark the frame gets while the two plates pass each
+     other, which is a property of those two photographs and of nothing else on the site.
+
+     **There is no second scene and there is no `talk` block any more** — design owner, 22 September
+     2026: *"Quero que o Contact seja UMA ÚNICA PÁGINA / UMA ÚNICA COMPOSIÇÃO CONTÍNUA… Neste
+     momento Contact parece dividido em dois ecrãs/páginas diferentes."* The form, its runway
+     (`distance.talk`), its settle and its hand-over went with it. What it was carrying — the
+     address, the number and the two marks — is written under the rule in this frame instead, and
+     arrives on the staggered slots §8 already gives the things that settle last.
+     ────────────────────────────────────────────────────────────────────────────────────── */
+  contact: {
+    /**
+     * ── The change of environment, and it is a change of light ────────────────────────────────
+     *
+     * **Where the two plates pass each other**, as `TIMING.about.passage` is for 10 → 11. The
+     * windows are not here: they are `persisting.dusk`, `persisting.crosses` and `persisting.dawn`,
+     * because a junction's order belongs in the junction's own sheet. What is here is *how far
+     * down* the light goes and *how much definition* the frame loses on the way, which is a
+     * property of these two photographs rather than of the sequence.
+     */
+    passage: {
+      /**
+       * **What is left of the light at the bottom, as a multiplier on §2's own exposure.**
+       *
+       * The frame at state 13 is the studio at .86 and at state 14 the hillside at .72, and they
+       * share no value: the studio is one lamp and a lit window in a dark room, the hero is an open
+       * landscape under a rising sky. Decomposed off the two plates, a plain dissolve keeps both
+       * sets of highlights legible down to about a fifth of the light; below that the lamp and the
+       * window stop being findable and what is left is a dark frame with a little sky in it.
+       *
+       * **0.30 now, where it was 0.16** — 24 September 2026: *"Não quero simplesmente: Questions
+       * desaparece → preto → Contact aparece."* At 0.16 the floor read as black in Chrome at 1920 ×
+       * 889; at 0.30 the room is still a room when the lamp goes down and the hillside is already a
+       * sky when it comes up. What keeps the two plates from reading as one double exposure is the
+       * contrast (`softens`) and the one line that crosses unchanged in front of both — seen frame by
+       * frame, the lamp gives way to the figure rather than being laid over her.
+       */
+      /*
+       * **0.42 from 26 September 2026** — *"Evitar… black screens… overlays pretos pesados… A
+       * transição deve parecer mais uma mudança de respiração/luz"*. Raised with the contrast still
+       * taken down, so the exchange stays hidden in the soft floor rather than in the dark.
+       */
+      /*
+       * **0.8 from the second pass, 26 September 2026** — *"o tratamento atual cria uma espécie de
+       * filtro cinzento/escuro perceptível durante a passagem… Não gosto desse efeito."* The grey was
+       * this floor under `softens`: light taken down and contrast taken out together is exactly what a
+       * grey veil looks like. What is left is a breath — a fifth of the light, contrast untouched.
+       */
+      /*
+       * **1 from the third review** — *"Primeiro testa sem overlay global… Não quero que o vídeo
+       * pareça artificialmente escurecido ou dessaturado."* No dip at all: the plates carry their own
+       * exposure across the crossing, and the room's veil is gone before it (`scroll-stage.tsx`).
+       */
+      floor: 1,
+      /**
+       * And the definition, for the reason `about.passage.softens` gives: at the floor the two
+       * plates still differ most in their *edges* — the window frame, the lamp's cone, the ridge
+       * line — and taking the contrast down is what stops those reading as a second picture behind
+       * the first.
+       */
+      /* 1 — no longer softened. See `floor`: taking the contrast out is what read as a grey filter. */
+      softens: 1,
+      /**
+       * **How far the camera pushes into the studio as it leaves it**, as a scale on the method plate
+       * about its window (`persisting.leaves`). The room is walked toward its one source of outside
+       * light while that light is all that is left of it.
+       */
+      /* Halved on 26 September 2026 — *"evitar grandes movimentos"*. A drift, not a push. */
+      leaves: 0.05,
+      /**
+       * **How much wider than Contact's framing the hillside arrives**, as a fraction of that framing.
+       * `persisting.returns` closes it to 0, so the push that began in the room carries on across the
+       * hillside and lands on the found frame. Small on purpose: at this much the move reads as the
+       * same walk continuing, not as a zoom.
+       */
+      returns: 0.04,
+    },
+
+    /**
+     * ── The footage keeps its own time · C22's found frame is retired ─────────────────────────────
+     *
+     * Design owner, 26 September 2026: *"No estado normal/repousado do Contact, o vídeo deve correr à
+     * velocidade normal/nativa. Não deve começar lento nem pausado. Só o hover sobre 'Tell us where it
+     * begins.' pode iniciar a desaceleração do vídeo."* So there is no seek, no slow motion through the
+     * passage and no stop: the footage the site opened on arrives at its own speed and stays there
+     * until a hand asks it to slow (`listens`). §11.1's *"an environment paused"* is honoured again at
+     * rest; the only time the world loses speed is when the visitor causes it — which is the one kind
+     * of clock C8 allows.
+     */
+
+    /**
+     * ── Contact writing itself · TRIGGER → PLAY → HOLD ───────────────────────────────────────────
+     *
+     * Scroll decides only the frame the composition begins on (`persisting.asks`); everything below is
+     * seconds from that frame, played by the driver's `play()` and held. Same verb for every part: the
+     * ink rises inside a tracking that closes.
+     *
+     * **26 September 2026 — the composition is two corners of one frame.** Lower left, the question and
+     * the one line that answers it; upper left, on the same axis, the studio's contacts as a small
+     * editorial note. `YOUR CHAPTER` is removed. The note arrives last and quietest, so the question is
+     * read first and the contacts are found rather than announced.
+     *
+     *     0.00 – 1.70   the question's first line
+     *     0.28 – 1.98   its second line
+     *     1.20 – 2.60   Tell us where it begins. — and its line, drawn from the axis
+     *     2.00 – 3.60   the contacts, upper left — and then only the sentence breathes
+     */
+    composes: {
+      /** Each part's own arrival: when, after the trigger, and over how long. Seconds. */
+      question: { at: 0, over: 1.7, lineLeads: 0.28 },
+      begins: { at: 1.2, over: 1.4 },
+      note: { at: 2.0, over: 1.6 },
+      /**
+       * **Letting go, and it is not the arrival played backwards.** When the hand goes back past the
+       * start of the empty frame (`persisting.empty`, so the light is about to go down again), the
+       * whole composition releases at once over this, and the passage is the scroll's again.
+       * Coming back down plays the arrival from the start.
+       */
+      releases: 0.5,
+      /**
+       * The same letting go when it is caused by the closing frame unlocking on the way back up — QA,
+       * 26 September 2026. The composition is then being carried down the screen, so it goes in half
+       * the time rather than being seen travelling.
+       */
+      unlocks: 0.25,
+    },
+
+    /**
+     * ── The sentence at rest · it breathes, the line does not ────────────────────────────────────
+     *
+     * *"É o TEXTO que respira em repouso. A linha NÃO respira… muito lenta, aproximadamente 4–6
+     * segundos por ciclo."* One cycle, in ms. Tracking and a little ink only — nothing that scales
+     * from a centre, so the left axis the whole composition stands on never moves.
+     */
+    breathes: 5400,
+
+    /**
+     * ── The footage arriving · the film's own dissolve is the last step of the passage ─────────
+     *
+     * *"Usa o próprio movimento/transformação do vídeo como parte da transição."* The hero loop opens on
+     * the cold ridges under moving cloud and brings the figure in by its own dissolve at about 2.0 –
+     * 3.0s of the file. So the footage is taken to `seekTo` at the one instant it is still invisible —
+     * the frame `persisting.crosses` opens — and from then on runs at its own speed: the moving sky is
+     * what comes through the room, and the figure dissolves in while Contact is being written.
+     *
+     * Not a hold and not a rate: a cue on the file, which is why it is seconds of the file.
+     */
+    arrives: { seekTo: 0.3 },
+
+    /**
+     * ── We're listening · the hand slows the world ─────────────────────────────────────────────
+     *
+     * **TRIGGER → SLOW PLAY → HOLD, and the trigger is a hand, not the scroll.** Pointer over *Tell us
+     * where it begins.* (or focus) runs one value, `--listen`, 0 → 1 on a clock; everything the
+     * direction lists reads it — the sentence opening and becoming *We're listening.*, the line
+     * growing to the question's measure, the footage losing speed, the light turning very slightly,
+     * the contacts gaining presence. Leaving runs it back from wherever it is, never from the end.
+     * A press holds it at 1: the answer has been given, and the contacts are the ways to write.
+     *
+     * Input-caused, so a clock is what C8 reserves for it. Seconds.
+     */
+    listens: {
+      /**
+       * Rest → listening. Long enough that the slowing is watched, not noticed afterwards — 2.8 from
+       * the fourth review, so the line's growth and the frame arriving read as slow, not as a switch.
+       */
+      opens: 2.8,
+      /** Listening → rest when the hand leaves. Soft, never a reset. */
+      closes: 1.9,
+      /**
+       * **The frame the world comes to rest on**, seconds of the hero file — fourth review, 26 September
+       * 2026: *"escolhe um frame… visualmente forte — preferencialmente um momento em que a figura esteja
+       * bem composta contra o sol."* Chosen in Chrome at 1920 × 889 against 5.3, 6.2, 7.2 and 8.3: at 4.4
+       * she is in profile beside the sun, hair lifted, the silhouette whole and clean, and the dress
+       * nowhere near the question. The later poses fold in on themselves or flare toward the type.
+       */
+      holdAt: 4.4,
+      /**
+       * **The slowest the footage runs before it stops**, as a playback rate — and then it stops.
+       *
+       * Second pass, 26 September 2026: *"O comportamento atual de 1.0 → 0.07 não funciona… parece que
+       * está a saltar frames/lag."* It was: the source is a 30fps file, and at 0.07 Chrome shows a new
+       * frame every half second — slow motion becomes stepping. Below about a third, every rate reads
+       * as a fault rather than as time slowing. So the rate falls 1 → 0.3 on the curve and the footage
+       * is paused there, on a whole frame: NORMAL → slowing → slow → STILL. Leaving plays it at 0.3 and
+       * brings it back up the same curve.
+       */
+      slowest: 0.3,
+      /** How far into the gesture (on `--listen`) the rate reaches `slowest`; the rest runs slow. */
+      slowAt: 0.8,
+      /**
+       * Updates to the rate are made in steps of this, not every frame. Each change re-times Chrome's
+       * media clock; forty a second is enough on its own to make the footage hitch.
+       */
+      rateStep: 0.05,
+    },
+
+  },
   /* ─────────────────────────────────────────────────────────────────────────────────────────────
      DISTANCE · **HOW FAR THE HAND TRAVELS.** vh, and beat counts.
 
@@ -1345,9 +2541,123 @@ export const TIMING = {
     act: { fine: '660vh', coarse: '990vh' },
     actBeats: 3.2,
 
-    /** The method. A beat costs less here on purpose — the publication is not cinema. */
-    method: { fine: '750vh', coarse: '1125vh' },
-    methodBeats: 5.0,
+    /**
+     * The method. A beat costs less here on purpose — the publication is not cinema.
+     *
+     * **540 where it was 750, and the price of a beat is untouched at 150vh.** The two numbers move
+     * together or the whole section is retimed: `perMethodBeat` is `method / methodBeats`, and it is
+     * 1.5 viewports either way. What came off is the distance the section no longer spends — the field
+     * arrives in three bursts rather than seven separate starts (`method.composed`), and the
+     * convergence that used to run for half a beat is gone with it, so the choreography resolves at
+     * 3.34 beats where it resolved at 4.75.
+     *
+     * Leaving 750 here would have bought the same section 1.4 beats — about two viewports — of held
+     * frame with nothing scheduled in it, which is the dead scroll the brief is complaining about,
+     * moved to the end.
+     */
+    method: { fine: '540vh', coarse: '810vh' },
+    methodBeats: 3.6,
+
+    /**
+     * **About's runway, which is the whole of junction 10 → 11** — and therefore the length of the
+     * passage from the room with somebody in it to the room without.
+     *
+     * It was `height: 82vh` in `globals.css`, which is a scroll distance written into a stylesheet and
+     * the one thing `docs/development/03-choreography.md` does not allow. Measured at 1440 × 749 it
+     * bought the junction **840px — about 1.1 viewports** for four movements, which is nine wheel
+     * notches for the whole passage: the light went down and came back up inside a single flick.
+     *
+     * 175vh gives about 1,530px, a little over two viewports, so each movement of `about.passage` has
+     * 300 to 430px of its own. **It retimes nothing** — every number in `about` is a fraction of this
+     * junction, so the proportions are untouched and only the distance they are spent over changes.
+     *
+     * About's own composition is unaffected: `.about-stage` is fixed in the viewport and arrives on
+     * junction 09 → 10, which this does not touch.
+     *
+     * The 1.5 ratio for a thumb is the one the three runways above already share.
+     */
+    about: { fine: '175vh', coarse: '262vh' },
+
+    /**
+     * **Questions' reading zone** — design owner, 20 September 2026: *"Depois de todas as perguntas
+     * estarem completamente carregadas, NÃO quero que o scroll avance imediatamente para Contact…
+     * Quero uma pausa suficientemente longa para a composição ser apreciada, não apenas alguns pixels."*
+     *
+     * It is not a runway and nothing is held in a frame across it: it is plain scroll space at the foot
+     * of the section, which is the whole mechanism. `.closing-frame` follows Questions in ordinary flow,
+     * so this pushes the junction that releases the rows away from the moment they finish arriving —
+     * and until that junction begins, `--jrel1` … `--jrel7` are 1 by construction. Nothing animates, so
+     * stopping anywhere in here leaves the composition exactly as it is.
+     *
+     * **Measured, the hold was about 250px.** The seven rows were complete 100px above the section's
+     * top and `--jrel1` had already begun to fall 150px below it; the composition was gone by +400. It
+     * arrived and then immediately dissolved, which is the fault this closes.
+     *
+     * 150vh is 1.5 viewports, which at 1920 × 889 takes the release from +150 to about +1,480 and
+     * leaves roughly 1,300px in which nothing at all changes. 1.5× on a thumb, as every other distance
+     * here is.
+     */
+    /*
+     * **+50vh from the fourth review, 26 September 2026.** The passage 13 → 14 now starts while the
+     * list is still standing (`persisting.startsBefore`), and this is the stretch it stands through:
+     * seen in Chrome, the list unstuck ~150px before the closing frame locked, so by the time the
+     * passage began *What do you actually create?* had already left the top of the screen — and it is
+     * meant to be the last thing standing.
+     */
+    asked: { fine: '200vh', coarse: '300vh' },
+
+    /**
+     * **How far Questions stands inside the Method's trailing frame** — design owner, 21 September
+     * 2026, reporting the same fault for the third time: *"o ecra passa muito tempo em scroll vazio
+     * sem nada ate chegar ao Questions."*
+     *
+     * ── What the distance is made of, measured in Chrome at 1920 x 889 ───────────────────────
+     *
+     *     28,278   the Method's last ink is gone, its frame still held at y 99
+     *     28,366   the pin runs out and the empty frame starts travelling
+     *     29,247   `.method`'s box ends
+     *     29,286   Questions' list reaches the head margin and the anchor may begin
+     *              ─────  1,008px, of which 889 is the frame's own height plus the head margin
+     *
+     * **That 889 is structural and no timing can reach it.** `.method-stage` is sticky inside
+     * `.method`, so a sticky element's range is its parent's content less its own height: the last
+     * frame-height of the box is the held frame scrolling out, and it cannot be removed without
+     * taking the same distance out of the runway. Two whole rounds were spent trying to close it from
+     * the timings — moving the clearing into that stretch only made the composition *drag* out of
+     * frame, which is the fault the design owner rejected next (`method.gathered.holds`).
+     *
+     * **So the overlap is the answer, and it is honest rather than a trick.** Nothing is drawn in
+     * that stretch: `.env-room` is fixed, the rail is fixed, and the only thing moving is an empty
+     * stage. Questions standing in it changes nothing about what the Method does — the Method still
+     * clears entirely in place, at y 99, with its frame held — and lets the list reach its lock while
+     * the empty frame slides away behind it.
+     *
+     * 70vh is 622px at this frame, which leaves **~386px** between the Method's last ink and the
+     * anchor's first: a breath, which is what the passage wanted, instead of a viewport of nothing.
+     *
+     * **It is one number in viewport heights and not a fine/coarse pair**, because what it has to
+     * cover is one frame height plus one head margin — a layout distance, the same on a wheel and a
+     * thumb, for the reason `methodArrival` is. `--method-pin` being half as long again on touch does
+     * not make the trailing frame any taller.
+     */
+    askedLead: '70vh',
+
+    /**
+     * **The settle at the end of junction 13 → 14**, and it was `--closing-settle: 24vh` in
+     * `globals.css` — a scroll distance written into a stylesheet, which is the one thing
+     * `docs/development/03-choreography.md` does not allow. Moved here unchanged in value and
+     * published as the same property, so nothing about the composition moved with it.
+     *
+     * What it is: the junction finishes with Contact composed and the rule on its writing line, and
+     * ending the document there would mean the visitor arrives at the composition and the page stops
+     * in the same frame. The frame stays stuck for this much longer — long enough to read four lines,
+     * short enough that it never reads as empty scroll — and *then* the second composition begins.
+     *
+     * It is a plain number of viewport-hundredths rather than a fine/coarse pair: the driver needs it
+     * to know where the second composition's own distance opens, and a reading pause is the same
+     * pause on a wheel and a thumb.
+     */
+    closingSettle: 24,
 
     /** How V2's quoted seconds become distance, for the junctions that carry a weight. */
     secondsToVh: 20,

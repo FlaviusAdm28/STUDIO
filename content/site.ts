@@ -411,6 +411,22 @@ export const site = {
       height: 1024,
       alt: '',
     },
+
+    /**
+     * **The studio plate's second moment — the room once the person has left.**
+     *
+     * Same camera, same lamp, same wall, same plant, same books; the chair is pushed in and there is a
+     * pen pot and a closed notebook on the desk. It is deliberately the *same frame* rather than a
+     * second photograph of the same subject, because the whole of the About → Method passage is one
+     * dissolve between them: anything that moved would stop being a moment passing and start being a
+     * cut. Identical dimensions for the same reason.
+     */
+    method: {
+      src: '/media/studio/method.png',
+      width: 1536,
+      height: 1024,
+      alt: '',
+    },
   },
 
   /**
@@ -574,7 +590,13 @@ export const site = {
      * and `ledger.tsx` promotes that one out of this list into the header.
      */
     destinations: [
-      { id: 'work', word: 'Work', folio: '01', to: null },
+      /*
+       * **Work navigates, like every other chapter** — design owner, 26 September 2026: *"The rail is a
+       * chapter navigation system. Clicking any chapter in the rail must navigate to that chapter."* It
+       * was `null` and opened the Work aside over the frame the visitor was in (§6). Its destination is
+       * the act the Work is written on (`#studio`), which lands on the Work composed and held.
+       */
+      { id: 'work', word: 'Work', folio: '01', to: where.studio },
       { id: 'about', word: 'About', folio: '02', to: where.about },
       { id: 'method', word: 'Method', folio: '03', to: where.method },
       { id: 'questions', word: 'Questions', folio: '04', to: where.questions },
@@ -982,20 +1004,40 @@ export const site = {
         'It\u2019s starting.',
       ] as const,
 
-      /** 62px at x196, bottom 142 — the studio's one question, asked after the room has spoken. */
+      /**
+       * **The studio's one question, and it is the second line of the main composition.**
+       *
+       * §2 anchors it at *62px serif, x196, bottom 142* — the foot of the frame, under the field it
+       * answers. It is not there any more: the design owner asked on 19 September 2026 for this and
+       * the answer below to be *"UMA composição editorial principal"*, so the two stand together on
+       * About's own axis and vertical, at 44px under the answer's 78. `globals.css`, `.mmain`.
+       *
+       * §3's *survive* is why they are adjacent at all — the question's last word is the answer's
+       * first — so `question` and `answer` are one mechanism and must be edited together.
+       */
       question: 'What makes it yours?',
 
       /**
-       * And the line under it, at 8.5px / .26em. It is the only thing in the section that tells the
-       * visitor what is happening, and what it tells them is that nothing is being asked of them.
+       * **Not drawn, and kept so it is not lost** — design owner, 19 September 2026.
+       *
+       * It was the fourth piece of the main composition, in micro-caps under the question: the only
+       * thing in the section that told the visitor what was happening, which was that nothing was being
+       * asked of them. The brief reduced the composition to three — *"Simplifica o conteúdo para apenas
+       * estas três peças"* — and a fourth voice is exactly what it was.
+       *
+       * It stays here rather than being deleted for the reason `docs/design/archive` keeps removed copy:
+       * the words were authored and the next brief may want them. Nothing renders it.
        */
       note: 'Nobody is asked to answer. The studio is listening.',
 
       /**
-       * **State 12 — the payoff.** 104px at x196, y262, the largest type on the site, and it is reached by
-       * §3's *survive*: *"One word survives the question and is still in the answer: yours → Your."* The
-       * question's last word is the answer's first, which is what makes the payoff read as earned rather
-       * than announced — so `question` and `answer` are one mechanism and must be edited together.
+       * **State 12 — the payoff**, and the first line of the composition the question is the second of.
+       *
+       * §2 sets it at *104px at x196, y262*; it is set at About's own headline scale on About's own
+       * vertical instead, which is the same axis and the same voice one section later — the reference
+       * the 19 September brief gives by name. It is still the largest type on the site and it is still
+       * reached by §3's *survive*: *"One word survives the question and is still in the answer: yours
+       * → Your."*
        */
       answer: 'Your experience',
 
@@ -1005,6 +1047,41 @@ export const site = {
        * composition rather than the spec's.
        */
       line: 'Built around what makes yours unique.',
+
+      /**
+       * **One marginal annotation, and it was two** — design owner, 20 September 2026.
+       *
+       * It is a note in the margin of the field rather than a label on it: the brief asks for
+       * *pequenas notas de margem / indicações editoriais relacionadas com o processo*, discreet,
+       * *poucas são melhores*. It is set in the micro-caps register the rail and About's three
+       * refusals already use, and it says what the field **is** rather than what the studio does —
+       * `04-visual-language.md` §11.3, nothing here argues for us.
+       *
+       * **`Overheard, not directed` is removed and is not replaced.** It stood at the head of the
+       * field, level with `Is everyone here?`, as that field's caption. The design owner took it out
+       * on 20 September 2026 and asked for nothing in its place: the field says what it is by being
+       * overheard, and a note explaining that was the one piece of type in the frame that described
+       * the composition instead of belonging to it. `globals.css` keeps the surviving note's own
+       * position; the field's line 1 is unchanged and now stands uncaptioned, which is the point.
+       *
+       * **No full stop**, where `about.lines` carry them: those are statements and this is an
+       * annotation. A marginal note that punctuates itself is a sentence that has wandered out of the
+       * column.
+       *
+       * It sits beside the last line it is true of. `globals.css` places it.
+       */
+      annotations: ['Kept exactly as it happened'] as const,
+
+      /*
+        **`Observe · Understand · Shape · Preserve` is removed** — design owner, 20 September 2026.
+
+        It was the process signed rather than listed, four words in micro-caps at the foot of the
+        frame. It is gone from the copy as well as from the frame, and it is deliberately **not**
+        recorded here as a line that is kept but not drawn — the way `about.quiet` is — because what
+        was decided is not that it should be silent: *"REMOVER COMPLETAMENTE. Não substituir por outro
+        texto. Não tentar reconstruir essa ideia com novas palavras. A ideia do 'método' já está a ser
+        comunicada pela própria cena e pelas frases ambientais."*
+      */
     },
     /**
      * ── The questions · state 13 ──────────────────────────────────────────────────────────────
@@ -1114,7 +1191,23 @@ export const site = {
        * 92px serif at y152 — the largest type in the publication, and still quieter than anything the film
        * said. A question rather than an instruction, and the reader is the one who answers it.
        */
-      ask: 'Is there something that deserves its own experience?',
+      /**
+       * **Two authored lines** — design owner, 22 September 2026: *"Is there something / that
+       * deserves its own experience?… Duas linhas apenas."*
+       *
+       * The words are §4's, verbatim and unchanged; what is authored is where the line ends, which
+       * `04-visual-language.md` §4 makes part of the composition rather than part of the copy. It is
+       * stored as an array for the same reason `about.headline` is: a break the stylesheet chooses is
+       * a break that moves with the measure, and this one is the composition.
+       *
+       * It was one string under `text-wrap: balance` inside a 22ch measure, which gave four short
+       * lines stacked in the top-left corner — a paragraph rather than a statement.
+       *
+       * ⚠ The second line is 33 characters. `decisions.md` §54 measured that a display line over 24
+       * wraps on a 320 frame, so below about 900 these two become three or four and that is correct:
+       * the authored break is the desktop composition, and a phone is not that frame.
+       */
+      ask: ['Is there something', 'that deserves its own experience?'] as const,
 
       /**
        * 21px Cormorant, and it is the writing line's own words rather than a subtitle to the question.
@@ -1149,14 +1242,81 @@ export const site = {
        * `mark` is here rather than in a component because nothing in `src/` may hold an authored
        * character — it is a mark and not language, which is why it is one field and not a sentence.
        *
-       * ⚠ `address` is still `null`, and that is unchanged by V2: `open-decisions.md` §1 has not been
-       * answered and inventing an address here would be the one broken promise on the page. `null` is the
-       * same composed, inert state `three.work.url` uses — the line stands and does not offer a press it
-       * cannot honour. Fill it in and it becomes a `mailto:`; nothing else changes.
+       * `address` was `null` for the whole of V2 and is answered below — see the field's own note.
        */
       write: {
-        mark: '\u2192',
-        address: null as string | null,
+        /**
+         * **The mark is not drawn any more, and the address is printed instead** — design owner,
+         * 22 September 2026: *“A ideia é que o email seja o principal ponto de contacto.”*
+         *
+         * §8 gave this row an arrow and no text because there was no address to print: `address` was
+         * `null`, `open-decisions.md` §1 was open, and a mark was the only honest affordance left. The
+         * address is decided now and it is written on the page under the rule, so the arrow would be a
+         * second way to reach the one thing already legible two lines below it. The field stays because
+         * it is the address the printed line links to, and `mark` stays because removing a mark from
+         * content is not how a mark comes back.
+         *
+         * ⚠ It is carried exactly as it was written down. `direct.phone` below is plainly a reserved
+         * pattern rather than a line anybody answers; both are the design owner's to correct, and
+         * inventing a different one here would be the fault this field was `null` to avoid.
+         */
+        mark: '→',
+        address: 'hello@chapterone.com' as string | null,
+      },
+
+      /**
+       * ── The one line that answers the question ───────────────────────────────────────────────
+       *
+       * **26 September 2026 — `YOUR CHAPTER` is removed**, and nothing replaces it as a title or a
+       * call to action. What stands under the question is one sentence on one line, and it is the
+       * frame's only interaction: *"A interação é a experiência."*
+       *
+       * `begins` is what it says at rest. `listening` is what it becomes while a hand is on it — the
+       * sentence recomposing itself rather than a label swapped — and what it stays once pressed,
+       * when the contacts above are the ways to write.
+       */
+      begins: 'Tell us where it begins.',
+      listening: "We're listening.",
+
+      /** What a letter written from this frame is filed under. */
+      subject: 'Where it begins',
+
+      /**
+       * ── How to reach the studio, written under the line ──────────────────────────────────────
+       *
+       * **Not a form and not a second composition** — design owner, 22 September 2026: *“Não quero um
+       * formulário tradicional neste momento… Não quero uma segunda ‘página’ ou segundo ecrã dentro de
+       * Contact.”* One frame: the question, the line, and what is written on it.
+       *
+       * There are no keys and no colons. The address and the number are two lines of type on the
+       * studio's own rule, and the two places that number is already reachable follow them.
+       */
+      direct: {
+        email: 'hello@chapterone.com',
+        /** What is read, and what is dialled. A number is printed with spaces and dialled without. */
+        phone: { reads: '+351 910 000 000', dials: '+351910000000' },
+        /**
+         * **Both reach the number above, and neither is an invented destination.** The design owner
+         * was explicit — *“se não tivermos, não inventes números/IDs”* — so there is no handle and no
+         * second number here: each link is composed from `phone.dials` where it is used, which is the
+         * one contact the studio has given. `wa.me` takes the digits; Telegram takes them with the `+`.
+         *
+         * ⚠ Which means both are only as real as that number is, and it is a reserved pattern. They
+         * resolve the moment it is replaced, and nothing here has to change with it.
+         */
+        reach: [
+          { word: 'WhatsApp', via: 'whatsapp' },
+          { word: 'Telegram', via: 'telegram' },
+          /*
+           * **Instagram is named and has no destination** — design owner, 26 September 2026, lists it
+           * among the contacts; the project has no handle, and *"não inventar URLs"*. It renders
+           * composed and inert, exactly as `write.address` did while it was `null`, and becomes a
+           * link the moment `handle` is written here.
+           */
+          { word: 'Instagram', via: 'instagram', handle: null as string | null },
+        ] as const,
+        /** The mark between them. A mark and not language, which is why it is a field. */
+        between: '·',
       },
     },
   },

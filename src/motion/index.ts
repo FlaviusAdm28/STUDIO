@@ -80,7 +80,7 @@ export type { Chapter, Destination, Junction, LedgerState, Plate, Runway, State,
 
 /* The Environment — which plate is behind the page, and how lit. A projection of the spine. */
 export { environmentValues } from './environment'
-export type { EnvironmentValues, Placement } from './environment'
+export type { EnvironmentValues, Leaving, Placement } from './environment'
 
 /* Resolved absolutes. Read these; never write them down. */
 export {
@@ -122,6 +122,7 @@ export {
   aperture,
   track,
   actTrack,
+  methodPlayed,
   methodTrack,
   persistTrack,
   relightTrack,

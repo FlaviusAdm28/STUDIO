@@ -66,6 +66,21 @@ export const PLATE = {
   HERO: 'hero',
   VENICE: 'venice',
   STUDIO: 'studio',
+  /**
+   * **The same room, after the person has left** — `public/media/studio/method.png`, supplied by the
+   * design owner 17 September 2026.
+   *
+   * It is not a fourth *place*. It is the studio plate's second moment: identical framing, identical
+   * lamp, identical wall and plant, with the chair pushed in and a pen pot and a closed notebook on the
+   * desk where somebody was working a moment ago. §2 gave states 11 and 12 `STUDIO` because the studio
+   * is where they are, and with one photograph that is all it could mean; with two, the same sentence
+   * can be said properly — *the same space, a different moment*.
+   *
+   * Because the two frames differ in nothing but the person, dissolving between them **is** the person
+   * leaving. No mechanism has to be invented for that, and none is: `environment.ts` crosses them on
+   * the dissolve it already uses for 09 → 10.
+   */
+  METHOD: 'method',
   NONE: 'none',
 } as const
 
@@ -383,39 +398,85 @@ export const states: readonly State[] = [
   {
     id: 11,
     name: 'Method',
-    plate: PLATE.STUDIO,
-    exposure: 0.12,
+    plate: PLATE.METHOD,
+    /*
+      **0.80, where §2's column says .12 — design owner, 18 September 2026, and it is a departure.**
+
+      §2 authors state 11 as the deepest exposure on the site, and that was written when the Method was
+      a flat ink room with type in it. It is a photograph now, and the column was burying it: decomposed
+      off the real plate, `brightness(0.12)` under `--mground` 0.45 and `--page-veil` 0.55 left **3% of
+      the photograph's own range on screen** against About's 102%. The room was not dark, it was
+      *covered*.
+
+      The brief is explicit that this is the thing to change — *"Se for necessário alterar a camada de
+      grading/exposição do Method para conseguir isto, FAZ"* — and that the Method's photograph must
+      carry the same visual dignity as About's. At 0.80, with the two veils reduced with it, the plate
+      keeps 63% of its range and renders at 73% of About's detail; the wall, the lamp, the desk, the
+      books, the plant, the chair and the window all read.
+
+      It is brighter than About's own mean because `method.png` is intrinsically brighter — which is the
+      narrative rather than an accident: the person has gone and another quality of light is in the room.
+      `implementation-reconciliation.md` C19.
+    */
+    exposure: 0.8,
     ground: null,
     ledger: { exposure: 0.08, ink: null, active: 'method', chapter: 'III', unlit: false, index: true },
     anchor: '62px serif, x196, bottom 142; seven overheard lines 15 → 36px',
     runway: 'method',
-    beats: ['methodStory.opening', 'methodStory.asking', 'methodStory.gathered'],
-    composed: false,
-    note: 'Twelve considerations behind four questions; V2 has seven overheard lines. Same class of composition, different content — a copy pass.',
+    beats: ['methodStory.composed', 'methodStory.gathered'],
+    composed: true,
+    note: '§4’s seven overheard lines, built — in three bursts on the section’s own beats (`TIMING.method.composed`), with the studio’s question arriving before the frame locks as the first piece of the main composition. It named `opening` and `asking` while the twelve considerations behind four questions were still what filled the frame; nothing draws those. Plate is `method` from 17 September 2026 — the studio plate’s second moment, the room after the person has left; §2 wrote `studio` when there was only one frame of it.',
   },
   {
     id: 12,
     name: 'Your experience',
-    plate: PLATE.STUDIO,
-    exposure: 0.2,
+    plate: PLATE.METHOD,
+    /* Raised with state 11 and keeping §2's own relation — 12 is a little brighter than 11. C19. */
+    exposure: 0.86,
     ground: null,
     ledger: { exposure: 0.14, ink: null, active: 'method', chapter: 'III', unlit: false, index: true },
     anchor: '104px serif, x196, y262 — largest type on the site',
+    /*
+      §2's *y262* is given up with the two-anchor composition it belonged to: the answer, its line and
+      the studio's question are one block on About's own vertical from 19 September 2026. The axis and
+      the hierarchy are §2's; where the block stands is `globals.css`'s `--m-main-y`.
+    */
     runway: 'method',
-    beats: ['methodStory.converge', 'methodStory.resolve', 'methodStory.printing'],
+    beats: ['methodStory.resolve', 'methodStory.printing'],
     composed: true,
     note: 'C3. Built, verbatim, as the method’s payoff — `publication.method.answer`. Its Ledger stays on Method, so it is a state and not a destination, which is exactly what the archived doctrine asked for.',
   },
   {
     id: 13,
     name: 'Questions',
-    /* Not a fourth plate: the hero plate's own sky band under the state-13 grade. §11.2. */
-    plate: PLATE.HERO,
+    /*
+      **The room, and this is a departure from §2 taken by the design owner on 19 September 2026.**
+
+      §2's own column for this state is `hero · sky band, graded — ground 160–171, R−B +26, desaturated,
+      near-still`: warm stone, dark ink, the brightest frame after the film. The instruction that
+      replaces it is about continuity rather than about this state alone — *"ABOUT → METHOD → QUESTIONS
+      = continuidade visual da mesma sala. QUESTIONS → CONTACT = mudança de ambiente."* So the longest
+      run of type on the site is read in the room the method resolved in, and the one change of
+      environment in the second half happens at Contact.
+
+      It is recorded here, on the state, because this is the only place that says what a state stands
+      on; `TIMING.grounds` and the rail follow from it rather than repeating it. Two things follow
+      automatically and both are the point: 12 → 13 now changes nothing at all — same plate, same
+      exposure, same veil, same ink — and 13 → 14 carries the whole change.
+
+      **§11.2 is not violated by this and it is worth saying why.** Warm stone was never allowed to be
+      an asset (*"`dawn_warm.png` must not be referenced in production code"*) and it still is not: the
+      grade simply has no state left to be worn on, so `environment.ts` stops asking for it. Nothing
+      new is loaded — this is the plate the two states before it already stand on.
+    */
+    plate: PLATE.METHOD,
+    /* Unstated, so it inherits state 12's .86 — the room does not change light across 12 → 13. */
     exposure: null,
-    ground: 'hero · sky band, graded — ground 160–171, R−B +26, desaturated, near-still',
+    ground: null,
     ledger: {
       exposure: 1,
-      ink: '#171613',
+      /* Light, with the room. It was §2's `#171613`, which was the ink warm stone asked for. */
+      ink: '#f2e9dc',
       active: 'questions',
       chapter: 'III',
       unlit: false,
@@ -425,13 +486,26 @@ export const states: readonly State[] = [
     runway: 'flow',
     beats: ['afterTheFilm.answer'],
     composed: true,
-    note: 'Eight rows against V2’s seven, and different copy. The mechanism — progressive disclosure on + / −, nothing above a row moving — is §7 as written. The ground is a grade of the hero plate and never a second image; loading one voids the locked 13 → 14. §11.2.',
+    note: 'Eight rows against V2’s seven, and different copy. The mechanism — progressive disclosure on + / −, nothing above a row moving — is §7 as written. The ground is the method’s own plate: §2’s warm stone is given up here by the design owner, 19 September 2026, so that About → Method → Questions is one room and the change of environment is 13 → 14.',
   },
   {
     id: 14,
     name: 'Contact',
     plate: PLATE.HERO,
-    exposure: 0.72,
+    /*
+      **0.9, where §2 gives .72** — design owner, 26 September 2026: *"Não assumes que esse tratamento
+      está correto… Quero uma imagem cinematográfica e controlada, mas não excessivamente esmagada."*
+      Compared in Chrome at 1920 × 889 on both halves of the loop: at .72, under `.closing`'s scrim, the
+      landscape half read as one grey-green mass with no ridge left in it. At .9 the ridges and the
+      valley light come back, and the question — set over the ground, the darkest part of the frame —
+      loses nothing. Recorded as a departure in `implementation-reconciliation.md` C23.
+    */
+    /*
+      **1 from the second pass** — *"Quero testar primeiro o Contact praticamente sem filtro global sobre
+      o vídeo… vídeo limpo + tratamento de imagem muito subtil."* The footage at its own exposure; what
+      legibility needs is left to the type's own halo, not to the picture.
+    */
+    exposure: 1,
     ground: null,
     ledger: {
       exposure: 0.8,
@@ -565,7 +639,7 @@ export const junctions: readonly Junction[] = [
     time: 4.0,
     adopted: true,
     asStated: false,
-    note: 'C3. The convergence and the answer are built; the survivor is not yet one element — the questions do not contain the word until V2’s state 11 copy lands. The pattern exists already: `.mark` is one element that is a word in a sentence and then a mark in a corner.',
+    note: 'C3. The answer is built and the field no longer converges — design owner, 19 September 2026: the overheard lines stay lit in the room while the composition resolves among them. §3’s survivor is not yet one element; the questions do not contain the word until V2’s state 11 copy lands, and the pattern exists already — `.mark` is one element that is a word in a sentence and then a mark in a corner.',
   },
   {
     from: 12,

@@ -19,8 +19,19 @@
 
 import { easings } from './easings'
 import { TIMING } from './timing'
-import { actPin, chapterOneStory as one, methodPin, pin, rates } from './story'
-import { about, answer, chapterThree, navHover, studioBlocks, work } from './timeline'
+import {
+  aboutPin,
+  actPin,
+  askedHold,
+  askedLead,
+  chapterOneStory as one,
+  closingSettle,
+  METHOD_BEATS,
+  methodPin,
+  pin,
+  rates,
+} from './story'
+import { about, answer, chapterThree, methodSpans, navHover, persistSpans, studioBlocks, work } from './timeline'
 import { actTrack, aperture, methodTrack, PRECISION, track } from './scroll'
 import { DESTINATIONS, WORK_IS_AN_ASIDE, depthOf, stateOf, states } from './spine'
 import { environmentValues } from './environment'
@@ -74,6 +85,13 @@ const settings: ReadonlyArray<readonly [string, string]> = [
   ['--rail-out', `${TIMING.publication.chapter.out}ms`],
   ['--rail-in', `${TIMING.publication.chapter.in}ms`],
   ['--rail-lag', `${TIMING.publication.chapter.lag}ms`],
+  /* The folio mark changing page — `TIMING.publication.mark`. The drift is composition, in `globals.css`. */
+  ['--rail-mark-out', `${TIMING.publication.mark.out}ms`],
+  ['--rail-mark-out-after', `${TIMING.publication.mark.outAfter}ms`],
+  ['--rail-mark-point-out', `${TIMING.publication.mark.pointOut}ms`],
+  ['--rail-mark-in', `${TIMING.publication.mark.in}ms`],
+  ['--rail-mark-point-after', `${TIMING.publication.mark.pointAfter}ms`],
+  ['--rail-mark-point-in', `${TIMING.publication.mark.pointIn}ms`],
 
   /*
     ── The Work's carousel · `TIMING.work.carousel` ────────────────────────────────────────────────
@@ -128,10 +146,40 @@ const settings: ReadonlyArray<readonly [string, string]> = [
   ['--about-release-over', `${TIMING.about.release[1] - TIMING.about.release[0]}`],
 
   /*
+    **The method's composition.** Every arrival is a range on the section's own runway and the driver
+    resolves them all (`methodTrack`), so nothing about *when* anything arrives is published here —
+    including the three pieces of the main composition, which now each have a channel of their own.
+    What is left is the one number the stylesheet cannot derive: how far a line settles.
+
+    `--m-lag` went with the derivation it existed for. The line under the statement used to be the
+    statement's own arrival, trailed by a breath; it is authored as its own beat now, between the
+    second burst of the field and the third.
+  */
+  ['--m-rise', `${TIMING.method.composed.rise}px`],
+
+  /* Each thought's sideways step as it leaves the room — `TIMING.method.leaves.thoughts.drift`. */
+  ...TIMING.method.leaves.thoughts.drift.map((px, i) => [`--mdx${i + 1}`, `${px}px`] as const),
+
+  /*
     The publication's interface timing: a question answering. Outside --haste for the reason `navHover` is,
     and faster than it, because a press must never feel slower than a hover — `story.afterTheFilm.answer`.
   */
   ['--fade-answer', `${answer.fade}ms`],
+
+  /*
+    Contact's sentence at rest: one breath, in tracking and a little ink. The listening itself is not
+    a CSS duration — it is one value run by `contact-listen.tsx` on `TIMING.contact.listens`, because the
+    footage's rate has to follow it frame by frame and a transition cannot tell script where it is.
+  */
+  ['--contact-breath', `${TIMING.contact.breathes}ms`],
+
+  /*
+    The one camera move of 13 → 14: how far it pushes into the room, and how much wider than Contact's
+    framing the hillside arrives. `--env-leave` and `--env-return` say how much of each has run.
+    `TIMING.contact.passage`.
+  */
+  ['--env-leave-by', `${TIMING.contact.passage.leaves}`],
+  ['--env-return-by', `${TIMING.contact.passage.returns}`],
 
   /*
     About arriving — the photograph, the mark, then the words, one after another. The delays are resolved in
@@ -176,6 +224,54 @@ const settings: ReadonlyArray<readonly [string, string]> = [
     deliberately cheaper than either of theirs: `story.methodPin` argues the numbers.
   */
   ['--method-pin', methodPin.fine],
+  /*
+    Where the rail's *Method* lands, as a fraction of `--method-pin`: just past the composition being
+    complete — `TIMING.method.lands`. `globals.css` turns it into the anchor's offset.
+  */
+  [
+    '--method-lands',
+    `${((methodSpans.gatheredFrom + TIMING.method.lands.afterGathered) / METHOD_BEATS).toFixed(4)}`,
+  ],
+
+  /*
+    **About's runway, which is the whole of junction 10 → 11.** Not a held frame like the three above —
+    About's composition is fixed in the viewport and this is simply how far the visitor travels while
+    the room goes from having somebody in it to not. It is here rather than as a `height` in
+    `globals.css` because it is a scroll distance, and `TIMING.distance.about` argues the number.
+  */
+  ['--about-pin', aboutPin.fine],
+
+  /*
+    Questions' reading zone — the scroll space the composition stands through before the junction that
+    releases it. `story.askedHold` argues it; `globals.css` spends it as the section's own foot.
+  */
+  ['--asked-hold', askedHold.fine],
+  /*
+    Where the rail's *Questions* lands, in viewport heights past the list's lock: the point the FAQ
+    sequence fires — `TIMING.questions.faq.afterLock`. `globals.css` turns it into the anchor's offset.
+  */
+  ['--asked-lands', `${TIMING.questions.faq.afterLock}`],
+  /*
+    How far Questions stands inside the Method's trailing frame. One number on both pointers — it
+    covers a frame height and a head margin, which do not change with the runway's price.
+    `story.askedLead` argues it.
+  */
+  ['--asked-lead', askedLead],
+
+  /*
+    ── Contact, and both halves of it ──────────────────────────────────────────
+
+    `--closing-pin` is junction 13 → 14's own runway and it is **not a number anybody chose**:
+    `persistSpans.length` is §8's sheet converted once, `total × SECONDS_TO_VH`. It was written out
+    as `72vh` in `globals.css`, which is the same value twice — and when the sheet was retimed on
+    22 September the stylesheet would have kept the old length and the frame would have let go
+    a third of the way through the junction.
+
+    `--closing-settle` is the pause after it, so the frame stands finished for a moment rather than
+    ending in the frame it composes. `story.ts` argues both; `globals.css` only spends them.
+  */
+  ['--closing-pin', `${persistSpans.length}vh`],
+  ['--closing-settle', `${closingSettle}vh`],
 
   /*
     **The Work aside.** `story.WORK_IS_AN_ASIDE` — V2 §3's fourteenth row, and the only junction on the
@@ -306,6 +402,8 @@ ${declare(firstState(), '  ')}
     --pin: ${pin.coarse};
     --act-pin: ${actPin.coarse};
     --method-pin: ${methodPin.coarse};
+    --about-pin: ${aboutPin.coarse};
+    --asked-hold: ${askedHold.coarse};
   }
 }
 

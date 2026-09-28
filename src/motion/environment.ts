@@ -54,6 +54,84 @@ import { TIMING } from './timing'
  */
 const crossWindows: Readonly<Record<number, readonly [number, number]>> = {
   9: TIMING.about.superimpose as unknown as readonly [number, number],
+  /*
+    **10 → 11 · the room, some time later**, and it is an ordinary dissolve again.
+
+    It has been three things: the whole junction, then a narrow dip deep enough to hide the difference
+    between the plates, then a soft edge travelling across the frame. The travelling edge did hide the
+    exchange — and it read as *a layer moving*, which is the one thing a photograph must never do. The
+    design owner ruled it out on 18 September 2026: *"não quero que o utilizador perceba 'uma camada
+    está a descer/subir'… quero que pareça luz e tempo, não uma técnica de composição."*
+
+    What makes a plain dissolve work now, where it could not before, is that the two things it used to
+    betray have both changed. The window on the right wall was the fault when it was the only rising
+    luminance in a darkening frame; the room it arrives into is lit now, and its arrival is the point —
+    *another quality of light is in the space*. And the person's ghost was a fault when it read as two
+    photographs; against a room that is visibly the same room, it reads as the thing it is, which is
+    somebody leaving.
+
+    So the plates cross uniformly, in place, over most of the junction, inside a gentle fall and recovery
+    of the light. Nothing travels. `TIMING.about.passage` argues the numbers.
+  */
+  10: TIMING.about.passage.cross as unknown as readonly [number, number],
+
+  /*
+    **13 → 14 is not here any more, and that is the point** — 22 September 2026.
+
+    It was `TIMING.grounds.cross`, a window on **junction 13 → 14's own `0 → 1` on `p`**, while the
+    room's ink came off on `persisting.crosses`, a window on the **persist track**. Two
+    parameterisations of one movement, and the comments on both already said they should be one.
+
+    They are one now, and it is the persist track — §8's own sheet, which is the only thing that
+    describes this junction beat by beat. The driver hands that progress in (`leaving` below), so the
+    plates, the scrim, the ink over the outgoing plate and the light itself all read one number. The
+    exchange is still a dissolve with the incoming plate whole underneath; what is new is that it
+    happens inside `contact.passage`'s floor rather than in the light.
+  */
+}
+
+/**
+ * ── Junction 10 → 11 · the light, in four movements ───────────────────────────────────────────────
+ *
+ * **The one junction on the site whose exposure is not a mix between two states**, and the reason is in
+ * `TIMING.about.passage`: the two studio plates are different enough that they can only be exchanged in
+ * the dark, so the light has to go down *before* the exchange and come back up *after* it. A monotonic
+ * mix from 1.02 to 0.12 never produces that frame — it is at half light exactly where the plates are at
+ * half each.
+ *
+ * It holds, falls to the floor, stands there while the plates change places, and lifts to state 11's own
+ * exposure. Both ends are the states' own values, so nothing either side of the junction moves: at 0 it
+ * is `exposureOf(10)` exactly and at 1 it is `exposureOf(11)` exactly, and junctions 09 and 11 join it
+ * without a step.
+ *
+ * **It is not a fade to black and it never reaches zero.** The floor is a real exposure with the
+ * photograph's own lamp still in it; what it is, is the darkest the room gets before the morning.
+ */
+const PASSAGE = 10
+
+
+/**
+ * One value through the four movements: it holds at `lit`, falls to `bottom` over `down`, stands there,
+ * and lifts to `rest` from `lifts`.
+ *
+ * The exposure and the contrast are the same *shape* but not the same *windows* — the softening trails
+ * the light, and `TIMING.about.passage.soft` argues why at length. They share the lift, because by then
+ * there is nothing left to bloom.
+ */
+const throughThePassage = (
+  raw: number,
+  down: readonly [number, number],
+  lit: number,
+  bottom: number,
+  rest: number,
+): number => {
+  const { lifts } = TIMING.about.passage
+  if (raw <= down[0]) return lit
+  if (raw < down[1]) {
+    return lit + (bottom - lit) * smoothstep(clamp01((raw - down[0]) / (down[1] - down[0])))
+  }
+  if (raw <= lifts) return bottom
+  return bottom + (rest - bottom) * smoothstep(clamp01((raw - lifts) / (1 - lifts)))
 }
 
 /** Where a state sits on the one continuous position. The driver measures these; nothing here does. */
@@ -170,6 +248,22 @@ const STONE_PEAK = 13
 const STONE_TO = 14
 
 const stoneAt = (p: number, placed: ReadonlyArray<Placement>): number => {
+  /*
+    **No layer wears the grade any more, so it is not worn** — design owner, 19 September 2026. State 13
+    stands on the method's own plate (`spine.ts`), which is the room the two states before it stand on;
+    warm stone was a grade *of the hero plate*, and the hero plate is not present at 13 to be graded.
+
+    This is read off the state rather than deleted, so the mechanism comes back with the state if the
+    design owner ever puts warm stone back: §11.2's whole argument — one negative, a grade and never an
+    asset — is intact above and is still what this file would do.
+
+    It also has to be zero rather than merely invisible. `--env-stone` is what tells the rail its ink has
+    crossed to the page's near-black (`--rail-stone`, `--rail-on`), and Questions is read in the film's
+    own light ink on a photograph: a rail turning dark over a dark room is the one thing this would
+    break that nobody would think to look for.
+  */
+  if (states[STONE_PEAK - 1].plate !== PLATE.HERO) return 0
+
   const at = (id: number): number | undefined => placed[id - 1]?.at
   const from = at(STONE_FROM)
   const peak = at(STONE_PEAK)
@@ -194,7 +288,13 @@ export type EnvironmentValues = ReadonlyArray<readonly [name: string, value: str
 const span = (
   p: number,
   placed: ReadonlyArray<Placement>,
-): { readonly from: number; readonly to: number; readonly t: number } => {
+): {
+  readonly from: number
+  readonly to: number
+  readonly t: number
+  /** Where in the junction's own gap the position is, before any cross window narrows it. */
+  readonly raw: number
+} => {
   let lo = 0
   for (let i = 0; i < placed.length; i += 1) {
     if (Number.isFinite(placed[i].at) && p >= placed[i].at) lo = i
@@ -203,11 +303,16 @@ const span = (
   const a = placed[lo].at
   const b = placed[hi].at
   if (hi === lo || !Number.isFinite(a) || !Number.isFinite(b) || b <= a) {
-    return { from: placed[lo].id, to: placed[hi].id, t: 0 }
+    return { from: placed[lo].id, to: placed[hi].id, t: 0, raw: 0 }
   }
   const raw = clamp01((p - a) / (b - a))
   const [w0, w1] = crossWindows[placed[lo].id] ?? [0, 1]
-  return { from: placed[lo].id, to: placed[hi].id, t: smoothstep(clamp01((raw - w0) / (w1 - w0))) }
+  return {
+    from: placed[lo].id,
+    to: placed[hi].id,
+    t: smoothstep(clamp01((raw - w0) / (w1 - w0))),
+    raw,
+  }
 }
 
 /** A number read at both ends of the span and mixed. The one curve, applied once, in one place. */
@@ -328,15 +433,64 @@ const PLATE_RAIL: Record<Plate, { lum: number; mid: number; floor: number }> = {
   [PLATE.HERO]: { lum: 0.18, mid: 0.088, floor: 0.023 },
   [PLATE.VENICE]: { lum: 0.453, mid: 0.019, floor: 0.003 },
   [PLATE.STUDIO]: { lum: 0.008, mid: 0.006, floor: 0.004 },
+  /* Sampled the same way. It is the studio plate's own corner, so it reads as the studio plate does. */
+  [PLATE.METHOD]: { lum: 0.012, mid: 0.008, floor: 0.005 },
   [PLATE.NONE]: { lum: 0, mid: 0, floor: 0 },
 }
+
+/**
+ * **How far junction 13 → 14 has got, on its own sheet.**
+ *
+ * The one junction on the site whose progress is not read off `p`. §8 authors it beat by beat and
+ * the driver runs that sheet from the persistent rule's own position, so *this* is the number every
+ * part of the exchange has to share — `TIMING.environment.persisting` argues why at length.
+ *
+ * `cross` is how far the plates have changed places; `dip` is how far the light is down. `leave` is how
+ * far the camera has pushed into the room toward its window, and `back` how much of the same push is
+ * still to run on the hillside — 1 while it stands wider than Contact's framing, 0 once it has landed.
+ * All four are already eased where they are computed, so nothing here curves them a second time.
+ */
+export type Leaving = {
+  readonly cross: number
+  readonly dip: number
+  readonly leave: number
+  readonly back: number
+}
+
+/** The state junction 13 → 14 leaves. */
+const LEAVING = 13
 
 export const environmentValues = (
   p: number,
   placed: ReadonlyArray<Placement>,
   round: (n: number) => string,
+  /** §8's own sheet for 13 → 14, handed in by the driver; `null` anywhere else on the page. */
+  leaving: Leaving | null = null,
 ): EnvironmentValues => {
-  const { from, to, t } = span(p, placed)
+  const s = span(p, placed)
+
+  /*
+    **13 → 14 takes its progress from §8's sheet and not from `p`.** Everywhere else `raw` is where
+    the position sits in the junction's gap and `t` is that narrowed by the plates' own window. Here
+    the window is the sheet, the driver has already resolved it, and `raw` is the dip — which is what
+    the passage below is a function of.
+
+    **It holds through state 14 as well as state 13, and that is not tidiness.** The persist track is
+    longer than the junction's own tail: state 14 is reached at about 0.48 of it, so `span()` reports
+    `from = 14` for the whole second half of §8's sheet — the light coming back up, the frame holding
+    empty, the headline. Read off the state alone, the passage would end at the bottom of the dip and
+    the dawn would never be performed; measured in Chrome at 1440 × 849 before this, the exposure was
+    back at §2's 0.72 one frame after the state changed, 200px before the lift was meant to finish.
+
+    So while the track is engaged the pair is 13 → 14 whatever the state says, and the sheet decides
+    how far between them the frame is. Below the track it is 13 → 14 at a cross of 1, which resolves
+    to exactly state 14's own values — so nothing steps at the far end either.
+  */
+  const engaged = leaving !== null && (s.from === LEAVING || s.from === LEAVING + 1)
+  const from = engaged ? LEAVING : s.from
+  const to = engaged ? LEAVING + 1 : s.to
+  const t = engaged && leaving !== null ? leaving.cross : s.t
+  const raw = engaged && leaving !== null ? leaving.dip : s.raw
 
   /*
     A windowed junction is a **dissolve**, not a mix: the incoming plate stacks *beneath* the outgoing
@@ -348,7 +502,7 @@ export const environmentValues = (
     stylesheet multiplies the Work's experience plate by this same presence, so whichever ground the
     Work stood on is the one that dissolves.
   */
-  const dissolves = from in crossWindows
+  const dissolves = from in crossWindows || engaged
   const plate = (which: Plate): number => {
     const a = held(from) === which ? 1 : 0
     const b = held(to) === which ? 1 : 0
@@ -360,7 +514,32 @@ export const environmentValues = (
     A measurement of the ground, blended by how present each plate is and scaled by §2's exposure. The
     same shape as `plate()` above, over the numbers rather than over the presences.
   */
-  const exposure = mix(exposureOf(from), exposureOf(to), t)
+  const { holds, falls, floor, softens, soft } = TIMING.about.passage
+
+  /*
+    **And the one at Contact, which is the same idea with a different shape.** About's passage is
+    four movements read off one position; this one is already *two numbers* by the time it arrives —
+    the driver resolved the fall and the lift out of §8's sheet — so the light is simply §2's own
+    crossing taken down by however far the dip has gone. At `dip` 0 it is exactly the mix, which is
+    what makes the two ends of the junction unchanged; at 1 it is `contact.passage.floor` of it.
+  */
+  const exposure = engaged
+    ? mix(exposureOf(from), exposureOf(to), t) *
+      (1 - raw * (1 - TIMING.contact.passage.floor))
+    : from === PASSAGE
+      ? throughThePassage(raw, [holds, falls], exposureOf(from), floor, exposureOf(to))
+      : mix(exposureOf(from), exposureOf(to), t)
+
+  /*
+    **The room's contrast, and it is 1 everywhere except the one passage that needs it.** §11.1 permits
+    the *grade* to change and this is a grade; nothing else on the site asks for it, so nothing else
+    pays for it. `globals.css` applies it before the brightness — see `TIMING.about.passage`.
+  */
+  const contrast = engaged
+    ? 1 - raw * (1 - TIMING.contact.passage.softens)
+    : from === PASSAGE
+      ? throughThePassage(raw, soft as unknown as readonly [number, number], 1, softens, 1)
+      : 1
   const weigh = (of: 'lum' | 'mid' | 'floor'): number =>
     (Object.keys(PLATE_RAIL) as Array<keyof typeof PLATE_RAIL>).reduce(
       (sum, which) => sum + plate(which as Plate) * PLATE_RAIL[which][of],
@@ -384,7 +563,24 @@ export const environmentValues = (
     ['--env-hero', round(plate(PLATE.HERO))],
     ['--env-venice', round(plate(PLATE.VENICE))],
     ['--env-studio', round(plate(PLATE.STUDIO))],
+    ['--env-method', round(plate(PLATE.METHOD))],
     ['--env-exposure', round(exposure)],
+    ['--env-contrast', round(contrast)],
+    /*
+      ── The one camera move of 13 → 14, and the frame it lands on ──
+
+      `--env-leave` pushes the method plate toward its window while the room darkens; `--env-return` is
+      what is left of the same push on the hillside. Both are 0 everywhere but the junction that
+      performs them.
+
+      `--env-frame` is **Contact's framing of the footage**, and it is a state, not a motion: 1 from
+      state 13 on — where the hero is hidden until the plates cross, so it can be reframed unseen — and
+      0 before it, so the hero at state 01 is untouched by construction. `globals.css` says what the
+      framing is, because it is composition and changes with the screen.
+    */
+    ['--env-leave', round(engaged && leaving !== null ? leaving.leave : 0)],
+    ['--env-return', round(engaged && leaving !== null ? leaving.back : 0)],
+    ['--env-frame', s.from >= LEAVING ? '1' : '0'],
     ['--env-pan', round(panAt(p, placed))],
     ['--env-stone', round(stoneAt(p, placed))],
     [

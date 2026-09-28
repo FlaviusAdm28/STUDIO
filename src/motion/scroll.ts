@@ -192,53 +192,73 @@ export const actTrack: Track = [
 /**
  * **The method, assembled — the third held frame, and the only one outside the film.**
  *
- * Same mechanism, same curve, same rule that every entry is an independent function of position. Two things
- * make it different from the two tracks above, and both are deliberate:
+ * Same mechanism, same curve, same rule that every entry is an independent function of position. What
+ * makes it different from the two tracks above is that every entry here is **one authored arrival**:
+ * `method.composed` states when each line, note, mark and the studio's question resolves, and this turns
+ * each of them into a rise. Nothing chains off anything else at this level — the chaining is downstream,
+ * in `timeline.ts`, where the stillness, the resolution and the clearing are all measured from the last
+ * of these.
  *
- * The **questions** and the **resolution** drive one property each that `globals.css` reads *twice* — once as
- * opacity and once as a distance in z — so a question surfaces out of the space as it arrives and sinks back
- * into it as it leaves, on a single range. Chapter II's `--mkword` / `--mkblur` pair does the same thing with
- * two properties; here one is enough, because the second reading is `1 - value`.
+ * The field is **rises with no exits, and now there is no exit at all**. `--mgather` multiplied every
+ * offset in the field by what was left of it and released the whole composition from a single number;
+ * the design owner ruled that out on 19 September 2026 — *"NÃO removas as frases pequenas quando a
+ * composição principal aparece"* — so the field stands in the room until the frame itself clears.
  *
- * The **considerations** are twelve rises with no exits. Nothing takes a word away individually: `--mgather`
- * multiplies every offset in the field by what is left of it, so twelve elements collapse toward one point on
- * twelve different vectors from a single number.
+ * **The dead entries are gone with the shape that produced them.** `--minvite`, `--mq1` … `--mq4` and the
+ * twelve `--mw` slots were the four questions and their considerations; nothing has drawn them since C16
+ * and the composition they belonged to is not coming back. `--mreturn`, `--mprint` and `--mlines` went
+ * with the paper's return — see `TIMING.method.printing`.
  *
  * These values are written on the **section**, not on the root — see `scroll-stage.tsx`.
  */
-export const methodTrack: Track = [
-  ['--minvite', (s) => show(s, methodSpans.invite)],
+/**
+ * **The beats of the method, which scroll *triggers* rather than scrubs** — design owner,
+ * 20 September 2026. Each entry is a property and the span it was authored at; the driver fires it when
+ * the hand reaches `span.from` and then plays it on a clock. `TIMING.method.play` argues the model, the
+ * one conversion and the departure from C8 it is.
+ *
+ * It is a list of *spans* and not of functions, which is the whole difference from a `Track`: a track
+ * answers *what is this value at this position*, and a played beat cannot be asked that — its value is
+ * a function of when it started, which only the driver knows.
+ *
+ * `over` survives as the beat's relative weight rather than as a distance: the widest arrival in the
+ * frame is still the widest, now in seconds.
+ */
+export const methodPlayed: ReadonlyArray<readonly [name: string, span: Span]> = [
+  /* The seven overheard lines, one authored arrival each. `globals.css` places them. */
+  ...methodSpans.words.map((span, i) => [`--mw${i + 1}`, span] as const),
 
-  ...methodSpans.questions.map(
-    (asked, i) => [`--mq${i + 1}`, (s: number) => show(s, asked)] as const,
-  ),
-
-  ...methodSpans.words.map((span, i) => [`--mw${i + 1}`, (s: number) => rise(s, span)] as const),
+  /* The margin note — the field's own marginalia. */
+  ...methodSpans.notes.map((span, i) => [`--mnote${i + 1}`, span] as const),
 
   /*
-    The camera, under everything else. `ramp` rather than `rise` — see `ramp`, and
-    `story.methodStory.drift`: this is the visitor's movement through the space, not a beat of it.
+    The main composition, in the order it is read: the statement, the line that develops it, and the
+    studio's question last. Three channels because they are three arrivals — the line used to be the
+    statement's own, trailed by a breath, and a trail cannot be reordered.
   */
+  ['--manswer', methodSpans.answer],
+  ['--mline-in', methodSpans.line],
+  ['--mask-in', methodSpans.ask],
+]
+
+/**
+ * **What is still scrubbed, and both of these have to be.**
+ *
+ * `--mdrift` is a camera and not a beat — the visitor's own movement through the space, on `ramp` with
+ * no curve in it — so playing it on a clock would make the room move by itself while the hand is still.
+ * `--mclear` is the section handing over to Questions, and the design owner's instruction is explicit
+ * that Method → Questions does not change.
+ */
+export const methodTrack: Track = [
   ['--mdrift', (s) => ramp(s, methodSpans.drift)],
-
-  ['--mgather', (s) => rise(s, methodSpans.gather)],
-  ['--manswer', (s) => rise(s, methodSpans.answer)],
-
   /*
-    ── The printing ──────────────────────────────────────────────────────────────────────────────
-    The room giving the page back, in the three stages `story.methodStory.printing` argues, plus the two
-    lines that only exist on the far side of it.
-
-    `--mclear` and `--mreturn` are two properties rather than one because they are two *different* things
-    that happen to be adjacent: what is lit, and what the ground is made of. `globals.css` composes each of
-    them with `--menter` — the room's own arrival, which is not a beat and so is not here — into `--mlit` and
-    `--mroom`. That is the same arithmetic-in-the-stylesheet the aperture is built from, and for the same
-    reason: neither driver has to know the other exists.
+    ── The clearing ──────────────────────────────────────────────────────────────────────────────
+    The composition leaving the room, and the room staying. `globals.css` composes it with `--menter` —
+    the room's own arrival, which is a layout distance and so is not here — into `--mlit`. That is the
+    same arithmetic-in-the-stylesheet `--aperture` is built from, and for the same reason: neither end
+    has to know the other exists.
   */
   ['--mclear', (s) => rise(s, methodSpans.clear)],
-  ['--mreturn', (s) => rise(s, methodSpans.returns)],
-  ['--mprint', (s) => rise(s, methodSpans.print)],
-  ['--mlines', (s) => rise(s, methodSpans.lines)],
 ]
 
 /**
@@ -276,13 +296,11 @@ export const aperture = (p: number, a: number): number =>
  */
 export const persistTrack: Track = [
   /*
-    The list releasing in place — one property per row, each its own span 40ms apart. `fall`, so before
-    the junction every row is at 1 and after it every row is at 0, with no delay anywhere: a stagger
-    made of offsets would replay on the way back up, and a stagger made of spans simply runs backwards.
+    **The list's release is a clock now** (`persisting.releases.clock`, played by the driver as
+    `--jgone*`). What the scroll keeps is the guarantee: across the breath (`dusk`) anything of the list
+    still standing is cleared, so however fast the hand, nothing of Questions meets the crossing.
   */
-  ...persistSpans.releases.map(
-    (span, i) => [`--jrel${i + 1}`, (s: number) => fall(s, span)] as const,
-  ),
+  ['--jclear', (s) => fall(s, persistSpans.dusk)],
 
   /*
     The ground turning and the rule's ink crossing with it. One property for both, because §8's table
@@ -290,17 +308,11 @@ export const persistTrack: Track = [
   */
   ['--jcross', (s) => rise(s, persistSpans.crosses)],
 
-  /* The headline, then the line directly above the rule. */
-  ['--jhead', (s) => rise(s, persistSpans.headline)],
-  ['--jtell', (s) => rise(s, persistSpans.tells)],
-
-  /* The survivor's one animation: measure to the right edge, and weight. §8, *"animated once"*. */
-  ['--jsize', (s) => rise(s, persistSpans.resizes)],
-
-  /* Label, arrow and the three lines, 120ms apart. Same construction as the release. */
-  ...persistSpans.resolves.map(
-    (span, i) => [`--jres${i + 1}`, (s: number) => rise(s, span)] as const,
-  ),
+  /*
+    `--jsize` is gone — 26 September 2026. It was the closing rule's resize into Contact's measure;
+    the rule now releases with the rows (`--jrel8`) and Contact draws its own line. Contact's
+    composition is a clock (`TIMING.contact.composes`), run by the driver with `play()`.
+  */
 ]
 
 /**

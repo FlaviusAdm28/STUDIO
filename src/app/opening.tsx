@@ -103,7 +103,12 @@ export default function Opening() {
 
   const roll = useCallback(() => {
     const el = video.current
-    if (el === null || !el.paused) return
+    /*
+      `data-still` is a stop somebody asked for — Contact's listening, `contact-listen.tsx` — and this
+      runs every frame for the life of the page, so without the check it undid that pause on the next
+      frame. The opening's own start is untouched: nothing sets it before Contact.
+    */
+    if (el === null || !el.paused || el.dataset.still !== undefined) return
     const attempt = el.play()
     if (attempt !== undefined) attempt.catch(() => undefined)
   }, [])

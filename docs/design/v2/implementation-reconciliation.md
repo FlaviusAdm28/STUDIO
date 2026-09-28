@@ -3191,3 +3191,106 @@ rather than the figure.
   never-played copy of the footage (`.env-hero-still`) is parked there and the live footage dissolves
   into it over `--listen` 0.55 → 0.9 as it slows (1 → 0.3 → pause); leaving reverses it.
 - **Light:** brightness 1 → 0.83, contrast 1 → 1.13, saturation 1 → 1.06 on both footage layers.
+
+---
+
+## C24 · On a phone the Ledger is one line, and its index opens as a page · **28 September 2026** · design owner decision
+
+**What this replaces, and where.** C2 and C7 left the Ledger's mobile placement "not yet designed at
+any breakpoint". Until now the rail therefore lay down into the masthead's old composition, "preserved
+rather than designed", as a row of type rather than a menu trigger. The archived `decisions.md` gave
+the reason: "two lines of type need no learning and nothing to open."
+
+Measured at 390 × 844, that row had become a band 211px tall, a quarter of the frame. It stood over
+the film from state 08 to the end, over Contact's footage, and Questions' type was legible through it.
+
+This entry is the designed placement that C7 said would supersede that adaptation. It applies below
+768px only. At 768px and wider nothing changes, including the lying-down row between 768 and 900px.
+
+**Closed.** The head band holds one line. On the left are the running folio and chapter, exactly as
+they are now. On the right, on the same baseline, is the word "Index", set in the index's own
+register, with a 1px rule beneath it as wide as the word. The rule is the affordance: V2 §6, "the
+affordance is the rule, not a button."
+
+The whole line is a single button, the full width of the frame and at least 44px tall, so the chapter
+name opens the index as well as the word does. Pressed and focused, its ink rises as the rail's does
+today, and the exchange to "Close" begins on the press itself. The band carries no ground of its own;
+the rail's existing halo and adaptive ink carry it, as they do on the desktop.
+
+**Open.** The Ledger stands up at the scale of a page. The five chapters appear in canonical order,
+set in the running header's face, each row at least 56px tall, placed in the lower 60% of the frame.
+The running chapter's line reads "NN ·", as it does on the desktop, and is not a link.
+
+The ground is the current register's own scrim laid over the frame, dimming the film rather than
+replacing it, as the Work register already does. "Index" becomes "Close" in the same place, through
+the rail's own exchange, and the list is drawn by the rail's own wipe. No new motion verb is
+introduced.
+
+**Behaviour.** The control is present from state 08, as the rail is. It is absent before state 08 and
+while the opening runs, so the opening stays mandatory.
+
+The head line and the index together form one modal region, following the Work register's pattern:
+role "dialog" with aria-modal "true". The button carries aria-expanded and aria-controls, and the
+chapter links sit inside a nav element. While the region is open, everything outside it is inert, and
+the page's scroll is held.
+
+Focus order while open. Focus begins on the first chapter link. The order is the chapter links in
+canonical order, skipping the running line, and then the Close button. Tab from the last element moves
+to the first chapter link, and Shift+Tab from the first chapter link moves to the Close button. Focus
+never leaves the region while it is open, and the index cannot be dismissed by moving focus.
+
+The index closes three ways: by pressing Close, by pressing Escape, or by choosing a chapter, which
+closes the index and navigates in the same press through the same anchor as before. In all three cases
+focus returns to the head button, which then reads "Index" again.
+
+Opening the index adds no history entry. Under reduced motion the index opens and closes at once. The
+timings live in `TIMING.ledger.index`.
+
+**Copy and accessible names.**
+
+- Visible text: `ledger.index.open` is "Index"; `ledger.index.close` is "Close".
+- Head button, closed: "Index — current chapter: {chapter}", for example "Index — current chapter:
+  Questions".
+- Head button, open: "Close index".
+- Modal region: "Index".
+- Chapter navigation: its current accessible name, "Studio".
+- Running line: "{chapter}", with aria-current "location", as now.
+- Chapter links: their chapter names, as now.
+
+**Why this answers §10 rather than contradicting it.**
+
+- Understood before it is used: the control is a word, never a symbol.
+- Present when wanted, quiet when not: it is one line until someone asks for more.
+- Nothing is inherited: there is no icon, no drawer and no borrowed motion; it is the Ledger itself,
+  moving with the rail's own verbs.
+- State is designed: closed, open, pressed, focused and absent are each specified above.
+
+**Unchanged.** The presentation from 768px up. The order of the five chapters and their destinations.
+The running "NN ·" mark. The mandatory opening. The rail's arrival at state 08.
+
+**Validation.**
+
+1. Layout at 320, 360, 390 and 430px: the closed line is no taller than 90px; the button spans the
+   frame and is at least 44px tall; open rows are at least 56px tall; there is no horizontal scroll and
+   no clipping, closed or open.
+2. Legibility: "Index", "Close" and the chapter name meet a 4.5:1 contrast ratio on the ground behind
+   them in every state from 08 to 14. Any state that fails is reported, not compensated silently.
+3. Destinations: each of the five is reached from every state from 08 to 14, and the index is closed
+   on arrival.
+4. Input: the index opens and closes by touch, by Enter and Space on the button, and by Escape.
+5. Focus containment: on opening, focus sits on the first chapter link. Repeated Tab and Shift+Tab, one
+   full cycle beyond each end, keep focus on the Close button or a chapter link at every step. Content
+   outside the region is inert and cannot be reached by Tab.
+6. Focus return: after Close, after Escape and after choosing a chapter, focus is on the head button
+   and its name reads "Index — current chapter: {chapter}".
+7. Scroll hold: the page does not move while the index is open, and resumes from the same position
+   after closing without navigating.
+8. States: before state 08 and during the opening, the control is absent and cannot be reached.
+9. Motion: under reduced motion the index opens and closes at once, with nothing mid-transition.
+10. Navigation mechanisms: a jump to Contact made from mid-passage behaves as it does today, and the
+    running mark's exchange still plays on arrival.
+11. Desktop: at 768, 1440 and 1920, a layout snapshot of every element shows zero difference from
+    before.
+12. Build: typecheck, lint and build pass, and the console shows no errors on a clean load.
+13. Not verifiable from this environment, and stated as such: iOS Safari, a physical device, and a
+    real screen reader.

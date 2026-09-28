@@ -92,6 +92,9 @@ const settings: ReadonlyArray<readonly [string, string]> = [
   ['--rail-mark-in', `${TIMING.publication.mark.in}ms`],
   ['--rail-mark-point-after', `${TIMING.publication.mark.pointAfter}ms`],
   ['--rail-mark-point-in', `${TIMING.publication.mark.pointIn}ms`],
+  /* The index on a phone opening and closing — `TIMING.ledger.index`, C24. */
+  ['--index-opens', `${TIMING.ledger.index.opens}ms`],
+  ['--index-closes', `${TIMING.ledger.index.closes}ms`],
 
   /*
     ── The Work's carousel · `TIMING.work.carousel` ────────────────────────────────────────────────

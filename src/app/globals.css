@@ -2585,6 +2585,10 @@ a.act-open:focus-visible {
       §10, nothing is inherited, and *understood before it is used*. Lines of type need no learning and
       nothing to open.
 
+      **Below 768px this is superseded by C24** (28 September 2026): the design owner drew the mobile
+      placement C7 left open — one head line whose word *Index* opens the Ledger as a page. The row here
+      now stands only between 768 and 900px. See `The Ledger on a phone` further down this file.
+
       **Two index rows are reserved rather than one, and that is the fifth destination arriving.** The
       four words the band was measured for came to 288px at 390 against 334px of measure; V2's five come
       to about 339 with the same gaps, so they wrap. The space is reserved unconditionally so that
@@ -5204,6 +5208,16 @@ html[data-opening='running'] .ways a {
     /* A fraction of a 390px frame is a third of the distance it is of a 1440 one, so it is raised. */
     --m-drift-x: 0.02;
     --m-drift-y: -0.05;
+    /*
+      **About's vertical, on a phone too** — mobile composition, 28 September 2026. The wide expression
+      (`112 + 31` of 760, less the head margin) goes negative on a phone, so the block fell to its floor
+      and stood 65px above About's headline at 390 × 844 (y 252 against 317). The desktop's rule is that
+      the two statements land on the same line; on a phone About's claim stands `12vh` below the head
+      margin with its headline a `clamp(0.9rem, 2.4vh, 1.5rem)` under that (`.about-claim`,
+      `.about-headline`, ≤ 820px), and this frame begins at the head margin — so this is About's own
+      vertical in this frame's coordinates, which is what the wide expression is on the desktop.
+    */
+    --m-main-y: calc(12vh + clamp(0.9rem, 2.4vh, 1.5rem));
   }
 
   /*
@@ -5229,70 +5243,74 @@ html[data-opening='running'] .ways a {
 
   /*
     ── The narrow composition ────────────────────────────────────────────────────────────────
-    Two verticals — the page's own axis at `--v2-x`, and a second at 0.34 of the frame — and the seven
-    lines alternate between them as they rise. Recorded positions are at 390 × 844, where the frame is
-    380 × 649 and `--v2-x` resolves to 31px.
+    **Rebuilt around the lamp** — mobile composition, 28 September 2026. It was two verticals the lines
+    alternated between, at 0.08 and 0.34 of the frame. On a phone the lamp is the left edge of the room:
+    measured at 390 × 844 its shade stands at x 0–55, y 492–550 and the pen pot at x 44–82, y 609–665 —
+    so `Nobody planned that.` was written across the shade and `Leave it like that.` across the pot.
 
-    **The field starts at 0.42 of the frame**, because the main composition has the head of the column.
-    Measured in Chrome at 390 × 844, where the frame is 380 × 649: the block runs from y 252 to y 436 —
-    the answer on one line, the question on two, and the footnote wrapping to two more — so a field
-    beginning at 0.32 put `Is everyone here?` straight through that footnote. From 0.42 to 0.83, seven
-    lines 0.0717 apart, the column is full and the signature keeps its own band at the foot. The
-    horizontal relationships are untouched: every line stands on one of the same two verticals.
+    Still two verticals, still the order and the ladder, but the lines are given to them by what the room
+    holds at each height rather than alternately:
+
+      · the first five — the small, overheard ones — stand on one vertical at **0.40**, stepped down
+        beside the lamp from just under the main composition to the desk's edge. The lamp keeps the left
+        of the frame to itself and the lines read as things said near it, not over it;
+      · the last two — the largest — stand on the page's own axis at 0.08, on the dark of the desk, where
+        the left of the frame is clear again, with `It's starting.` last and largest as it has always been;
+      · the note moves under them, to 92%.
+
+    The lamp and the desk scale with the frame's height (the plate is `cover` on a portrait frame), so
+    these fractions hold from 667 to 932 tall; 0.40 clears the lamp's widest reach from 320 to 430 wide.
+    The main composition now stands on About's line (`--m-main-y` above), which ends it at 0.36 of the
+    frame at 390 × 844 and 0.40 at 390 × 667 — the field begins at 0.44.
   */
 
-  /* Is everyone here? — 129,468 · 13.1px */
+  /* Is everyone here? */
   .mword[data-w='1'] {
-    --wx: 0.34;
-    --wy: 0.42;
+    --wx: 0.4;
+    --wy: 0.44;
   }
 
-  /* Nobody planned that. — 31,514 · 13.6px */
+  /* Nobody planned that. */
   .mword[data-w='2'] {
-    --wx: 0.08;
-    --wy: 0.492;
+    --wx: 0.4;
+    --wy: 0.505;
   }
 
-  /* Wait — look at this. — 129,561 · 14.1px */
+  /* Wait — look at this. */
   .mword[data-w='3'] {
-    --wx: 0.34;
-    --wy: 0.563;
+    --wx: 0.4;
+    --wy: 0.57;
   }
 
-  /* Leave it like that. — 31,608 · 14.7px */
+  /* Leave it like that. */
   .mword[data-w='4'] {
-    --wx: 0.08;
+    --wx: 0.4;
     --wy: 0.635;
   }
 
-  /* Did you see that? — 129,654 · 16.2px */
+  /* Did you see that? */
   .mword[data-w='5'] {
-    --wx: 0.34;
-    --wy: 0.687;
+    --wx: 0.4;
+    --wy: 0.7;
   }
 
-  /* That wasn’t meant to happen. — 31,701 · 18.9px · the one line that takes the full column */
+  /* That wasn’t meant to happen. — the one line that takes the full column */
   .mword[data-w='6'] {
     --wx: 0.08;
-    --wy: 0.758;
+    --wy: 0.775;
   }
 
-  /* It’s starting. — 31,734 · 24.2px */
+  /* It’s starting. */
   .mword[data-w='7'] {
     --wx: 0.08;
-    --wy: 0.83;
+    --wy: 0.845;
   }
 
-  /*
-    17px under the last line it annotates. This was `[data-n='2']`; the note above it — and the right
-    margin it was pushed into to clear `.method-label` — went on 20 September 2026 with the label and
-    the first annotation. Nothing here had to move: the survivor kept its own place and took the lower
-    number.
-  */
+  /* Under the last line it annotates, as before — it moves down with it. */
   .mnote[data-n='1'] {
     left: var(--v2-x);
     right: auto;
-    top: 89%;
+    top: 92%;
   }
 }
 
@@ -5442,14 +5460,47 @@ html[data-opening='running'] .ways a {
   release is still the junction's.
 */
 @media (max-width: 700px) {
+  /*
+    **The list stands on a phone too — at a height it can stand at** (mobile composition, 28 September
+    2026). Ordinary flow gave it no hold at all: it was read while it moved and the passage took it
+    straight after. What stopped it standing was only *where* it stood — at the head margin a list taller
+    than the rest of the frame had its foot cut off inside a clipped box. So here nothing is clipped and
+    it stands at `--asked-top`: the head margin where it fits, higher where it does not — never above the
+    head line — so its foot is on screen for the whole hold. `--asked-h` is its rendered height,
+    written by `scroll-stage.tsx`, which re-measures when an answer opens.
+
+    The same lock, the same beats and the same release as on the desktop: it arrives unwritten, stands,
+    is written, is read, and the passage starts while it still stands.
+  */
+  :root {
+    /* The head line's own height (C24's padding, the title's line, its foot) and a breath under it. */
+    --asked-floor: calc(clamp(1.25rem, 4.2vh, 2.25rem) + 3.6rem);
+    --asked-top: clamp(
+      var(--asked-floor),
+      calc(100dvh - var(--asked-h, 0px) - 1.5rem),
+      var(--masthead)
+    );
+  }
+
   .asked {
-    position: static;
+    position: sticky;
+    top: var(--asked-top);
     max-height: none;
     overflow: visible;
   }
 
+  /*
+    **The standing distance: 175vh.** It was 60vh in ordinary flow (space to read *through*). Standing, the
+    rows are written 0.34 of a viewport after the lock, and the passage starts 0.62 of a viewport before
+    the closing frame locks — which is a fixed distance *before the list stops standing* (597px at
+    390 × 932, 476 at 390 × 844, 327 at 390 × 667). At 95vh that left nothing: at 390 × 932 the passage
+    began 29px before the questions were even written. 175 leaves 0.77–0.92 of a viewport to read after
+    the last question arrives, at every height from 667 to 932, and the list is still standing when the
+    passage begins, so its questions are released in place rather than under the head line. For scale,
+    the desktop's own hold is 150vh on a mouse and 300 on touch.
+  */
   .asked-hold::after {
-    height: 60vh;
+    height: 175vh;
   }
 }
 
@@ -6593,6 +6644,41 @@ a.write-line:focus-visible {
 .contact-link[aria-disabled='true'],
 .contact-note-reaches .contact-link[aria-disabled='true'] {
   cursor: default;
+}
+
+/*
+  ── On a phone the question fits its room ──────────────────────────────────────────────────────────
+
+  Mobile QA, 28 September 2026. `.contact-compose` is as wide as the question's widest line, and that
+  line is `nowrap` — so the ≤ 820 floor of 28px made it 360px at every narrow width: at 320 it ran 68px
+  past the frame (the only source of the page's horizontal scroll there, and 28px of it at 360), cut to
+  *"…its own experien"*, and took the contact row with it to *"INSTAGRA"*.
+
+  The question is capped by `--c-room` (the column ≤ 820 already declares): its widest line measures
+  12.86em *as it arrives* — the lines settle their tracking in, so they are widest at the start — and
+  `/ 13.2` keeps even that a few pixels inside the room. The two authored lines stay two lines and
+  never re-break mid-arrival: 320 → 20px, 360 → 23px, 390 → 25.3px (28 put the question mark 2px off
+  the edge there), 430 and wider unchanged.
+
+  The contact row is 294px of tracked capitals against 264 of room at 320. Below 360 it tightens its
+  tracking and its separators and holds one line — breaking would leave a `·` at the head of the second,
+  and as the question settles narrower than the row, the row would re-break mid-arrival too.
+*/
+@media (max-width: 767.98px) {
+  .closing {
+    --c-size: min(clamp(1.75rem, 5.6vw, 2.75rem), calc(var(--c-room) / 13.2));
+  }
+}
+
+@media (max-width: 359.98px) {
+  .contact-note-reaches {
+    flex-wrap: nowrap;
+    letter-spacing: 0.16em;
+  }
+
+  .contact-between {
+    margin: 0 0.5em;
+  }
 }
 
 /* Nothing in the frame can be pressed before it has begun to be written. */
@@ -8900,61 +8986,224 @@ a.v2-ident-open:focus-visible {
 }
 
 /*
-  ── The index on a phone: a table of contents, not a sentence that wraps ─────────────────────────
+  ── The Ledger on a phone: one line, and an index that opens as a page · C24 ─────────────────────
 
-  Mobile review, 28 September 2026. Lying down, the five chapters were a wrapping row of 9px tracked
-  capitals: at 390 they filled one line with uneven gaps and a word-wide hole after the running `NN ·`
-  (its held measure); at 320 CONTACT fell alone onto a second line. It read as an accident, not an index.
+  `implementation-reconciliation.md` C24, design owner, 28 September 2026. It supersedes, below 768px
+  only, the lying-down row and the 3+2 grid that adapted it: measured at 390 × 844 that band stood 211px
+  tall over the film from state 08 to the end. 768 and wider — including the row between 768 and 900 —
+  are untouched: every rule here is inside the query, and the two new elements are `display: none`
+  outside it.
 
-  Below 768 the same five lines, in the same order, are set on **three columns and two rows** —
+  **Closed**, the head is one line: the running folio and chapter as they were, and *Index* on the same
+  baseline at the right, in the index's own register over a 1px rule of its own width — the rule is the
+  affordance (§6). The whole line is one button laid over it (`.rail-index`), the frame's width and at
+  least 44px tall. The band has no ground: the rail's halo and adaptive ink carry it, as on the desktop.
 
-      WORK        ABOUT       METHOD
-      QUESTIONS   CONTACT
+  **Open**, the Ledger stands up at the scale of a page: the five chapters in canonical order in the
+  running header's face, rows of at least 56px, in the lower part of the frame; the running line still
+  reads `NN ·`. The ground is the register's own scrim over the frame, which dims the film and does not
+  replace it. The list is drawn by the rail's own wipe — the same soft frontier `.ledger-rail` draws with
+  on `--rail-draw` — on `--index-draw`, a clock of `TIMING.ledger.index` because it answers a press.
 
-  — so every line has a fixed place whatever is running, and `NN ·` stands where its word would, at the
-  head of its column rather than beside a gap. Nothing is added and nothing removed: the folio, the mark,
-  the running header and every destination are the desktop's own.
-
-  **It fits the band already reserved.** `--masthead` has held two 44px index rows since the rail lay down
-  (see the `max-width: 900px` block), so each row is now a real 44px box — 88px in the 96 reserved — and
-  no section below the head moves. The press areas tile: 44px tall, and widened by half the column gap on
-  each side, so neighbours meet and never overlap.
-
-  The type is the index's own register, a little larger (10.5 → 12px against 9) and a little less
-  tracked (0.2em against 0.24) so the widest column, QUESTIONS, still leaves room for its gap at 320.
-
-  The band's ground holds its strength over both rows before it fades. The old gradient was spent by the
-  second row, so on a phone the page's type read through CONTACT. Same scrim, same `--jp9` gate.
-
-  768 and wider are untouched.
+  **The rail's own clip is released once it is lit.** `.ledger-rail` clips and masks to its box so the
+  dock can draw it; the open index is a fixed page inside it and would be cut to the head line. The
+  control only exists from state 08, where `--rail-draw` is already 1 and the clip is spent — so
+  `data-index` (written only when lit) is the condition, and scrolling back above the dock restores the
+  wipe untouched.
 */
+.rail-index,
+.rail-index-word {
+  display: none;
+}
+
+@property --index-draw {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
 @media (max-width: 767.98px) {
+  /* ── Closed: one line ── */
   .ledger {
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--page-scrim) calc(var(--jp9, 0) * 92%), transparent) 0%,
-      color-mix(in srgb, var(--page-scrim) calc(var(--jp9, 0) * 90%), transparent) 78%,
-      transparent 100%
+    background: none;
+    padding-top: clamp(1.25rem, 4.2vh, 2.25rem);
+    padding-bottom: 0.75rem;
+  }
+
+  .ledger[data-index] .ledger-rail {
+    clip-path: none;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .ledger-rail {
+    width: 100%;
+  }
+
+  .rail-head {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+  }
+
+  .rail-index-word {
+    display: inline-block;
+    position: relative;
+    margin-left: auto;
+    font-family: var(--v2-sans, var(--voice));
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0.24em;
+    line-height: 1;
+    text-transform: uppercase;
+    color: var(--rail-ink, var(--ink));
+    text-shadow: var(--rail-halo);
+    transition: color var(--fade-nav-hover) var(--curve);
+  }
+
+  /* The rule, as wide as the word's ink — the trailing letter-space is not part of it. */
+  .rail-index-word::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0.24em;
+    bottom: -0.45em;
+    height: 1px;
+    background: currentColor;
+  }
+
+  /* The control: the whole head line, laid over the picture of it. */
+  .rail-index {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    min-height: 44px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .rail-index:focus-visible {
+    outline: none;
+  }
+
+  /* Pressed, hovered and focused, its ink rises as the rail's does. */
+  .ledger:has(.rail-index:hover) .rail-index-word,
+  .ledger:has(.rail-index:active) .rail-index-word,
+  .ledger:has(.rail-index:focus-visible) .rail-index-word {
+    color: color-mix(in srgb, rgb(9 8 7) calc(var(--rail-stone, 0) * 100%), #f7efe2);
+  }
+
+  .ledger:has(.rail-index:focus-visible) .rail-index-word {
+    outline: 1px solid var(--rail-ink-quiet, var(--ink-quiet));
+    outline-offset: 0.5rem;
+  }
+
+  /* ── Open: the index as a page ── */
+  .ledger .ledger-index {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    /* No side padding here: the rows carry the page's margins, so they can be pressed to the edge. */
+    padding: 0 0 calc(9vh + env(safe-area-inset-bottom, 0px));
+    background: color-mix(in srgb, var(--page-scrim) 94%, transparent);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity var(--index-closes) var(--curve),
+      visibility 0s linear var(--index-closes);
+  }
+
+  .ledger[data-index='open'] .ledger-index {
+    opacity: 1;
+    visibility: visible;
+    transition:
+      opacity var(--index-opens) var(--curve),
+      visibility 0s;
+  }
+
+  .ledger .ledger-index ul {
+    --index-edge: 28px;
+    --index-reveal: calc(var(--index-draw) * (100% + var(--index-edge)));
+    --index-draw: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000 calc(var(--index-reveal) - var(--index-edge)),
+      transparent var(--index-reveal)
     );
+    mask-image: linear-gradient(
+      to bottom,
+      #000 calc(var(--index-reveal) - var(--index-edge)),
+      transparent var(--index-reveal)
+    );
+    transition: --index-draw var(--index-closes) var(--curve);
   }
 
-  .ledger-index ul {
-    --index-gap: clamp(1.5rem, 8vw, 2.5rem);
-    display: grid;
-    grid-template-columns: repeat(3, max-content);
-    column-gap: var(--index-gap);
-    row-gap: 0;
+  .ledger[data-index='open'] .ledger-index ul {
+    --index-draw: 1;
+    transition: --index-draw var(--index-opens) var(--curve);
   }
 
-  .ledger-word {
+  /*
+    The chapters in the running header's face, at the scale of a page.
+
+    **Each row is pressable edge to edge.** The page's side margins (6vw and `--mark-x`) used to be the
+    index's own padding, so a row stopped short of both edges — measured at 320, a tap 10px from either
+    edge of a row landed on the ground and did nothing. Taking them back with negative margins was not
+    enough: the list's wipe is a mask, clipped to the list's own box, and it cut the overhang out of
+    hit-testing as well as paint. So the margins live on the rows instead — the list spans the frame,
+    each row is the frame's width, and the type stands exactly where it stood.
+  */
+  .ledger .ledger-word {
     display: flex;
     align-items: center;
-    min-height: 44px;
-    margin: 0 calc(var(--index-gap) / -2);
-    padding: 0 calc(var(--index-gap) / 2);
-    font-size: clamp(0.65625rem, 2.9vw, 0.75rem);
-    letter-spacing: 0.2em;
-    line-height: 1.4;
+    width: 100%;
+    min-height: 56px;
+    margin: 0;
+    padding: 0 var(--mark-x) 0 6vw;
+    font-family: var(--v2-serif, var(--read));
+    font-weight: 300;
+    font-size: clamp(2.125rem, 9.5vw, 2.375rem);
+    letter-spacing: 0;
+    line-height: 1.15;
+    text-transform: none;
+  }
+
+  /*
+    The mark keeps the words' own tracking, as it does on the desktop — which here is none. The rail's
+    0.26em belongs to tracked capitals and at page scale spread *04* into two separate figures.
+  */
+  .ledger .ledger-word .rail-folio-mark {
+    letter-spacing: 0.02em;
+  }
+}
+
+/* Reduced motion: the index is simply there, and simply gone; *Index* and *Close* change without a fade. */
+@media (max-width: 767.98px) and (prefers-reduced-motion: reduce) {
+  .ledger .ledger-index,
+  .ledger[data-index='open'] .ledger-index,
+  .ledger .ledger-index ul,
+  .ledger[data-index='open'] .ledger-index ul {
+    transition: none;
+  }
+
+  .rail-index-word .rail-slot[data-swap] > .rail-in {
+    animation: none;
+  }
+
+  .rail-index-word .rail-slot[data-swap] > .rail-out {
+    display: none;
   }
 }
 
@@ -9890,6 +10139,34 @@ a.v2-ident-open:focus-visible {
   opacity: calc(var(--k-topic) * (1 - var(--k3-clear)));
 }
 
+/*
+  **The word tracks out inside the frame, not past it** — mobile QA, 28 September 2026.
+
+  The exit opens *Philosophy* from 0.44em to 1.90em while it fades. From `--topic-x` that is 329px of
+  word, so below ~390 its last letters crossed the frame's edge still lit — measured at 320, the ink
+  ran to 326px at 0.82 opacity and to 380 at 0.23, cut by `.v2`'s own clip. At 390 it just fits.
+
+  Below 390 the *amplitude* is capped and nothing else is: the same channel, the same curve, the same
+  window, so the letters still open all the way to the end of the fade — only less far. The cap is the
+  spacing at which the last glyph's ink stops at `--page-x` from the edge: ten glyphs measure 5.1em of
+  ink in this face (measured off the rendered word) and nine gaps carry the spacing, the tenth being
+  trailing and inkless. Measured at 320 this is 1.32em rather than 1.90.
+
+  390 and wider do not enter this block, so they are unchanged to the pixel.
+
+  **`--topic-x` is not read here, and cannot be.** Its clamp carries `%` — the containing block's width
+  in `left` — and a `%` inside `letter-spacing` resolves against something else, so the declaration
+  went invalid at computed time and the word lost its tracking altogether. Below 390 every branch of
+  that clamp settles on its floor, `8vw + 0.75rem × 2.8608` (= 60px at 320, 65.4 at 389), and that is
+  what is written.
+*/
+@media (max-width: 389.98px) {
+  .v2-topic {
+    --topic-reach: calc((100vw - var(--page-x) - (8vw + 0.75rem * 2.8608) - 5.1em) / 9 - 0.44em);
+    letter-spacing: calc(0.44em + min(1.46em, var(--topic-reach)) * var(--k3-expand));
+  }
+}
+
 .v2-thesis {
   opacity: calc(var(--k3-ink) * (1 - clamp(0, calc(var(--jp4) / 0.45), 1)));
 }
@@ -9997,4 +10274,170 @@ a.v2-ident-open:focus-visible {
 */
 .page-last {
   scroll-margin-top: calc(var(--rule-y) - var(--closing-pin) - var(--closing-settle) / 2);
+}
+
+/*
+  ── Touch on a phone: press areas that are not the size of the type ─────────────────────────────
+
+  Mobile QA, 28 September 2026. Measured at 390 × 844, the controls a thumb has to find were the size of
+  their own letters: the Work's category queue 21px tall, *See full experience →* — the only way into
+  the work — 120 × 11, and WhatsApp / Telegram 14px. Each gets a transparent press area around it,
+  drawn as its own `::before`, so the target grows and nothing moves: a pseudo-element answers the
+  press with the element and takes no part in layout. The queue's horizontal clip is kept; only the
+  vertical clip is released, so the press area can reach above and below a 21px band.
+
+  Below 768px only — the desktop's pointer targets are unchanged.
+*/
+@media (max-width: 767.98px) {
+  .v2-queue[data-overflow] {
+    overflow: visible;
+    overflow-x: clip;
+    mask-clip: no-clip;
+  }
+
+  .v2-queue-word::before {
+    content: '';
+    position: absolute;
+    inset: -12px -0.5em;
+  }
+
+  a.v2-ident-open {
+    position: relative;
+  }
+
+  a.v2-ident-open::before {
+    content: '';
+    position: absolute;
+    inset: -16px -10px;
+  }
+
+  .contact-note-reaches .contact-link {
+    position: relative;
+  }
+
+  .contact-note-reaches .contact-link::before {
+    content: '';
+    position: absolute;
+    inset: -8px -0.6em -16px;
+  }
+}
+
+/*
+  ── Mobile composition · Questions and Venice (≤ 700px) ──────────────────────────────────────────
+
+  Mobile composition review, 28 September 2026. Nothing here reaches past 700px.
+
+  **Where the rail's *Questions* lands, standing.** The wide rule lands the press against the head margin
+  (`--masthead`); on a phone the list stands at `--asked-top`, so the landing is measured from the same
+  value, or the press would arrive with the list somewhere other than where it stands.
+
+  **The head line has a ground while the questions are written** (Questions A). The list stands below the
+  head line, but it arrives and leaves under it, and C24's head carries no ground of its own — so the
+  questions ran through `04 Questions · INDEX`. A ground drawn behind the head — the register's own
+  scrim, over the head line and fading out under it — comes up while the composition is written and goes
+  once the passage has released the last of it (`data-asked-gone`, written by `scroll-stage.tsx`): the
+  question leaves last, the room stands empty, and only then does the footage cross in — so the
+  passage's own frames over the footage are left exactly as they were. The
+  questions pass *behind* the head rather than through its type. The fade is the index's own ground
+  timing (`TIMING.ledger.index`): it is the same ground, answering the same element.
+
+  **Venice, cropped for portrait** (state 06 and the Work's first experience). The desktop's `48% 44%`
+  puts the couple — 56 to 80% across the photograph — off the right edge of a portrait frame. Here the
+  couple is placed in the frame rather than a percentage of the photograph chosen (see the rule), with
+  the canal, the lamp post and the palazzi around it; the dome cannot share a portrait frame with them.
+*/
+@media (max-width: 700px) {
+  .asked-hold {
+    scroll-margin-top: calc(
+      var(--asked-top) - 2px - var(--asked-lands, 0) * var(--asked-fits, 1) * 100vh
+    );
+  }
+
+  /*
+    **The list's phone cadence, so a whole list can stand** (Questions B). Standing needs the list to fit
+    under the head line, and at the phone's cadence it did not: measured on touch, 688px at 390 × 844 fits,
+    but 769 at 320 × 844, 725 at 360 × 800 and 635 at 390 × 667 each left the last question 16–54px below
+    the fold for the whole hold. A row's air goes from 0.95rem to 0.7rem a side — 55px rows become 47,
+    still over the 44 a thumb needs — and the anchor's answer keeps 1.25rem under it instead of 2: about
+    70px across the list, which lets every frame from 320 × 844 to 390 × 667 hold all of it. The rows'
+    hairlines, type and order are untouched; this is spacing, and only on a phone.
+  */
+  .asked .ask-q {
+    padding-block: 0.7rem;
+  }
+
+  .ask-anchor .ask-a {
+    padding-bottom: 1.25rem;
+  }
+
+  .ledger::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 -2.5rem;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--page-scrim) 94%, transparent) 0%,
+      color-mix(in srgb, var(--page-scrim) 90%, transparent) 68%,
+      transparent 100%
+    );
+    opacity: 0;
+    transition: opacity var(--index-closes) var(--curve);
+  }
+
+  :root:has(.publication:is([data-anchor='playing'], [data-anchor='held']):not([data-asked-gone='1']))
+    .ledger::before {
+    opacity: 1;
+    transition-duration: var(--index-opens);
+  }
+
+  /*
+    The couple's centre is 0.68 across the photograph, and on a portrait frame the photograph is drawn
+    at its height — 1.5 × the frame's height wide — so that centre lies 102vh in from the image's left
+    edge. Setting the image's left edge at `60vw − 102vh` stands the couple at 60% of the frame in state 06
+    and, after the dock's 20vw pan, near 40% on the Work: centred across the pan at every width, where a
+    single percentage served 390 and lost a fifth of the couple on the Work at 320.
+  */
+  .env-venice {
+    object-position: calc(60vw - 102vh) 44%;
+  }
+}
+
+/*
+  ── One editorial margin on a phone · E1–E3 ─────────────────────────────────────────────────────
+
+  Mobile alignment review, 28 September 2026 (approved: E1, E2, E3). Measured before, four margin systems
+  crossed each other below 700px: the rail at 6vw, the content axis at `--v2-x` (8vw), Questions and
+  Contact at `--page-x` (a fixed 28px), and *I of III* at 2.6% of the frame. At 320 the content axis
+  stood 2px left of Questions and at 430 6px right of it, and the rail sat 5–8px inside everything
+  under it.
+
+  **M = 8vw** — 26px at 320, 29 at 360, 31 at 390, 34 at 430 — the margin four of the six chapters
+  already stood on, on both sides:
+
+    E1  `--mark-x` is M (still never inside the safe area), so `--page-x` — which is `--mark-x` below
+        821px — is M too: the questions, their `+`, Contact, and every other page edge take it.
+    E2  the rail's folio and the open index's chapters stand on M, and its action word ends M from the
+        right (`.ledger`'s right padding is `--mark-x`).
+    E3  *I of III* ends M from the right, on the same axis as the Work's credit.
+
+  Nothing else moves: `--v2-x` and `--about-x` already resolve to 8vw here. The desktop is untouched.
+*/
+@media (max-width: 700px) {
+  :root {
+    --mark-x: max(8vw, env(safe-area-inset-left, 0px));
+  }
+
+  .ledger {
+    padding-left: var(--mark-x);
+  }
+
+  .ledger .ledger-word {
+    padding-left: var(--mark-x);
+  }
+
+  .v2-of {
+    right: var(--mark-x);
+  }
 }

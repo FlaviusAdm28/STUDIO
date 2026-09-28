@@ -1245,6 +1245,21 @@ export const TIMING = {
      * arriving and being dominant for a lead to close.
      */
     leads: [11],
+
+    /**
+     * **The index on a phone, opening and closing** — C24, 28 September 2026. Interface response, so a
+     * clock is allowed (C8: *time owns only what the visitor did not cause*, and interface response is
+     * named there beside `navHover`). Milliseconds.
+     *
+     * `opens` is the ground coming up and the list being drawn by the rail's own wipe. It is shorter
+     * than a chapter exchange (`publication.chapter`, 660 out · 1020 in) because it answers a press and
+     * the visitor is waiting on it, and long enough that the wipe reads as the rail drawing itself top
+     * to bottom rather than as a cut. `closes` is shorter still: the visitor has already chosen, and the
+     * page they chose is what they are waiting for.
+     *
+     * Reduced motion takes neither — the index is simply there, and simply gone.
+     */
+    index: { opens: 520, closes: 320 },
   },
 
   /* ─────────────────────────────────────────────────────────────────────────────────────────────
@@ -1659,6 +1674,24 @@ export const TIMING = {
      movement on any frame.
      ───────────────────────────────────────────────────────────────────────────────── */
   questions: {
+    /**
+     * **Where the lock stands when the list is not held** — mobile QA, 28 September 2026. A fraction of
+     * the viewport, from its top.
+     *
+     * Everything below is measured from the lock, and the lock is the list reaching the head margin,
+     * where it stands (`position: sticky`). Below 700px — and on a short landscape frame — the list is
+     * in ordinary flow and never stands, so that moment is the list *leaving*: measured at 390 × 844 on
+     * touch, the whole list crossed the screen unwritten (an empty room under a rail saying Questions),
+     * its anchor began only at the lock, and the passage to Contact started 145px later and released it
+     * while it was still arriving. The chapter was never read in normal scroll.
+     *
+     * So where nothing stands, the lock is the list **entering** the frame: its top at 0.85 of the
+     * viewport. The anchor is written as it comes into view, the questions follow `faq.afterLock`
+     * later while the list is in the upper half, and all of it is read before the passage. Where the
+     * list is sticky this value is not read at all.
+     */
+    flowLock: 0.85,
+
     /**
      * ── BEAT 1 · THE ANCHOR ──────────────────────────────────────────────────────
      *

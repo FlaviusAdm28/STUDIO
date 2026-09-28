@@ -156,6 +156,21 @@ export default function Home() {
           .ledger-index ul { margin: 0; }
           .ledger-word { width: auto; }
           /*
+            C24 hides the index on a phone until *Index* is pressed, and without scripting there is
+            nothing to press with — the button is never rendered. So here the index is printed in flow,
+            as the row it was before C24: the composed alternative, not the mechanism with its parts.
+          */
+          @media (max-width: 767.98px) {
+            .ledger .ledger-index { position: static; display: block; padding: 0; background: none;
+              opacity: 1; visibility: visible; transition: none; }
+            .ledger .ledger-index ul { -webkit-mask-image: none; mask-image: none; flex-direction: row;
+              flex-wrap: wrap; gap: 1.75rem clamp(1.125rem, 5vw, 1.75rem); }
+            .ledger .ledger-word { width: auto; min-height: 0; font-family: var(--v2-sans, var(--voice));
+              font-weight: 400; font-size: clamp(0.65625rem, 2.9vw, 0.75rem); letter-spacing: 0.2em;
+              line-height: 1.9; text-transform: uppercase; padding-block: 0.85rem; margin-block: -0.85rem; }
+            .ledger .ledger-word .rail-folio-mark { letter-spacing: 0.26em; }
+          }
+          /*
             The register is opened by a press and there is nothing here to press with. So the way into
             the work is the line the act already prints on the paper beneath the plate, which is the same
             offer — and the aside, which exists to keep the film running underneath, has nothing to keep

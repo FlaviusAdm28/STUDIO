@@ -604,6 +604,22 @@ export const site = {
     ] as const,
 
     /**
+     * **The index on a phone** — `implementation-reconciliation.md` C24, design owner, 28 September
+     * 2026. Below 768px the head is one line and this word opens the Ledger as a page; the same place
+     * reads `close` while it is open. A word and never a symbol: §10, *understood before it is used*.
+     *
+     * The button's accessible name is `named` followed by the running chapter's own word while closed
+     * (*Index — current chapter: Questions*), and `closeNamed` while open. `label` names the open region.
+     */
+    index: {
+      open: 'Index',
+      close: 'Close',
+      named: 'Index — current chapter:',
+      closeNamed: 'Close index',
+      label: 'Index',
+    },
+
+    /**
      * **The register — what the Work aside opens onto.**
      *
      * *"Work is not a page you go to. It is the film, paused and indexed."* So the register is an index

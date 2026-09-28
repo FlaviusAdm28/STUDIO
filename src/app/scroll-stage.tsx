@@ -360,10 +360,26 @@ export default function ScrollStage() {
       if (askedFrame === null || askedList === null) {
         askedLock = Number.POSITIVE_INFINITY
       } else {
+        /*
+          **Only a list that stands has a lock at the head margin.** Chrome reports the specified `top`
+          even under `position: static`, so the branch above never fell back on a phone: the lock stayed
+          at the head margin, which for a list in ordinary flow is the moment it leaves. Where the list
+          is not sticky the lock is where it enters the frame — `TIMING.questions.flowLock` argues it.
+        */
+        /*
+          The list's own height, for the phone's hold: below 700px the list stands at whichever is lower
+          of the head margin and the height that keeps its foot on screen (`globals.css`, `--asked-top`),
+          and only the rendered box knows how tall it is. Written before `top` is read below, so the lock
+          is measured against the value it produces.
+        */
+        root.style.setProperty('--asked-h', `${askedList.offsetHeight}px`)
+        const listStandsAt = getComputedStyle(askedList).position === 'sticky'
         const stuck = parseFloat(getComputedStyle(askedList).top)
-        const head = Number.isFinite(stuck)
-          ? stuck
-          : parseFloat(getComputedStyle(askedFrame).scrollMarginTop) || 0
+        const head = !listStandsAt
+          ? window.innerHeight * TIMING.questions.flowLock
+          : Number.isFinite(stuck)
+            ? stuck
+            : parseFloat(getComputedStyle(askedFrame).scrollMarginTop) || 0
         askedLock = askedFrame.getBoundingClientRect().top + window.scrollY - head
       }
 
@@ -1151,7 +1167,23 @@ export default function ScrollStage() {
             play(publicationEl, `--jgone${i + 2}`, listReleased, r.rows.over, at, r.returns)
             play(publicationEl, `--jgoner${i + 2}`, listReleased, r.rows.over, at + r.ruleLags, r.returns)
           }
-          play(publicationEl, '--jgone1', listReleased, r.question.over, r.question.at, r.returns)
+          const questionGone = play(
+            publicationEl,
+            '--jgone1',
+            listReleased,
+            r.question.over,
+            r.question.at,
+            r.returns,
+          )
+          /*
+            **Whether the questions have left the room** — the question goes last and alone, so once it
+            is fully gone nothing of the list is drawn. On a phone the head line keeps a ground while the
+            questions are written and until this reads `1` (`globals.css`, ≤ 700px); the room is then
+            empty before the footage crosses in, so the passage's own frames are untouched. Written only
+            when it changes.
+          */
+          const askedGone = questionGone >= 1 ? '1' : '0'
+          if (publicationEl.dataset.askedGone !== askedGone) publicationEl.dataset.askedGone = askedGone
         }
 
         /*
@@ -2122,6 +2154,16 @@ export default function ScrollStage() {
     })
     released.observe(root, { attributeFilter: ['data-opening'] })
 
+    /*
+      **The questions change height when an answer opens**, and on a phone the list stands at a height
+      derived from its own (`--asked-h`), so its lock and the passage after it move with it. The page is
+      re-measured exactly as a resize re-measures it — one path, not a second one.
+    */
+    const askedBox = document.querySelector<HTMLElement>('[data-asked-list]')
+    const grows =
+      askedBox !== null && typeof ResizeObserver !== 'undefined' ? new ResizeObserver(onResize) : null
+    if (askedBox !== null) grows?.observe(askedBox)
+
     read()
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onResize, { passive: true })
@@ -2131,6 +2173,7 @@ export default function ScrollStage() {
     return () => {
       if (frame !== 0) window.cancelAnimationFrame(frame)
       released.disconnect()
+      grows?.disconnect()
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onResize)
       window.removeEventListener('pageshow', rewind)

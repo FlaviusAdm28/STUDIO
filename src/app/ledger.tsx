@@ -277,11 +277,29 @@ function SettingOf({ setting }: { setting: Setting }) {
   )
 }
 
+/** Keys that scroll the page, held while the index is open. Space is let through on a button. */
+const SCROLL_KEYS = new Set([' ', 'PageUp', 'PageDown', 'Home', 'End', 'ArrowUp', 'ArrowDown'])
+
+/** Below this the head is one line and the index opens as a page — C24. `globals.css` holds the same. */
+const PHONE = '(max-width: 767.98px)'
+
 export default function Ledger() {
   const [open, setOpen] = useState(false)
   const door = useRef<HTMLButtonElement>(null)
 
   const close = useCallback(() => setOpen(false), [])
+
+  /*
+    ── The index on a phone · C24 ─────────────────────────────────────────────────────────────────
+
+    Below 768px the head is one line, and the whole line is a button that opens the Ledger as a page.
+    One boolean, like the aside, and nothing here reads scroll: the page is held while it is open, so the
+    running chapter cannot change under it. The button exists only where `globals.css` shows it, so on a
+    wider frame nothing can set this.
+  */
+  const [index, setIndex] = useState(false)
+  const indexButton = useRef<HTMLButtonElement>(null)
+  const region = useRef<HTMLDivElement>(null)
 
   /*
     ── Which chapter is running ──────────────────────────────────────────────────────────────────
@@ -361,6 +379,106 @@ export default function Ledger() {
     return () => window.removeEventListener('keydown', onKey)
   }, [open])
 
+  /*
+    **The control exists from the dock, as the rail does, and not before.** Before state 08 no state
+    lights a chapter, so the rail is undrawn and there is nothing to index; the opening is state 01, so
+    it cannot be skipped from here either. Not rendered rather than hidden, so it cannot take focus.
+  */
+  const lit = (stateOf(filmState)?.ledger.active ?? null) !== null
+  const indexOpen = index && lit
+
+  /*
+    *Index* and *Close* are one slot exchanged by the rail's own exchange — the same `step` and
+    `RailSlot` the chapters use, with no role, so it is a change of word and not of rank. The same
+    adjust-during-render pattern as the composition above, for the same reason.
+  */
+  const indexCopy = site.ledger.index
+  const [toggle, setToggle] = useState<Slot>(() => step(null, word(indexCopy.open), 'plain', 'plain'))
+  const [toggleFor, setToggleFor] = useState(false)
+  if (toggleFor !== indexOpen) {
+    setToggleFor(indexOpen)
+    setToggle((prev) => step(prev, word(indexOpen ? indexCopy.close : indexCopy.open), 'plain', 'plain'))
+  }
+
+  const shut = useCallback(() => setIndex(false), [])
+
+  /*
+    **While the index is open it is the whole page.** The head line and the index are one modal region;
+    everything else is made inert — every sibling of every ancestor of the region, so nothing outside it
+    can be reached, read or pressed — and the page's scroll is held. Focus starts on the first chapter
+    link and cycles through the links and then *Close*, in both directions, without ever leaving; Tab is
+    handled here rather than left to the browser, because after the last element the browser would hand
+    focus to its own chrome. Escape closes. Closing by any route puts focus back on the head button.
+
+    Nothing is written to history, and the page is held by refusing the inputs that scroll it rather than
+    by changing `overflow` — that would take the scrollbar away and move the layout the driver measures.
+  */
+  useEffect(() => {
+    if (!indexOpen) return
+    const rail = region.current
+    if (rail === null) return
+
+    const inerted: HTMLElement[] = []
+    for (let node: Element = rail; node.parentElement && node !== document.body; node = node.parentElement) {
+      for (const sibling of Array.from(node.parentElement.children)) {
+        if (sibling === node || !(sibling instanceof HTMLElement) || sibling.inert) continue
+        if (sibling.tagName === 'SCRIPT' || sibling.tagName === 'STYLE') continue
+        sibling.inert = true
+        inerted.push(sibling)
+      }
+    }
+
+    const button = indexButton.current
+    const links = () => Array.from(rail.querySelectorAll<HTMLAnchorElement>('.ledger-index a[href]'))
+    links()[0]?.focus({ preventScroll: true })
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        shut()
+        return
+      }
+      if (event.key === 'Tab') {
+        const order: HTMLElement[] = [...links()]
+        if (button) order.push(button)
+        if (order.length === 0) return
+        event.preventDefault()
+        const at = order.indexOf(document.activeElement as HTMLElement)
+        const next = event.shiftKey
+          ? at <= 0
+            ? order.length - 1
+            : at - 1
+          : at === -1 || at === order.length - 1
+            ? 0
+            : at + 1
+        order[next].focus({ preventScroll: true })
+        return
+      }
+      if (SCROLL_KEYS.has(event.key) && !(event.key === ' ' && event.target instanceof HTMLButtonElement)) {
+        event.preventDefault()
+      }
+    }
+    const hold = (event: Event) => event.preventDefault()
+    const phone = window.matchMedia(PHONE)
+    const onPhone = () => {
+      if (!phone.matches) shut()
+    }
+
+    window.addEventListener('keydown', onKey)
+    window.addEventListener('wheel', hold, { passive: false })
+    window.addEventListener('touchmove', hold, { passive: false })
+    phone.addEventListener('change', onPhone)
+
+    return () => {
+      for (const element of inerted) element.inert = false
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('wheel', hold)
+      window.removeEventListener('touchmove', hold)
+      phone.removeEventListener('change', onPhone)
+      button?.focus({ preventScroll: true })
+    }
+  }, [indexOpen, shut])
+
   const work = site.three.work
 
   return (
@@ -378,8 +496,18 @@ export default function Ledger() {
         chapter and the rail renders nothing at all. That is the same silence the mark used to keep,
         arrived at from the spine rather than from an opacity.
       */}
-      <div className="ledger">
-        <div className="ledger-rail">
+      <div className="ledger" data-index={lit ? (indexOpen ? 'open' : 'closed') : undefined}>
+        {/*
+          On a phone, while the index is open, the rail is one modal region — the head line and the
+          index together (C24). Everywhere else it carries no role, exactly as before.
+        */}
+        <div
+          ref={region}
+          className="ledger-rail"
+          role={indexOpen ? 'dialog' : undefined}
+          aria-modal={indexOpen ? true : undefined}
+          aria-label={indexOpen ? indexCopy.label : undefined}
+        >
           {rail.running && rail.folio && rail.title && (
             <p className="rail-head">
               {/*
@@ -413,11 +541,41 @@ export default function Ledger() {
                   <RailSlot key={rail.title.nonce} slot={rail.title} className="rail-title-slot" />
                 </span>
               )}
+
+              {/*
+                *Index* / *Close*, on the head's baseline, over a 1px rule of its own width — the rule is
+                the affordance (§6). Drawn only below 768px, and only once the rail is lit. It is the
+                picture of the control; the control itself is the whole line, below.
+              */}
+              {lit && (
+                <span className="rail-index-word" aria-hidden="true">
+                  <RailSlot key={toggle.nonce} slot={toggle} className="rail-index-slot" />
+                </span>
+              )}
             </p>
           )}
 
+          {/*
+            **The whole head line is one button** (C24): it spans the frame and is at least 44px tall, so
+            the chapter's name opens the index as surely as the word does. Its name says both what it does
+            and where the visitor is; open, it says it closes.
+          */}
+          {lit && rail.running && (
+            <button
+              ref={indexButton}
+              className="rail-index"
+              type="button"
+              aria-expanded={indexOpen}
+              aria-controls="ledger-index"
+              aria-label={
+                indexOpen ? indexCopy.closeNamed : `${indexCopy.named} ${rail.running.word}`
+              }
+              onClick={() => setIndex((was) => !was)}
+            />
+          )}
+
           {rail.running && (
-            <nav className="ledger-index" aria-label={site.mark.label}>
+            <nav id="ledger-index" className="ledger-index" aria-label={site.mark.label}>
               <ul>
                 {rail.rows.map(({ destination, slot }, i) => (
                   <li key={`slot-${i}`}>
@@ -447,7 +605,15 @@ export default function Ledger() {
                         <RailSlot key={slot.nonce} slot={slot} className="rail-word-slot" />
                       </button>
                     ) : (
-                      <a className="ledger-word" href={`#${destination.to}`}>
+                      <a
+                        className="ledger-word"
+                        href={`#${destination.to}`}
+                        /*
+                          Choosing a chapter closes the index in the same press; the anchor then does
+                          what it always did. Nothing is prevented, so the driver still sees the press.
+                        */
+                        onClick={indexOpen ? shut : undefined}
+                      >
                         <RailSlot key={slot.nonce} slot={slot} className="rail-word-slot" />
                       </a>
                     )}

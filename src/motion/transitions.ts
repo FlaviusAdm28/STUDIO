@@ -255,11 +255,10 @@ const settings: ReadonlyArray<readonly [string, string]> = [
   */
   ['--asked-lands', `${TIMING.questions.faq.afterLock}`],
   /*
-    How far Questions stands inside the Method's trailing frame. One number on both pointers — it
-    covers a frame height and a head margin, which do not change with the runway's price.
-    `story.askedLead` argues it.
+    How far Questions stands inside the Method's trailing frame. A fine/coarse pair since it places the
+    lock inside the Method's leaving window, which is priced by the pointer — `story.askedLead`.
   */
-  ['--asked-lead', askedLead],
+  ['--asked-lead', askedLead.fine],
 
   /*
     ── Contact, and both halves of it ──────────────────────────────────────────
@@ -407,6 +406,7 @@ ${declare(firstState(), '  ')}
     --method-pin: ${methodPin.coarse};
     --about-pin: ${aboutPin.coarse};
     --asked-hold: ${askedHold.coarse};
+    --asked-lead: ${askedLead.coarse};
   }
 }
 

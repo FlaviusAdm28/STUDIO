@@ -308,24 +308,23 @@ export const site = {
   timeCaption: 'where you are',
 
   /**
-   * **The hero's chapter indicator.** V2 §2's state-01 copy — *"Chapter One · Where moments become
-   * digital · I of III · It's XX:XX where you are."* — and the storyboard sets it bottom-right of the
-   * hero frame, 9px at .26em, opposite the Ledger's mark. It is the film saying which of three chapters
-   * the visitor is standing in before the Ledger's ticks exist to say it.
-   */
-  chapterOf: 'I of III',
-
-  /**
-   * Arrives last. `04-visual-language.md` §10 — words, and only what is needed.
+   * **The opening's quick navigation** — design owner, 30 September 2026, approved in the preview. It
+   * replaces V2 §2's *I of III*, which is removed and not replaced by another counter: the narrative is one
+   * continuous sequence (C8), and the Ledger carries orientation from state 08.
    *
-   * Three, where Chapter III's masthead carries five: this is the hero, and the hero's job is not to
-   * offer a way around itself. Studio is the one that goes anywhere today.
+   * It is an escape hatch of the opening, not a second navigation: it arrives on Chapter I's last beat
+   * (`INTERFACE`), leaves with the tagline on 01 → 02, and is never on screen with the Ledger. Three
+   * intents in page order — see the work, settle the questions, get in touch. About and Method are
+   * narrative and are meant to be arrived at, not skipped to. Work lands where the rail's Work does.
    */
   nav: [
-    { word: 'Studio', to: where.studio },
-    { word: 'About', to: where.about },
+    { word: 'Work', to: where.studio },
+    { word: 'Questions', to: where.questions },
     { word: 'Contact', to: where.contact },
   ] as const,
+
+  /** The quick navigation's accessible name. */
+  navLabel: 'Quick navigation',
 
   /**
    * The positioning sentence. Not on the page as one line — this is the document's description, and

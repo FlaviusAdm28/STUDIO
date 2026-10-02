@@ -160,6 +160,30 @@ export default function Opening() {
     const root = document.documentElement
     root.dataset.opening = 'running'
 
+    /*
+      **Nothing after the opening can take keyboard focus while it runs.** Tab reached the
+      publication's own controls — Questions' `summary`, Contact's links — and the browser scrolled to
+      them; while the opening runs the shot's origin follows the scroll, so the target moved on and the
+      browser chased it: measured, the document grew from 32,015px to over a million on one Tab, and a
+      phone finished the opening parked near y 5.2M. `.publication` holds every one of those controls
+      and none of the opening, so it alone is made `inert` until the flip — no key is intercepted and
+      the Ledger keeps its focus order. Only an `inert` written here is lifted here: the Ledger's index
+      makes siblings inert for its own reasons and restores only what it set.
+    */
+    const later = document.querySelector<HTMLElement>('.publication')
+    let held = false
+    if (later !== null && !later.inert) {
+      if (document.activeElement instanceof HTMLElement && later.contains(document.activeElement)) {
+        document.activeElement.blur()
+      }
+      later.inert = true
+      held = true
+    }
+    const release = () => {
+      if (held && later !== null) later.inert = false
+      held = false
+    }
+
     let previous = performance.now()
     let seen = window.scrollY
     let published = ''
@@ -272,6 +296,7 @@ export default function Opening() {
         t >= lineAt.current + cues.introDoneAfterSubtitle
       ) {
         root.dataset.opening = 'done'
+        release()
       }
 
       raf = window.requestAnimationFrame(tick)
@@ -287,12 +312,29 @@ export default function Opening() {
     const intent = ['pointerdown', 'keydown', 'wheel', 'touchstart', 'focusin', 'scroll'] as const
     intent.forEach((event) => window.addEventListener(event, hurry, { passive: true }))
 
+    /*
+      **No link may skip the opening — by keyboard either.** `pointer-events: none` holds the pointer
+      off every in-page link while this runs, but a focused link activated with Enter still navigated:
+      measured, `#about` from the Ledger left the opening behind with the scroll in an abnormal state.
+      Enter on a link is a `click`, so the same rule is stated once for both, here, where `running` is
+      written: in the capture phase, before anything else sees it, an in-page link's default is
+      cancelled while the opening runs. The driver already ignores a press whose default was declined,
+      and from `done` on this does nothing at all.
+    */
+    const holdLinks = (event: MouseEvent) => {
+      if (root.dataset.opening !== 'running') return
+      if (event.target instanceof Element && event.target.closest('a[href^="#"]')) event.preventDefault()
+    }
+    window.addEventListener('click', holdLinks, { capture: true })
+
     return () => {
       window.cancelAnimationFrame(raf)
       intent.forEach((event) => window.removeEventListener(event, hurry))
+      window.removeEventListener('click', holdLinks, { capture: true })
       plate?.removeEventListener('loadedmetadata', nudge)
       /* Never leave the shot held by a sequencer that no longer exists. */
       root.dataset.opening = 'done'
+      release()
     }
   }, [hurry, roll])
 

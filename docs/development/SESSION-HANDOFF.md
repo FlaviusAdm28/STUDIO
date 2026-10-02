@@ -1,4 +1,482 @@
-# Session handoff — 28 September 2026
+# CHAPTER ONE — CURRENT STATE · session handoff — 1 October 2026, updated end of 2 October 2026
+
+## ▶ WHERE WE ARE — end of 2 October 2026 · read this first
+
+**State.** Every correction and validation item that was open is closed or explicitly parked. Nothing is
+half-done in the working tree. The next phase — **only when the design owner asks for it** — is a separate
+*aesthetic exploration* of the Opening (including whether `CHAPTER → Chapter II` can be made more
+elegant). No aesthetic work has started.
+
+**Frozen — do not change behaviour, values or timings without the design owner reopening it** (details
+under *KEEP / FROZEN* below and in `docs/design/v2/implementation-reconciliation.md`):
+
+- the Opening as approved on 30 September — One Sun B2, the quick menu, the tagline, *I of III* removed;
+- zone 05, the occasions played (**C28**); 04 → 05, the thesis leaves on a clock (**C29**, `leaveAt` 0.50);
+  03 → 04, the thesis arrives on a clock (**C30**, `arriveAt` 0.68); 01 → 02, `Chapter` changes face in
+  one frame (**C31-A**; C31-B tested and rejected; no C31-C);
+- the mobile reading grid phase 1 and the Method's closing group; Questions B, D-gate, rest height and
+  hysteresis (**C27**); Method → Questions (C25); Questions → Contact (C26 / S1);
+- the keyboard fixes during the opening (link activation cancelled, quick menu `tabIndex={-1}`,
+  `.publication` `inert` while it runs);
+- the pointer-change fix (`matchMedia('(pointer: coarse)')` → `onResize`);
+- the rail between 768 and 900px — head and index on one line, the running chapter named only in the
+  head (variant B).
+
+**Open — nothing that needs code now:**
+
+- iOS Safari / WebKit and a physical touch device: **INCONCLUSIVE**, never validated here. Chrome's
+  emulation is not a Safari result. Validate on a real iPhone and iPad when one is available; do not
+  report it as validated otherwise. Risks worth watching there (hypotheses, not findings): a pointer change
+  on an iPad with a trackpad (now handled by the pointer fix, unproven on iOS), `mask-clip: no-clip` on
+  the rail, inertial scrolling against the driver's spring, `inert` and `overflow-x: clip` (iOS ≥ 16).
+- Housekeeping that needs a yes: `D:\STUDIO-buildcheck` still exists (irreversible delete, not done).
+- Deferred for the aesthetic phase: Venice → Work's static frame; the end of the page after Contact;
+  Contact's listening pause possibly on the landscape. Debt deferred on purpose: thresholds of One Sun,
+  C9, C30, C31 in `globals.css` rather than `timing.ts`; inert `.v2-of` / `.v2-ember` rules.
+
+**Do not:** reopen any frozen item above without new evidence and the owner's request; re-tune C28–C31;
+make Questions B scroll-pure; reintroduce a cross-fade or a clock on the `Chapter` exchange; bring back
+the second `NN ·` in the 768–900 rail; treat Chrome emulation as an iOS result; run four heavy Chromes at
+once (≈22GB measured — two at a time is the safe maximum on this machine).
+
+**Next step:** wait for the design owner. If they open the aesthetic phase, start with a read-only audit
+and previews in an isolated copy (as C31 did: `:3000` untouched, previews on `:3001+`), never in the main
+project, and promote only what they approve.
+
+**Git:** last commit `ce463dd`; nothing staged, committed or pushed. Working tree: 13 modified files —
+`content/site.ts`, `docs/design/v2/implementation-reconciliation.md`, `docs/development/SESSION-HANDOFF.md`,
+`src/app/globals.css`, `src/app/opening.tsx`, `src/app/page.tsx`, `src/app/scroll-stage.tsx`,
+`src/app/states.tsx`, `src/motion/scroll.ts`, `src/motion/story.ts`, `src/motion/timeline.ts`,
+`src/motion/timing.ts`, `src/motion/transitions.ts` (earlier sessions' uncommitted work plus this
+session's C29–C31, the keyboard fixes, the pointer fix and the 768–900 rail).
+
+**Tooling lessons (outside the repo, `D:\STUDIO-tools\browser-automation`):** apply the viewport inside
+each script's own CDP session and guard `innerWidth` — a shared or freshly launched browser can drop the
+emulation and silently measure a desktop layout; gate measurements on the driver's own position
+(`--junction` + `--junction-at`), never on `scrollY`, which runs ahead of the input spring; real touch
+is `Input.dispatchTouchEvent` (`synthesizeScrollGesture` does not scroll under mobile emulation); the
+controller is a background job with a 2h limit — restart it with the maximum timeout; isolated workers
+use their own profile, CDP/API ports and output folder (`run-*.sh`).
+
+---
+
+*The sections below are the detailed record — the 1 October session and the 2 October additions — kept
+as written.*
+
+**Scope of the 1 October session:** mobile composition below 768px (a common reading grid, the Method's closing
+group) and the whole Questions-on-short-screens problem (B, D-gate, rest height, hysteresis), plus a
+CDP browser-automation workflow for real CSS viewports. **Everything below is approved and frozen by
+the design owner unless listed under *Open*. Do not reopen without new evidence.**
+
+## Git
+
+Nothing staged, committed or pushed. All of this is in the working tree, on top of the earlier sessions'
+uncommitted work (see the 30 September handoff below).
+
+## Opening 04 → 05 · the thesis leaves on a clock — FROZEN 2 October 2026 (C29)
+
+Moved from PENDING. The design owner approved `leaveAt` 0.50 (over 0.45, which was measured first) and
+froze 04 → 05 as implemented. The record, with the full battery, is
+`docs/design/v2/implementation-reconciliation.md` **C29**; it is listed under KEEP / FROZEN below.
+The only change after the 1 October battery was `leaveAt` 0.45 → 0.50, plus comments in
+`timing.ts`, `globals.css` and `scroll-stage.tsx` (no behaviour). Not validated: iOS Safari, a physical
+touch device. Tooling: `D:\STUDIO-tools\browser-automation` — `audit0405.mjs` (now 31 stops, incl.
+4.48–4.52), `compare-050.mjs` (0.45 vs 0.50), 0.45 results kept in `after045/`, 0.50 results in
+`audit0405-*.json`, `zone05-*.json`, `opening-*-after.json`. Run the controller with the 2h background
+limit: at the 30-minute default it was stopped mid-battery.
+
+## Opening 01 → 02 · `Chapter` changes face in one frame — APPROVED / FROZEN 2 October 2026 (C31)
+
+The passage `Chapter One → Chapter II` read as a scene change. The C31 audit proved the cause: the
+survivor's Cormorant → Schibsted exchange was a cross-fade over `--k-travel` .88 → .90 that now costs
+32–44px of scroll (the comment said ~10px; the junction has grown to 2283–3227px), with the word large
+and nearly still — a stop held both faces half-lit, slow scroll showed a double image, the x-height
+jumped 40–50%, and the serif stood spaced at ~0.37em before it. Two previews were compared by the
+design owner: **C31-A** (one-frame step at .95, serif tracking `0.2em × k`, mark 400 → 500, mark
+tracking 0.0744em → 0.42em) — **approved**; **C31-B** (late micro-cross-fade .94 → .96) — rejected:
+longer double image on slow scroll than the baseline, and a stop again held both faces. C31-A was
+promoted to `src/app/globals.css` exactly (four declarations in the survivor's block); comment-stripped
+the file is identical to the approved preview. Validation after promotion: typecheck / lint / build
+pass; 1440×900, 390×844, 375×812, 320×640 compared against the preview at 27 settled positions
+(exchange, 02 → 03, thesis arrival and leaving, zone 05) — identical; one natural gesture showed 0
+frames with both faces lit. The record is `implementation-reconciliation.md` **C31**. Not validated:
+iOS Safari, a physical touch device. The previews (:3001, :3002, in this session's scratchpad) were
+evaluation-only and are not needed any more.
+
+**C30 is documented** (cleanup pass, 2 October 2026): the thesis' arrival on a clock (03 → 04,
+`TIMING.memories.thesisArrives`, `arriveAt` 0.68) has its entry in `implementation-reconciliation.md`,
+and the code comments in `timing.ts`, `scroll-stage.tsx` and `globals.css` call it approved / frozen.
+
+## KEEP / FROZEN (design owner, 1 October 2026 · 04 → 05, 03 → 04, 01 → 02, the keyboard and pointer fixes and the 768–900 rail added 2 October 2026)
+
+- **Mobile reading grid, phase 1** (`globals.css`, block *"The mobile reading grid · phase 1"*, all
+  inside `max-width: 767.98px` / `700px`): F `--g-floor` (head line + breath), A `--g-anchor` = F + 7vh,
+  P `--g-foot` = 7vh. About's claim + paragraph from A and its secondary group ending on P; the Method's
+  main block on A (`--m-main-y = A − --masthead`, `.method-stage` clips x only); Questions'
+  `--asked-top` upper bound = A. `--masthead` is untouched.
+- **Method closing group** (portrait ≤ 700px): lines 1–5 step down from A (`--g-field-top`,
+  `--g-field-step`, `--wi`); lines 6, 7 and the note hang from P with `--g-close`; line 6 never stands
+  above 4px under the book (845/1024 of the plate). At 320×640 / 375×667 lines 6–7 sit tight (3px /
+  ~5px between glyphs) — accepted, do not re-tune.
+- **Questions B** (`scroll-stage.tsx` + `.asked[data-asked-reaches]`): where the list cannot stand
+  whole, it reads through 1:1, `--asked-reach = clamp(0, y − from, excess)`, masked above the line it
+  stands on.
+- **D-gate:** B does not start until `.publication[data-anchor]` is `held`; then it starts at 0, 1:1.
+  Its start therefore depends on when the anchor is held — accepted explicitly; do not try to make B
+  100% scroll-pure again; do not reopen the 320×640 / 375×667 anchor question.
+- **#2 · rest height vs actual height — APPROVED.** `--asked-h` is the list at rest (rendered height
+  minus what open answers add: a closed `details` is exactly its summary + borders); the excess still
+  uses the real height. Opening an answer no longer moves the list (was 40.6 / 56.8 / 42.1px at
+  360×780 / 375×812 / 390×844), the lock no longer moves, and the six questions no longer un-write when
+  an answer opens near the FAQ point (or right after an INDEX landing).
+- **#1 · hysteresis — APPROVED.** `askedReachStart` (the start the base and the D-gate set) and
+  `askedReachFrom` (the effective start). `place()` re-anchors only when the excess grows, and only
+  `askedReachFrom` runs ahead; `read()` hands the run-ahead back whenever the list stands at its
+  ceiling, where both starts give the same reach, so it is unseen.
+- **Validation of #1/#2 (CDP, settled samples, reverse vs clean path):** scenario A (open at reach 0 →
+  read → close → reverse) and scenario B (scroll to the ceiling → open → read → close → reverse):
+  320×640 ≤ 0.2px, 375×667 ≤ 0.1px in both (were −92px / −14px). 360×780, 375×812, 390×844: rest
+  height, top and lock constant, 0 differences, no regressions. Desktop 1440×889 unchanged (landing
+  27697, top 99, no B). Typecheck, lint and build pass.
+- **Desktop 1440×889** validated as unchanged by every change above.
+
+- **Opening zone 05 — the occasions are played (C28) — FROZEN.** `A wedding.` → `An artist.` →
+  `A memory.` trigger at the old ramps' positions and draw on `play()` (0.6s), chained (each waits
+  for the one before to arrive), with `--o1-guard` keeping the stack dark while the thesis can be lit
+  (jp4 0.6 → 0.7) and clearing it before the photograph (jp5 0.86 → 0.9). Environment, geometry and
+  junction distances unchanged. Validated 1440 / 390 / 375 / 320 (stops, 300–6000px/s, reverse,
+  flicks). Not validated on iOS Safari. Do not change its behaviour or timings.
+
+- **Opening 04 → 05 — the thesis leaves on a clock (C29) — FROZEN 2 October 2026.** The thesis'
+  leaving is played: trigger at `--jp4` **0.50** (`TIMING.memories.thesisPlays.leaveAt`), **0.6s**,
+  scroll guard **0.55 → 0.60** (`--th-guard`), clean frame **0.60 → 0.70**, `A wedding.` from 0.70
+  exactly as zone 05 froze it; reverse symmetric (the thesis returns from 0.50); the hold 0 → 0.30 and
+  the arrival in 03 → 04 untouched. Battery 1440 / 390 / 375 / 320 (stops forward + reverse, 300 /
+  900 / 1500 / 6000px/s, reverse 300 / 900 / 6000, flicks): no partial stop in 04 → 05, overlap
+  thesis × `A wedding.` 0ms, clean frame intact, zone 05 identical to its frozen reference,
+  geometry / distances / environment unchanged, typecheck / lint / build pass. Empty before
+  `A wedding.` at 300px/s: 162 / 256 / 188 / 178px (scrubbed 163 / 225 / 184 / 177). Accepted, **not to
+  be optimised**: 390's slow forward empty (+31px over scrubbed), the slow reverse empty (0.56–0.88s),
+  and fast reverse (6000px/s) showing the thesis in motion for 145–327ms without ever reaching full
+  ink. Not validated on iOS Safari or a physical touch device. Do not change its behaviour or timings.
+
+- **Opening 03 → 04 — the thesis arrives on a clock (C30) — APPROVED / FROZEN 2 October 2026.**
+  `TIMING.memories.thesisArrives`: trigger `--jp3` **0.68**, **0.6s**, floor **0.82 → 0.87** (whole
+  before state 04), ceiling **0.63 → 0.68** (gone before the clean frame and the pair), written as
+  `--k3-ink` on `.v2-thesis` so C29's rule is untouched; reverse symmetric. 0.75 tried and rejected
+  (empty frame too long). No partial stop; 0ms overlap with `II Philosophy`; C29 and zone 05 identical.
+  Accepted: the empty frame at rest 0.60 → 0.68 (160–224px) and fast reverse from 05 showing the
+  thesis to ~0.3–0.5 in motion. The pair's own partial stops (`--jp3` 0.46 → 0.60) were left out of
+  scope. Do not change its behaviour or timings.
+
+- **Opening 01 → 02 — `Chapter` changes face in one frame (C31-A) — FROZEN 2 October 2026.** In the
+  survivor's block of `globals.css`: `--swap` is a one-frame step at `--k-travel` **0.95**, `--swap-out`
+  runs 0.95 → 1; `.v2-word-serif` tracks `0.2em × --k-travel`; `.v2-word-mark` weight `400 → 500` on
+  `--swap-out` and tracking `0.0744em → 0.42em` (width-matched to the serif at the step). The travel,
+  the numeral (inks from .96), 02 → 03 and everything else unchanged. No cross-fade, no clock, no
+  further smoothing — the design owner rejected the micro-cross-fade (C31-B) and asked for no C31-C.
+  Do not change its behaviour or values.
+
+- **Keyboard during the opening — FIXED / FROZEN 2 October 2026** (accessibility corrections, not
+  design): `opening.tsx` cancels in-page link activation while `data-opening` is `running` and makes
+  `.publication` `inert` until `done`; the quick menu's links are `tabIndex={-1}` (`states.tsx`). Details
+  and validation under *Open*, items 1–3.
+
+- **Pointer change re-prices the page — FIXED / FROZEN 2 October 2026.** `scroll-stage.tsx` creates
+  `matchMedia('(pointer: coarse)')` beside the `resize` listener and runs the existing `onResize` on its
+  `change`; the listener is removed in the same cleanup. The runways (`--pin`, `--act-pin`,
+  `--method-pin`, `--about-pin`, `--asked-*`) are priced by `@media (pointer: coarse)`, and a pointer
+  change fires no `resize`, so the document used to end at state 9. Validated at 1440 / 390 / 375 / 320:
+  coarse → fine and fine → coarse re-price at once (document height equal to a fresh load in that mode),
+  full passes 1 → 14 and 14 → 1, 0 console errors, ordinary resizes unchanged; typecheck / lint / build
+  pass.
+
+- **The rail between 768 and 900px — head and index on one line (variant B) — APPROVED / FROZEN
+  2 October 2026**, chosen by the design owner from a live preview of three variants (A: index under the
+  head; B: index beside it; C: index on a fixed column). Composition:
+
+        01 Work     ABOUT   METHOD   QUESTIONS   CONTACT
+        02 About    WORK   METHOD   QUESTIONS   CONTACT
+        03 Method    WORK   ABOUT   QUESTIONS   CONTACT
+
+  The head stays on the left; the index starts one word-gap after it, so its start follows the
+  chapter's name; the running chapter is not drawn again in the index — its number lives in the head
+  only. Index logic, order, navigation and `data-hold` are unchanged, and the running line stays in the
+  accessibility tree with `aria-current`. Implementation: one block in `src/app/globals.css`,
+  `@media (min-width: 768px) and (max-width: 900px)` — `.ledger-rail` becomes a row (baseline,
+  `column-gap: clamp(1.125rem, 5vw, 1.75rem)`, the index's own column gap, 28px here) and the running
+  line (`li:has(> .ledger-word[aria-current])`) leaves the layout with the existing `.a11y` pattern.
+  Validated at 768 / 800 / 840 / 900 on Work, About, Method, Questions and Contact (identical to the
+  preview: Work's index at x 150 / 152 / 154 / 158), navigation by click works, 767 and 390 still show the
+  mobile INDEX (C24), 901 and 1440 the desktop column with its `NN ·` mark; typecheck / lint / build pass.
+  Do not bring back the second `NN ·` here and do not move this composition to other widths.
+
+## Known limitation (accepted, do not fix in this phase)
+
+If an answer is opened while the list is at its ceiling and closed before the list touches the ceiling
+again (i.e. the visitor scrolled back up while it was open), the temporary run-ahead is only handed
+back when the ceiling is reached again. Until then the reach on that path is lower than the clean path.
+
+## Open (inventory of the cleanup pass, 2 October 2026)
+
+**Fixed 2 October 2026 (accessibility / behaviour corrections, not design decisions):**
+
+1. ~~**The keyboard skips the mandatory opening by activating a link.**~~ **FIXED.** `opening.tsx`
+   cancels an in-page link's (`a[href^="#"]`) `click` in the capture phase while `data-opening` is
+   `running` — Enter on a focused link is a `click`, which `pointer-events: none` never stopped.
+   Verified at 1440: Tab to the Ledger + Enter during the opening → no hash, `scrollY` 0, the opening
+   finishes by itself; after `done`, Tab + Enter navigates exactly as before (`#about`, state 9).
+2. ~~**The quick menu is focusable inside `aria-hidden="true"`.**~~ **FIXED.** `tabIndex={-1}` on its
+   three links (`states.tsx`): no longer keyboard stops, before or after the opening; still navigate by
+   pointer and touch once the opening is done (`#questions`, state 13, at 1440 and 390); absent from the
+   accessibility tree; the Ledger keeps its own focus order.
+
+3. ~~**Keyboard focus during the opening runs the page away.**~~ **FIXED** (design owner chose `inert`
+   over blocking Tab). With the opening `running`, Tab past the Ledger (1440) or straight away on a
+   phone focused the publication's controls — Questions' `summary`, Contact's links — and the browser
+   scrolled to them while the shot's origin followed the scroll: `scrollHeight` 32,015 → 1,064,315 on
+   one Tab, ~+1M px per further Tab, a phone parked near y 5.2M. Now `opening.tsx` makes
+   `.publication` — which holds all eleven of those controls and none of the opening — `inert` when it
+   writes `running` (blurring focus first if it were already inside) and lifts it on the frame it writes
+   `done` (and on unmount); it lifts only an `inert` it set. No key is intercepted; the Ledger keeps its
+   focus order; without scripting nothing is written. Verified at 1440 and 390: ten Tabs during the
+   opening never reach the publication and `scrollHeight` stays 32,015 / 42,020 with `scrollY` 0; Enter
+   on a Ledger link during the opening does nothing; after `done` Tab enters the publication normally,
+   the height does not move, Enter on the Ledger navigates (`#about`), the quick menu stays out of the
+   Tab order. (At 390 the Ledger's destinations are reachable only through INDEX, as before.)
+
+**Validation items — audited 2 October 2026 (all closed except iOS):**
+
+- ~~Transient `[narrative]` / `[junction]` console errors at the instant a viewport is resized/emulated~~
+  — **not transient: a real bug, FIXED 2 October 2026.** The errors (`[narrative] State 10–14 is past
+  the end of the document`) marked a pointer change from coarse to fine with no size change: the runways
+  are priced by `@media (pointer: coarse)` in `transitions.ts`, the driver re-priced only on `resize`,
+  and the end of the document stayed at state 9 until a reload (silently, when only the pointer
+  changed). `scroll-stage.tsx` now listens to `matchMedia('(pointer: coarse)')` and runs the existing
+  `onResize` on `change`. Verified at 1440 / 390 / 375 / 320: coarse → fine, fine → coarse and coarse →
+  fine again each re-price at once (`--pin` 2508vh ↔ 1672vh, document height equal to a fresh load in
+  that mode), the end reaches state 14, a full pass runs 1 → 14 and back, 0 console errors on any
+  change; ordinary resizes unchanged; e2e at 1440 and 390 (14 states both ways, landings, Questions)
+  and the opening's keyboard guard unchanged.
+- ~~701–767px: not validated in that range.~~ **CLOSED 2 October 2026** — tested at 701 / 720 / 740 /
+  760 / 767 / 768 (×889), plus 740×600 and 740×1200: no broken state; e2e crosses the 14 states both
+  ways with no errors; every INDEX landing on its state with its content visible; Questions stable when
+  answers open; no overflow beyond the scrollbar. The e2e CHECKs there are false positives:
+  `.v2-work-type` is a full-frame container (its ink sits at y 394–417, the head line at 73) and
+  `.v2-title × .v2-thesis` is the invisible ghost title. The 768 breakpoint is intentional.
+- ~~Desktop horizontal overflow (~10px).~~ **CLOSED** — the difference is exactly the scrollbar:
+  `.stage` (sticky, `width: 100vw`) at 1440 and 1920; the Environment's wider plates do not count. Wheel
+  `deltaX`, Shift + wheel and arrow keys leave `scrollX` 0; only a programmatic `scrollTo` reaches 10.
+  Structural and harmless; `overflow-x: clip` stays as it is.
+- ~~≤ 900px rail `data-hold` awaits visual confirmation.~~ **CLOSED** — `data-hold` is not a delay and
+  does not depend on height: it reserves, unseen, the running word's width so the other words never
+  shift, and only matters where the index lies in a row (768–900px). It never drew the second `01`.
+  That composition has since been replaced in that range (*KEEP / FROZEN*, rail 768–900). Do not reopen
+  without new visual evidence.
+- iOS Safari / WebKit and a physical touch device — **INCONCLUSIVE**: no Safari, WebKit or device here;
+  Chrome emulation does not count as a Safari result.
+
+**Housekeeping, needs a yes:** `D:\STUDIO-buildcheck` (a build copy from 26 September) still exists;
+deleting it is irreversible, so it was not done.
+
+**Deferred on purpose — visual, for the aesthetic phase:** Venice → Work's static frame while the
+carousel changes; the end of the page after Contact with no response; Contact's listening pause
+possibly landing on the landscape and the ⅓s silhouette overlap as the still dissolves in.
+
+**Debt, deferred on purpose:** thresholds of One Sun, C9, C30 and C31 live in `globals.css` rather than
+`timing.ts`; inert `.v2-of` / `.v2-ember` rules. Content decisions (`open-decisions.md`): Instagram
+handle, the placeholder phone number.
+
+**Closed in this pass (verified, removed from the list):** the running header's clipping (the fix is in
+`.ledger-rail`'s `clip-path` / `mask-clip`; 0 clipped exchanges in every direction at 1440 / 390 / 375 /
+320, measured 1 October); the Questions INDEX landing at 390 (lands on state 13, `04 Questions`, list
+visible, at 320 / 375 / 390 / 768 / 1440 / 1920); 768 with mobile emulation (no longer reproduces:
+`scrollWidth` 768, scale 1); the `--asked-h` comment (now states the rest height); the mobile grid and the
+Method closing group (now in `implementation-reconciliation.md`); C30's missing entry and its
+"experiment" comments. The e2e tool's overlap CHECKs at states 7–8 are false positives (invisible
+`.v2-ghost` / `.v2-ident-ghost` spacers).
+
+## Validation workflow (use this, not the Device Toolbar)
+
+`D:\STUDIO-tools\browser-automation` (outside the repo): `node control.mjs` launches/reuses a visible
+second Chrome (own profile, `--remote-debugging-port=9222`, background throttling disabled) on
+`http://localhost:3000/` and serves `http://127.0.0.1:9333`: `/viewport?w=&h=&dpr=&touch=&mobile=`,
+`/eval` (POST a JS expression), `/shot?name=`, `/goto`, `/status`, `/reset`, `/quit`. Keep the
+controller running (CDP emulation lasts only while it holds the session; a background job is stopped
+after 2h — restart it, it reattaches). Phones: `dpr=2&touch=1&mobile=1`; 768/1440: `mobile=0`.
+Batteries used this session are in that folder (`questions-*.js`).
+
+---
+
+# Previous handoff — 30 September 2026
+
+**Scope of the session:** the opening (load → Work) was redesigned and approved in a preview (One Sun · B2 ·
+quick menu · tagline · no "I OF III"), promoted to the main project, and a global audit was run. One
+concrete problem remains open (Questions on short screens). **Read this section first. Do not reopen
+anything listed as frozen without new evidence.**
+
+## Estado dos ambientes
+
+- **:3000 = projeto principal** (`D:\STUDIO`, `next dev`). Now contains the approved opening (see
+  *Alterações promovidas*). Was not changed after promotion; the audit and this handoff did not touch
+  behaviour.
+- **:3001 = sandbox / referência.** A copy of the project outside the repo:
+  `C:\Users\35191\AppData\Local\Temp\claude\D--STUDIO\5774b372-0bf0-4546-b6c9-3b8aeb4c338f\scratchpad\preview-opening`
+  (own `node_modules`, served with `npx next dev -p 3001` from that folder). The approved state is
+  `http://localhost:3001/?sun=b`. **Keep :3001 available as the reference** until the main project is
+  confirmed. If the machine restarts, :3001 must be started again from that folder; if the folder is
+  gone, :3000 already holds the approved state and is the reference.
+- In :3001 only: `src/app/sun-variant.tsx` reads `?sun=a|b|b1|b2` (A = minimal, B = approved, B1/B2 =
+  test exits). `?sun=b` already uses the B2 exit. None of this is in :3000.
+
+## Estado aprovado da abertura (design owner, 30 September 2026)
+
+Approved:
+- **Quick menu** WORK · QUESTIONS · CONTACT on the title's axis, bottom band of the hero, where
+  "I OF III" stood. Arrives on Chapter I's `INTERFACE` beat (`--fade-navigation`), leaves with the
+  tagline (`.v2-leaves`), clickable only when `data-opening='done'` (the opening stays mandatory).
+  Rail register (Schibsted, uppercase, 0.24em, `clamp(9px, 9.5/1440·100vw, 13px)`), 60% ink,
+  hover/focus = full ink + the Index's 1px rule. 44px+ touch targets. Work → `#studio`,
+  Questions → `#questions`, Contact → `#contact`.
+- **"I OF III" removed**, not replaced by any counter.
+- **Tagline**: 1.125× the existing fluid rule above 820px (15px at 1920, 11.25px at 1440); unchanged
+  below 820px (larger breaks the mobile column into one word per line).
+- **One Sun, variant B, B2 exit.** The image disappears; the light survives:
+  - 01 → 03: the uniform black (`.v2-grade`) is a radial falloff centred on the footage's own sun
+    (≈43.5% / 36% of the video, mapped through `object-fit: cover`), so the pool of light around the
+    sun darkens less and narrows as "Philosophy" forms.
+  - `.v2-light`: one independent warm light (wide soft ellipse, horizon light) from Chapter II to
+    "A memory.": merges with the real sun on the figure shot, reads as a source behind the horizon on the
+    landscape shot, takes over as the picture goes, **drops quickly as "Philosophy" disperses (B2: holds
+    to 0.38 of junction 03 → 04, down to 25% by 0.48, back to full by 0.95)**, returns as the ember while
+    the thesis resolves, steps back up-right, rises over the occasions, leaves with the dark as Venice
+    opens. Intensities B: 0.06 / 0.12 / 0.07 / 0.11. The old ember (`.v2-ember`) is removed.
+- **Video runs normally** — no seek, no loop inside the sun shot, no hold. (A forced 2.7–9.6s loop was
+  tried and rejected: visible pose jumps.)
+- Intended reading, confirmed: **sol → luz → desaparecimento → preto → ember/tese.**
+- **Validated in the real, visible Chrome** (not only headless): 1440 and 375 at slow / normal / fast
+  wheel scroll; B2 does not read as a pulse; no legible oval on black; thesis clean; Venice still a
+  reveal. Earlier headless captures were used only for comparisons B0/B1/B2.
+
+Rejected along the way (do not retry): contrast-crush of the footage (posterised the halo into a ring);
+forced video loop; variant A (too faint on mobile); B0 (legible oval when Philosophy disperses); B1
+(weaker sun → light continuity).
+
+## O que está congelado — não mexer sem nova evidência
+
+Opening · One Sun/B2 · Philosophy → thesis · thesis → occasions · A memory. → Venice · Work → About ·
+About · About → Method · Method (Option 1 compression and the healthy `gathered.holds`) ·
+Method → Questions / C25 · Questions → Contact / C26 / S1 · Contact's guard (`contactGuard`).
+
+## Alterações promovidas para :3000 (working tree, uncommitted)
+
+- `content/site.ts` — `site.nav` is now Work / Questions / Contact (it was an unused
+  Studio/About/Contact list); new `site.navLabel = 'Quick navigation'`; `site.chapterOf` removed.
+- `src/app/states.tsx` — `<p class="v2-of">` replaced by `<nav class="v2-nav">` built from `site.nav`;
+  `<div class="v2-ember">` removed; `<div class="v2-light">` added right after `.v2-warm` (above the
+  grounds, under all type).
+- `src/app/globals.css` — one section appended at the end, *"The opening, as approved in the preview ·
+  30 September 2026"*: tagline, `.v2-nav` / `.v2-nav-word`, the One Sun falloff (`.v2-grade`,
+  `.v2-scrim-flat`, `--os-*` on `:root`) and `.v2-light` with B values and the B2 exit fixed. The old
+  `.v2-of` / `.v2-ember` rules were left in place, inert.
+- `src/app/page.tsx` — no-script CSS list: `.v2-of` → `.v2-nav`.
+
+Not in the product: `?sun` does not exist; `sun-variant.tsx` is preview-only; B1/B2 are not separate
+variants; the video is not forced to the sun shot; the headless capture scripts (in the scratchpad
+`cap/` folder) are not part of the project.
+
+Known debts of the promotion (decisions, not bugs to fix silently):
+- The quick menu lives inside `.v2`, which is `aria-hidden="true"`: links take keyboard focus but are
+  not announced by screen readers. Fixing it means changing `.v2`'s structure.
+- CLAUDE.md asks new animation parameters to live in `src/motion/timing.ts`; the light's thresholds
+  (0.35, 0.45, 0.38, 0.48, 0.95…) are in CSS because timing was out of scope.
+- ~~Not yet recorded in `docs/design/v2/implementation-reconciliation.md`~~ — recorded 2 October 2026
+  (*Approved states recorded here for completeness*). The accessibility debt above and the keyboard
+  link bug were fixed on 2 October 2026, with the focus runaway beside them (*Open* at the top, items 1–3).
+
+## Validação atual
+
+- `npm run typecheck` **PASS** · `npm run lint` **PASS** · `npm run build` **PASS**.
+- Dev console: no `[motion]` assertion failures (only the pre-existing informational `[junction]` note).
+- Visual validation in the real Chrome at **1920, 1440, 375, 320**: every opening transition, and
+  Venice → Work.
+- **:3000 matches the approved :3001** — computed values of `.v2-light` / `.v2-grade` /
+  `.v2-scrim-flat` are identical at nine positions of the sequence at 1920.
+
+## Auditoria global (:3001, 30 September 2026)
+
+| Zona | Estado |
+|---|---|
+| Opening → Chapter One | KEEP |
+| Chapter One → II → Philosophy | KEEP |
+| Philosophy → thesis | KEEP |
+| thesis → occasions → A memory. → Venice | KEEP |
+| Venice → Work | WATCH (Work frame static ~2,000px at 1920 while the carousel changes every 8s; a normal scroller sees one category) |
+| Work → About | KEEP |
+| About | KEEP |
+| About → Method | KEEP |
+| Method | KEEP |
+| Method → Questions (C25) | KEEP |
+| Questions → Contact (C26/S1) | KEEP (small reverse steps: Contact leaves before the room returns) |
+| Fim da página | WATCH (~600–750px after Contact is composed with no response; felt when reversing from the bottom) |
+| Quick menu / INDEX | work (mobile INDEX → Questions lands composed); ~~investigate accessibility~~ fixed 2 Oct 2026 (see *Open* at the top) |
+
+Audit limits: 768/375/360/320 were iframes (mouse pricing, not touch); no real touch, no iOS Safari.
+
+## ~~ÚNICO PROBLEMA PRIORITÁRIO ATUAL — Questions em ecrãs baixos~~ — RESOLVED 1 October 2026 (C27; B, D-gate, rest height, hysteresis). Kept as history; this and *Próximo passo* / *Próxima sessão* below are superseded.
+
+The Questions list (heading, body, six rows) stands in a held frame; on short viewports the last rows
+sit below the fold for the whole hold, and the list then leaves without ever moving up.
+
+| Viewport | Altura útil | Pergunta 6 termina | Resultado |
+|---|---|---|---|
+| 320×640 | ~638 | ~765 | only 4 rows visible (row 5 starts at 624) |
+| 375×667 | ~665 | ~709 | only 5 rows visible |
+| 360×780 | ~778 | ~754 | all visible |
+| 375×812 | ~810 | ~786 | all visible, tight |
+
+Measured with the list at rest (≈600px after `#questions`' top), rows = `#questions summary`. Problem: the
+last questions ("Can you work with the people already involved?", "What happens after the experience
+is live?") are cut / never reachable at low heights. Real mobile browsers lose more height to their
+toolbars, and opening an answer pushes later rows further down.
+
+## PRÓXIMO PASSO EXATO
+
+**Não implementar nada ainda.** First a specific technical audit of Questions to find the cause:
+- how the list is positioned; the available height;
+- which element is held (sticky / clamp / anchor), clipping;
+- the runway (`distance.asked`, `askedLead`, `askedHold`, `--closing-pin`);
+- `--jclear`, `--asked-fits`, `--asked-lands` and the other Questions variables
+  (`TIMING.questions.*`, `src/app/scroll-stage.tsx` around the anchor / `afterLock` / `--qin`);
+- why 375×667 fails and 360×780 does not.
+
+Then decide whether the right answer is **A)** more runway, **B)** an internal shift of the list,
+**C)** a low-height adaptation, or **D)** another structural solution — and only then implement the
+smallest possible change, validating 1920 / 1440 / 768 / 375×812 / 375×667 / 360 / 320 in the real
+Chrome, forward and reverse, and C26 unchanged.
+
+Also still open from the 28 September handoff (below), not re-verified this session: the running
+header's clipping during some rail exchanges (item 1). Item 2 (Questions destination at 390) looked
+correct in this session's mobile INDEX → Questions test at 375×812, but was not re-measured at 390×844.
+
+## Estado Git
+
+No stage · no commit · no push · no reset · no checkout · no stash. Everything is in the working tree
+(`git status`: content/site.ts, docs/design/v2/implementation-reconciliation.md, src/app/globals.css,
+src/app/page.tsx, src/app/scroll-stage.tsx, src/app/states.tsx, src/motion/scroll.ts,
+src/motion/story.ts, src/motion/timeline.ts, src/motion/timing.ts, src/motion/transitions.ts — the
+non-opening files carry earlier sessions' uncommitted work: Method Option 1, C25, C26/S1, askedLead).
+
+## Próxima sessão
+
+1. Read this section.
+2. Do not reopen anything frozen.
+3. Start with the technical audit of Questions on short screens.
+4. Do not change code until the cause is identified.
+
+---
+
+# Previous handoff — 28 September 2026
 
 **Scope: the Ledger's index (the rail's chapter list).** The approved version of
 `prototypes/the-folio-mark-motion` (served on :3030) is now implemented in the main project.
@@ -30,7 +508,7 @@
   `prototypes/the-folio-mark`, :3030 `prototypes/the-folio-mark-motion` (all untracked). Serve with
   `node prototypes/server.mjs <dir> <port>`.
 
-## 2 · Pending for the next session — in this order
+## 2 · Pending for the next session — in this order (superseded: 1 and 2 verified closed on 1 October 2026; see *Open* at the top)
 
 1. **Fix the running header's clipping during some exchanges.** Pre-existing. Leaving a long chapter
    name for a shorter one, the departing header word is cut at the rail's right edge: Questions → About

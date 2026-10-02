@@ -524,6 +524,19 @@ export const methodSpans = (() => {
     to: r(clearFrom + method.printing.clears),
   }
 
+  /*
+    **Where each part of the leaving starts, in beats of the section** — 29 September 2026. `method.leaves`
+    authors them as fractions of the window between the trigger and the guarantee, so re-pricing the
+    section or moving `leads` re-places them without anyone re-authoring a position.
+  */
+  const at = (fraction: number) => r(leaves + fraction * (clear.from - leaves))
+  const lv = TIMING.method.leaves
+  const leaving = {
+    main: lv.main.at.map(at),
+    thoughts: lv.thoughts.at.map(at),
+    notes: lv.notes.at.map(at),
+  }
+
   return {
     words: words as readonly Span[],
     /** The marginalia, which stands in the room with the field. */
@@ -535,8 +548,14 @@ export const methodSpans = (() => {
     /** Where the room stands with nothing moving. Not a range — the assertions read it. */
     gatheredFrom,
     drift,
-    /** Where the layered leaving is triggered. */
+    /** Where the layered leaving begins. */
     leaves,
+    /** Where each part of it starts — the composition, the seven thoughts, the note. */
+    leaving: leaving as {
+      readonly main: readonly number[]
+      readonly thoughts: readonly number[]
+      readonly notes: readonly number[]
+    },
     clear,
     /** The last frame the section composes. `METHOD_BEATS` is checked against it. */
     endsAt: clear.to,
@@ -661,21 +680,20 @@ export const chapterThree = {
 } as const
 
 /**
- * **Junction 13 → 14, resolved from seconds into fractions of its own distance.**
+ * **Junction 13 → 14, as ranges on the passage's own `0 → 1`.**
  *
- * This is the whole of C8's conversion, and it is four lines of arithmetic: divide every cue by
- * `persisting.total`. Nothing here is a duration, nothing is chained, and nothing is compared to a
- * clock. What comes out is a set of ranges on `0 → 1`, and the driver turns scroll position into that
- * `0 → 1` — so the junction runs backwards exactly as it runs forwards, and stopping anywhere holds a
- * composed frame.
+ * Since 29 September 2026 (C26) the sheet is authored in those fractions directly, and the driver
+ * derives the `0 → 1` from scroll position — `startsBefore` above the closing frame's lock to the end of
+ * `--closing-pin` — rather than from a clock the scroll had started. So the junction runs backwards
+ * exactly as it runs forwards, and stopping anywhere holds that frame of it. Only the list's fades and
+ * Contact's composition keep a clock, and they are started by these positions.
  *
- * `length` is the only place seconds meet the world: `total × SECONDS_TO_VH`, in viewport-hundredths.
- * Change the constant and the hand travels further; every proportion below is untouched.
+ * `length` is the closing frame's hold in viewport-hundredths, `--closing-pin`: 148, the distance the
+ * seconds used to produce (7.4 × `SECONDS_TO_VH`), unchanged.
  */
 export const persistSpans = (() => {
-  const T = persisting.total
-  /** A cue's absolute second, as a fraction of the junction. */
-  const f = (seconds: number): number => r(seconds / T)
+  /** A cue, already a fraction of the passage. */
+  const f = (at: number): number => r(at)
   /** A cue with a duration, as a range. */
   const span = (at: number, over: number): Span => ({ from: f(at), to: f(at + over) })
 
@@ -687,12 +705,6 @@ export const persistSpans = (() => {
   return {
     /** Nothing happens here, and that is the cue. §8's opening 400ms hold. */
     holdsUntil: f(persisting.holds),
-
-    /**
-     * **Where the list is told to let go** — the trigger; the release itself is a clock
-     * (`persisting.releases.clock`), played by the driver.
-     */
-    lets: f(persisting.releases.asks),
 
     /**
      * **The light going down over the plate that is leaving**, and the light coming back up on the
@@ -728,8 +740,37 @@ export const persistSpans = (() => {
      */
     asks: f(persisting.asks),
 
-    /** How far the junction runs, in viewport-hundredths. The one place seconds become distance. */
-    length: r(T * SECONDS_TO_VH),
+    /** Contact's positional guarantee on the way back — `--cguard`, the mirror of `--jclear`. */
+    contactGuard: span(persisting.contactGuard.at, persisting.contactGuard.over),
+
+    /** How far the closing frame is held, in viewport-hundredths — `--closing-pin`. */
+    length: persisting.length,
+
+    /** Where the progression begins, in viewports above the closing frame's lock. */
+    startsBefore: persisting.startsBefore,
+
+    /**
+     * **Where each part of the list starts to leave**, in the order it goes: the anchor's answer, each
+     * row's words and then its hairline (pairs from the bottom up), and the question last. Positions
+     * on the passage; the fades are `persisting.releases`' own seconds.
+     */
+    releases: (() => {
+      const rel = persisting.releases
+      const parts: Array<readonly [name: string, at: number, over: number]> = [
+        ['--jgoneb', f(rel.body.at), rel.body.over],
+      ]
+      for (let i = 0; i < 6; i++) {
+        const fromBottom = 5 - i
+        const at =
+          rel.rows.at +
+          Math.floor(fromBottom / rel.rows.per) * rel.rows.groupGap +
+          (fromBottom % rel.rows.per) * rel.rows.stagger
+        parts.push([`--jgone${i + 2}`, f(at), rel.rows.over])
+        parts.push([`--jgoner${i + 2}`, f(at + rel.ruleLags), rel.rows.over])
+      }
+      parts.push(['--jgone1', f(rel.question.at), rel.question.over])
+      return parts.sort((a, b) => a[1] - b[1]) as ReadonlyArray<readonly [string, number, number]>
+    })(),
 
     /** The last thing the scroll decides. Asserted to fall inside the junction. */
     endsAt: f(persisting.asks),
@@ -1767,6 +1808,38 @@ if (process.env.NODE_ENV !== 'production') {
   }
 
   /*
+    **The leaving happens inside its window, and the room is left empty before the guarantee** — 29
+    September 2026. Every part of `method.leaves` is a position between the trigger and `clear.from`;
+    one at or past the end would be a leaving only the scrolled guarantee ever performs, and a table
+    whose last start is too close to the end leaves no empty room for Questions to be written into.
+  */
+  {
+    const lv = TIMING.method.leaves
+    const all = [...lv.main.at, ...lv.thoughts.at, ...lv.notes.at]
+    const outside = all.filter((f) => !(f >= 0 && f < 1))
+    if (outside.length > 0) {
+      complain(
+        'A part of the Method leaves outside its window.',
+        `method.leaves positions must be fractions in [0, 1) of the window between the trigger and ` +
+          `the guarantee; found ${outside.join(', ')}.`,
+      )
+    }
+    if (Math.max(...all) > 0.75) {
+      complain(
+        'The Method leaves no empty room before Questions.',
+        `the last part starts at ${Math.max(...all)} of the leaving window. Past 0.75 its own fade is ` +
+          `still running when the guarantee arrives, for an ordinary hand, and the room is never seen empty.`,
+      )
+    }
+    if (lv.thoughts.at.length !== lv.thoughts.drift.length) {
+      complain(
+        'The thoughts and their drifts disagree.',
+        `method.leaves.thoughts has ${lv.thoughts.at.length} positions and ${lv.thoughts.drift.length} drifts.`,
+      )
+    }
+  }
+
+  /*
     **The two printing assertions are gone with the printing.** They checked that the light type cleared
     before the paper started coming back, and that the answer was printed inside that return — the
     ~1.1:1 frame `story.methodStory.printing.clears` argues at length. There is no return: the room the
@@ -1863,6 +1936,19 @@ if (process.env.NODE_ENV !== 'production') {
         `nothing may fire before ${r(askAnchor.afterLock + askAnchor.hold)}. faq.afterLock is ` +
         `${askFaq.afterLock}, which leaves ${askHeld} viewport heights — the anchor would still be ` +
         `arriving when the list starts.`,
+    )
+  }
+
+  /*
+    **The anchor's envelope closes before the list forms** — 29 September 2026. `anchor.enters` is the
+    scroll's share of the Method → Questions dissolve; if it were still rising when the rows fire, the
+    six questions would be written under a question the hand has not finished bringing in.
+  */
+  if (!(askAnchor.enters > 0) || r(askAnchor.afterLock + askAnchor.enters) > askFaq.afterLock) {
+    complain(
+      'The anchor is still being brought in when the questions start.',
+      `questions.anchor.enters is ${askAnchor.enters} past a lock at ${askAnchor.afterLock}, and the ` +
+        `rows fire at ${askFaq.afterLock}. It has to be positive and close at or before the rows.`,
     )
   }
 
@@ -1994,9 +2080,28 @@ if (process.env.NODE_ENV !== 'production') {
   if (persistSpans.endsAt > 1) {
     complain(
       'Junction 13 → 14 does not fit its own distance.',
-      `its last cue finishes at ${persistSpans.endsAt} of the junction and the sheet is ${persisting.total}s ` +
-        `long. Raise persisting.total, or bring asks forward — the junction cannot end after it has ended.`,
+      `its last cue is at ${persistSpans.endsAt} of the passage, whose progression ends at 1. Bring asks ` +
+        `forward — the junction cannot end after it has ended.`,
     )
+  }
+
+  /*
+    **Detail, structure, question — and all of it before the guarantee** (C26, 29 September 2026). The
+    list's parts start at positions now, so their order is the table's: the question must be the last to
+    go, and it must start before `dusk` does, or the scrolled guarantee takes it with the rows and it is
+    never seen to leave — the fault the positions exist to remove.
+  */
+  {
+    const rel = persistSpans.releases
+    const question = rel.find(([name]) => name === '--jgone1')
+    const last = rel[rel.length - 1]
+    if (question === undefined || last[0] !== '--jgone1' || question[1] >= persistSpans.dusk.from) {
+      complain(
+        "Questions' question does not leave last, alone, before the guarantee.",
+        `the list's parts start at ${rel.map(([n, at]) => `${n} ${at}`).join(', ')} and dusk opens at ` +
+          `${persistSpans.dusk.from}. The question has to be the last start, and before dusk.`,
+      )
+    }
   }
 
   /*
@@ -2096,6 +2201,23 @@ if (process.env.NODE_ENV !== 'production') {
       'Contact is asked for before the frame has stood empty.',
       `asks is ${persistSpans.asks} and the empty hold ends at ${persistSpans.empty.to}. ` +
         '§8 lands the environment, holds it empty, and only then writes on it.',
+    )
+  }
+
+  /*
+    **Contact's guarantee never touches the way in, and always clears before the plates move** (29
+    September 2026). `--cguard` is 1 above `contactGuard.to` and 0 below `contactGuard.from`: above
+    `asks` would dim Contact as it arrives, and below `crosses.to` would let it stand over a moving ground.
+  */
+  if (
+    persistSpans.contactGuard.to > persistSpans.asks ||
+    persistSpans.contactGuard.from < persistSpans.crosses.to
+  ) {
+    complain(
+      "Contact's guarantee reaches into the way in, or past the plates.",
+      `contactGuard runs ${persistSpans.contactGuard.from}–${persistSpans.contactGuard.to}; it must ` +
+        `close at or below asks (${persistSpans.asks}) and open at or above crosses.to ` +
+        `(${persistSpans.crosses.to}).`,
     )
   }
 

@@ -959,7 +959,7 @@ export const askedHold = TIMING.distance.asked
  * distance written into a stylesheet is invisible to `timeline.ts` and to every ripple edit.
  *
  * A plain number rather than a fine/coarse pair: it is a reading pause, and a pause is the same pause
- * on a wheel and a thumb — the same reasoning `askedLead` records.
+ * on a wheel and a thumb.
  */
 export const closingSettle = TIMING.distance.closingSettle
 
@@ -968,6 +968,8 @@ export const closingSettle = TIMING.distance.closingSettle
  * argues it: the last frame-height of `.method` is its held frame scrolling out, empty, over a fixed
  * photograph, and overlapping it is the only way to reach that distance without shortening the
  * Method's runway or its frame. `globals.css` spends it as the section's own negative head.
+ * A fine/coarse pair since 29 September 2026: it places Questions' lock inside the Method's priced
+ * leaving window, so a thumb needs its own.
  */
 export const askedLead = TIMING.distance.askedLead
 
@@ -1035,7 +1037,9 @@ export const methodArrival = TIMING.method.arrival
 export const SECONDS_TO_VH = TIMING.distance.secondsToVh
 
 /**
- * Junction 13 → 14, in V2's own seconds. §8's beat sheet, transcribed.
+ * Junction 13 → 14, §8's beat sheet — **as fractions of the passage's scroll position since 29 September
+ * 2026** (C26). It was V2's own seconds, played on a clock once the scroll had started it; the order and
+ * the cues are §8's still, and only what drives the `0 → 1` changed. The list's fades are still seconds.
  *
  * Every value is an absolute offset from the junction's first frame rather than a relationship to the
  * cue before it — which is the one place this file breaks its own rule, and deliberately. §8 authors
@@ -1120,8 +1124,17 @@ export const persisting = {
    */
   asks: TIMING.environment.persisting.asks,
 
-  /** The sheet's length. Everything above is divided by this and nothing is compared to it. */
-  total: TIMING.environment.persisting.total,
+  /** Contact's positional guarantee on the way back, the mirror of the list's `dusk`. */
+  contactGuard: TIMING.environment.persisting.contactGuard,
+
+  /**
+   * **How far the closing frame is held, in viewport-hundredths** — `--closing-pin`. Since 29 September
+   * 2026 every cue above is a fraction of the passage's position rather than a second, so nothing is
+   * divided by a total any more; this is the distance the page always had. C26.
+   */
+  length: TIMING.environment.persisting.length,
+  /** Where the progression begins, in viewports above the closing frame's lock. */
+  startsBefore: TIMING.environment.persisting.startsBefore,
 } as const
 
 /* ═══════════════════ Junction 12 → 13 · relight · one room, one lightening ═══════════════════

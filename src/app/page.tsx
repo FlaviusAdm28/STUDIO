@@ -44,7 +44,7 @@ export default function Home() {
           .v2 { position: static; height: auto; display: grid; gap: 8vh;
             padding: 18vh 8vw; background: #050504; }
           .v2-scrim, .v2-dark { display: none; }
-          .v2-time, .v2-title, .v2-sub, .v2-of, .v2-numeral, .v2-topic, .v2-thesis, .v2-stack {
+          .v2-time, .v2-title, .v2-sub, .v2-nav, .v2-numeral, .v2-topic, .v2-thesis, .v2-stack {
             position: static; transform: none !important; opacity: 1 !important; }
           .v2-time { width: auto; height: auto; text-align: left; }
           .v2-time span { position: static; }

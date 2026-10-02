@@ -217,6 +217,26 @@ export default function ScrollStage() {
     let askedLock = Number.POSITIVE_INFINITY
 
     /**
+     * **How far a list that cannot stand whole reads through** — Questions on short screens,
+     * 1 October 2026. `globals.css` argues the composition (`.asked[data-asked-reaches]`); these are
+     * its three measurements.
+     *
+     * `askedExcess` is how far the list's foot, standing on the floor, overruns the frame less its
+     * breath — 0 wherever the clamp could keep the foot on screen, which is every frame the list fits
+     * in. `askedReachBase` is where the travel may begin: the point the FAQ sequence fires plus 2px,
+     * the same point `--asked-lands` puts the rail's press on, so a visitor who arrives by the index
+     * finds the list exactly where it stands. `askedReachFrom` is that base until the list's height
+     * changes under a visitor who is already past it — then it moves so the travel already made is
+     * kept, which is what makes an answer opening raise the ceiling without moving anything.
+     */
+    let askedExcess = 0
+    let askedReachBase = Number.POSITIVE_INFINITY
+    let askedReachFrom = Number.POSITIVE_INFINITY
+    /** The start the base and the anchor's gate set; `askedReachFrom` runs ahead of it only while an answer has grown the list under a reach already at its ceiling. */
+    let askedReachStart = Number.POSITIVE_INFINITY
+    let askedReach = 0
+
+    /**
      * **Junction 13 → 14, measured.** Where the persistent rule stands in the document, and where the
      * publication's own properties are written.
      *
@@ -265,45 +285,36 @@ export default function ScrollStage() {
       the film's own dissolve. `footageArmed` is whether that cue is still to be given on this pass.
     */
     let footageArmed = true
+    /*
+      `listReleased`, `passageOn`, `passageAt`, `passageLast` and `passageY` are gone — C26, 29 September
+      2026. The passage 13 → 14 is a position now (`persistAt` above), and the list's parts start at
+      their own positions on it, so there is no clock to advance, no direction to remember and no
+      threshold to hold with hysteresis.
+    */
     /**
-     * **Whether the list has been told to let go** — the one latch of Questions' release. Set past
-     * `persistSpans.lets`, cleared back above half of it, so a hand resting on the threshold cannot
-     * flicker the list.
-     */
-    let listReleased = false
-    /**
-     * **The passage 13 → 14, played** — fourth review, 26 September 2026. `passageOn` is whether the
-     * scroll has started it; `passageAt` is how far the sheet has got, in its own 0 → 1, advanced by the
-     * clock at `1 / persisting.total` a second and run back at `1 / persisting.rewinds` when the hand
-     * goes back above the junction. `passageLast` is the clock of the last frame that moved it.
-     */
-    let passageOn = false
-    let passageAt = 0
-    let passageLast = 0
-    /** Where the passage last looked, so a jump (a rail link, a reload) can be told from scrolling. */
-    let passageY = Number.NaN
-    /**
-     * **Whether an in-page link has just been pressed** — navigation QA, 27 September 2026. Distance
-     * alone could not tell the rail from a hand: *Questions → Contact* is 2,549px at 1920 × 889, under
-     * the three viewports the passage takes as a jump, so the rail's *Contact* played ~2.5s of empty
-     * passage under a rail already saying CONTACT, and *Questions* played the rewind under the list.
-     * The press says it outright. Set by the click, spent by the first frame after it.
+     * **Whether an in-page link has just been pressed** — navigation QA, 27 September 2026. A press
+     * lands the list's fades where the page arrives rather than playing them under the section arrived
+     * at. The press says it outright; no distance is taken to mean a jump. Set by the click, spent by the
+     * first frame after the page has arrived.
      */
     let navigated = false
-    /**
-     * **Whether the Method's room has stood empty long enough for Questions to begin** — fourth review:
-     * *"depois existe um verdadeiro hold da sala vazia; só depois Questions começa."* Set by the Method's
-     * leaving, read by the Questions anchor's trigger.
-     */
-    let methodRested = true
-    /**
-     * **Whether the Method has left the room**, and the scroll position it was last decided at. A latch
-     * rather than `m >= leaves`, because the two directions release it at different places — see where
-     * it is set.
-     */
-    let methodOut = false
-    let methodY = Number.NaN
+    /*
+      `methodRested`, `methodOut` and `methodY` are gone — 29 September 2026. The Method's leaving is a
+      set of positions now (`TIMING.method.leaves`), so there is no clock for Questions to wait on and no
+      direction to remember: the empty room before Questions is distance.
 
+      **Every part of the leaving, as `[channel, where it starts, how long its fade is]`**, in the order
+      of their positions. Static — the positions are beats of the section — so it is built once.
+    */
+    const leavingParts = (() => {
+      const lv = TIMING.method.leaves
+      const at = methodSpans.leaving
+      return [
+        ...['--mout-a', '--mout-l', '--mout-q'].map((name, i) => [name, at.main[i], lv.main.over] as const),
+        ...at.thoughts.map((start, i) => [`--mout-w${i + 1}`, start, lv.thoughts.over] as const),
+        ...at.notes.map((start, i) => [`--mout-n${i + 1}`, start, lv.notes.over] as const),
+      ].sort((p, q) => p[1] - q[1])
+    })()
 
     /*
       **The dock measures nothing — C13, 7 September 2026.**
@@ -326,6 +337,7 @@ export default function ScrollStage() {
 
     const place = () => {
       audit = true
+      const excessBefore = askedExcess
       flowTops = new Map(
         Array.from(document.querySelectorAll<HTMLElement>('[data-state]'), (el) => {
           const head = parseFloat(getComputedStyle(el).scrollMarginTop)
@@ -359,6 +371,7 @@ export default function ScrollStage() {
       const askedList = document.querySelector<HTMLElement>('[data-asked-list]')
       if (askedFrame === null || askedList === null) {
         askedLock = Number.POSITIVE_INFINITY
+        askedExcess = 0
       } else {
         /*
           **Only a list that stands has a lock at the head margin.** Chrome reports the specified `top`
@@ -371,8 +384,35 @@ export default function ScrollStage() {
           of the head margin and the height that keeps its foot on screen (`globals.css`, `--asked-top`),
           and only the rendered box knows how tall it is. Written before `top` is read below, so the lock
           is measured against the value it produces.
+
+          **The height it stands at is the list at rest, not the list as it is** — 1 October 2026. With
+          an answer open the rendered box grows, the clamp's middle term fell, and the whole list rose
+          40–57px under the finger (360 × 780 to 390 × 844); the lock moved with it, and within ~50px of
+          the FAQ point that un-fired all six questions. So `--asked-h` is the rendered height less what
+          the answers add: a closed `details` is exactly its summary and its borders, so whatever else it
+          measures — open, or any frame of its 180ms opening or closing — is the answer, and taking it
+          away gives the same height on every frame. The anchor's answer is part of the composition and
+          stays in. The real height still sets the excess below, so an open answer is read through by B.
         */
-        root.style.setProperty('--asked-h', `${askedList.offsetHeight}px`)
+        const answers = Array.from(askedList.querySelectorAll<HTMLDetailsElement>('details'))
+        const answering = answers.reduce((sum, item) => {
+          const summary = item.querySelector('summary')
+          const box = getComputedStyle(item)
+          return (
+            sum +
+            Math.max(
+              0,
+              item.getBoundingClientRect().height -
+                (summary === null ? 0 : summary.getBoundingClientRect().height) -
+                parseFloat(box.borderTopWidth) -
+                parseFloat(box.borderBottomWidth),
+            )
+          )
+        }, 0)
+        root.style.setProperty(
+          '--asked-h',
+          `${Math.round(askedList.getBoundingClientRect().height - answering)}px`,
+        )
         const listStandsAt = getComputedStyle(askedList).position === 'sticky'
         const stuck = parseFloat(getComputedStyle(askedList).top)
         const head = !listStandsAt
@@ -381,6 +421,24 @@ export default function ScrollStage() {
             ? stuck
             : parseFloat(getComputedStyle(askedFrame).scrollMarginTop) || 0
         askedLock = askedFrame.getBoundingClientRect().top + window.scrollY - head
+
+        /*
+          The excess, measured only where the phone's standing rule is in force — `--asked-breath` is
+          declared by that rule and nowhere else, so on the desktop, and wherever the list is not
+          sticky, it is 0 and nothing reaches. Under a pixel is the clamp's own rounding, not an excess:
+          where the list fits, the foot is placed a breath above the fold exactly.
+        */
+        const breath = getComputedStyle(root).getPropertyValue('--asked-breath').trim()
+        const overrun =
+          listStandsAt && breath !== '' && Number.isFinite(stuck)
+            ? stuck +
+              askedList.offsetHeight +
+              parseFloat(breath) * parseFloat(getComputedStyle(root).fontSize) -
+              window.innerHeight
+            : 0
+        askedExcess = overrun >= 1 ? Math.ceil(overrun) : 0
+        if (askedExcess > 0) askedList.setAttribute('data-asked-reaches', '')
+        else askedList.removeAttribute('data-asked-reaches')
       }
 
       publicationEl = document.querySelector<HTMLElement>('[data-junction-host]')
@@ -435,6 +493,27 @@ export default function ScrollStage() {
           ? '0'
           : '1',
       )
+
+      /*
+        **Where the list's travel begins, and keeping the travel already made.** The base is the FAQ
+        point, exactly the landing above. A re-measure under a visitor already past it — an answer
+        opening or closing, which the `ResizeObserver` below sends here every frame of its 180ms — moves
+        the start so the reach stays what it was, capped at the new excess: opening raises the ceiling
+        and nothing moves; closing below the current reach brings the list down with the answer as it
+        closes, frame by frame. Above the base nothing is remembered (`read` resets it there).
+      */
+      askedReachBase = Number.isFinite(askedLock) ? faqLands : Number.POSITIVE_INFINITY
+      const kept = Math.min(askedReach, askedExcess)
+      if (!Number.isFinite(askedReachFrom) || window.scrollY < askedReachBase) {
+        askedReachFrom = askedReachBase
+        askedReachStart = askedReachBase
+      } else {
+        askedReachStart = Math.max(askedReachBase, askedReachStart)
+        askedReachFrom =
+          askedExcess > excessBefore
+            ? Math.max(askedReachStart, window.scrollY - kept)
+            : Math.max(askedReachStart, askedReachFrom)
+      }
 
       const stage = document.querySelector<HTMLElement>('[data-segment="act"]')
       actTop = stage === null ? Number.POSITIVE_INFINITY : stage.getBoundingClientRect().top + window.scrollY
@@ -558,6 +637,11 @@ export default function ScrollStage() {
       live rather than captured, because the setting can change while the page is open.
     */
     const calm = window.matchMedia('(prefers-reduced-motion: reduce)')
+
+    /** The occasions' stack (state 05). Its beats are played onto it, so they inherit to the three phrases only. */
+    const occasionStack = document.querySelector<HTMLElement>('.v2-stack')
+    /** The thesis (state 04). Its leaving is played onto it (C29). */
+    const thesisEl = document.querySelector<HTMLElement>('.v2-thesis')
 
     /*
       ── §9/§10 published, once ───────────────────────────────────────────────────────────────────────
@@ -938,49 +1022,29 @@ export default function ScrollStage() {
         }
 
         /*
-          ── The Method leaving, in layers · TRIGGER → PLAY ───────────────────────────────────────
-          The main composition in read order, then the seven thoughts each at its own moment, then the
+          ── The Method leaving, in layers · the scroll decides the order, each part fades itself ──
+          The main composition in read order, then the seven thoughts each at its own place, then the
           note — and then the room, empty. `--mout-*` is 0 standing and 1 gone; `globals.css` multiplies
           each part's light by it. `--mclear` above is the scrubbed guarantee behind it.
+
+          **Each part has a position, not a delay** — 29 September 2026, `TIMING.method.leaves` argues
+          it. `m >= start` is a pure function of scroll, so the order is the page's and reversing is the
+          same comparison backwards: nothing is latched on direction, and nothing downstream waits on a
+          clock having run. Only the fade is `play()`'s, and it is short.
+
+          **Parts crossed in the same frame leave one after the other**, `together` apart, in the order
+          of their positions — so a notch that crosses two thoughts still shows two leavings. The delay
+          is given only to a part that turns this frame, and only on the way out (`play` applies delays
+          inbound only), so a hand that crosses the positions one at a time is never held back.
         */
         {
-          const lv = TIMING.method.leaves
-          /*
-            **Forward it leaves at `leaves`; backward it comes back as soon as the room can hold it** —
-            reverse QA, 26 September 2026. Released only above `leaves`, the Method stood absent for
-            ~1,400px of empty room when scrolling back from Questions, under a rail already saying
-            METHOD. Going back past the start of the scrolled guarantee (`clear.from`) — the first point
-            the frame is not forced empty — lets the composition return; forward is unchanged.
-          */
-          const first = !Number.isFinite(methodY)
-          const heading = first ? 0 : Math.sign(y - methodY)
-          methodY = y
-          if (m < methodSpans.leaves) methodOut = false
-          else if (heading > 0) methodOut = true
-          else if (heading < 0 && m < methodSpans.clear.from) methodOut = false
-          /* Loaded mid-section: out only where the guarantee would have emptied the frame anyway. */
-          else if (first) methodOut = m >= methodSpans.clear.from
-          const out = methodOut
-          const main = ['--mout-a', '--mout-l', '--mout-q']
-          main.forEach((name, i) =>
-            play(frameEl, name, out, lv.main.over, lv.main.at + i * lv.main.stagger, lv.returns),
-          )
-          lv.thoughts.delays.forEach((delay, i) =>
-            play(frameEl, `--mout-w${i + 1}`, out, lv.thoughts.over, lv.thoughts.at + delay, lv.returns),
-          )
-          play(frameEl, '--mout-n1', out, lv.notes.over, lv.notes.at, lv.returns)
-          const note = played.get('--mout-n1')
-          /*
-            Past the scrolled guarantee the Method's frame is empty whatever the clock says, so a jump
-            (the rail's *Questions*, a reload low on the page) never waits on a leaving nobody saw.
-          */
-          methodRested =
-            !out ||
-            m >= methodSpans.clear.to ||
-            (note !== undefined &&
-              note.open &&
-              clock - note.since >= (calm.matches ? 0 : (lv.notes.over + lv.emptyHolds) * 1000))
-          if (out && !methodRested) playing = true
+          let turning = 0
+          for (const [name, start, over] of leavingParts) {
+            const out = m >= start
+            const latch = played.get(name)
+            const turns = latch !== undefined && latch.open !== out && out
+            play(frameEl, name, out, over, turns ? TIMING.method.leaves.together * turning++ : 0)
+          }
         }
 
         /*
@@ -1008,77 +1072,23 @@ export default function ScrollStage() {
         price without being one: nothing authored a length, the seconds did.
       */
       if (publicationEl !== null && Number.isFinite(persistTop)) {
-        const jScroll = clamp01((y - persistTop) / ((persistSpans.length / 100) * window.innerHeight))
-        /** Whether this frame put the passage at its end rather than playing it — a jump. */
-        let leapt = false
         /*
-          **The scroll starts the passage; the passage then plays.** Seen in the recordings: scrubbed,
-          a wheel crossed the whole sheet in about a second and every order in it read as one fade. The
-          closing frame is held to the end of the document, so once the hand has brought it in nothing
-          on the page moves while the sheet runs — `detail → structure → question → silence → Contact`
-          in real seconds. Back above the junction it runs backwards, briskly; stopping anywhere holds.
-          Reduced motion takes the end of it, as every played beat here does.
+          **The passage's own `0 → 1`, from scroll position and nothing else** — C26, 29 September 2026.
+
+          It begins `startsBefore` above the closing frame's lock, while the list still stands, and ends
+          where `--closing-pin` does; the frame's settle after it is where Contact stands. Every value
+          below is a function of this number, so the passage runs backwards exactly as it runs forwards,
+          a hand that stops holds the frame it stopped on, and a jump — a flick, the rail, a reload — is
+          simply at its position. There is no clock driving it, no rewind, no shortcut to the breath and
+          no distance at which a scroll is declared a jump: the four were patches on a played sheet
+          (`TIMING.environment.persisting` records what each one answered), and none of them has
+          anything left to answer.
         */
-        {
-          const sheet = TIMING.environment.persisting
-          /* Measured from the frame's lock, in viewports: negative while the list still stands. */
-          const fromLock = (y - persistTop) / window.innerHeight
-          const wasOn = passageOn
-          /*
-            **Which way the hand is going decides the threshold** — reverse QA, 26 September 2026.
-            Forward, the passage starts where the list still stands (`startsBefore`). Backward it used
-            to rewind only above that same point, so between Contact letting go (the frame unlocking)
-            and Questions coming back there were ~700px of empty hillside under a rail still saying
-            CONTACT. Going back past the unlock now rewinds it — the same instant Contact releases —
-            and only a hand moving forward can start it again.
-          */
-          const heading = Number.isFinite(passageY) ? Math.sign(y - passageY) : 1
-          if (!passageOn && fromLock >= -sheet.startsBefore && heading > 0) passageOn = true
-          else if (
-            passageOn &&
-            (fromLock < -sheet.startsBefore - 0.15 || (heading < 0 && fromLock < 0))
-          ) {
-            passageOn = false
-          }
-          /*
-            **A jump is not a passage** — QA, 26 September 2026. The sheet is played for a hand that
-            scrolls through it. Arriving by the rail (*Contact* from the Work) played all 7s of it on
-            arrival — the studio standing empty under a rail that already said CONTACT — and leaving by
-            the rail played the rewind under the section arrived at. A switch that comes with more than
-            three viewports of travel in one frame is a jump — a hard flick of the wheel can cover one —
-            and the passage is simply at its end.
-          */
-          const jumped =
-            wasOn !== passageOn &&
-            Number.isFinite(passageY) &&
-            (navigated || Math.abs(y - passageY) > 3 * window.innerHeight)
-          passageY = y
-          const target = passageOn ? 1 : 0
-          leapt = jumped
-          if (calm.matches || jumped) passageAt = target
-          /*
-            **Once the frame has locked, the list is behind the hand** — QA, 26 September 2026. A fast
-            scroll reached the end of the page with the list already carried off the top, and then
-            stood on the empty studio for ~4s while the release played to nobody. Past the lock the
-            passage goes no slower than the veil lifting; a hand that reads the list still sees all of it.
-          */
-          else if (passageOn && jScroll > 0 && passageAt < persistSpans.dusk.from) {
-            passageAt = persistSpans.dusk.from
-          }
-          else if (passageAt !== target) {
-            const dt = passageLast === 0 ? 0 : Math.min(0.1, (clock - passageLast) / 1000)
-            passageAt = passageOn
-              ? Math.min(1, passageAt + dt / sheet.total)
-              : Math.max(0, passageAt - dt / sheet.rewinds)
-          }
-          if (passageAt !== target) {
-            passageLast = clock
-            playing = true
-          } else {
-            passageLast = 0
-          }
-        }
-        const j = passageAt
+        const vh = window.innerHeight
+        /* Whether the closing frame is held — Contact is placed from it. */
+        const locked = y >= persistTop
+        const begins = persistTop - persistSpans.startsBefore * vh
+        const j = clamp01((y - begins) / ((persistSpans.startsBefore + persistSpans.length / 100) * vh))
         persistAt = j
         /*
           **§8's sheet, resolved once, for everything that reads it.**
@@ -1123,58 +1133,46 @@ export default function ScrollStage() {
         }
 
         /*
-          ── Questions letting go · TRIGGER → PLAY ─────────────────────────────────────────────
-          The anchor first, then the rows in pairs, each row's hairline a beat after its words — on a
-          clock, so the order is seen at any speed of hand. `--jgone*` is 0 standing and 1 gone; the
-          stylesheet multiplies it with `--jclear`, the scroll's guarantee.
+          ── Questions letting go · the scroll decides the order, each part fades itself ─────────
+          The anchor's answer and the rows' words in pairs from the bottom up, each row's hairline after
+          its words, and *What do you actually create?* last and alone — C25's model: every part starts
+          at its own position on the passage (`persistSpans.releases`) and then plays its own short fade.
+          `--jgone*` is 0 standing and 1 gone; the stylesheet multiplies it with `--jclear`, the
+          scroll's guarantee. Crossing a position back upward brings that part back over the same fade,
+          so the list returns in the reverse order.
+
+          Parts crossed in the same frame still leave one after the other, `releases.together` apart —
+          the delay goes only to a part that turns this frame, and only on the way out.
         */
-        if (!listReleased && j >= persistSpans.lets) listReleased = true
-        else if (listReleased && j < persistSpans.lets / 2) listReleased = false
         {
-          const r = TIMING.environment.persisting.releases.clock
           /*
-            **A passage that was jumped is not released on a clock either** — navigation QA, 27
-            September 2026. The rail's *Questions* from Contact put the sheet at 0 in one frame and then
-            played the list's return over ~450ms while the rows' own ink was letting go over ~300ms: six
-            rows flashed back to ~13% and went again. The release is the passage's, so it lands with it —
-            and so do the rows it releases, or landing one half alone shows them whole for a moment.
-            Forgotten latches start at their target (`play`), which is what landing means here.
+            **A press on an in-page link lands the list rather than playing it** — navigation QA, 27
+            September 2026: the rail's *Questions* from Contact otherwise played six rows back in under
+            a section already arrived at. A forgotten latch starts at its target (`play`), which is
+            what landing means. The press is the signal, not a distance.
           */
-          if (leapt) {
-            played.delete('--jgoneb')
-            played.delete('--jgone1')
-            for (let i = 0; i < 6; i++) {
-              played.delete(`--jgone${i + 2}`)
-              played.delete(`--jgoner${i + 2}`)
-            }
+          if (navigated) {
+            for (const [name] of persistSpans.releases) played.delete(name)
             for (let n = 1; n <= TIMING.questions.faq.rows; n++) {
               played.delete(`--qr${n}`)
               played.delete(`--qi${n}`)
             }
           }
-          /*
-            Detail, then structure, then the question: the rows' words in pairs from the bottom up
-            (row 6 first), each row's hairline `ruleLags` after its words, the anchor's answer with the
-            first pair, and *What do you actually create?* last and alone.
-          */
-          play(publicationEl, '--jgoneb', listReleased, r.body.over, r.body.at, r.returns)
-          for (let i = 0; i < 6; i++) {
-            const fromBottom = 5 - i
-            const at =
-              r.rows.at +
-              Math.floor(fromBottom / r.rows.per) * r.rows.groupGap +
-              (fromBottom % r.rows.per) * r.rows.stagger
-            play(publicationEl, `--jgone${i + 2}`, listReleased, r.rows.over, at, r.returns)
-            play(publicationEl, `--jgoner${i + 2}`, listReleased, r.rows.over, at + r.ruleLags, r.returns)
+          let questionGone = 0
+          let turning = 0
+          for (const [name, at, over] of persistSpans.releases) {
+            const out = j >= at
+            const latch = played.get(name)
+            const turns = latch !== undefined && latch.open !== out && out
+            const p01 = play(
+              publicationEl,
+              name,
+              out,
+              over,
+              turns ? TIMING.environment.persisting.releases.together * turning++ : 0,
+            )
+            if (name === '--jgone1') questionGone = p01
           }
-          const questionGone = play(
-            publicationEl,
-            '--jgone1',
-            listReleased,
-            r.question.over,
-            r.question.at,
-            r.returns,
-          )
           /*
             **Whether the questions have left the room** — the question goes last and alone, so once it
             is fully gone nothing of the list is drawn. On a phone the head line keeps a ground while the
@@ -1200,7 +1198,7 @@ export default function ScrollStage() {
           it looks like while it does, is touched here. The frame becomes pressable when its own
           junction begins, which is the first moment anything in it is meant to be reachable.
         */
-        const closing = jScroll > 0 ? '1' : '0'
+        const closing = locked ? '1' : '0'
         if (publicationEl.dataset.closing !== closing) publicationEl.dataset.closing = closing
 
         /*
@@ -1225,16 +1223,16 @@ export default function ScrollStage() {
           And only once the closing frame has locked: Contact is placed from the frame, and a frame
           still travelling would carry the composition with it.
         */
-        if (!contactAsked && j >= persistSpans.asks && jScroll > 0) contactAsked = true
+        if (!contactAsked && j >= persistSpans.asks && locked) contactAsked = true
         /*
           And it lets go the moment the frame stops being held on the way back up — QA, 26 September
           2026: held past that point, the composition was carried down the screen with the frame.
         */
-        else if (contactAsked && (j < persistSpans.empty.from || jScroll <= 0)) contactAsked = false
+        else if (contactAsked && (j < persistSpans.empty.from || !locked)) contactAsked = false
 
         const c = TIMING.contact.composes
         /* Released by the frame unlocking on the way back up, it goes faster — it is being carried. */
-        const lets = jScroll <= 0 ? c.unlocks : c.releases
+        const lets = locked ? c.releases : c.unlocks
         const parts = [
           play(publicationEl, '--c-q1', contactAsked, c.question.over, c.question.at, lets),
           play(
@@ -1320,10 +1318,23 @@ export default function ScrollStage() {
         */
         const anchor = TIMING.questions.anchor
         /*
-          And the room the Method left has to have stood empty first — `TIMING.method.leaves.emptyHolds`.
-          Below the Method (`!out`) this is always true, so nothing changes for a visitor already here.
+          The room the Method left is empty by position now, not by a clock having run — the last part of
+          its leaving starts `method.leaves.notes` into its window, the guarantee closes it inside the pin,
+          and the lock is further down still. So the anchor answers the scroll alone.
         */
-        const anchorFired = afterLock >= anchor.afterLock && methodRested
+        const anchorFired = afterLock >= anchor.afterLock
+        /*
+          **The envelope the anchor is written inside — position, not time** (`anchor.enters`). The
+          clock below still writes the type; this is how much of the room it is allowed to take yet, so
+          the Method → Questions dissolve follows the hand and holds wherever the hand stops.
+        */
+        {
+          const next = smoothstep(clamp01((afterLock - anchor.afterLock) / anchor.enters)).toFixed(PRECISION)
+          if (written.get('--qin') !== next) {
+            written.set('--qin', next)
+            pubEl.style.setProperty('--qin', next)
+          }
+        }
         const qa = play(pubEl, '--qa', anchorFired, anchor.over, 0)
         const qaBody = play(pubEl, '--qa-body', anchorFired, anchor.body.over, anchor.body.leads)
         phase('anchor', anchorFired, [qa, qaBody])
@@ -1382,6 +1393,42 @@ export default function ScrollStage() {
         }
 
         phase('faq', faqFired, faqParts)
+
+        /*
+          ── THE LIST READS THROUGH, WHERE IT CANNOT STAND WHOLE ─────────────────────────────
+
+          `clamp(0, y − from, excess)`: one pixel of list for one pixel of scroll, from the FAQ point
+          until the foot stands a breath above the fold. Never `excess × progress` — that moves the list
+          the instant an answer changes its height. 0 wherever the list fits, and `globals.css` applies
+          nothing there. Above the base the start forgets any re-anchoring, so coming back up the page
+          resolves to the same pixel it would have had arriving.
+
+          **Not before the anchor is written** — 1 October 2026. The travel begins on a position and the
+          anchor is written on a clock, and they began together: at 320 × 640 the list's 92px of excess
+          is more than the 77px between its top and the anchor's last line, so the mask took the question
+          while it was still being written — at an ordinary 400px/s it was never more than 29% seen.
+          Until the anchor is `held`, the start follows the hand, so the reach stays 0 and the list
+          stands; from the frame it is held, the travel begins at 0 from wherever the hand is, 1:1 as
+          before. The anchor's own phase is the gate — no second clock.
+        */
+        if (y < askedReachBase) {
+          askedReachFrom = askedReachBase
+          askedReachStart = askedReachBase
+        }
+        if (pubEl.dataset.anchor !== 'held') {
+          askedReachFrom = Math.max(askedReachFrom, y)
+          askedReachStart = Math.max(askedReachStart, y)
+        }
+        /* At the ceiling either start gives the same reach, so the run-ahead is handed back here, unseen. */
+        if (askedReachFrom > askedReachStart && y - askedReachFrom >= askedExcess) askedReachFrom = askedReachStart
+        askedReach = askedExcess > 0 ? Math.min(Math.max(0, y - askedReachFrom), askedExcess) : 0
+        {
+          const next = askedReach.toFixed(1)
+          if (written.get('--asked-reach') !== next) {
+            written.set('--asked-reach', next)
+            pubEl.style.setProperty('--asked-reach', next)
+          }
+        }
       }
 
       /*
@@ -1450,11 +1497,14 @@ export default function ScrollStage() {
         if (p >= entry.at - (railLeads.has(entry.id) ? railLead : 0)) railNow = entry.id
       }
       /*
-        **And the played passage leads it into Contact** — 26 September 2026. 13 → 14 runs on its own
-        clock now, ahead of the position, so once the footage has replaced the room the rail names the
-        chapter the visitor is in rather than the one the scroll has not yet left.
+        **The rail names Contact where Contact is asked for, and not before** — C26, 29 September 2026.
+        Measured before: a hand that stopped at the start of the passage was left on an empty hillside
+        under a rail saying CONTACT, with nothing of Contact written. State 14's own entry falls inside
+        the passage (the closing frame's section begins mid-way through it), so inside the passage the
+        rail follows the passage's position: Questions until `asks`, Contact from it.
       */
-      if (persistAt >= persistSpans.crosses.to) railNow = Math.max(railNow, 14)
+      if (persistAt >= persistSpans.asks) railNow = Math.max(railNow, 14)
+      else if (persistAt > 0 && railNow > 13) railNow = 13
 
       /*
         The two things C8 makes checkable, and neither could be written down before it. Fourteen states
@@ -1568,6 +1618,91 @@ export default function ScrollStage() {
           if (written.get('--v2-dip') !== dip) {
             written.set('--v2-dip', dip)
             root.style.setProperty('--v2-dip', dip)
+          }
+
+          /*
+            ── The occasions, played · 1 October 2026 ──────────────────────────────────────────────
+            `A wedding.`, `An artist.`, `A memory.` were five ramps of position, so a stop between two
+            positions froze a phrase half-written or receding, and `A memory.` stood as a ghost under
+            `An artist.`. Now the scroll only decides when each beat begins — at the positions the
+            ramps began — and the beat plays on its own short clock (`TIMING.memories.plays`), exactly
+            as the Method's leaving and Questions do. The receding is the arrival's own clock, so the
+            stack composes as one movement. Written on the stack, so nothing outside it restyles.
+
+            `--o1-guard` is the scroll's guarantee for the one place a clock could overlap scrubbed type:
+            on a fast reverse the stack is still letting go when the thesis can return, so it is held to
+            04 → 05's clear frame. A stop can never rest inside it with a beat half-played — the clock
+            finishes either way.
+          */
+          if (occasionStack !== null) {
+            const jp4 = clamp01(crossing - 4 + through)
+            const occ = TIMING.memories.plays
+            /* Each beat begins at its position *and* once the one before it has fully arrived. */
+            const a1 = play(occasionStack, '--o1', jp4 >= occ.stackAt, occ.arrive, 0)
+            const a2 = play(occasionStack, '--o2', jp5 >= occ.artistAt && a1 >= 1, occ.arrive, 0)
+            const a3 = play(occasionStack, '--o3', jp5 >= occ.memoryAt && a2 >= 1, occ.arrive, 0)
+            play(occasionStack, '--leave-early', jp5 >= occasionsStory.release.first[0] && a3 >= 1, occ.release, 0)
+            play(
+              occasionStack,
+              '--leave-survivor',
+              jp5 >= occasionsStory.deconstruction.window[0] && a3 >= 1,
+              occ.survivor,
+              0,
+            )
+            const [guardFrom, guardTo] = occ.stackGuard
+            const [clearFrom, clearTo] = occ.clear
+            const guard = (
+              clamp01((jp4 - guardFrom) / (guardTo - guardFrom)) *
+              (1 - clamp01((jp5 - clearFrom) / (clearTo - clearFrom)))
+            ).toFixed(PRECISION)
+            if (written.get('--o1-guard') !== guard) {
+              written.set('--o1-guard', guard)
+              occasionStack.style.setProperty('--o1-guard', guard)
+            }
+          }
+
+          /*
+            ── The thesis arrives on a clock · 03 → 04 · C30, frozen 2 October 2026 ────────────────
+            Only the arrival: the scroll decides when (`thesisArrives.arriveAt`), the clock draws it,
+            and two scroll guarantees bound the clock — a floor that has it whole by 0.87 going forward,
+            a ceiling that has it gone by 0.63 going back. The result is written as `--k3-ink` on the
+            thesis itself, shadowing the inherited ramp for this element only; C29's rule reads it as
+            its first factor and is otherwise untouched, and from 0.87 on the value is 1, as the ramp's
+            was. `--th-arrive` is the clock alone, written by `play()` and read by nothing.
+          */
+          if (thesisEl !== null) {
+            const jp3 = clamp01(crossing - 3 + through)
+            const ar = TIMING.memories.thesisArrives
+            const clocked = smoothstep(play(thesisEl, '--th-arrive', jp3 >= ar.arriveAt, ar.arrive, 0))
+            const [floorFrom, floorTo] = ar.floor
+            const [ceilFrom, ceilTo] = ar.ceiling
+            const ink = Math.min(
+              clamp01((jp3 - ceilFrom) / (ceilTo - ceilFrom)),
+              Math.max(clocked, clamp01((jp3 - floorFrom) / (floorTo - floorFrom))),
+            ).toFixed(PRECISION)
+            if (written.get('--th-k3-ink') !== ink) {
+              written.set('--th-k3-ink', ink)
+              thesisEl.style.setProperty('--k3-ink', ink)
+            }
+          }
+
+          /*
+            ── The thesis leaves on a clock · 04 → 05 · C29 ────────────────────────────────────────
+            The sentence's arrival (03 → 04) and its hold stay scrubbed; only the leaving is played,
+            from `--jp4` 0.50 (`thesisPlays.leaveAt`), so a stop finds it whole or gone and never grey. The
+            guard is the scroll's: it closes by 0.60 whatever the clock has left, so the clean frame
+            and the stack's gate never see it lit.
+          */
+          if (thesisEl !== null) {
+            const jp4 = clamp01(crossing - 4 + through)
+            const th = TIMING.memories.thesisPlays
+            play(thesisEl, '--th-leave', jp4 >= th.leaveAt, th.leave, 0)
+            const [guardFrom, guardTo] = th.guard
+            const guard = (1 - clamp01((jp4 - guardFrom) / (guardTo - guardFrom))).toFixed(PRECISION)
+            if (written.get('--th-guard') !== guard) {
+              written.set('--th-guard', guard)
+              thesisEl.style.setProperty('--th-guard', guard)
+            }
           }
         }
       }
@@ -2164,9 +2299,19 @@ export default function ScrollStage() {
       askedBox !== null && typeof ResizeObserver !== 'undefined' ? new ResizeObserver(onResize) : null
     if (askedBox !== null) grows?.observe(askedBox)
 
+    /*
+      **A pointer that changes kind re-prices the page, exactly as a resize does.** The runways are
+      longer for a thumb (`@media (pointer: coarse)` in `transitions.ts`), and a device can stop being
+      coarse without changing size — a 2-in-1 leaving tablet mode, a trackpad attached. No `resize`
+      fires, so `price()` kept the thumb's prices while the stylesheet had already shortened the page:
+      measured, the end of the document then stood at state 9 and states 10 → 14 could not be reached.
+    */
+    const pointer = window.matchMedia('(pointer: coarse)')
+
     read()
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onResize, { passive: true })
+    pointer.addEventListener('change', onResize)
     window.addEventListener('pageshow', rewind)
     window.addEventListener('click', onPress)
 
@@ -2176,6 +2321,7 @@ export default function ScrollStage() {
       grows?.disconnect()
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onResize)
+      pointer.removeEventListener('change', onResize)
       window.removeEventListener('pageshow', rewind)
       window.removeEventListener('click', onPress)
     }

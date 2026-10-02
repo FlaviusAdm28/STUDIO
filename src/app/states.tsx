@@ -66,15 +66,23 @@ export default function States() {
 
       {/*
         §2's own ground at 04 and 05 — `#060605` then `#050504` — over a negative that *continues beneath
-        at −6*, which is what lets 04 → 05 be the hold it is specified as. The ember is state 04's own
-        (68% / 32%) and carries through the hold.
+        at −6*, which is what lets 04 → 05 be the hold it is specified as. The ember that used to live
+        here is now `.v2-light`, below: one light from Chapter II to *A memory.*, not two.
       */}
-      <div className="v2-dark">
-        <div className="v2-ember" />
-      </div>
+      <div className="v2-dark" />
 
       {/* §2 state 06: *warm source upper right*, over the venice plate as it arrives. */}
       <div className="v2-warm" />
+
+      {/*
+        **One Sun — the image disappears; the light survives.** Design owner, 30 September 2026,
+        approved in the preview. The footage plays as the film it is; this is the light that carries the
+        dark, independent of which shot is on screen: born over the footage's own sun at Chapter II,
+        taking over as the picture goes, stepping back for the thesis, returning over the occasions, and
+        leaving with the dark as Venice opens. Above the grounds, under all of the type. `globals.css`
+        places and lights it from the existing junction progress; it holds no state of its own.
+      */}
+      <div className="v2-light" />
 
 
       {/*
@@ -149,9 +157,28 @@ export default function States() {
         <p className="v2-sub">
           <span className="v2-leaves">{site.openingLine}</span>
         </p>
-        <p className="v2-of">
-          <span className="v2-leaves">{site.chapterOf}</span>
-        </p>
+        {/*
+          **The quick navigation**, where *I of III* stood — on the title's axis, in the frame's bottom
+          band. It arrives on Chapter I's last beat and leaves with the tagline by the same release span;
+          it is not clickable until the opening is over, because nothing may skip the opening.
+        */}
+        <nav className="v2-nav" aria-label={site.navLabel}>
+          <span className="v2-leaves">
+            <ul>
+              {site.nav.map(({ word, to }) => (
+                <li key={to}>
+                  {/*
+                    Not a keyboard stop: `.v2` is `aria-hidden`, so a focusable link here was a stop no
+                    screen reader announced. The Ledger offers the same destinations, accessibly.
+                  */}
+                  <a href={`#${to}`} tabIndex={-1}>
+                    <span className="v2-nav-word">{word}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </span>
+        </nav>
       </div>
 
       {/*

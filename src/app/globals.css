@@ -2699,6 +2699,36 @@ a.act-open:focus-visible {
 }
 
 /*
+  **Between 768 and 900 the index stands beside the head, and the running chapter is named once.**
+  Design owner, 2 October 2026, chosen from a live preview (variant B). Lying down, the head sat over
+  the index on one left edge, so on Work `01 Work` stood directly above `01 ·` — the same numeral twice
+  in one column. Here the head and the index share one baseline band, the index one word-gap after the
+  head (the index's own column gap), and the running chapter's line is set aside rather than drawn: its
+  folio is already in the head. It is hidden the way `.a11y` hides — out of the layout, still in the
+  accessibility tree — so its `aria-current` still says where the visitor is. The index's logic, order,
+  `data-hold` and navigation are untouched; above 900 and below 768 nothing here applies.
+*/
+@media (min-width: 768px) and (max-width: 900px) {
+  .ledger-rail {
+    flex-direction: row;
+    align-items: baseline;
+    column-gap: clamp(1.125rem, 5vw, 1.75rem);
+  }
+
+  .ledger-index li:has(> .ledger-word[aria-current]) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+/*
   **The aside used to extend WORK's leader rule while the register was out.** Option A has no rules and
   no longer needs the device: when the register is open the Work is the running chapter, so it is
   already the largest word on the rail. The state is said once, by the composition, rather than twice.
@@ -5466,8 +5496,9 @@ html[data-opening='running'] .ways a {
     straight after. What stopped it standing was only *where* it stood — at the head margin a list taller
     than the rest of the frame had its foot cut off inside a clipped box. So here nothing is clipped and
     it stands at `--asked-top`: the head margin where it fits, higher where it does not — never above the
-    head line — so its foot is on screen for the whole hold. `--asked-h` is its rendered height,
-    written by `scroll-stage.tsx`, which re-measures when an answer opens.
+    head line — so its foot is on screen for the whole hold. `--asked-h` is its height **at rest**
+    (rendered height less what open answers add — correction #2, 1 October 2026, C27), written by
+    `scroll-stage.tsx`; opening an answer no longer moves the list. The excess still uses the real height.
 
     The same lock, the same beats and the same release as on the desktop: it arrives unwritten, stands,
     is written, is read, and the passage starts while it still stands.
@@ -5475,9 +5506,14 @@ html[data-opening='running'] .ways a {
   :root {
     /* The head line's own height (C24's padding, the title's line, its foot) and a breath under it. */
     --asked-floor: calc(clamp(1.25rem, 4.2vh, 2.25rem) + 3.6rem);
+    /*
+      The air kept under the list's foot. Named because two things spend it: the clamp below, and the
+      driver, which reads it to measure how far a list that stands on the floor overruns the frame.
+    */
+    --asked-breath: 1.5rem;
     --asked-top: clamp(
       var(--asked-floor),
-      calc(100dvh - var(--asked-h, 0px) - 1.5rem),
+      calc(100dvh - var(--asked-h, 0px) - var(--asked-breath)),
       var(--masthead)
     );
   }
@@ -5487,6 +5523,36 @@ html[data-opening='running'] .ways a {
     top: var(--asked-top);
     max-height: none;
     overflow: visible;
+  }
+
+  /*
+    **Where the floor wins, the list reads through** — Questions on short screens, 1 October 2026.
+
+    Below about 710px of height (375 wide) or 765 (320 wide) the clamp above gives the floor, and the
+    list's foot stands under the fold for the whole hold: measured, the sixth question ended at 709 on a
+    667 frame and at 765 on a 640 one, and the passage released it before the list unstuck, so it was
+    never on screen at all. Opening an answer made it worse — up to 309px at 320 × 640.
+
+    So past the point the questions are written, the list travels up by exactly as much as the hand
+    scrolls, until its foot stands a breath above the fold, and then stands again. `--asked-reach` is
+    written by `scroll-stage.tsx` — `clamp(0, y − start, excess)`, never a fraction of the excess, so an
+    answer that opens raises the ceiling without moving anything. It is a layout distance, not a beat:
+    it has no curve, for the same reason `--mdrift` has none.
+
+    `data-asked-reaches` is present only where there is an excess, so wherever the list already fits
+    none of this applies and the frame is exactly what it was. The mask is the head line's protection:
+    nothing of the list is drawn above the line it stands on, and what passes it fades over one breath
+    under the head's own ground rather than being cut. With the reach at 0 both stops sit at 0 and the
+    mask is opaque everywhere.
+  */
+  .asked[data-asked-reaches] {
+    --reach: calc(var(--asked-reach, 0) * 1px);
+    transform: translateY(calc(-1 * var(--reach)));
+    mask-image: linear-gradient(
+      to bottom,
+      transparent var(--reach),
+      #000 calc(var(--reach) + min(var(--reach), var(--asked-breath)))
+    );
   }
 
   /*
@@ -6272,7 +6338,11 @@ a.write-line:focus-visible {
     row and must not be able to be moved by anything the list is doing. `--qa` is the driver's, played
     on `TIMING.questions.anchor.over` off the anchor's own trigger.
   */
-  opacity: calc(var(--qa, 0) * var(--rel, 1));
+  /*
+    `--qin` is the envelope the scroll writes it inside — `TIMING.questions.anchor.enters`. 1 where the
+    driver does not run, so nothing changes without scripting.
+  */
+  opacity: calc(var(--qa, 0) * var(--rel, 1) * var(--qin, 1));
 }
 
 .ask-anchor .ask-q::after {
@@ -6320,7 +6390,7 @@ a.write-line:focus-visible {
 */
 .ask-anchor .ask-a {
   /* The anchor's answer is detail and leaves early (`--jgoneb`); its question is the last to go. */
-  opacity: calc(var(--qa-body, 0) * (1 - var(--jgoneb, 0)) * var(--jclear, 1));
+  opacity: calc(var(--qa-body, 0) * (1 - var(--jgoneb, 0)) * var(--jclear, 1) * var(--qin, 1));
 }
 
 /*
@@ -6368,6 +6438,12 @@ a.write-line:focus-visible {
   max-width: none;
   /* The box is the viewport; only what is written in it is pressable. */
   pointer-events: none;
+  /*
+    **Contact's guarantee on the way back** — `--cguard`, the driver's, a pure function of the passage's
+    position: 1 wherever Contact can be asked for, 0 from the frame the plates begin to return. The
+    mirror of `--jclear` on Questions. 1 without scripting.
+  */
+  opacity: var(--cguard, 1);
 }
 
 /*
@@ -9817,8 +9893,16 @@ a.v2-ident-open:focus-visible {
     decides the size. Left on `--jp1` it would have fired while the word was 4% further along and a
     little smaller, and the width compensation below is measured for this point exactly.
   */
-  --swap: clamp(0, calc((var(--k-travel) - 0.88) / 0.02), 1);
-  --swap-out: clamp(0, calc((var(--k-travel) - 0.88) / 0.12), 1);
+  /*
+    **C31 · A, approved and frozen 2 October 2026** — supersedes the .88 notes above and below. The
+    exchange is a one-frame step at .95 of the travel — the word at ~20px on the reference frame,
+    immediately before the numeral inks (.96) — so no scroll position holds both renderings half-lit.
+    It was a .88 → .90 cross-fade, which measured 32–44px of scroll with both faces visible and held
+    there at a stop. `--swap-out` is what is left of the travel after the step: the mark's weight and
+    tracking finish their way to the lockup over it. `implementation-reconciliation.md` C31.
+  */
+  --swap: clamp(0, calc((var(--k-travel) - 0.95) * 100000), 1);
+  --swap-out: clamp(0, calc((var(--k-travel) - 0.95) / 0.05), 1);
   --release: calc(1 - var(--k-release));
 }
 
@@ -9833,6 +9917,12 @@ a.v2-ident-open:focus-visible {
 
 .v2-word-serif {
   opacity: calc((1 - var(--swap)) * var(--release));
+  /*
+    C31 · A: the serif keeps less than half the lockup's tracking (0.2em × the travel, 0.19em at the
+    step), so it never stands as a lower-case Cormorant spaced at ~0.4em — a state that is neither the
+    hero nor the mark. The landing tracking belongs to the mark.
+  */
+  letter-spacing: calc(0.2em * var(--k-travel));
 }
 
 /*
@@ -9869,7 +9959,8 @@ a.v2-ident-open:focus-visible {
     the extra stroke it needs to hold a line against caps. 500 is one step, and it is the step that makes
     the two halves read as one lockup rather than a word beside a numeral.
   */
-  font-weight: 500;
+  /* C31 · A: enters at 400 (the variable axis' floor) and reaches 500 at the landing. */
+  font-weight: calc(400 + 100 * var(--swap-out));
   font-size: calc(1em * var(--word-optical));
   text-transform: none;
   /*
@@ -9903,7 +9994,12 @@ a.v2-ident-open:focus-visible {
     (3.79109 + 6 × ls) × 1.045 = 5.4337, so ls = 0.23477em of its own size — which against the 0.42 × 0.88
     the tracking would otherwise be leaves **0.1348** to carry back, where the old setting needed 0.0844.
   */
-  letter-spacing: calc((0.42 * var(--k-travel) - 0.1348 * (1 - var(--swap-out))) * 1em);
+  /*
+    C31 · A, re-derived for the step at .95 with the mark at 400: serif at the step 3.2161 + 6 × 0.2 ×
+    0.95 = 4.3561 of the parent's size; mark (3.7222 + 6 × ls) × 1.045 = 4.3561, so ls = 0.0744em of
+    its own size. From there it opens to the lockup's 0.42em by the landing, exactly as before.
+  */
+  letter-spacing: calc((0.0744 + (0.42 - 0.0744) * var(--swap-out)) * 1em);
   opacity: calc(var(--swap) * var(--release));
 }
 
@@ -10091,6 +10187,11 @@ a.v2-ident-open:focus-visible {
     ink for a single frame. The 0.12 left over is state 04 standing before 04 → 05 starts taking it
     away. What happens to it *inside* 04 → 05 is that junction's question and is not touched here.
   */
+  /*
+    C30 (frozen 2 October 2026): with scripting, the driver writes `--k3-ink` on `.v2-thesis` itself
+    (`TIMING.memories.thesisArrives`), which shadows this ramp for that element; the ramp below is the
+    value without a driver.
+  */
   --k3-ink: clamp(0, calc((var(--jp3) - 0.63) / 0.24), 1);
 }
 
@@ -10204,7 +10305,15 @@ a.v2-ident-open:focus-visible {
 */
 
 .v2-thesis {
-  opacity: calc(var(--k3-ink) * (1 - clamp(0, calc((var(--jp4) - 0.3) / 0.3), 1)));
+  /*
+    C29 (frozen 2 October 2026): the leaving is *played* from `--jp4` 0.50 (`--th-leave`,
+    `TIMING.memories.thesisPlays.leaveAt`) and closed by 0.60 by `--th-guard`; the ramp stays as the
+    value without a driver.
+  */
+  opacity: calc(
+    var(--k3-ink) * (1 - var(--th-leave, clamp(0, calc((var(--jp4) - 0.3) / 0.3), 1))) *
+      var(--th-guard, 1)
+  );
 }
 
 .v2-stack {
@@ -10213,8 +10322,11 @@ a.v2-ident-open:focus-visible {
     every earlier one and re-imposed the whole-stack fade over `--jp5` 0.78 → 1.00 — which, against
     a sentence arriving from 0.55, is the collision. The gate on `--jp4` is kept; the block departure
     is gone, and the occasions leave per-occasion on the approved windows.
+
+    1 October 2026: the gate is *played* from the same position (`--o1`, `TIMING.memories.plays`) and
+    held to 04 → 05's clear frame by `--o1-guard`; the ramp stays as the value without a driver.
   */
-  opacity: clamp(0, calc((var(--jp4) - 0.7) / 0.3), 1);
+  opacity: calc(var(--o1, clamp(0, calc((var(--jp4) - 0.7) / 0.3), 1)) * var(--o1-guard, 1));
 }
 
 /*
@@ -10439,5 +10551,350 @@ a.v2-ident-open:focus-visible {
 
   .v2-of {
     right: var(--mark-x);
+  }
+}
+
+/* ── The opening, as approved in the preview · 30 September 2026 ──────────────────────────────────────
+   Three changes to states 01 → 05 and nothing else: no distance, price, threshold, state boundary or
+   clock is touched. Every value below is a function of the junction progress the driver already
+   publishes (--jp1 … --jp5), or of Chapter I's existing beats.
+
+   1 · The tagline is 1.125× on the desktop frame. Below 820px it keeps its size: larger, the mobile
+       column breaks it into one word per line.
+   2 · The quick navigation (`site.nav`) replaces *I of III*: the rail's register, on the title's axis,
+       in the bottom band, arriving on the INTERFACE beat and leaving with the tagline.
+   3 · One Sun — the image disappears; the light survives.
+       - 01 → 03: the uniform black becomes a falloff centred on the footage's own sun (≈43.5% / 36% of
+         the video, mapped through object-fit: cover), so the frame darkens as before but the pool of
+         light around the sun darkens far less, and narrows as the label forms.
+       - .v2-light is the one light from Chapter II to *A memory.*: a wide, soft ellipse (horizon light,
+         not a disc), faint enough on the figure shot to merge with the real sun, taking over as the
+         picture goes. It holds almost unchanged through Philosophy, drops quickly as the label disperses
+         so it is never left alone on black as a shape, returns as the ember while the thesis resolves,
+         steps back up-right, rises over the occasions and leaves with the dark as Venice opens.
+       The footage plays as the film it is — no loop, seek or hold on a shot.
+   ─────────────────────────────────────────────────────────────────────────────────────────────────── */
+@media (min-width: 821px) {
+  .v2-sub {
+    font-size: calc(1.125 * clamp(0.625rem, calc(10 / 1440 * 100vw), 0.875rem));
+  }
+}
+
+.v2-nav {
+  position: absolute;
+  left: calc(var(--x196) + 0.0469 * var(--v2-title-size));
+  bottom: calc(44 / 760 * 100% + env(safe-area-inset-bottom, 0px));
+  margin: 0;
+  z-index: 5;
+  font-family: var(--v2-sans);
+  font-size: clamp(0.5625rem, calc(9.5 / 1440 * 100vw), 0.8125rem);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity calc(var(--fade-navigation) * var(--haste, 1)) var(--curve);
+}
+
+:root[data-beat='7'] .v2-nav {
+  opacity: 1;
+}
+
+/* Clickable only once the opening is over: it is mandatory, and no link may skip it. */
+:root[data-opening='done'] .v2-nav {
+  pointer-events: auto;
+}
+
+.v2-nav ul {
+  display: flex;
+  gap: 2.6em;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A 44px target around a 9–13px word, without moving the word. */
+.v2-nav a {
+  position: relative;
+  display: inline-block;
+  padding: 18px 6px;
+  margin: -18px -6px;
+  color: rgb(242 236 224 / 0.6);
+  text-decoration: none;
+  transition: color var(--fade-nav-hover) var(--curve);
+}
+
+.v2-nav-word {
+  position: relative;
+  display: inline-block;
+}
+
+/* The Index's own affordance: a 1px rule as wide as the word's ink. */
+.v2-nav-word::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0.24em;
+  bottom: -0.45em;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--fade-nav-hover) var(--curve);
+}
+
+.v2-nav a:hover,
+.v2-nav a:focus-visible {
+  color: rgb(242 236 224 / 1);
+  outline: none;
+}
+
+.v2-nav a:hover .v2-nav-word::after,
+.v2-nav a:focus-visible .v2-nav-word::after {
+  transform: scaleX(1);
+}
+
+:root {
+  --os-in: clamp(0, calc((var(--jp1) - 0.35) / 0.65), 1);
+  --os-sun-x: calc(50% - 0.065 * max(100vw, 200dvh));
+  --os-sun-y: calc(50% - 0.13 * max(50vw, 100dvh));
+  /* The black the frame had — §2's column, unchanged — and how much of it the sun is spared. */
+  --os-out: calc(0.5 + 0.15 * var(--jp1) + 0.25 * var(--jp2) + 0.09 * var(--jp3));
+  --os-hole: calc((0.16 * var(--os-in) + 0.2 * var(--jp2)) * (1 - var(--jp3)));
+  --os-r: calc(0.5 * 100vmax - 0.2 * 100vmax * var(--jp2));
+  /* The light's strength at each state it lives through: Chapter II, Philosophy, thesis, occasions. */
+  --os-a2: 0.06;
+  --os-a3: 0.12;
+  --os-a4: 0.07;
+  --os-a5: 0.11;
+}
+
+.v2-grade {
+  opacity: calc(1 - var(--v2-handover));
+  background: radial-gradient(
+    circle var(--os-r) at var(--os-sun-x) var(--os-sun-y),
+    rgb(6 5 5 / calc(var(--os-out) - var(--os-hole))) 0%,
+    rgb(6 5 5 / calc(var(--os-out) - 0.45 * var(--os-hole))) 45%,
+    rgb(6 5 5 / var(--os-out)) 100%
+  );
+}
+
+.v2-scrim-flat {
+  opacity: calc(var(--jp1) * (1 - 0.25 * var(--os-in) * (1 - var(--jp3))) * (1 - var(--v2-handover)));
+}
+
+.v2-light {
+  --os-l: clamp(0, calc((var(--jp1) - 0.45) / 0.55), 1);
+  --os-m: clamp(0, calc((var(--jp5) - 0.1) / 0.55), 1);
+  /*
+    The exit from Philosophy: held to 0.38 of 03 → 04, a short drop to a quarter by 0.48 as the label
+    disperses, back to full by 0.95 as the thesis resolves. Validated in motion at 1440 and 375.
+  */
+  --os-k: calc(
+    1 - 0.75 * clamp(0, calc((var(--jp3) - 0.38) / 0.1), 1) + 0.75 *
+      clamp(0, calc((var(--jp3) - 0.48) / 0.47), 1)
+  );
+  --os-e: calc(
+    (var(--os-a2) * var(--os-l) + (var(--os-a3) - var(--os-a2)) * var(--jp2) +
+      (var(--os-a4) - var(--os-a3)) * var(--jp3) + (var(--os-a5) - var(--os-a4)) * var(--os-m)) *
+      var(--os-k) * (1 - var(--v2-handover))
+  );
+  --os-x: calc(var(--os-sun-x) + (68% - var(--os-sun-x)) * var(--jp3) - 16% * var(--os-m));
+  --os-y: calc(var(--os-sun-y) + 3% + (29% - var(--os-sun-y)) * var(--jp3) - 4% * var(--os-m));
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse calc(0.36 * 100vmax) calc(0.2 * 100vmax) at var(--os-x) var(--os-y),
+    rgb(255 196 134 / var(--os-e)) 0%,
+    rgb(255 194 130 / calc(var(--os-e) * 0.72)) 25%,
+    rgb(255 190 126 / calc(var(--os-e) * 0.38)) 50%,
+    rgb(255 188 122 / calc(var(--os-e) * 0.12)) 75%,
+    rgb(255 188 122 / 0) 100%
+  );
+}
+
+
+/* ── The mobile reading grid · phase 1 · 1 October 2026 ───────────────────────────────────────────────
+   Below 768px the head is one line (C24), but `--masthead` still reserves the two index rows the rail
+   lying down needed — about 110–125px that nothing stands in. About, the Method and Questions were all
+   composed from that band, so their first line stood at 38–42% of the frame (13–23% for Questions) where
+   the desktop's stands at 19%. `--masthead` is not touched — landings, locks and scroll margins read it —
+   so the three sections are given a vertical system of their own, and only on a phone.
+
+     F  `--g-floor`   the head line's own height and a breath under it. Nothing is drawn above it.
+     A  `--g-anchor`  the reading anchor: where each section's first line stands. F + 7vh — about 9–10vh
+                      under the head line, 18–20% of the frame from 640 to 844.
+     P  `--g-foot`    the foot: a section's last element ends 7vh above the bottom (About's own value).
+
+   Between A and P the sections keep their own logic: About and the Method write their main group at A and
+   end their secondary one at P, and the scene — the figure, the lamp, the desk — has the space between.
+   Questions stands at A where its list fits and keeps B where it does not.
+
+   Geometry at rest only. Nothing here is a timing, an opacity or an order; every clock, fade and beat is
+   the one it was. The desktop and 768–900 are untouched: every rule is inside a query below 768px.
+   ─────────────────────────────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 767.98px) {
+  :root {
+    /* `.ledger`'s padding-top below 768px (C24), the head line and its foot, and a breath. */
+    --g-floor: calc(clamp(1.25rem, 4.2vh, 2.25rem) + 3.6rem);
+    --g-anchor: calc(var(--g-floor) + 7vh);
+    --g-foot: 7vh;
+    /* Title → the text that supports it, and a group → the next one. */
+    --g-step-s: clamp(1.1rem, 3vh, 1.75rem);
+    --g-step-m: clamp(1.75rem, 5vh, 3rem);
+  }
+
+  /*
+    **About: one column from A, one foot at P.** The claim and its paragraph are one group written from
+    the anchor, on the wall above the figure; `Built exclusively for you.` and its three lines are one
+    group ending on the foot, over the dark of the shirt and the desk. `.about-evidence` stops being a box
+    so its paragraph can join the claim — one reference per group, never two for one chapter.
+
+    Scoped to `[data-opening]`, which only the script writes: without scripting the section keeps the
+    composed alternative `page.tsx` gives it, untouched.
+  */
+  :root[data-opening] .about-stage {
+    display: flex;
+    flex-direction: column;
+    padding: var(--g-anchor) 0 var(--g-foot);
+  }
+
+  :root[data-opening] .about-claim {
+    position: static;
+    margin-inline: var(--about-x);
+  }
+
+  :root[data-opening] .about-headline {
+    margin-top: 0;
+  }
+
+  :root[data-opening] .about-evidence {
+    display: contents;
+  }
+
+  :root[data-opening] .about-text,
+  :root[data-opening] .about-principle,
+  :root[data-opening] .about-lines {
+    margin-inline: var(--about-x);
+  }
+
+  :root[data-opening] .about-text {
+    margin-top: var(--g-step-s);
+    /* The least air the two groups keep when the frame is too short to part them. */
+    margin-bottom: var(--g-step-m);
+  }
+
+  /* The secondary group's head: everything the frame has left goes above it, so it ends on P. */
+  :root[data-opening] .about-rule {
+    margin-top: auto;
+    margin-left: var(--about-x);
+  }
+
+  /*
+    **The Method's block on About's line.** `--m-main-y` is measured in the frame, which begins at the head
+    margin, so A less the margin puts `Your experience` exactly where `We stay close` stands. On a phone
+    that is above the frame's top, so the frame clips sideways only: a line near the right edge still
+    must not widen the page, which is all `overflow: hidden` was there for.
+  */
+  :root {
+    --m-main-y: calc(var(--g-anchor) - var(--masthead));
+  }
+
+  .method-stage {
+    overflow-x: clip;
+    overflow-y: visible;
+  }
+}
+
+@media (max-width: 700px) and (min-height: 561px) {
+  /*
+    **The field, as a sequence from the block down.** The seven lines were placed by seven fractions of the
+    frame, which tied them to its foot and left them packed against it. They now step down from a line a
+    group's air under the block, one even step apart, on the same two verticals (0.40 for the five small
+    ones, the page axis for the last two), at the same sizes and ink. The step is a fraction of the frame
+    held between two lengths, so the field neither crowds on 640 nor sprawls on 844. What the field leaves
+    under it is the desk and the chair.
+
+    `--g-field-top` is in the viewport; the frame begins at the head margin, so it is taken off.
+    The short landscape frame keeps its own column — this query does not reach it.
+  */
+  :root {
+    --g-field-top: calc(var(--g-anchor) + 7.5rem + 3vh);
+    --g-field-step: clamp(2.1rem, 5.6vh, 3rem);
+  }
+
+  .mword {
+    top: calc(var(--g-field-top) - var(--masthead) + var(--wi) * var(--g-field-step));
+  }
+
+  .mword[data-w='1'] { --wi: 0; }
+  .mword[data-w='2'] { --wi: 1; }
+  .mword[data-w='3'] { --wi: 2; }
+  .mword[data-w='4'] { --wi: 3; }
+  .mword[data-w='5'] { --wi: 4; }
+  .mword[data-w='6'] { --wi: 5; }
+  .mword[data-w='7'] { --wi: 6; }
+
+  /* The note is the Method's foot. The frame ends at the bottom of the viewport, so 7vh is P. */
+  .mnote[data-n='1'] {
+    top: auto;
+    bottom: var(--g-foot);
+  }
+
+  /*
+    **The closing group: the two last lines and the note, hung from P** — 1 October 2026, approved and
+    frozen by the design owner (the 3–5px tightness at 320×640 / 375×667 accepted).
+
+    On the page's axis the lower half of the frame is only clear under the desk: the plate is `cover` on a
+    portrait frame, so it scales with the height alone and its objects are fixed fractions of it — the
+    lamp's shade 0.578–0.652, the pens 0.723–0.791, the book 0.793–0.825, the desk's front edge 0.84 —
+    all within x ≈ 0–128 where these two lines start. On the uniform step they landed in that band at
+    every height (the shade at 780–844, the pot at 640–667). The five small lines stand on 0.40 and pass
+    beside all of it, so they keep the step from A; these two leave it.
+
+    So the closing reads upward from the foot: the note on P, `It's starting.` one gap above it, `That
+    wasn't meant to happen.` one gap above that. Box heights are computed rather than measured: a line
+    is 1.05 of its own size, the last line is at `--m-word` (`--wd` 0), and the note is its own size at
+    1.5. Between them the scene stands empty — which is the composition, not a gap in it.
+
+    **The book's edge is the one limit.** The sixth line never stands higher than 4px under the book
+    (845/1024 of the plate), so where the band under the desk is short (640, 667) the group closes up
+    against the note instead of reaching into the desk. P does not move.
+  */
+  :root {
+    --g-close: clamp(0.5rem, 1.6vh, 0.875rem);
+    --g-note-h: calc(clamp(0.5625rem, calc(9.5 / 1440 * 100vw), 0.8125rem) * 1.5);
+  }
+
+  .mword[data-w='7'] {
+    top: auto;
+    bottom: calc(var(--g-foot) + var(--g-note-h) + var(--g-close));
+  }
+
+  .mword[data-w='6'] {
+    top: auto;
+    bottom: min(
+      calc(var(--g-foot) + var(--g-note-h) + 2 * var(--g-close) + var(--m-word) * 1.05),
+      calc(100dvh * (1 - 845 / 1024) - 4px - 1.05em)
+    );
+  }
+}
+
+@media (max-width: 700px) {
+  /*
+    **Questions stands at A where its list fits.** The clamp is the one B is built on, with its upper
+    bound moved from the head margin to the anchor: a list that fits stands where About and the Method
+    began, and a list that does not still falls to the floor and reads through on `--asked-reach`
+    exactly as before. The lock and the landing are measured from this value, so they follow it.
+  */
+  :root {
+    --asked-floor: var(--g-floor);
+    --asked-top: clamp(
+      var(--asked-floor),
+      calc(100dvh - var(--asked-h, 0px) - var(--asked-breath)),
+      var(--g-anchor)
+    );
   }
 }

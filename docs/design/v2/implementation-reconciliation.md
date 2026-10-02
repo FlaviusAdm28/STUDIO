@@ -1744,6 +1744,12 @@ release factor beside them changes. `--lockup-y`, `--num-y0`, `--num-y1`, `--top
 | C4 | The thirteen junctions on `p` | **IMPLEMENTED 29 Aug 2026** — junctions resolved as intervals on `p`, `--junction` / `--junction-at` published; 08 → 09's offset ruled internal; findings A and B closed by the design owner above |
 | — | Junction 02 → 03, the lockup | **IMPLEMENTED 29 Aug 2026** — one centred lockup, one size and one baseline, a width-neutral exchange of renderings in place of the cross-fade, and state 03 lifted clear of state 04's sentence; §2's vertical centre for state 03 is the one authored coordinate given up |
 | — | The V2 presentation, states 01 → 09 | **IMPLEMENTED 29 Aug 2026** — see the transition register above. Every value classified A / B / C / D; **eight flagged (F1–F8); F8 closed by the owner, F6 reverted, F2 partly closed, the rest unsettled** |
+| C9–C27 | Later decisions, 31 Aug – 1 Oct 2026 | Each entry's own header carries its status |
+| C28 | Zone 05, the occasions played | **FROZEN 1 Oct 2026** |
+| C29 | 04 → 05, the thesis leaves on a clock (`leaveAt` 0.50) | **FROZEN 2 Oct 2026** |
+| C30 | 03 → 04, the thesis arrives on a clock (`arriveAt` 0.68) | **APPROVED / FROZEN 2 Oct 2026** |
+| C31 | 01 → 02, `Chapter` changes face in one frame (C31-A; C31-B tested and rejected) | **APPROVED / FROZEN 2 Oct 2026** |
+| — | The 30 Sept opening (One Sun B2, quick navigation, tagline) and the 1 Oct mobile grid | **APPROVED / FROZEN** — recorded at the end of this document |
 
 **No entry now needs somebody who is not the implementer.** C7's breakpoints were the last of the eight,
 and the design owner answered them on 26 August 2026. Four of the eight closed — C5's plate count by
@@ -3294,3 +3300,442 @@ The running "NN ·" mark. The mandatory opening. The rail's arrival at state 08.
 12. Build: typecheck, lint and build pass, and the console shows no errors on a clean load.
 13. Not verifiable from this environment, and stated as such: iOS Safari, a physical device, and a
     real screen reader.
+
+## C25 · Method → Questions: the leaving is spatial · **29 September 2026** · design owner decision
+
+**What this partly reverses, and why it is not a regression.** On 26 September the Method's leaving
+became TRIGGER → PLAY: one scroll trigger, and then a clock of about 6.4s behind it
+(`TIMING.method.leaves`). The composition left at 0s, the thoughts from 1.3s and the note at 4.3s.
+The room then stood empty for 1.1s (`emptyHolds`). Questions' anchor was gated on that clock having
+run (`methodRested`). Reversing brought everything back at once, through a direction latch
+(`methodOut` / `methodY`). This entry replaces the clock with positions. It was deliberate and it was
+validated. It must not be read later as an accidental return to the scrubbed model.
+
+**Why.** Measured at 1920 × 889 and 390 × 844, a leaving driven only by clocks failed at both ends of
+hand speed.
+
+- At an ordinary hand (600px/s) the scrolled guarantee (`--mclear`) erased 6 of the 7 thoughts and the
+  note in a single frame, before their own leaving had begun.
+- At a fast hand, important parts finished leaving out of view.
+- A hand that stopped watched the clock for up to 4.3s, or 5.4s after a small movement, before
+  anything settled. Questions then waited on the clock rather than on the scroll.
+
+*"Quero que a PROGRESSÃO ESPACIAL do scroll controle a ordem desta saída… scroll → avanço da
+transformação → próximo elemento → avanço → próximo elemento → Questions. Mas sem tornar o texto num
+scrub literal."*
+
+**The rule.**
+
+- The **order** of the Method's leaving, and the **moment** each part begins to leave, are decided by
+  scroll position. Each part has a position in `TIMING.method.leaves`, expressed as a fraction of the
+  leaving window (`methodSpans.leaves` → `methodSpans.clear.from`).
+- Once a part has started, its **fade plays on its own**, with the durations unchanged: the composition
+  1.0s, a thought 0.9s, the note 1.0s. The drifts of 4–7px are also unchanged.
+- **Type is never scrubbed by the scroll.** The composition and the room answer the scroll. The text
+  keeps its short fades, which preserves its legibility and finish.
+- **The empty room is a distance now, not a clock.** `emptyHolds` is gone.
+- **Questions no longer depends on `methodRested`.** Its anchor answers its own position alone.
+- **Reversing is the same progression read backwards.** Each part returns when its position is
+  crossed upward, over its own fade. The note comes back first and the statement last. The
+  `methodOut` / `methodY` latch is gone.
+
+**The positions.** Each value is a fraction of the leaving window. The window is about 1,300px on a
+mouse and half as long again on touch.
+
+| Part | Position |
+|---|---|
+| Statement, line and question | 0, 0.05 and 0.10 |
+| The seven thoughts | 0.16 → 0.55, one every 0.065, in the same scatter the clock had (w3, w5, w1, w7, w4, w2, w6) |
+| The note | 0.62 |
+| The empty room | 0.62 → 1.00, then the guarantee |
+
+`together` is 0.12s. When two positions are crossed in the same frame, the two parts still leave one
+after the other. `timeline.ts` asserts two things: every position lies in [0, 1), and the last one is
+no later than 0.75.
+
+**The dissolve into Questions.** With the positions alone, the room still stood empty for about 930px
+at 1920 × 889. That stretch ran from the note starting (y 27,666) to Questions' lock (y 28,599). No
+timing could close it. Questions cannot be written before its lock, or it is revealed on the move
+(`questions.anchor.afterLock`). Nothing of the Method may be lit after its frame unsticks
+(y 28,369), or the Method is dragged up the screen (`method.gathered.holds`). With the old layout, 230px of that stretch had
+neither frame standing. The answer was one layout number and one envelope.
+
+- **`distance.askedLead`: 70vh → `{ fine: '150vh', coarse: '180vh' }`.** Questions now locks
+  **inside the Method's held frame**, between the note and the guarantee. The lock falls at 0.79 of
+  the leaving window on desktop, and at 0.75–0.78 on touch.
+- The two values differ because the leaving window is priced by the pointer, and is half as long again
+  on touch. With 150vh on both pointers, the touch lock fell at 0.89–0.97 of the window, and a 67–179px
+  hole remained at a normal hand. 180vh puts touch back at the relation 150vh gives the desktop.
+- **`--qin`, the anchor's envelope** (`TIMING.questions.anchor.enters`: 0.3 of a viewport after the
+  lock). It is a pure function of position and it multiplies the anchor's ink. The anchor's own clock
+  is unchanged. So the question begins faint while the Method's last part is still leaving, the hand
+  brings it up, and a hand that stops holds it there. `timeline.ts` asserts that the envelope closes
+  before the rows fire.
+- The rail names Questions at the section's own entry, because state 13 has no lead, so it moves with
+  the section. The document is 712px shorter at 1920 × 889.
+
+**Validated result.**
+
+- **Desktop.** The large empty stretch between the Method and Questions is gone. A slow hand keeps a
+  breath of about 160px. A normal hand gets a small overlap of about 130px.
+- **Touch.** 180vh removes the residual hole at a normal and a fast hand at 320 × 844, 360 × 800,
+  360 × 844 and 375 × 812. Measured on the same frames, a normal hand's hole went from 125–179px to 0.
+  A slow hand keeps a breath of 181–244px.
+- **Overlap.** Questions begins to appear while the Method's last part is still leaving, and never
+  while the Method is visibly present. At no point are both above 15% ink, so the two states are never
+  legible at once. The FAQ rows never appear while the Method is visible.
+- **Stopping.** A hand that stops leaves the composition where it stopped. Stopped mid-dissolve, the
+  anchor holds at 0.50–0.52. Small movements forward and back move the transition in proportion.
+- **The lock.** There is no jump. The anchor never moves while it is visible.
+- **Reversing.** The order is correct: Questions dissolves, then the room, then the Method.
+- **What did not change.** The Method's fade durations. Questions → Contact. The menu and header. No
+  second scroll system was created, and nothing re-renders React per frame.
+
+**Not changed on purpose: the reverse is not perceptually symmetric.** At a normal hand the way
+forward overlaps. The way back leaves 340–620px of empty room. The positions are identical in both
+directions; the difference is the fades lagging behind the hand. Going forward, the Method's fade is
+still running when Questions appears. Going back, it only begins at its own position. This was
+identified as a difference of composition and fade, not a fault of state, a jump or a break in
+navigation, so it was left as it is.
+
+**Validation.** Tested at 1920, 1440 and 768 on a mouse, and at 320, 360 and 375 with touch pricing.
+Typecheck, lint and build pass. The console shows no errors and no new `[motion]` assertions.
+
+**Not validated:** a physical touch device, and iOS Safari. Touch pricing was forced in same-origin
+frames in desktop Chrome.
+
+**Files:** `src/motion/timing.ts` (`method.leaves`, `questions.anchor.enters`, `distance.askedLead`),
+`src/motion/timeline.ts` (`methodSpans.leaving` and three assertions), `src/app/scroll-stage.tsx`,
+`src/motion/transitions.ts`, `src/motion/story.ts` and `src/app/globals.css` (`--qin` on the anchor).
+
+
+## C27 · Questions on short screens: the list reads through, after the anchor, from its rest height · **1 October 2026** · design owner decisions
+
+**Why.** Below 700px the list stands at `--asked-top = clamp(F, 100dvh − --asked-h − breath, A)`. On short
+screens the floor wins and the list's foot stood under the fold for the whole hold: at 320×640 the sixth
+question ended at 765 on a 640 frame (92px of excess), at 375×667 at 709. The passage released it before
+the list unstuck, so it was never on screen.
+
+**The rules, as approved (all in `src/app/scroll-stage.tsx`; the mask in `globals.css`):**
+
+- **B — the list reads through.** Where there is an excess, `--asked-reach = clamp(0, y − from, excess)`
+  moves the list 1:1 with the hand until its foot stands a breath above the fold, then it stands again.
+  `.asked[data-asked-reaches]` applies the translate and a mask that hides everything above the line the
+  list stands on. Where the list fits, nothing applies (`data-asked-reaches` absent).
+- **D-gate — not before the anchor is written.** The anchor is written on a 1.5s clock; B began on a
+  position at the same time, and at 320×640 (excess 92 > the 77px above the anchor's last line) the mask
+  took the anchor while it was being written — at 400px/s it was never more than 29% seen. Until
+  `.publication[data-anchor]` is `held`, the start follows the hand, so the reach stays 0; once held, B
+  starts at 0 from there. **Accepted explicitly: B's start depends on when the anchor is held. Do not try
+  to make B 100% scroll-pure again.**
+- **#2 — rest height vs actual height.** `--asked-h` is the list at rest: the rendered height minus what
+  open answers add (a closed `details` measures exactly its summary and borders, so the rest is the
+  answer, on every frame of its 180ms opening or closing). The excess still uses the real height. Before,
+  opening an answer lowered the clamp's middle term and the list rose 40.6 / 56.8 / 42.1px under the
+  finger at 360×780 / 375×812 / 390×844; the lock moved with it and, within ~50px of the FAQ point (an
+  INDEX landing included), all six questions un-wrote until the answer closed.
+- **#1 — no hysteresis after closing.** Two starts: `askedReachStart` (set by the base and the D-gate)
+  and `askedReachFrom` (effective). `place()` re-anchors only when the excess grows, and only the
+  effective start runs ahead, so opening an answer never moves the list. `read()` hands the run-ahead
+  back whenever the list stands at its ceiling, where both starts give the same reach — unseen, no
+  delay, no threshold, no per-viewport value. Before, closing an answer advanced the start and the same
+  scroll position gave a different reach on the way back (−92px at 320×640, −14px at 375×667).
+
+**Validation** (CDP-driven visible Chrome, mobile/touch/DPR 2, settled samples). Reverse vs clean path,
+scenario A (open at reach 0 → read → close → reverse) and scenario B (scroll to the ceiling → open →
+read → close → reverse): 320×640 ≤ 0.2px, 375×667 ≤ 0.1px in both. 360×780, 375×812, 390×844: rest
+height, top and lock constant while answers open and close, questions stay lit, the real height feeds
+the excess (134/163, 69, 43), 0 differences on reverse. D-gate: reach 0 until held. Desktop 1440×889
+unchanged (landing 27697, list at 99, no B). Typecheck, lint and build pass.
+
+**Known limitation — accepted, not to be fixed in this phase.** If an answer is opened while the list is
+at its ceiling and closed before the list touches the ceiling again (the visitor scrolled back up while
+it was open), the temporary run-ahead is only handed back when the ceiling is reached again; until then
+the reach on that path is lower than on the clean path. Reaching the clean value earlier would need a
+jump or a movement against the hand.
+
+**Not validated:** a physical touch device; iOS Safari.
+
+
+## C28 · The occasions are played, not scrubbed: zone 05 of the Opening hybrid · **1 October 2026** · design owner decisions
+
+**Scope.** Zone 05 only — `A wedding.` → `An artist.` → `A memory.` (the stack on 04 → 05 and
+05 → 06). The rest of the Opening hybrid (02 → 03, 03 → 04, 04 → 05's thesis) is not touched. The
+Environment, One Sun, grade, exposure, dip, camera, aperture, Venice, Work, the Quick Menu, the
+scroll geometry and every junction distance are unchanged. **Frozen by the design owner.**
+
+**Before.** The three phrases were pure functions of `--jp4` / `--jp5` (CSS ramps). A stop inside a
+junction froze a phrase half-drawn — P1 of the Opening architecture audit.
+
+**After — trigger by scroll, drawn by a clock.** `scroll-stage.tsx` plays the stack's five values
+with the existing `play()` (C25/C26): `--o1`, `--o2`, `--o3`, `--leave-early`, `--leave-survivor`,
+written on `.v2-stack` so they inherit to the three phrases only. The triggers are the old ramps'
+own positions (`TIMING.memories.plays`: 0.7 on 04 → 05; 0.214 and 0.429 on 05 → 06;
+`release.first[0]`; `deconstruction.window[0]`). The environment stays scrubbed. No new scroll
+system, no per-frame React render.
+
+Three decisions, approved:
+
+- **0.6s** for an arrival, the first two letting go, and the survivor (`arrive`, `release`,
+  `survivor`). 0.9s left `A memory.` never fully drawn at ~1500px/s.
+- **Chaining.** Each beat starts at its position *and* once the one before it has fully arrived, so
+  the stack composes itself in order however fast the hand — a flick never lights two at once.
+- **The scroll's guarantee at the ends.** `--o1-guard` is written from scroll: `stackGuard` (jp4
+  0.6 → 0.7) keeps the stack dark while the thesis can still be lit (reverse), and `clear` (jp5
+  0.86 → 0.9, where the scrubbed survivor had already gone) clears whatever is still written, so no
+  phrase is left on the photograph. At very fast scroll (6000px/s) this means only `A wedding.` is
+  seen briefly (~0.25s above half, never full) and is cleared — accepted.
+
+**Validation** (CDP-driven visible Chrome; 1440×889, and 390×844 / 375×667 / 320×640 with mobile,
+touch and DPR 2). Eleven stops per viewport, each from a slow approach: none partial, and every
+contact sheet is a composed state. Passes at 300 / 900 / 1500 / 6000px/s, reverse at 1500, and
+flicks both ways:
+
+| | 1440 | 390 | 375 | 320 |
+|---|---|---|---|---|
+| first full at 300px/s (s) | 1.1 · 4.7 · 6.8 | 1.3 · 6.4 · 9.5 | 1.2 · 5.2 · 7.6 | 1.1 · 5.0 · 7.3 |
+| first full at 1500px/s (s) | 0.7 · 1.4 · 2.0 | 0.8 · 1.8 · 2.4 | 0.7 · 1.5 · 2.4 | 0.7 · 1.5 · 2.1 |
+| 6000px/s | `A wedding.` only, cleared | same | same | same |
+
+Thesis over the stack: 0ms in every pass. Reverse and both flicks end at [0, 0, 0] (thesis back to
+1 on the flick back). Before/after maps of the whole Opening: `workEnd` identical (22200 / 30800 /
+24400 / 23400), state spans identical within one sample, luminance in states 04–06 within 0.005
+(environment unchanged); state 08 differs only by the looping footage's time. Venice → Work
+unchanged. Typecheck, lint and build pass.
+
+**Not validated:** iOS Safari and a physical touch device — not reachable from this environment.
+**Not measured:** per-phrase visual times of the scrubbed version before the change; the comparison
+for stops, flicks and reverse is against the audit's description (half-drawn phrases at stops).
+
+## C29 · The thesis leaves on a clock: 04 → 05 of the Opening hybrid · **2 October 2026** · design owner decisions · **FROZEN**
+
+**Scope.** The thesis' *leaving* on 04 → 05 only. Its arrival (03 → 04), its reading hold
+(`--jp4` 0 → 0.30), zone 05 (C28, frozen), 02 → 03, the Environment, the scroll geometry and every
+junction distance are not touched. **Frozen by the design owner as implemented.**
+
+**Before.** The thesis cleared as a pure function of scroll, `--jp4` 0.30 → 0.60. A stop anywhere in
+that 30% of the junction (422px at 1440, 454–598px on a phone) left the sentence partly drawn — grey,
+neither read nor gone.
+
+**After — trigger by scroll, the leaving played.** `scroll-stage.tsx` plays `--th-leave` with the
+existing `play()` (C25/C26), written on `.v2-thesis` only, and writes `--th-guard` from scroll. The
+values are `TIMING.memories.thesisPlays` (sibling of C28's `plays`, which is untouched); the CSS ramp
+stays as the value without a driver.
+
+Decisions, approved:
+
+- **`leaveAt` = 0.50** on `--jp4`: the sentence starts leaving there going forward, and returns from
+  there going back (reverse symmetric). 0.45 was implemented first and measured; it lengthened the
+  empty frame in slow scroll and slow reverse (table below), and 0.50 was approved over it.
+- **0.6s** for the leaving or the return — the occasions' own `plays.arrive`.
+- **Guard 0.55 → 0.60.** Whatever the clock has left is cleared by scroll over this window, so a hand
+  fast enough to outrun 0.6s still finds the sentence gone by 0.60.
+- **Clean frame 0.60 → 0.70** kept; `A wedding.` from 0.70, exactly as C28 froze it.
+- The residual differences below (390's slow forward empty, the slow reverse empty) are **accepted
+  and are not to be optimised**.
+
+**Validation** (CDP-driven visible Chrome; 1440×889, and 390×844 / 375×667 / 320×640 with mobile,
+touch and DPR 2). 31 stops forward and 31 reverse, each from a slow approach, including 4.48 / 4.49 /
+4.50 / 4.51 / 4.52 around the trigger; passes at 300 / 900 / 1500 / 6000px/s, reverse at 300 / 900 /
+6000px/s, flicks both ways.
+
+- **Stops:** no partial stop in 04 → 05 on any viewport. Thesis 1 up to 4.49; 4.50 → 4.65 thesis and
+  `A wedding.` both 0; `A wedding.` 1 from 4.70. Forward and reverse identical. (The only partial
+  stops in the audit range are 3.7 / 3.8, the arrival in 03 → 04, out of scope.)
+- **Thesis × `A wedding.` overlap: 0ms** in every pass, reverse and flick, all four viewports.
+- **Clean frame 0.60 → 0.70 intact** (4.60 and 4.65 empty at rest).
+- **Empty frame before `A wedding.`, forward** (px / ms):
+
+  | | scrubbed | 0.45 | **0.50** |
+  |---|---|---|---|
+  | 1440 · 300px/s | 163 | 202 / 674 | **162 / 542** |
+  | 390 · 300px/s | 225 | 346 / 1153 | **256 / 854** |
+  | 375 · 300px/s | 184 | 244 / 815 | **188 / 629** |
+  | 320 · 300px/s | 177 | 225 / 749 | **178 / 592** |
+  | 900 · 1500 · 6000px/s (1440) | — | 186 · 228 · 501 | 183 · 227 · 458 |
+  | 900 · 1500 · 6000px/s (390) | — | 251 · 308 · 549 | 250 · 269 · 500 |
+  | 900 · 1500 · 6000px/s (375) | — | 205 · 264 · 519 | 205 · 246 · 500 |
+  | 900 · 1500 · 6000px/s (320) | — | 195 · 246 · 536 | 203 · 242 · 506 |
+
+  At rest the room is empty from 0.50 to 0.70 (scrubbed: 0.60 → 0.70).
+- **Empty frame in reverse**, after `A wedding.` and before the thesis returns (px / ms), 0.45 → 0.50:
+  slow 237/789 → 168/557 (1440), 363/1208 → 264/882 (390), 273/910 → 195/648 (375), 260/868 →
+  184/614 (320); normal 256 → 195, 365 → 262, 294 → 210, 288 → 198px. The scrubbed version's slow
+  reverse empty was ~0.1–0.2s — accepted as the cost of the symmetry.
+- **Fast reverse (6000px/s):** the thesis is shown in motion for 145 / 327 / 174 / 167ms (1440 / 390 /
+  375 / 320), peak 0.16 / 0.31 / 0.20 / 0.20 — it **never reaches full ink** before the visitor is back
+  in 03 → 04. Measured behaviour, motion only, never at a stop; accepted.
+- **Thesis full-ink time forward at 300px/s:** 3.3 / 4.7 / 3.7 / 3.6s; total visible time essentially
+  unchanged from the scrubbed version.
+- **Flicks** clean both ways; every pass ends clean; no stuck state.
+- **Zone 05 (C28) intact** against its frozen reference: no stop differences, same zone distance
+  (±1px), same ends and flicks, thesis over the stack 0ms, pass timings within clock noise.
+- **Geometry, distances, environment:** px per 04 → 05 identical (1406 / 1992 / 1576 / 1512–1513),
+  every state start identical; luminance ≤ 0.003 against 0.45 in states 05–07, state 04 ≤ 0.019
+  (the thesis lit at 0.45–0.49), state 08 the looping footage. 320's map `workEnd` 23400 / 23600 is
+  the map's 200px probe, not geometry.
+- **Typecheck, lint and build pass.**
+
+**Not validated:** iOS Safari and a physical touch device — not reachable from this environment.
+
+## C30 · The thesis arrives on a clock: 03 → 04 of the Opening hybrid · **2 October 2026** · design owner decision · **APPROVED / FROZEN**
+
+**Scope.** The thesis' *arrival* on 03 → 04 only. Its leaving (C29), the expand and the pair's release
+(`--k3-expand`, `--k3-clear`, still scrubbed — the pair's own partial stops at `--jp3` 0.46 → 0.60 were
+left out of scope by the design owner), 02 → 03, zone 05 (C28), the Environment, the geometry and every
+junction distance are not touched.
+
+**Before.** `.v2-thesis` inked on `--k3-ink`, a pure function of `--jp3` 0.63 → 0.87. The schedule was
+authored when the junction measured ~290px; it now measures 1968–2801px, so the ramp was 392 / 592 /
+448 / 432px of scroll (1440 / 390 / 375 / 320) and a stop anywhere in it held the sentence partly drawn,
+indefinitely.
+
+**After — trigger by scroll, the arrival played (C29's model).** `scroll-stage.tsx` writes `--k3-ink`
+inline on `.v2-thesis` itself, which shadows the inherited ramp for that one element, so C29's rule —
+which reads `--k3-ink` as its first factor — is not edited. The value is
+`min(ceiling, max(clock, floor))`, all from `TIMING.memories.thesisArrives`:
+
+- `arriveAt` **0.68** on `--jp3` — the clock (`play()`, **0.6s**) draws the sentence from there and
+  returns it below it (reverse symmetric);
+- `floor` **0.82 → 0.87** — the scroll's guarantee that the sentence is whole by 0.87, where the
+  scrubbed ramp was whole, before state 04 stands; from 0.87 on the value is 1, as the ramp's was, so
+  C29 sees exactly what it saw;
+- `ceiling` **0.63 → 0.68** — the scroll's guarantee that it is gone by 0.63, so the clean frame
+  (0.60 → 0.63) and the pair never meet it.
+
+Without scripting nothing is written and the ramp stands.
+
+**0.75 was tried first and rejected** for its empty frame: at rest the room was empty 0.60 → 0.75 (288 /
+424 / 328 / 312px) and slow scroll waited 1.06–1.48s before the thesis. **0.68 was approved** by the
+design owner after visual review.
+
+**Validation** (CDP-driven Chrome; 1440×889 and 390×844 / 375×667 / 320×640 with mobile, touch, DPR 2;
+the 0.68 battery ran two isolated browsers at a time, each with its viewport applied in its own session
+and a width guard; the Opening map at 390 was not completed when memory pressure stopped the run):
+
+- **No partial stop** in the arrival: thesis 0 up to 3.675, 1 from 3.68, every stop stable, forward =
+  reverse. (Baseline: 392 / 592 / 448 / 432px of partial stops.)
+- **Whole before the hold**: on the driver's own position, 1 at 3.87 and never below it after, at every
+  speed. (Measured on the spring's `p`, not on `scrollY`, which runs ahead of it in a pass — gating on
+  `scrollY` was a measurement false positive found on the way.)
+- **No overlap with `II Philosophy`**: 0ms in every pass; 0 before 3.63 on every reverse.
+- **Empty frame**, baseline / 0.75 / **0.68**: at rest 64 / 288 / **160px** (1440), 88 / 424 / **224**
+  (390), 64 / 328 / **176** (375), 64 / 312 / **168** (320); at 300px/s 251 / 1062 / **597ms** (1440),
+  350 / 1479 / **830** (390), 276 / 1190 / **668** (375), 272 / 1146 / **651** (320). Slow reverse empty
+  at or below the baseline.
+- **Fast reverse from 05**: C29's return clock is still running as the visitor enters 03 → 04, and with
+  `--k3-ink` held at 1 down to the trigger the thesis shows to 0.29 / 0.50 / 0.36 / 0.33 in motion (the
+  scrubbed ramp damped it to 0.16–0.31), cleared before 0.63. Motion only, never at a stop; accepted.
+- **C29 and zone 05 unchanged**: 04 → 05 stops identical value for value; zone 05 identical to its
+  frozen reference; geometry, junction distances and the environment's driver values identical.
+- Typecheck, lint and build pass.
+
+**Not validated:** iOS Safari and a physical touch device — not reachable from this environment.
+
+## C31 · Chapter One → Chapter II: the survivor changes face in one frame · **2 October 2026** · design owner decision · **APPROVED / FROZEN**
+
+**Scope.** The survivor `Chapter` on 01 → 02 only — its exchange from the hero's Cormorant to the
+lockup's Schibsted. Its travel (`left`, `top`, `font-size` on `--k-travel`), the numeral, `One`, 02 → 03,
+`Philosophy`, the thesis' arrival (`arriveAt` 0.68) and leaving (C29), zone 05 (C28), One Sun B2, the
+footage, every beat length and the scroll system are not touched. **Frozen by the design owner.**
+
+**The problem as felt.** The passage `Chapter One → Chapter II` did not read as one transformation:
+a scene change rather than continuity, and the moment `CHAPTER` changes typographic style looked wrong.
+
+**Diagnosis (C31 audit, read-only; 1440×900, 390×844, 375×812, 320×640).** `.v2-word` is one node with
+two renderings, `.v2-word-serif` (Cormorant 300) and `.v2-word-mark` (Schibsted 500 × 1.045), exchanged
+by `--swap` while the word travels on `--k-travel`. Proven:
+
+- The exchange was a cross-fade over `--k-travel` .88 → .90 — commented as "about ten pixels", written
+  when the junction was ~520px. The junction now measures 2283–3227px, so the window was **32–44px of
+  scroll**, with the word at 25.6px (1440) / ~15.5px (phones) and nearly still (the slow end of the
+  smoothstep). A stop inside it **held both faces half-lit** (≈ 0.45 / 0.55, indefinitely); slow
+  scroll showed a legible double image for 89–141ms.
+- The compensation matched **ink width only** (≈ 3%): at the exchange the x-height jumped 10 → 14px
+  (+40%; +50% on phones), cap height 16 → 19px, weight 300 → 500.
+- Before the exchange the serif carried the lockup's tracking (0.42em × the travel), so it stood as a
+  lower-case Cormorant spaced at ~0.37em — a state that is neither the hero nor the mark.
+- Healthy and unchanged: baseline (Δ ≤ 1px), geometry, reverse symmetry, 02 → 03.
+- A contributing factor measured but not acted on: the hero footage (12.12s loop) dissolves between
+  its two shots at ≈ 2.1–2.5s and ≈ 9.9–10.3s on its own clock, so a slow crossing of 01 → 02 almost
+  always meets one. It belongs to the footage and One Sun B2, both out of scope.
+
+**Experiments, each in an isolated preview (the main project untouched until the decision).**
+
+- **C31-A (:3001) — chosen.** A one-frame step at `--k-travel` .95 (the word ~20px at 1440,
+  ~13.5px on phones), immediately before the numeral inks (.96); the serif's own tracking reduced to
+  `0.2em × --k-travel` (0.19em at the step instead of ~0.40); the mark enters at weight 400 and
+  reaches 500 at the landing (variable axis); the mark's tracking re-derived for width at the step —
+  serif 3.2161 + 6 × 0.2 × 0.95 = 4.3561 of the parent's size, mark (3.7222 + 6 × ls) × 1.045 = 4.3561,
+  ls = **0.0744em** — opening to the lockup's 0.42em by the landing. Measured: no frame, stop, speed,
+  reverse or flick with both faces lit; state 02 identical to before; geometry within 1px.
+- **C31-B (:3002) — tested and rejected.** A late micro-cross-fade over .94 → .96 (mark held at its
+  exchange setting through the window, weight and tracking starting at .96). Measured with real
+  gestures (wheel on desktop, finger drags on phones): it removed A's one-frame switch, but the window
+  sits on the slowest part of the curve and cost ~45px of scroll — more than the baseline's. Slow
+  scroll showed a legible double image for 40ms (1440) and 140–184ms (phones), longer than the
+  baseline; fast reverse 31–51ms; and a natural stop inside it again held both faces (≈ 0.47 / 0.53).
+
+**Decision (design owner, visual comparison of :3000 / :3001 / :3002).** *C31-A is approved; the
+behaviour of :3001 is clearly preferred.* No C31-C, no further smoothing, no cross-fade, no clock.
+
+**Implementation promoted** (`src/app/globals.css`, the survivor's block, four declarations — the
+exact values of :3001):
+
+    .v2-word          --swap: clamp(0, calc((var(--k-travel) - 0.95) * 100000), 1);
+                      --swap-out: clamp(0, calc((var(--k-travel) - 0.95) / 0.05), 1);
+    .v2-word-serif    letter-spacing: calc(0.2em * var(--k-travel));
+    .v2-word-mark     font-weight: calc(400 + 100 * var(--swap-out));
+                      letter-spacing: calc((0.0744 + (0.42 - 0.0744) * var(--swap-out)) * 1em);
+
+The comments beside the old .88 exchange are left in place and marked superseded where the new values
+are declared.
+
+**Final validation (main after promotion).** Comment-stripped `globals.css` identical to :3001; no
+other functional file differs. Typecheck, lint and build pass. At 1440×900, 390×844, 375×812 and
+320×640, :3000 and :3001 compared at 27 settled positions — the exchange (`--k-travel` .85 → .98),
+02 → 03, the thesis' arrival and leaving, and zone 05 — are identical (differences ≤ 0.1px of size or
+tracking and ≤ 1 unit of weight, from stops landing ±0.0005 apart); one natural gesture through
+01 → 02 on main showed **0 frames with both faces lit**.
+
+**Not validated:** iOS Safari and a physical touch device — not reachable from this environment.
+
+## Approved states recorded here for completeness · 30 September – 2 October 2026 · design owner
+
+These were approved and frozen by the design owner and lived only in `docs/development/SESSION-HANDOFF.md`
+(30 September and 1 October), which records the measurements. They are listed here so this register is
+the complete account of what departs from V2 or the earlier build. No decision is reopened.
+
+- **The opening, as approved in the preview (30 September).** *I of III* removed and not replaced by any
+  counter (a departure from §2's state-01 copy); the **quick navigation** WORK · QUESTIONS · CONTACT
+  (`site.nav`) in its place, on the title's axis, arriving on Chapter I's `INTERFACE` beat and leaving
+  with the tagline, pointer-clickable only once `data-opening` is `done`; the **tagline** 1.125× above
+  820px; **One Sun, variant B with the B2 exit** — `.v2-grade` a falloff centred on the footage's own
+  sun, and `.v2-light` one warm light from Chapter II to *A memory.* (strengths 0.06 / 0.12 / 0.07 /
+  0.11; held to 0.38 of 03 → 04, a quarter by 0.48, full by 0.95); the footage plays as the film it is,
+  with no seek, loop or hold. Rejected and not to be retried: crushing the footage's contrast, a forced
+  loop on the sun shot, variants A, B0 and B1. CSS: the block *"The opening, as approved in the
+  preview · 30 September 2026"* in `globals.css`.
+- **The mobile reading grid, phase 1, and the Method's closing group (1 October)** — below 768px / 700px:
+  F `--g-floor`, A `--g-anchor` = F + 7vh, P `--g-foot` = 7vh; About and the Method's main block from A,
+  their secondary groups ending on P; Questions' `--asked-top` bounded by A; the Method's lines 6, 7 and
+  the note hung from P (`--g-close`), with the 3–5px tightness at 320×640 / 375×667 accepted. Questions'
+  B, D-gate, rest height and hysteresis are C27.
+- **The rail between 768 and 900px (added 2 October 2026)** — head and index on one line, chosen by the
+  design owner from a live preview (variant B of three). It changes, in that range only, the 28 September
+  folio-mark composition (all five chapters on fixed lines, the running one set as `NN ·`): on Work the
+  lying-down rail stood `01 Work` directly above `01 ·`. Now the head stays on the left, the index starts
+  one word-gap after it (`column-gap` = the index's own column gap, 28px here), and the running chapter is
+  named only in the head — its line leaves the layout with the `.a11y` pattern, so `aria-current` is still
+  announced. Index logic, order, navigation and `data-hold` are unchanged; below 768 (C24's INDEX page)
+  and above 900 (the column with its `NN ·`) nothing changed. One block in `globals.css`,
+  `@media (min-width: 768px) and (max-width: 900px)`; the validation is in the session handoff.
+
+Not design decisions, recorded for the same reason: three keyboard fixes during the opening (link
+activation cancelled while it runs, the quick menu out of the Tab order, `.publication` `inert` until it
+ends) and a pointer-change fix (the driver re-prices on `matchMedia('(pointer: coarse)')` `change`, as on
+`resize`). Details and measurements are in the session handoff, 2 October 2026.
+
+Known debts of these states, deliberately not acted on: the light's and C9 / C30 / C31's thresholds are
+written in `globals.css` rather than `src/motion/timing.ts` (moving them touches frozen zones); the old
+`.v2-of` / `.v2-ember` rules are inert and still in the sheet.

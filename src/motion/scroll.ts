@@ -296,9 +296,10 @@ export const aperture = (p: number, a: number): number =>
  */
 export const persistTrack: Track = [
   /*
-    **The list's release is a clock now** (`persisting.releases.clock`, played by the driver as
-    `--jgone*`). What the scroll keeps is the guarantee: across the breath (`dusk`) anything of the list
-    still standing is cleared, so however fast the hand, nothing of Questions meets the crossing.
+    **The list's parts start at positions and fade on their own short clocks** (`persistSpans.releases`,
+    played by the driver as `--jgone*` — C26). What the scroll keeps is the guarantee: across the breath
+    (`dusk`) anything of the list still standing is cleared, so however fast the hand, nothing of
+    Questions meets the crossing.
   */
   ['--jclear', (s) => fall(s, persistSpans.dusk)],
 
@@ -307,6 +308,13 @@ export const persistTrack: Track = [
     says the ink crosses *"with the ground, not on its own clock"* — two properties would be two clocks.
   */
   ['--jcross', (s) => rise(s, persistSpans.crosses)],
+
+  /*
+    **Contact's guarantee on the way back** — `--jclear`'s mirror. 1 wherever Contact can be asked for,
+    0 from the frame the plates begin to return, so whatever Contact's own release clock is doing it is
+    never seen over a moving ground. `TIMING.environment.persisting.contactGuard`.
+  */
+  ['--cguard', (s) => rise(s, persistSpans.contactGuard)],
 
   /*
     `--jsize` is gone — 26 September 2026. It was the closing rule's resize into Contact's measure;

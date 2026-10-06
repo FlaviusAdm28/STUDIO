@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chapter One — the sheet · A → B (prototype)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300&family=Schibsted+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+<!--
+  THE SHEET — prototype, A → B only. Throwaway review harness, not part of the Next build.
+
+      node prototypes/server.mjs the-sheet 3040        ?variant=a | b | c
+
+  One question: is the narrative composed as ONE PAGE (head · thesis · occasions) more beautiful and
+  quicker to understand than the queue of scenes?
+
+  The rule under test: WHAT MOVES IS THE HAND'S, WHAT APPEARS IS THE CLOCK'S.
+    scroll  →  the light, the line's recede into the head, the numeral finding the axis, the page's lift
+    clock   →  ink only, in place: One → II, the topic, the thesis' lines, the three occasions
+  No driver, no spine, no spring: every moving value is a pure function of scrollY, so stopping stops
+  it and reversing is the same arithmetic backwards.
+
+  Type, colours and the hero's geometry are transcribed from src/app/globals.css (the V2 state layer);
+  the words are content/site.ts verbatim.
+-->
+<style>
+  :root {
+    --serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+    --sans: 'Schibsted Grotesk', ui-sans-serif, system-ui, 'Segoe UI', Helvetica, sans-serif;
+    --ink: #f2ece0;
+    --curve: cubic-bezier(0.22, 0.61, 0.36, 1);
+    --os-sun-x: calc(50% - 0.065 * max(100vw, 200dvh));
+    --os-sun-y: calc(50% - 0.13 * max(50vw, 100dvh));
+  }
+  * { box-sizing: border-box; }
+  html { background: #060505; }
+  body { margin: 0; color: var(--ink); overflow-x: clip; -webkit-font-smoothing: antialiased; }
+
+  /* The runway: 2.0 viewports of consequence and 0.3 of rest. */
+  .film { position: relative; height: calc(100dvh + 230vh); }
+  .stage { position: sticky; top: 0; height: 100dvh; width: 100%; overflow: hidden; }
+
+  .plate, .grade, .light { position: absolute; inset: 0; }
+  .plate video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .grade { pointer-events: none; }
+  .light {
+    pointer-events: none;
+    background: radial-gradient(ellipse 60% 42% at 68% 29%, rgb(255 190 120 / 0.11), rgb(255 190 120 / 0) 70%);
+  }
+
+  .line, .topic, .rule, .thesis, .stack, .sub, .nav { position: absolute; left: 0; top: 0; margin: 0; }
+
+  /* ── The survivor line: `Chapter One`, then `Chapter II`, then the head's numeral ─────────────── */
+  .line {
+    font-family: var(--serif); font-weight: 300; line-height: 1; white-space: nowrap;
+    color: var(--ink); will-change: transform;
+    opacity: 0; transition: opacity 1.1s var(--curve);
+  }
+  .ready .line { opacity: 1; }
+  .word { display: inline-block; margin-right: 0.24em; }
+  .num { position: relative; display: inline-block; }
+  .num > span { display: inline-block; transition: opacity 0.42s var(--curve); }
+  .two-serif, .two-sans { position: absolute; left: 0; top: 0; opacity: 0; }
+  .two-sans {
+    font-family: var(--sans); font-weight: 400; letter-spacing: 0.42em; text-transform: uppercase;
+    color: #fdfbf4; transition: none !important;
+  }
+  /* The title counts: ink, in place, on a clock. */
+  .counted .one { opacity: 0; }
+  .counted .two-serif { opacity: 1; }
+  /* One frame, no cross-fade — C31-A's step, now on the numeral. */
+  .swapped .two-serif { opacity: 0; transition: none; }
+  .swapped .two-sans { opacity: 1; }
+
+  /* ── The hero's second level ─────────────────────────────────────────────────────────────────── */
+  .sub {
+    font-family: var(--sans); font-size: clamp(0.625rem, calc(10 / 1440 * 100vw), 0.875rem);
+    letter-spacing: 0.34em; text-transform: uppercase; line-height: 1.9;
+    color: rgb(242 236 224 / 0.44);
+    opacity: 0; transition: opacity 0.42s var(--curve);
+  }
+  .nav {
+    display: flex; gap: 2.2em;
+    font-family: var(--sans); font-size: clamp(9px, calc(9.5 / 1440 * 100vw), 13px);
+    letter-spacing: 0.24em; text-transform: uppercase; color: rgb(242 236 224 / 0.6);
+    opacity: 0; transition: opacity 0.42s var(--curve);
+  }
+  .ready .sub, .ready .nav { opacity: 1; transition-duration: 1.4s; transition-delay: 0.5s; }
+  .ready.counted .sub, .ready.counted .nav { opacity: 0; transition-duration: 0.42s; transition-delay: 0s; }
+
+  /* ── The head's other half ───────────────────────────────────────────────────────────────────── */
+  .topic {
+    font-family: var(--sans); font-weight: 400; letter-spacing: 0.44em; line-height: 1; white-space: nowrap;
+    color: #efece2; opacity: 0; transition: opacity 0.5s var(--curve);
+  }
+  .headed .topic { opacity: 1; }
+  .rule {
+    height: 1px; background: rgb(242 236 224 / 0.28); transform-origin: left center;
+    transform: scaleX(0); transition: transform 0.7s var(--curve); display: none;
+  }
+  [data-variant='c'] .rule, [data-variant='e'] .rule, [data-variant='f'] .rule { display: block; }
+  /* D · the numeral is the quieter of the two: a folio over its title. */
+  [data-variant='d'] .two-sans { color: rgb(253 251 244 / 0.62); }
+  /* E · the rule is left behind by the numeral: it is the hand's, so it has no clock. */
+  [data-variant='e'] .rule { background: rgb(242 236 224 / 0.2); transition: none; }
+  /* F · a structure, not a line. */
+  [data-variant='f'] .rule { background: rgb(242 236 224 / 0.15); transition-duration: 0.5s; }
+  .headed .rule { transform: scaleX(1); }
+
+  /* ── The thesis: written where the title stood ───────────────────────────────────────────────── */
+  .thesis {
+    font-family: var(--serif); font-weight: 300; line-height: 1.14; color: #e6e0d2;
+    font-size: clamp(1.5rem, calc(64 / 1440 * 100vw), 5.25rem);
+    width: max-content; text-wrap: pretty; will-change: transform;
+  }
+  .thesis span {
+    display: block; opacity: 0; clip-path: inset(-10% 100% -10% 0);
+    transition: opacity 0.6s var(--curve), clip-path 0.8s var(--curve);
+  }
+  .written .thesis span { opacity: 1; clip-path: inset(-10% -2% -10% 0); }
+  .written .thesis span:nth-child(2) { transition-delay: 0.14s; }
+
+  /* ── The occasions: the same page, continued ─────────────────────────────────────────────────── */
+  .stack { will-change: transform; }
+  .occasion {
+    margin: 0; font-family: var(--serif); font-weight: 300; line-height: 1.24; white-space: nowrap;
+    color: rgb(233 229 220); opacity: 0; transition: opacity 0.5s var(--curve);
+  }
+  .occasion[data-on='1'] { opacity: var(--rank, 1); }
+
+  @media (max-width: 820px) {
+    .thesis { font-size: clamp(1.375rem, 7.4vw, 2.5rem); }
+  }
+
+  /*
+    ── G · H · I — the numeral as the anchor ─────────────────────────────────────────────────────
+    The title never becomes the head. `Chapter One` lets go as one thing; `II` is born already in its
+    final face, on the title's own baseline and axis, and only after the title's ink is gone — so no
+    frame holds two faces of one word, and there is no exchange to see. Then the hand lifts it, a short
+    vertical move, into the head. `Philosophy` is a separate element, set in its final place.
+  */
+  .anchor {
+    position: absolute; left: 0; top: 0; display: none; line-height: 1; white-space: nowrap;
+    font-family: var(--sans); font-weight: 400; letter-spacing: 0.42em; text-transform: uppercase;
+    color: #fdfbf4; opacity: 0; transition: opacity 0.3s var(--curve); will-change: transform;
+  }
+  [data-head='anchor'] .anchor { display: block; }
+  [data-head='anchor'] .counted .anchor { opacity: 1; transition: opacity 0.5s var(--curve) 0.34s; }
+  [data-head='anchor'] .ready .line { transition: opacity 0.55s var(--curve) 0.26s; }
+  [data-head='anchor'] .ready.counted .line { opacity: 0; transition: opacity 0.36s var(--curve); }
+  [data-head='anchor'] .counted .one { opacity: 1; }
+  [data-head='anchor'] .counted .two-serif { opacity: 0; }
+  /* I · the name is written, quietly: a short wipe under the ink. */
+  [data-variant='i'] .topic { clip-path: inset(-30% 100% -30% 0); transition: opacity 0.6s var(--curve), clip-path 0.9s var(--curve); }
+  [data-variant='i'] .headed .topic { clip-path: inset(-30% -6% -30% 0); }
+
+  /*
+    ── J — B, finished ─────────────────────────────────────────────────────────────────────────────
+    The same transformation, in three readable steps: Chapter One → Chapter II (read) → II (filed) →
+    II Philosophy (named). `One` is gone before `II` is set, so the count is two clean states and
+    never a cross-fade; the numeral changes face in one frame at the fastest point of its travel, at a
+    matched cap height and width, instead of at rest.
+  */
+  [data-variant='j'] .counted .one { transition: opacity 0.26s var(--curve); }
+  [data-variant='j'] .counted .two-serif { transition: opacity 0.46s var(--curve) 0.24s; }
+  [data-variant='j'] .one { transition: opacity 0.46s var(--curve) 0.22s; }
+  [data-variant='j'] .two-serif { transition: opacity 0.24s var(--curve); }
+  [data-variant='j'] .swapped .two-serif { transition: none; }
+  /* The mark is a heavier face than the serif it replaces: it enters at less ink and fills in as it lands. */
+  [data-variant='j'] .swapped .two-sans { opacity: var(--mark-ink, 1); }
+  [data-variant='j'] .topic { transition: opacity 0.6s var(--curve); }
+
+  /*
+    ── J2 — J, with the count and the face on separate layers ───────────────────────────────────
+    J's reverse bug: the numeral's two faces each carried the COUNT's ink clock. Forward, the face
+    step is instant because `.swapped` says `transition: none`; backward, the serif returns under
+    `.counted`'s rule, which is the count's 0.46s fade after a 0.24s delay — so for a quarter of a
+    second neither face is inked, and the numeral is gone.
+
+    Here the count's ink lives on a wrapper (`.two`) and the two faces inside it never transition:
+    the count is a clock, the face is a step, in both directions.
+  */
+  [data-j2] .counted .one { transition: opacity 0.26s var(--curve); }
+  [data-j2] .one { transition: opacity 0.46s var(--curve) 0.22s; }
+  [data-j2] .two { position: absolute; left: 0; top: 0; opacity: 0; transition: opacity 0.24s var(--curve); }
+  [data-j2] .counted .two { opacity: 1; transition: opacity 0.46s var(--curve) 0.24s; }
+  [data-j2] .two .two-serif, [data-j2] .two .two-sans { transition: none !important; }
+  [data-j2] .two .two-serif { opacity: 1; visibility: visible; }
+  [data-j2] .swapped .two .two-serif { visibility: hidden; }
+  [data-j2] .two .two-sans { opacity: var(--mark-ink, 1); visibility: hidden; }
+  [data-j2] .swapped .two .two-sans { visibility: visible; }
+  [data-j2] .topic { transition: opacity 0.6s var(--curve); }
+
+  /* Review chrome. Not part of the composition. */
+  .hud {
+    position: fixed; right: 14px; bottom: 12px; z-index: 10; display: flex; gap: 10px; align-items: center;
+    font: 10px/1 var(--sans); letter-spacing: 0.18em; text-transform: uppercase; color: rgb(242 236 224 / 0.38);
+  }
+  .hud a { color: inherit; text-decoration: none; padding: 8px 6px; }
+  .hud a[aria-current] { color: rgb(242 236 224 / 0.95); }
+  .probe { position: absolute; left: -9999px; top: 0; white-space: nowrap; line-height: 1; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .line, .num > span, .sub, .nav, .topic, .rule, .thesis span, .occasion { transition-duration: 0s !important; transition-delay: 0s !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="film">
+  <div class="stage" id="stage">
+    <div class="plate"><video id="footage" muted loop playsinline autoplay></video></div>
+    <div class="grade" id="grade"></div>
+    <div class="light" id="light"></div>
+
+    <p class="sub" id="sub">Digital experiences built for moments worth remembering.</p>
+    <nav class="nav" id="nav" aria-hidden="true"><span>Work</span><span>Questions</span><span>Contact</span></nav>
+
+    <h1 class="line" id="line"><span class="word" id="word">Chapter</span><span class="num" id="num"><span class="one">One</span><span class="two-serif" aria-hidden="true">II</span><span class="two-sans" aria-hidden="true">II</span></span></h1>
+
+    <span class="anchor" id="anchor" aria-hidden="true">II</span>
+    <span class="topic" id="topic">Philosophy</span>
+    <span class="rule" id="rule"></span>
+
+    <p class="thesis" id="thesis"><span>Every unforgettable moment</span><span>deserves an experience.</span></p>
+
+    <div class="stack" id="stack">
+      <p class="occasion" data-occasion="1">A wedding.</p>
+      <p class="occasion" data-occasion="2">An artist.</p>
+      <p class="occasion" data-occasion="3">A memory.</p>
+    </div>
+  </div>
+</div>
+
+<div class="hud" id="hud"></div>
+
+<script>
+(() => {
+  /* ── The choreography, in one place. Positions are viewports of scroll from the top. ──────────── */
+  const CH = {
+    counts: 0.04,            /* `One` → `II`, in place, and the hero's second level lets go            */
+    recede: [0.1, 0.95],     /* the line is filed into the head — scale, lift, and (A) the centring    */
+    wordInk: [0.3, 0.62],    /* `Chapter` thins out as it recedes (fraction of the recede)             */
+    drift: [0.64, 1],        /* the numeral finds the head's axis (fraction of the recede)             */
+    swapAt: 0.95,            /* serif `II` → the mark's `II`, one frame (fraction of the recede)       */
+    writes: 0.6,             /* the thesis is written where the title stood                            */
+    heads: 0.84,             /* `Philosophy` is set beside the numeral                                 */
+    lift: [1.12, 1.9],       /* the page makes room: head and thesis rise together                     */
+    occasions: [1.28, 1.5, 1.72],
+    chain: 350,              /* ms an occasion must have stood before the next may be written          */
+    thesisRests: 0.8,        /* the thesis' ink once the occasions are the newest thing on the page    */
+    ladder: [0.52, 0.72, 1], /* the occasions' ink when all three stand: the last is the survivor      */
+  }
+
+  const variant = (new URLSearchParams(location.search).get('variant') || 'b').toLowerCase()
+  const VARIANTS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'j2a', 'j2b', 'j2c', 'j2b2']
+  const V = VARIANTS.includes(variant) ? variant : 'b'
+  document.documentElement.dataset.variant = V
+  /* G · H · I share one choreography of the numeral and differ only in when the name is set. */
+  const ANCHOR = { g: { names: 0.57 }, h: { names: 0.14 }, i: { names: 0.72 } }[V] || null
+  if (ANCHOR) document.documentElement.dataset.head = 'anchor'
+  /* J · B's own choreography, re-cut. Fractions are of J's recede, as CH's are of B's. */
+  const J = V !== 'j' ? null : {
+    recede: [0.24, 0.9],   /* `Chapter II` stands whole from 0.04 to 0.24 before anything moves           */
+    wordInk: [0.08, 0.44], /* `Chapter` thins out first, and is gone …                                    */
+    drift: [0.5, 1],       /* … before the numeral closes up to the axis, so nothing crosses anything     */
+    swapAt: 0.62,          /* the face changes at speed, not at the landing                               */
+    heads: 0.94,           /* `Philosophy` is set once the numeral has stopped                            */
+    cap: 0.9,              /* the mark's size at the swap, so its cap height is the serif's               */
+    track: 0.05,           /* and its tracking there, so the two strokes do not jump apart                */
+  }
+  /*
+    J2 · the same steps as J, with the numeral's travel re-cut so that what carries it sideways is the
+    line getting smaller — while `Chapter` is still there to explain it — and what it does alone is a lift.
+    Fractions are of the recede.
+  */
+  /*
+    J2B2 · J2B with the end in the order it is read: the numeral stops (0.90), `Philosophy` completes the
+    head (0.92), and only then is the thesis written (0.96) — and never sooner than `chain` ms after the
+    name was set, so a fast hand cannot fire the two together. Nothing else differs from J2B.
+  */
+  const J2 = {
+    j2a: { writes: 0.6 }, j2b: { writes: 0.78 }, j2c: { writes: 0.6, hang: true },
+    j2b2: { writes: 0.96, heads: 0.92, chain: 450 },
+  }[V] || null
+  if (J2) document.documentElement.dataset.j2 = ''
+  const P2 = {
+    recede: [0.24, 0.9],
+    size: [0, 0.6],        /* the line reaches the head's size early, anchored on its own left edge       */
+    rise: [0.18, 1],       /* and lifts over the whole of the rest                                        */
+    wordInk: [0.24, 0.52], /* `Chapter` thins out once the line is small, and is gone …                   */
+    closes: [0.56, 1],     /* … before the numeral closes the last of the gap, during the lift (a · b)    */
+    hangInk: [0.2, 0.44],  /* c: `Chapter` is gone before the slide can carry it to the edge of a phone       */
+    hangs: [0.3, 0.62],    /* c: the line slides left under the shrink instead, so the numeral is on the  */
+                           /*    axis when the shrink ends and what is left is a straight lift            */
+    swapAt: 0.74, heads: 0.94, cap: 0.9, track: 0.05,
+  }
+  const AN = { rises: [0.1, 0.55], born: 1.5 } /* the lift, in viewports; the size it is born at, × the head's */
+
+  const $ = (id) => document.getElementById(id)
+  const stage = $('stage'), line = $('line'), word = $('word'), num = $('num')
+  const topic = $('topic'), rule = $('rule'), thesis = $('thesis'), stack = $('stack')
+  const anchor = $('anchor'), twoSans = document.querySelector('.two-sans'), sub = $('sub'), nav = $('nav'), grade = $('grade'), light = $('light')
+  const occasions = [...stack.querySelectorAll('.occasion')]
+
+  if (J2) {
+    /* The count's ink on a wrapper; the two faces inside it. */
+    const two = document.createElement('span')
+    two.className = 'two'
+    two.setAttribute('aria-hidden', 'true')
+    num.insertBefore(two, num.querySelector('.two-serif'))
+    two.append(num.querySelector('.two-serif'), twoSans)
+  }
+
+  /* Chrome plays this QuickTime container only when handed the bytes without a `type` hint. */
+  const footage = $('footage')
+  footage.src = '/media/hero/video/hero_demo4.mov'
+  footage.play().catch(() => {})
+
+  const hud = $('hud')
+  hud.innerHTML = VARIANTS.map((v) =>
+    `<a href="?variant=${v}"${v === V ? ' aria-current="true"' : ''}>${v}</a>`).join('') + '<span id="pos"></span>'
+  const pos = $('pos')
+
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v))
+  const c01 = (v) => clamp(v, 0, 1)
+  const span = (v, [a, b]) => c01((v - a) / (b - a))
+  const smooth = (t) => t * t * (3 - 2 * t)
+  const lerp = (a, b, t) => a + (b - a) * t
+
+  const probe = (text, css) => {
+    const el = document.createElement('span')
+    el.className = 'probe'
+    el.textContent = text
+    Object.assign(el.style, css)
+    document.body.appendChild(el)
+    const w = el.getBoundingClientRect().width
+    el.remove()
+    return w
+  }
+
+  let G = null
+  const measure = () => {
+    const W = stage.clientWidth, H = stage.clientHeight
+    const rem = 16
+    const axis = clamp(0.20024 * W - 92.34, 0.08 * W, (196 / 1440) * W)
+    const T = clamp(Math.max(0.02407 * W + 33.51, (96 / 1440) * W), 2 * rem, 8 * rem)
+    const L = clamp((16 / 1440) * W, 0.75 * rem, 1.25 * rem)
+    const Lt = (L * 12.5) / 11
+
+    /* The hero, as the project sets it: baseline at 462 / 760. */
+    const heroTop = (462 / 760) * H - 0.76 * T
+    sub.style.transform = `translate(${axis + 0.0469 * T}px, ${(462 / 760) * H + 0.5 * T}px)`
+    sub.style.maxWidth = `${5 * T}px`
+    nav.style.transform = `translate(${axis + 0.0469 * T}px, ${H - Math.max(44, 0.075 * H)}px)`
+
+    /* The page. */
+    /* The right margin gives a little on a phone, so the first line is not broken after two words. */
+    thesis.style.maxWidth = `${W <= 820 ? W - axis - 0.03 * W : (1000 / 1440) * W}px`
+    const thFs = parseFloat(getComputedStyle(thesis).fontSize)
+    const ocFs = thFs * (W <= 820 ? 0.78 : 0.62)
+    occasions.forEach((o) => { o.style.fontSize = `${ocFs}px` })
+    const thW = thesis.offsetWidth, thH = thesis.offsetHeight, ocH = stack.offsetHeight
+    const gapHead = thFs * 0.9 + L
+    const gapOcc = thFs * 0.82
+
+    /* After the first gesture the thesis stands where the title stood … */
+    let top1 = heroTop + (T - thFs) * 0.18
+    top1 = Math.min(top1, H * 0.9 - thH)
+    /* … and after the second the whole page — head, thesis, occasions — is centred as one block. */
+    const total = L + gapHead + thH + gapOcc + ocH
+    const top2 = Math.max(H * 0.1, (H - total) / 2) + L + gapHead
+    const lift = Math.max(0, top1 - top2)
+
+    /* The head. Its numeral is the mark's; the survivor line's `II` lands exactly on it. */
+    const numW = probe('II', { fontFamily: 'var(--sans)', fontSize: `${L}px`, letterSpacing: '0.42em', textTransform: 'uppercase' })
+    topic.style.fontSize = `${Lt}px`
+    const topicW = topic.getBoundingClientRect().width
+    const gap = L * 0.55
+    const wordEm = (probe('Chapter', { fontFamily: 'var(--serif)', fontWeight: 300, fontSize: '100px' }) / 100) + 0.24
+
+    let headX, topicX, ruleX = 0, ruleW = 0, numDy = 0
+    if (V === 'a') {
+      /* A · the lockup's present axis: centred as a group. */
+      headX = (W - (numW + gap + topicW)) / 2
+      topicX = headX + numW + gap
+    } else if (V === 'b' || ANCHOR || J || J2) {
+      /* B · the left axis: numeral on the thesis' own edge. */
+      headX = axis
+      topicX = axis + numW + gap
+    } else if (V === 'd') {
+      /* D · B, set as a folio over its title: the numeral one line above, both on the thesis' edge. */
+      headX = axis
+      topicX = axis
+      numDy = -Lt * 1.9
+    } else if (V === 'f') {
+      /* F · C, contained: a short hairline, and the name close to the numeral's axis. */
+      headX = axis
+      ruleX = axis + numW + gap * 0.5
+      ruleW = L * 2.6
+      topicX = ruleX + ruleW + gap * 1.3
+      rule.style.width = `${ruleW}px`
+    } else {
+      /* C · a running head across the thesis' measure: numeral on the axis, a rule, the name at the far end. */
+      headX = axis
+      const measureW = Math.max(thW, Math.min(W - 2 * axis, numW + topicW + 7 * L))
+      topicX = axis + measureW - topicW + 0.44 * Lt
+      ruleX = axis + numW + gap * 0.6
+      ruleW = Math.max(0, topicX - gap * 1.4 - ruleX)
+      rule.style.width = `${ruleW}px`
+    }
+
+    G = { W, H, axis, T, L, Lt, heroTop, thFs, thH, gapHead, gapOcc, top1, lift, headX, topicX, ruleX, wordEm, numDy, numW, gap }
+  }
+
+  /* ── Ink: triggers by position, drawn by the stylesheet's clocks, symmetric in reverse. ────────── */
+  const since = [0, 0, 0]
+  const on = [false, false, false]
+  let pending = false
+  let headedAt = -1
+  const ink = (s, kr, now) => {
+    stage.classList.toggle('counted', s >= CH.counts)
+    stage.classList.toggle('swapped', !ANCHOR && kr >= (J2 ? P2.swapAt : J ? J.swapAt : CH.swapAt))
+    /* E · the name is set only once the rule the numeral leaves behind is whole. */
+    const headed = J2 ? s >= (J2.heads ?? P2.heads) : J ? s >= J.heads : ANCHOR ? s >= ANCHOR.names : V === 'e' ? kr >= 0.985 : s >= CH.heads
+
+    stage.classList.toggle('headed', headed)
+    if (!headed) headedAt = -1
+    else if (headedAt < 0) headedAt = now
+    /* The thesis waits for the head to be whole where a variant asks it to; it leaves at once. */
+    const wantsThesis = s >= (J2 ? J2.writes : CH.writes)
+    const headWhole = !(J2 && J2.chain) || (headed && now - headedAt >= J2.chain)
+    stage.classList.toggle('written', wantsThesis && headWhole)
+
+    pending = wantsThesis && !headWhole
+    for (let i = 0; i < 3; i += 1) {
+      const wanted = s >= CH.occasions[i]
+      const prior = i === 0 || (on[i - 1] && now - since[i - 1] >= CH.chain)
+      if (wanted && !on[i]) {
+        if (prior) { on[i] = true; since[i] = now } else pending = true
+      } else if (!wanted && on[i]) {
+        on[i] = false
+      }
+    }
+    /* The page's ink is a ladder: the newest line is the brightest thing on it. */
+    const count = on.filter(Boolean).length
+    occasions.forEach((o, i) => {
+      o.dataset.on = on[i] ? '1' : '0'
+      const rank = count === 0 ? 1 : CH.ladder[clamp(2 - (count - 1 - i), 0, 2)]
+      o.style.setProperty('--rank', String(rank))
+    })
+  }
+
+  /* ── Space: every value below is a pure function of scroll. ────────────────────────────────────── */
+  let frame = 0
+  const draw = (now) => {
+    frame = 0
+    if (G === null) return
+    const s = Math.max(0, window.scrollY) / window.innerHeight
+    const kr = span(s, CH.recede)
+    const k1 = smooth(kr)
+    const k2 = smooth(span(s, CH.lift))
+
+    const thesisTop = G.top1 - G.lift * k2
+    const headY = thesisTop - G.gapHead - G.L
+
+    /* The line: one element, filed. Geometric in size so the shrink reads at one rate throughout. */
+    const krl = ANCHOR ? 0 : J2 ? span(s, P2.recede) : J ? span(s, J.recede) : kr, kl = ANCHOR ? 0 : J ? smooth(krl) : k1 /* G · H · I: the title stays where it is */
+    let fs = G.T * Math.pow(G.L / G.T, kl)
+    let x = lerp(G.axis, G.headX, kl)
+    let y = lerp(G.heroTop, headY + G.numDy, kl)
+    let wordInk = 1 - span(krl, J ? J.wordInk : CH.wordInk)
+    let drift = smooth(span(krl, J ? J.drift : CH.drift))
+    if (J2) {
+      fs = G.T * Math.pow(G.L / G.T, smooth(span(krl, P2.size)))
+      y = lerp(G.heroTop, headY, smooth(span(krl, P2.rise)))
+      wordInk = 1 - span(krl, J2.hang ? P2.hangInk : P2.wordInk)
+      if (J2.hang) {
+        x = G.axis - G.wordEm * fs * smooth(span(krl, P2.hangs))
+        drift = 0
+      } else {
+        x = G.axis
+        drift = smooth(span(krl, P2.closes))
+      }
+    }
+    line.style.fontSize = `${fs.toFixed(3)}px`
+    line.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px)`
+    word.style.opacity = wordInk.toFixed(3)
+    const Q = J2 ? P2 : J
+    if (Q) {
+      /*
+        The mark takes over at the serif's cap height, baseline and stroke spacing, and relaxes to the
+        head's own setting by the landing — where it is exactly B's numeral.
+      */
+      const u = span(krl, [Q.swapAt, 1])
+      const f = lerp(Q.cap, 1, u)
+      twoSans.style.fontSize = `${f.toFixed(4)}em`
+      twoSans.style.letterSpacing = `${lerp(Q.track, 0.42, u).toFixed(4)}em`
+      twoSans.style.setProperty('--mark-ink', lerp(0.76, 1, u).toFixed(3))
+      twoSans.style.top = `${((0.8185 / f - 0.8623) * (1 - u)).toFixed(4)}em`
+    }
+    if (ANCHOR) {
+      /* Born on the title's baseline, lifted straight up into the head. Vertical only; 1.5× → 1×. */
+      const ka = smooth(span(s, AN.rises))
+      const af = G.L * Math.pow(AN.born, 1 - ka)
+      const born = G.heroTop + 0.8 * G.T - 0.86 * G.L * AN.born
+      anchor.style.fontSize = `${af.toFixed(3)}px`
+      anchor.style.transform = `translate(${G.axis.toFixed(2)}px, ${lerp(born, headY, ka).toFixed(2)}px)`
+    }
+    num.style.transform = `translateX(${(-G.wordEm * fs * drift).toFixed(2)}px)`
+
+    /* The head's other half hangs from the same line as the numeral. */
+    topic.style.transform = `translate(${G.topicX.toFixed(2)}px, ${(headY + (G.L - G.Lt) * 0.86).toFixed(2)}px)`
+    if (V === 'e') {
+      /* The rule hangs from the numeral's right edge and grows as the numeral travels: scroll, not clock. */
+      const numX = x + G.wordEm * fs * (1 - drift)
+      rule.style.left = `${(numX + G.numW * (fs / G.L) + G.gap * 0.6).toFixed(2)}px`
+      rule.style.top = `${(y + fs * 0.52).toFixed(2)}px`
+      rule.style.transform = `scaleX(${drift.toFixed(4)})`
+    } else {
+      rule.style.left = `${G.ruleX.toFixed(2)}px`
+      rule.style.top = `${(headY + G.L * 0.52).toFixed(2)}px`
+    }
+
+    /* The page. */
+    thesis.style.transform = `translate(${G.axis.toFixed(2)}px, ${thesisTop.toFixed(2)}px)`
+    thesis.style.opacity = lerp(1, CH.thesisRests, k2).toFixed(3)
+    stack.style.transform = `translate(${G.axis.toFixed(2)}px, ${(thesisTop + G.thH + G.gapOcc).toFixed(2)}px)`
+
+    /* The light: the picture goes, the sun's pool narrows and closes, a warm source stays behind. */
+    const out = 0.5 + 0.43 * k1
+    const hole = 0.2 * Math.sin(Math.PI * Math.min(1, kr * 1.15)) * (1 - k1 * 0.6)
+    const r = 50 - 20 * k1
+    grade.style.background =
+      `radial-gradient(circle ${r}vmax at var(--os-sun-x) var(--os-sun-y), ` +
+      `rgb(6 5 5 / ${(out - hole).toFixed(3)}) 0%, rgb(6 5 5 / ${(out - 0.45 * hole).toFixed(3)}) 45%, rgb(6 5 5 / ${out.toFixed(3)}) 100%)`
+    light.style.opacity = (0.55 * k1 + 0.45 * k2).toFixed(3)
+
+    ink(s, krl, now)
+    pos.textContent = s.toFixed(2)
+    if (pending) request()
+  }
+  const request = () => { if (frame === 0) frame = requestAnimationFrame(draw) }
+
+  const relayout = () => { measure(); request() }
+  window.addEventListener('scroll', request, { passive: true })
+  window.addEventListener('resize', relayout)
+  window.addEventListener('keydown', (e) => {
+    if (e.key === '0') location.search = '?variant=j'
+    if (/^[1-9]$/.test(e.key)) location.search = `?variant=${VARIANTS[Number(e.key) - 1]}`
+    if (e.key === 'h') hud.hidden = !hud.hidden
+  })
+
+  const start = () => { relayout(); requestAnimationFrame(() => stage.classList.add('ready')) }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(start)
+  else window.addEventListener('load', start)
+})()
+</script>
+</body>
+</html>

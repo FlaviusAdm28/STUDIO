@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A memory. — estudo visual (quadros parados)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300&family=Schibsted+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+<!--
+  ESTUDO VISUAL — quadros parados, não uma variante funcional. Nada aqui se move nem é conduzido por scroll.
+
+      node prototypes/server.mjs the-sheet 3040   →   /memory-study.html        ?v=desktop | ?v=mobile
+
+  Seis maneiras de `A memory.` passar de palavra da Opening a ponte para o Work, cada uma em seis
+  momentos. Fotografia, fontes, eixo e posições do Work são os reais; as posições da luz e os
+  enquadramentos da câmara são aproximações desenhadas à mão para o estudo.
+-->
+<style>
+  :root { --serif: 'Cormorant Garamond', Georgia, serif; --sans: 'Schibsted Grotesk', system-ui, sans-serif; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0d0c0b; color: #e9e4d8; font: 14px/1.5 var(--sans); -webkit-font-smoothing: antialiased; }
+  header { padding: 28px 32px 8px; max-width: 1100px; }
+  h1 { font: 300 34px/1.1 var(--serif); margin: 0 0 10px; }
+  header p { margin: 0 0 8px; color: #a8a295; max-width: 78ch; }
+  .switch { display: flex; gap: 8px; margin: 14px 0 0; }
+  .switch a { color: #a8a295; text-decoration: none; border: 1px solid #3a3731; padding: 6px 12px; letter-spacing: .14em; text-transform: uppercase; font-size: 10px; }
+  .switch a[aria-current] { color: #0d0c0b; background: #e9e4d8; border-color: #e9e4d8; }
+  section { padding: 26px 32px 30px; border-top: 1px solid #24221e; margin-top: 22px; }
+  h2 { font: 300 26px/1.15 var(--serif); margin: 0 0 4px; }
+  h2 small { font: 400 10px/1 var(--sans); letter-spacing: .2em; text-transform: uppercase; color: #8d877b; margin-right: 12px; }
+  .idea { color: #a8a295; max-width: 86ch; margin: 0 0 16px; }
+  .row { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 8px; }
+  figure { margin: 0; flex: none; }
+  figcaption { margin-top: 8px; font-size: 11.5px; color: #a8a295; line-height: 1.4; }
+  figcaption b { color: #e9e4d8; font-weight: 500; display: block; letter-spacing: .08em; text-transform: uppercase; font-size: 9.5px; margin-bottom: 2px; }
+
+  /* A frame. Everything inside is sized in container units, so one description draws both viewports. */
+  .frame { position: relative; overflow: hidden; background: #060505; container-type: size; }
+  [data-v='mobile'] .frame { width: 206px; aspect-ratio: 390 / 844; }
+  [data-v='mobile'] figure { width: 206px; }
+  [data-v='desktop'] .frame { width: 400px; aspect-ratio: 1440 / 900; }
+  [data-v='desktop'] figure { width: 400px; }
+  .frame > * { position: absolute; }
+  .ph { inset: 0; background: url('/media/projects/venice/venice.png') var(--px, 50%) var(--py, 50%) / cover no-repeat; transform: scale(var(--ps, 1)); transform-origin: var(--px, 50%) var(--py, 50%); filter: brightness(0.6) saturate(0.88); }
+  .lt { inset: 0; pointer-events: none; }
+  .t { margin: 0; white-space: nowrap; line-height: 1; }
+  .serif { font-family: var(--serif); font-weight: 300; }
+  .sans { font-family: var(--sans); font-weight: 400; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<header>
+  <h1>A memory. — de palavra da Opening a ponte para o Work</h1>
+  <p>Estudo visual em quadros parados: seis opções, seis momentos cada. Não é uma variante funcional; nada se move. A fotografia, as fontes, o eixo e as posições do Work são os reais; a posição da luz e os enquadramentos são aproximações para o estudo.</p>
+  <div class="switch" id="switch"></div>
+</header>
+<main id="main"></main>
+
+<script>
+(() => {
+  const V = new URLSearchParams(location.search).get('v') === 'desktop' ? 'desktop' : 'mobile'
+  document.documentElement.dataset.v = V
+  document.getElementById('switch').innerHTML = ['mobile', 'desktop'].map((v) =>
+    `<a href="?v=${v}"${v === V ? ' aria-current="true"' : ''}>${v === 'mobile' ? '390 × 844' : '1440 × 900'}</a>`).join('')
+
+  /* Geometry, in container units (cqw / cqh), measured from the lab at each viewport. */
+  const G = V === 'mobile'
+    ? { axis: 8, head: [36.7, 3.1], thesis: [42.7, 7.4], occ: [53.3, 5.77, 7.15], rail: [8, 4.6, 5.2], eye: [44.8, 2.3], queue: 47.6, headline: [49.6, 5.7], ident: [83.5, 92], center: [46, 10.5], photo: ['76%', '50%'], lamp: [10, 6], couple: [[34, 55], [46, 50]] }
+    : { axis: 13.6, head: [25.8, 1.11], thesis: [35.7, 4.44], occ: [57.8, 2.75, 3.4], rail: [2.6, 31, 1.85], eye: [44, 0.66], queue: 46.4, headline: [48.4, 2.7], ident: [84, 86.3], center: [44, 5.6], photo: ['50%', '50%'], lamp: [37, 4], couple: [[54, 60], [63, 54]] }
+  const cq = (v) => `${v}cqw`
+  const ch = (v) => `${v}cqh`
+
+  const el = (cls, css, text) => { const d = document.createElement('div'); d.className = cls; Object.assign(d.style, css); if (text !== undefined) d.textContent = text; return d }
+  const type = (frame, text, cls, x, y, size, ink, extra = {}) => {
+    if (!ink) return
+    frame.appendChild(el(`t ${cls}`, { left: typeof x === 'number' ? cq(x) : x, top: ch(y), fontSize: cq(size), opacity: ink, color: '#efe9dc', ...extra }, text))
+  }
+
+  const draw = (f) => {
+    const frame = el('frame', {})
+    /* The photograph: exposure, the camera's framing, and — where an option reveals it from a point — a radial development. */
+    if (f.photo) {
+      const { e = 1, scale = 1, from, r } = f.photo
+      const ph = el('ph', { opacity: e })
+      ph.style.setProperty('--px', G.photo[0]); ph.style.setProperty('--py', G.photo[1]); ph.style.setProperty('--ps', scale)
+      if (from) { const m = `radial-gradient(circle at ${from[0]}% ${from[1]}%, #000 0%, rgba(0,0,0,.85) ${r * 0.45}%, transparent ${r}%)`; ph.style.maskImage = m; ph.style.webkitMaskImage = m }
+      frame.appendChild(ph)
+    }
+    if (f.light) {
+      const { at, r = 42, a = 0.12 } = f.light
+      frame.appendChild(el('lt', { background: `radial-gradient(ellipse ${r}% ${r * (V === 'mobile' ? 0.5 : 0.8)}% at ${at[0]}% ${at[1]}%, rgba(255,190,120,${a}), rgba(255,190,120,0) 100%)` }))
+    }
+    /* The page. */
+    const s = f.sheet || {}
+    if (s.head) { type(frame, 'II', 'sans', G.axis, G.head[0], G.head[1], s.head, { letterSpacing: '.42em' }); type(frame, 'Philosophy', 'sans', G.axis + G.head[1] * 2.7, G.head[0], G.head[1] * 1.13, s.head, { letterSpacing: '.44em', textTransform: 'none' }) }
+    if (s.thesis) { type(frame, 'Every unforgettable moment', 'serif', G.axis, G.thesis[0], G.thesis[1], s.thesis * 0.8, { lineHeight: 1.14 }); type(frame, 'deserves an experience.', 'serif', G.axis, G.thesis[0] + (V === 'mobile' ? 3.9 : 8.1), G.thesis[1], s.thesis * 0.8, { lineHeight: 1.14 }) }
+    const step = (G.occ[2] * (V === 'mobile' ? 390 / 844 : 1440 / 900))
+    if (s.o1) type(frame, 'A wedding.', 'serif', G.axis, G.occ[0], G.occ[1], s.o1)
+    if (s.o2) type(frame, 'An artist.', 'serif', G.axis, G.occ[0] + step, G.occ[1], s.o2)
+    /* `A memory.` */
+    if (f.mem && f.mem.ink) {
+      const m = f.mem
+      const slots = {
+        stack: [G.axis, G.occ[0] + step * 2, G.occ[1]],
+        thesis: [G.axis, G.thesis[0], G.thesis[1]],
+        headline: [G.axis, G.headline[0], G.headline[1]],
+        head: [G.axis, G.head[0], G.head[1] * 1.5],
+        center: ['50%', G.center[0], G.center[1]],
+      }
+      const [x, y, size] = m.at ? [m.at[0], m.at[1], m.size ?? G.occ[1]] : slots[m.slot]
+      type(frame, 'A memory.', 'serif', x, y, size, m.ink, { ...(m.slot === 'center' ? { transform: 'translateX(-50%)' } : {}), ...(m.blend ? { mixBlendMode: 'overlay', color: '#fff' } : {}) })
+    }
+    /* The Work, exactly where the lab draws it. */
+    const w = f.work || {}
+    if (w.rail) { type(frame, '01', 'sans', G.rail[0], G.rail[1] + (V === 'mobile' ? 0.7 : -2.4), V === 'mobile' ? 2 : 0.62, w.rail * 0.8, { letterSpacing: '.2em' }); type(frame, 'Work', 'serif', G.rail[0] + (V === 'mobile' ? 5.6 : 0), G.rail[1], G.rail[2], w.rail) }
+    if (w.eye) { type(frame, 'What we actually make', 'sans', G.axis, G.eye[0], G.eye[1], w.eye * 0.75, { letterSpacing: '.24em' }); type(frame, 'Artists    Selected projects', 'sans', G.axis, G.queue, G.eye[1], w.eye * 0.4, { letterSpacing: '.24em', whiteSpace: 'pre' }) }
+    if (w.head) type(frame, 'Wedding experiences', 'serif', G.axis, G.headline[0], G.headline[1], w.head)
+    if (w.ident) { type(frame, 'Raquel & Flávio', 'serif', 'auto', G.ident[0], V === 'mobile' ? 3.6 : 1.15, w.ident, { right: cq(V === 'mobile' ? 8 : 13.6) }); type(frame, '28 · 08 · 2027 — Venice', 'sans', 'auto', G.ident[0] + (V === 'mobile' ? 2.4 : 2.6), V === 'mobile' ? 2 : 0.6, w.ident * 0.7, { right: cq(V === 'mobile' ? 8 : 13.6), letterSpacing: '.2em' }) }
+    return frame
+  }
+
+  /* ── Shared moments ─────────────────────────────────────────────────────────────────────────── */
+  const EMBER = { at: [68, 29], r: 46, a: 0.13 }
+  const PAGE = { sheet: { head: 1, thesis: 1, o1: 0.52, o2: 0.72 }, mem: { slot: 'stack', ink: 1 }, light: EMBER }
+  const WORK = { photo: { e: 1 }, work: { rail: 1, eye: 1, head: 1, ident: 1 } }
+  const memXY = (k) => { const s = V === 'mobile' ? [8, 60] : [13.6, 68]; const c = G.couple[1]; return [s[0] + (c[0] - s[0]) * k, s[1] + (c[1] - s[1]) * k] }
+  const memPos = V === 'mobile' ? [22, G.headline[0] + 2] : [20, G.headline[0] + 2]
+
+  const OPTIONS = [
+    {
+      n: '1', title: 'Uma só luz — a palavra como última coisa iluminada',
+      idea: 'A página solta-se; `A memory.` é promovida ao lugar da tese, no eixo. A luz que sobrou do One Sun desce até ela, pousa, e segue para a luz da própria fotografia, que se revela a partir daí. A palavra fica na sombra e solta-se.',
+      frames: [
+        ['A página', 'Completa; a brasa em cima à direita.', PAGE],
+        ['Promovida', 'O resto solta-se. A palavra ocupa o lugar da tese, ainda na penumbra.', { mem: { slot: 'thesis', ink: 0.55 }, light: { at: [48, 34], r: 40, a: 0.12 } }],
+        ['A luz pousa', 'É a única coisa acesa no ecrã.', { mem: { slot: 'thesis', ink: 1 }, light: { at: [V === 'mobile' ? 34 : 24, G.thesis[0] + 2], r: 34, a: 0.24 } }],
+        ['A luz segue', 'Vai para a luz da fotografia; a imagem revela-se de lá. A palavra fica para trás.', { photo: { e: 0.9, scale: 1.1, from: G.lamp, r: 62 }, mem: { slot: 'thesis', ink: 0.3 }, light: { at: G.lamp, r: 40, a: 0.2 } }],
+        ['01 Work', 'A luz alcança o canto do rail.', { photo: { e: 1, scale: 1.04, from: G.lamp, r: 150 }, work: { rail: 1 }, light: { at: G.lamp, r: 46, a: 0.1 } }],
+        ['Work', '', WORK],
+      ],
+    },
+    {
+      n: '2', title: 'A memória migra para a fotografia',
+      idea: 'A palavra parte do eixo e desloca-se para as duas figuras enquanto a fotografia aparece; perde tinta e passa a fazer parte do grão da imagem, como a hora do hero faz na filmagem.',
+      frames: [
+        ['A página', '', PAGE],
+        ['Só ela', 'A página solta-se; a fotografia começa a ver-se.', { photo: { e: 0.3, scale: 1.12 }, mem: { slot: 'stack', ink: 1 } }],
+        ['A caminho', 'Sai do eixo em direcção às figuras.', { photo: { e: 0.55, scale: 1.1 }, mem: { at: memXY(0.5), ink: 0.9 } }],
+        ['Dentro da imagem', 'Assenta junto delas e funde-se com a fotografia.', { photo: { e: 0.8, scale: 1.07 }, mem: { at: memXY(1), ink: 0.75, blend: true } }],
+        ['01 Work', 'A palavra já não se distingue; o rail escreve-se.', { photo: { e: 1, scale: 1.03 }, work: { rail: 1 } }],
+        ['Work', '', WORK],
+      ],
+    },
+    {
+      n: '3', title: 'A memory. → Wedding experiences',
+      idea: 'A palavra é promovida ao lugar e ao corpo exactos do título do Work. Depois, no mesmo sítio, dá lugar a `Wedding experiences` — duas tintas seguidas, nunca sobrepostas, como `One` deu lugar a `II`.',
+      frames: [
+        ['A página', '', PAGE],
+        ['Só ela', 'A fotografia aparece por trás.', { photo: { e: 0.35, scale: 1.12 }, mem: { slot: 'stack', ink: 1 } }],
+        ['Promovida', 'Sobe para o lugar do título, ao corpo do título.', { photo: { e: 0.7, scale: 1.08 }, mem: { slot: 'headline', ink: 1 } }],
+        ['A troca', 'No mesmo eixo e na mesma linha de base: a memória torna-se o que o studio faz.', { photo: { e: 0.9, scale: 1.05 }, work: { head: 1 } }],
+        ['O resto escreve-se', 'A etiqueta, a fila e o rail completam-na.', { photo: { e: 1, scale: 1.02 }, work: { head: 1, eye: 1, rail: 1 } }],
+        ['Work', '', WORK],
+      ],
+    },
+    {
+      n: '4', title: 'A memory. recupera a presença central',
+      idea: 'A palavra volta ao centro do ecrã, grande, como último elemento forte da Opening. A fotografia nasce por trás dela. Depois reduz-se para o eixo e dá lugar ao Work.',
+      frames: [
+        ['A página', '', PAGE],
+        ['Ao centro', 'A página solta-se; a palavra reaparece grande, ao centro.', { mem: { slot: 'center', ink: 1 }, light: { at: [50, 46], r: 40, a: 0.12 } }],
+        ['A fotografia por trás', 'A imagem abre-se de trás da palavra.', { photo: { e: 0.6, scale: 1.12, from: [50, 48], r: 70 }, mem: { slot: 'center', ink: 1 } }],
+        ['Reduz-se', 'Volta ao eixo, ao lugar do título, a perder tinta.', { photo: { e: 0.85, scale: 1.07 }, mem: { slot: 'headline', ink: 0.55 } }],
+        ['01 Work', 'A palavra solta-se; o título começa a escrever-se.', { photo: { e: 1, scale: 1.03 }, work: { rail: 1, head: 0.5 } }],
+        ['Work', '', WORK],
+      ],
+    },
+    {
+      n: '5', title: 'A memory. como último capítulo',
+      idea: 'A palavra fica sozinha sobre a fotografia durante um instante. Depois é arquivada como `Chapter II` foi: sobe pelo eixo até ao lugar da cabeça, pequena, e solta-se. No espaço que deixou escreve-se o Work.',
+      frames: [
+        ['A página', '', PAGE],
+        ['Só ela', 'A fotografia já se vê.', { photo: { e: 0.5, scale: 1.12 }, mem: { slot: 'stack', ink: 1 } }],
+        ['Um instante', 'Sozinha, com a fotografia quase inteira.', { photo: { e: 0.8, scale: 1.08 }, mem: { slot: 'stack', ink: 1 } }],
+        ['Arquivada', 'Sobe pelo eixo e encolhe para o lugar da cabeça.', { photo: { e: 0.92, scale: 1.05 }, mem: { slot: 'head', ink: 0.8 } }],
+        ['A página vira', 'Solta-se lá em cima; o rail e o título escrevem-se.', { photo: { e: 1, scale: 1.03 }, work: { rail: 1, head: 0.6 } }],
+        ['Work', '', WORK],
+      ],
+    },
+    {
+      n: '6', title: 'Uma só luz + A memory. — a fotografia revela-se a partir da palavra',
+      idea: 'A luz desce pelo eixo e a página apaga-se à sua passagem, de cima para baixo. `A memory.` é a última coisa acesa; é promovida ao lugar do título e a luz pousa nela. A palavra solta-se para dentro da luz, e é desse ponto que a fotografia se revela. A mesma luz sobe depois até ao rail, e o título escreve-se onde a palavra esteve.',
+      frames: [
+        ['A página', 'A brasa em cima à direita.', PAGE],
+        ['A luz desce', 'A cabeça e a tese ficam na sombra; a luz está sobre as ocasiões.', { sheet: { head: 0.14, thesis: 0.26, o1: 0.2, o2: 0.5 }, mem: { slot: 'stack', ink: 1 }, light: { at: [V === 'mobile' ? 30 : 22, G.occ[0] + 4], r: 36, a: 0.17 } }],
+        ['A última acesa', 'O resto soltou-se. A palavra sobe para o lugar do título e a luz pousa nela.', { mem: { slot: 'headline', ink: 1 }, light: { at: memPos, r: 30, a: 0.27 } }],
+        ['Solta-se na luz', 'A palavra perde tinta; a fotografia começa a ver-se exactamente ali.', { photo: { e: 0.9, scale: 1.1, from: memPos, r: 48 }, mem: { slot: 'headline', ink: 0.4 }, light: { at: memPos, r: 34, a: 0.14 } }],
+        ['A luz sobe', 'A revelação alarga; a luz chega ao rail e o título escreve-se onde a palavra esteve.', { photo: { e: 1, scale: 1.05, from: memPos, r: 105 }, work: { rail: 1, head: 0.5 }, light: { at: [G.rail[0] + 8, G.rail[1] + 2], r: 30, a: 0.12 } }],
+        ['Work', '', WORK],
+      ],
+    },
+  ]
+
+  const main = document.getElementById('main')
+  for (const o of OPTIONS) {
+    const sec = document.createElement('section')
+    sec.innerHTML = `<h2><small>Opção ${o.n}</small>${o.title}</h2><p class="idea">${o.idea.replace(/`([^`]+)`/g, '<i>$1</i>')}</p>`
+    const row = el('row', {})
+    o.frames.forEach(([name, note, f], i) => {
+      const fig = document.createElement('figure')
+      fig.appendChild(draw(f))
+      const cap = document.createElement('figcaption')
+      cap.innerHTML = `<b>${i + 1} · ${name}</b>${note}`
+      fig.appendChild(cap)
+      row.appendChild(fig)
+    })
+    sec.appendChild(row)
+    main.appendChild(sec)
+  }
+})()
+</script>
+</body>
+</html>

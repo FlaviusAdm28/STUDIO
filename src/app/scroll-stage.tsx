@@ -37,6 +37,10 @@ import {
   track,
   type JunctionSpan,
 } from '@/motion'
+/* MODEL B PROTOTYPE — sandbox only. See `src/motion/modelb.ts`. */
+import { pace as modelBPace } from '@/motion/modelb'
+/* THE SHEET · J2B — integration lab. See `src/motion/sheet.ts`. */
+import { bridgeOn, buildPrice, nextOn, sheetOn } from '@/motion/sheet'
 
 /**
  * The shot, timed in scroll rather than seconds.
@@ -133,6 +137,15 @@ export default function ScrollStage() {
       one way this can visibly break.
     */
     let perBeat = 1
+    /* MODEL B — the lab's switches, the lift in beats of `p`, and where the paced position has got to. */
+    let modelB = { warp: false, pace: false }
+    let lift = 0
+    let sheetPrice: ReturnType<typeof buildPrice> | null = null
+    let pShown = 0
+    let pLagging = false
+    let pStamp = 0
+    /* MODEL B — the spring snapped this frame (a track click, Home/End, a restored position). */
+    let jumped = false
     let perActBeat = 1
     let perMethodBeat = 1
     const price = () => {
@@ -143,6 +156,19 @@ export default function ScrollStage() {
       perActBeat = (Number.isFinite(actPin) ? actPin / 100 : ACT_BEATS) / ACT_BEATS
       const methodPin = read('--method-pin')
       perMethodBeat = (Number.isFinite(methodPin) ? methodPin / 100 : METHOD_BEATS) / METHOD_BEATS
+      /*
+        MODEL B — the runway is physically shorter by `cut` beats of the current price, and every
+        position measured from layout is lifted by the same amount (`lift`), so everything from the
+        photograph on stands exactly where it stood on `p`.
+      */
+      /* THE SHEET — states 01 → 05 are re-priced to the page's own distances; no floor, nothing paced. */
+      sheetPrice = sheetOn() ? buildPrice(perBeat) : null
+      modelB = { warp: sheetPrice !== null, pace: false }
+      lift = sheetPrice !== null ? sheetPrice.cut : 0
+      root.style.setProperty('--b-cut', `${(lift * perBeat * 100).toFixed(3)}vh`)
+      root.dataset.sheet = sheetPrice !== null ? 'on' : 'off'
+      root.dataset.bridge = sheetPrice !== null && bridgeOn() ? 'on' : 'off'
+      root.dataset.next = sheetPrice !== null && nextOn() ? 'on' : 'off'
     }
     price()
 
@@ -611,6 +637,7 @@ export default function ScrollStage() {
       */
       if (Math.abs(d0) > input.snapAbove) {
         settle()
+        jumped = true
         return false
       }
       const dt = Math.min(0.05, Math.max(0.001, (now - last) / 1000))
@@ -791,6 +818,7 @@ export default function ScrollStage() {
         origin = null
         held = y
         anchor(y)
+        if (sheetPrice !== null) window.__sheet?.(0, 0, clock)
       } else {
         if (origin === null) {
           origin = held
@@ -809,8 +837,27 @@ export default function ScrollStage() {
           origin = y
           anchor(y, true)
         }
-        s = Math.max(0, y - origin) / window.innerHeight / perBeat
+        const distance = Math.max(0, y - origin) / window.innerHeight / perBeat
+        const wanted = sheetPrice !== null ? sheetPrice.warp(distance) : distance
+        /* The page is driven by the hand's own distance, in viewports; the film by `p`. */
+        if (sheetPrice !== null) window.__sheet?.(distance * perBeat, wanted, clock)
+        /*
+          MODEL B — the floor under the occasions. Only on an eased frame that the hand caused: a press,
+          a resize, a restored page and reduced motion all get the exact position, as they always did.
+        */
+        const eased = typeof stamp === 'number' && !calm.matches && !navigated && !jumped
+        if (modelB.pace && eased) {
+          const dt = pStamp === 0 ? 0.016 : Math.min(0.05, Math.max(0.001, (stamp - pStamp) / 1000))
+          pShown = modelBPace(pShown, wanted, dt, pLagging)
+          pLagging = Math.abs(pShown - wanted) > 1e-6
+        } else {
+          pShown = wanted
+          pLagging = false
+        }
+        pStamp = typeof stamp === 'number' ? stamp : 0
+        s = pShown
       }
+      jumped = false
 
       /*
         ── One continuous narrative position ────────────────────────────────────────────────────────
@@ -834,9 +881,9 @@ export default function ScrollStage() {
       */
       const p = s
       const vhNow = window.innerHeight
-      const actAt = origin === null ? Number.POSITIVE_INFINITY : (actTop - origin) / vhNow / perBeat
+      const actAt = origin === null ? Number.POSITIVE_INFINITY : (actTop - origin) / vhNow / perBeat + lift
       const methodAt =
-        origin === null ? Number.POSITIVE_INFINITY : (methodTop - origin) / vhNow / perBeat
+        origin === null ? Number.POSITIVE_INFINITY : (methodTop - origin) / vhNow / perBeat + lift
 
       /* The act's view of `p`. Clamped at zero: before its offset the segment simply has not begun. */
       const a = Math.max(0, (p - actAt) * (perBeat / perActBeat))
@@ -1462,7 +1509,7 @@ export default function ScrollStage() {
        */
       const flow = new Map<number, number>()
       if (origin !== null) {
-        for (const [id, top] of flowTops) flow.set(id, (top - origin) / vhNow / perBeat)
+        for (const [id, top] of flowTops) flow.set(id, (top - origin) / vhNow / perBeat + lift)
       }
 
       const placed = narrativePositions({
@@ -1559,7 +1606,7 @@ export default function ScrollStage() {
         */
         assertReachable(
           placed,
-          (document.documentElement.scrollHeight - vhNow - origin) / vhNow / perBeat,
+          (document.documentElement.scrollHeight - vhNow - origin) / vhNow / perBeat + lift,
         )
         assertJunctions(junctionsOnP, boundaries)
         assertSegments(placed, boundaries, [
@@ -2211,9 +2258,9 @@ export default function ScrollStage() {
         still force an exact frame rather than easing to one.
       */
       /* A press is spent once the page has arrived where it sent it — the spring carries a short one. */
-      if (!flying) navigated = false
+      if (!flying && !pLagging) navigated = false
 
-      if ((flying || playing) && frame === 0) frame = window.requestAnimationFrame(read)
+      if ((flying || playing || pLagging) && frame === 0) frame = window.requestAnimationFrame(read)
     }
 
     const onScroll = () => {

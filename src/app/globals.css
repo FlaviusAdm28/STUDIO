@@ -1095,7 +1095,8 @@ html {
   position: relative;
   /* Above the environment, which is the one thing on the page that stands behind all three acts. */
   z-index: 1;
-  height: calc(100dvh + var(--pin) + var(--origin, 0px));
+  /* MODEL B PROTOTYPE — the film is shorter by what the re-pricing saved (`--b-cut`, written by the driver). */
+  height: calc(100dvh + var(--pin) - var(--b-cut, 0vh) + var(--origin, 0px));
   pointer-events: none;
 }
 
@@ -8583,6 +8584,19 @@ a.write-line:focus-visible {
   transition: none;
 }
 
+/*
+  Lab, `?sheet=next`: a word re-entering ahead of words that are standing (`work-experiences.tsx`,
+  the Opening's hand-over). Placed while it is not drawn, so only its ink arrives — it never travels.
+
+  And its ink waits for the row to have made room: the word that stood there is moving aside over
+  `--fade-queue-move`, and measured at 390 it has cleared the place by half of that. So the arrival
+  is the second half of the row's own move — no number of its own — and the two finish together.
+  Without the wait the two words shared the place at part ink for ~150ms.
+*/
+.v2-queue-word[data-enters] {
+  transition: opacity calc(var(--fade-queue-move) / 2) var(--curve) calc(var(--fade-queue-move) / 2);
+}
+
 .v2-queue-base {
   opacity: 0.28;
   transition: opacity var(--fade-nav-hover) var(--curve);
@@ -10897,4 +10911,508 @@ a.v2-ident-open:focus-visible {
       var(--g-anchor)
     );
   }
+}
+
+
+/*
+  ════════════════════════════════════════════════════════════════════════════════════════════════════
+  THE SHEET · J2B — INTEGRATION LAB · SANDBOX ONLY
+  ════════════════════════════════════════════════════════════════════════════════════════════════════
+  `src/motion/sheet.ts` and `src/app/sheet.tsx`. Everything here is scoped to `[data-sheet='on']`, which
+  the driver writes; with `?sheet=off`, or without scripting, the project's own Opening stands.
+
+  The film's type for states 01 → 05 stays mounted and is not drawn: the driver still measures and
+  plays onto it, and nothing of its choreography is edited.
+*/
+.sh {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: none;
+}
+
+:root[data-sheet='on'] .sh {
+  display: block;
+}
+
+:root[data-sheet='on'] .v2 .v2-title,
+:root[data-sheet='on'] .v2 .v2-word,
+:root[data-sheet='on'] .v2 .v2-numeral,
+:root[data-sheet='on'] .v2 .v2-topic,
+:root[data-sheet='on'] .v2 .v2-thesis,
+:root[data-sheet='on'] .v2 .v2-stack {
+  visibility: hidden;
+}
+
+/* The hero's second level lets go with `One`, on the count's clock, and comes back after it. */
+:root[data-sheet='on'][data-opening='done'] .v2 .v2-leaves,
+:root[data-sheet='on'][data-opening='done'] .v2 .v2-time span {
+  opacity: 1;
+  transition: opacity 0.46s var(--curve) 0.22s;
+}
+
+:root[data-sheet='on'][data-opening='done'][data-sheet-counted] .v2 .v2-leaves,
+:root[data-sheet='on'][data-opening='done'][data-sheet-counted] .v2 .v2-time span {
+  opacity: 0;
+  transition: opacity 0.26s var(--curve);
+}
+
+.sh-early,
+.sh-line,
+.sh-topic,
+.sh-thesis,
+.sh-stack {
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: 0;
+}
+
+/* The page lets go as one thing; `A memory.` is the last to. Ink, so a clock. */
+.sh-early {
+  transition: opacity 0.5s var(--curve);
+}
+
+.sh-stack .sh-early {
+  position: static;
+}
+
+.sh[data-leaving] .sh-early {
+  opacity: 0;
+}
+
+.sh-survivor {
+  transition: opacity 0.6s var(--curve);
+}
+
+.sh[data-gone] .sh-occasion.sh-survivor {
+  opacity: 0;
+}
+
+/* ── The survivor line: `Chapter One`, `Chapter II`, then the head's numeral ───────────────────── */
+.sh-line {
+  font-family: var(--v2-serif);
+  font-weight: 300;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--v2-ink);
+  will-change: transform;
+  /* The opening's own arrival, on its own clock — exactly what `.v2-word` carries. */
+  opacity: var(--v2-arrived);
+  transition: opacity calc(var(--fade-chapter-one) * var(--haste, 1)) var(--curve);
+}
+
+.sh-word {
+  display: inline-block;
+  margin-right: 0.24em;
+}
+
+.sh-num {
+  position: relative;
+  display: inline-block;
+}
+
+.sh-one {
+  display: inline-block;
+  transition: opacity 0.46s var(--curve) 0.22s;
+}
+
+.sh[data-counted] .sh-one {
+  opacity: 0;
+  transition: opacity 0.26s var(--curve);
+}
+
+/* The count's ink lives on the wrapper; the two faces inside it never transition. */
+.sh-two {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  transition: opacity 0.24s var(--curve);
+}
+
+.sh[data-counted] .sh-two {
+  opacity: 1;
+  transition: opacity 0.46s var(--curve) 0.24s;
+}
+
+.sh-two-serif,
+.sh-two-sans {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: inline-block;
+  transition: none;
+}
+
+.sh-two-sans {
+  font-family: var(--v2-sans);
+  font-weight: 400;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: #fdfbf4;
+  opacity: var(--sh-mark-ink, 1);
+  visibility: hidden;
+}
+
+.sh[data-swapped] .sh-two-serif {
+  visibility: hidden;
+}
+
+.sh[data-swapped] .sh-two-sans {
+  visibility: visible;
+}
+
+/* ── The head's other half ─────────────────────────────────────────────────────────────────────── */
+.sh-topic {
+  font-family: var(--v2-sans);
+  font-weight: 400;
+  letter-spacing: 0.44em;
+  line-height: 1;
+  white-space: nowrap;
+  color: #efece2;
+  opacity: 0;
+  transition: opacity 0.6s var(--curve);
+}
+
+.sh[data-headed] .sh-topic {
+  opacity: 1;
+}
+
+/* ── The thesis: written where the title stood ─────────────────────────────────────────────────── */
+.sh-thesis {
+  font-family: var(--v2-serif);
+  font-weight: 300;
+  line-height: 1.14;
+  color: #e6e0d2;
+  font-size: clamp(1.5rem, calc(64 / 1440 * 100vw), 5.25rem);
+  width: max-content;
+  text-wrap: pretty;
+  will-change: transform;
+}
+
+.sh-thesis span {
+  display: block;
+  opacity: 0;
+  clip-path: inset(-10% 100% -10% 0);
+  transition:
+    opacity 0.6s var(--curve),
+    clip-path 0.8s var(--curve);
+}
+
+.sh[data-written] .sh-thesis span {
+  opacity: 1;
+  clip-path: inset(-10% -2% -10% 0);
+}
+
+.sh[data-written] .sh-thesis span:nth-child(2) {
+  transition-delay: 0.14s;
+}
+
+@media (max-width: 820px) {
+  .sh-thesis {
+    font-size: clamp(1.375rem, 7.4vw, 2.5rem);
+  }
+}
+
+/* ── The occasions: the same page, continued ───────────────────────────────────────────────────── */
+.sh-stack {
+  will-change: transform;
+}
+
+.sh-occasion {
+  margin: 0;
+  font-family: var(--v2-serif);
+  font-weight: 300;
+  line-height: 1.24;
+  white-space: nowrap;
+  color: rgb(233 229 220);
+  opacity: 0;
+  transition: opacity 0.5s var(--curve);
+}
+
+.sh-occasion[data-on='1'] {
+  opacity: var(--sh-rank, 1);
+}
+
+.sh-probe {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sh *,
+  :root[data-sheet='on'] .v2 .v2-leaves {
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+  }
+}
+
+/*
+  ── MEMORY3 · `A memory.` gives its place to the Work's title — `?sheet=memory3` ────────────────────
+  `A memory.` is carried (by scroll, inline) into the title's slot and cedes it on a clock: out, then
+  in, as `One` gave its place to `II`. The stand-in is the page's; the real title rises under it.
+*/
+.sh-standin {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  opacity: 0;
+  display: none;
+  transition: opacity 0.24s var(--curve);
+}
+
+.sh[data-memory3] .sh-standin {
+  display: block;
+}
+
+.sh[data-memory3] .sh-survivor {
+  will-change: transform;
+  /* It returns once the title's ink is really gone — the driver of that is `sheet.tsx`, not a delay here. */
+  transition: opacity 0.46s var(--curve) 0.06s;
+}
+
+.sh[data-memory3][data-ceded] .sh-occasion.sh-survivor {
+  opacity: 0;
+  transition: opacity 0.26s var(--curve);
+}
+
+.sh[data-memory3][data-titled] .sh-standin {
+  opacity: 1;
+  /* In as the word finishes going out: in sequence, never together, and no empty slot between. */
+  transition: opacity 0.46s var(--curve) 0.2s;
+}
+
+/* The real title is whole here; the stand-in is dropped, and returns, with nothing to see. */
+.sh[data-memory3][data-handed] .sh-standin,
+.sh[data-memory3][data-rotated] .sh-standin {
+  visibility: hidden;
+}
+
+/*
+  ── NEXT · the film continues, the light changes — `?sheet=next` ─────────────────────────────────────
+  Measured in this lab: the footage never stops playing and its plate stays whole (`--env-hero` 1)
+  through states 01 → 05. What removes it is four blacks stacked over it from `II Philosophy` on —
+  the One Sun grade (to .99), the flat scrim (to 1), `.v2-dark` (to .94) and the environment's ground
+  (to 1) — whose product is under half a per cent of the picture.
+
+  Nothing is added here. The same four layers are eased so that their product bottoms out near a tenth
+  of the picture instead of at nothing: the frame still darkens on the same curve and in the same
+  order, the sun's pool still narrows and closes, the ember still stands — and the film goes on
+  underneath.
+
+  **And the same veil is what opens onto the photograph** (second iteration). It used to lift on
+  `--v2-handover`, early in junction 05 and on its own; here it lifts on `--sh-open`, which
+  `sheet.tsx` writes from `A memory.`'s own travel. The word moves, and the picture is born under it.
+*/
+@property --sh-wipe {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
+
+:root[data-next='on'] {
+  /* How dark the One Sun grade is allowed to get. It was 0.99. */
+  --os-out: calc(0.5 + 0.15 * var(--jp1) + 0.2 * var(--jp2) + 0.03 * var(--jp3));
+}
+
+:root[data-next='on'] .v2-grade {
+  opacity: calc(1 - var(--sh-open, var(--v2-handover)));
+}
+
+:root[data-next='on'] .v2-scrim-flat {
+  opacity: calc(
+    0.5 * var(--jp1) * (1 - 0.25 * var(--os-in) * (1 - var(--jp3))) * (1 - var(--sh-open, var(--v2-handover)))
+  );
+}
+
+:root[data-next='on'] .v2-dark {
+  opacity: calc(0.3 * var(--jp3) * (1 - var(--sh-open, var(--v2-handover))));
+}
+
+/* The ground was the frame's answer to "no plate". The plate is kept, so there is nothing to stand in for. */
+:root[data-next='on'] .env-ground {
+  /* Only through the Opening (junctions 01 → 05); any later ground is untouched. */
+  opacity: calc(var(--env-ground-at) * clamp(0, calc(var(--junction, 0) - 5), 1));
+}
+
+/*
+  **The Work's title, a step larger** — the one structural change to the Work this lab is allowed.
+  38 → 46 on the reference frame and 22 → 26 on a phone: the size the occasions' own first line was
+  drawn at (46 / 1440), so the line `A memory.` grows into is a size the Opening already used.
+*/
+:root[data-next='on'] .v2-make-slot {
+  font-size: clamp(1.625rem, calc(46 / 1440 * 100vw), 3.625rem);
+}
+
+/*
+  While the page owns the line, the Work's own rendering of it is not drawn anywhere. Keyed on who is
+  drawing the line (`data-sheet-line`), not on who owns the arrival (`data-sheet-title`): on the way
+  back the Opening owns the arrival a moment before it takes the line, while the Work returns to its
+  first category by its own exchange.
+*/
+:root[data-next='on']:not([data-sheet-line='work']) .v2-make-slot {
+  visibility: hidden;
+}
+
+/*
+  **The rewriting.** One edge, `--sh-wipe`, crosses the slot on a clock. Behind it the new line, ahead
+  of it the old one; the two masks are complements, so every point of the line carries exactly one ink.
+*/
+.sh[data-next] {
+  --sh-wipe: calc(-1 * (var(--sh-feather, 8px) + var(--sh-clear, 30px)));
+  transition: --sh-wipe 1s cubic-bezier(0.4, 0, 0.3, 1);
+}
+
+.sh[data-next][data-titled] {
+  --sh-wipe: calc(var(--sh-wipe-end, 300px) + var(--sh-feather, 8px) + var(--sh-clear, 30px) + var(--sh-lag, 0px));
+}
+
+/*
+  The Work's own exchange value, 1 at rest. The page takes the line back inside the Work's dip, so it
+  has to come up with the rest of the Work's type rather than stand at full ink in a dimmed frame.
+  Its own rule, and with memory3's attribute in the selector: `.sh[data-memory3][data-titled]
+  .sh-standin` sets `opacity: 1` at a higher specificity than `.sh[data-next] .sh-standin`, and won —
+  seen in Chrome, the line stood at full ink at the floor of the dip.
+*/
+.sh[data-next][data-memory3][data-within] .sh-standin,
+.sh[data-next][data-memory3][data-within][data-titled] .sh-standin {
+  /* `data-within`: junction 07 has begun, so the Work's frame — and its dip — is on screen. */
+  opacity: var(--work-swap, 1);
+  transition: none;
+}
+
+/* Before the Work is in the frame the line is simply the page's, at full ink, whatever the Work is doing. */
+.sh[data-next][data-memory3][data-titled] .sh-standin {
+  opacity: 1;
+  transition: none;
+}
+
+.sh[data-next] .sh-standin {
+  opacity: 1;
+  transition: none;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    #000 calc(var(--sh-wipe) - var(--sh-lag, 0px) - var(--sh-feather, 12px)),
+    transparent calc(var(--sh-wipe) - var(--sh-lag, 0px) + var(--sh-feather, 12px))
+  );
+  mask-image: linear-gradient(
+    90deg,
+    #000 calc(var(--sh-wipe) - var(--sh-lag, 0px) - var(--sh-feather, 12px)),
+    transparent calc(var(--sh-wipe) - var(--sh-lag, 0px) + var(--sh-feather, 12px))
+  );
+}
+
+.sh[data-next] .sh-survivor {
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent calc(var(--sh-wipe) - var(--sh-feather, 12px)),
+    #000 calc(var(--sh-wipe) + var(--sh-feather, 12px))
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent calc(var(--sh-wipe) - var(--sh-feather, 12px)),
+    #000 calc(var(--sh-wipe) + var(--sh-feather, 12px))
+  );
+}
+
+/*
+  **The cut `g`.** Seen at 2× during the rewriting: the tail of the `g` (and of `p`, and of the `y` in
+  `A memory.`) was sliced flat, and came back when the Work's own title took over. The cause is the
+  mask, not the letters: a mask paints inside the element's border box and nothing outside it, and
+  these two lines are set at the title's leading, 1.06 — a box 48.8px tall at 46px, when Cormorant's
+  ink runs from 0.92em above the baseline to 0.29em below it. The descender simply lay outside the
+  box that was being masked.
+
+  So the box is made to contain the ink: block padding on both lines, taken back out of the layout by
+  an equal negative margin, so nothing moves and the mask has the whole letter to work on.
+*/
+.sh[data-next] .sh-standin {
+  padding-block: 0.34em;
+  margin-top: -0.34em;
+}
+
+.sh[data-next] .sh-occasion.sh-survivor {
+  padding-block: 0.34em;
+  margin-block: -0.34em;
+}
+
+/*
+  **The photograph leads sideways with the word** (`--sh-lead`, written on the plate by `sheet.tsx`).
+  The camera's own pan is untouched; the lead is the start of that same travel and is absorbed by it.
+*/
+:root[data-next='on'] .env-plate-venice {
+  transform: translate(
+      calc(-1 * var(--env-pan-throw) * (var(--sh-lead, 0) + (1 - var(--sh-lead, 0)) * var(--env-pan)))
+    )
+    scale(var(--cam-scale, 1));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sh[data-next] {
+    transition-duration: 0s;
+  }
+}
+
+/*
+  ── NEXT · the page is a finished composition on the FILM — the photograph waits for the word ────────
+  The environment crosses hero → venice across the whole of junction 05, which with the veil eased put
+  the Work's photograph behind `II Philosophy`, the thesis and the occasions: watched at rest on that
+  page, the Venice lamp bracket was already in the frame and the film was half gone. The Work was shown
+  before the narrative reached it.
+
+  So the two plates change hands on `--sh-open` — `A memory.`'s own travel — instead: until the word
+  begins to rise, the film is whole and the photograph is not there at all; as it rises, one dissolves
+  into the other under the same veil that is lifting. No black, no cut. Everywhere else both rules
+  reduce to the environment's own values (`--sh-open` is 1 after the carry).
+*/
+:root[data-next='on'] .env-plate-hero {
+  opacity: max(var(--env-hero), calc(1 - var(--sh-open, 1)));
+}
+
+:root[data-next='on'] .env-plate-venice {
+  opacity: calc(var(--env-venice) * var(--sh-open, 1));
+}
+
+/*
+  ── NEXT · Chapter One → Chapter II, as one turn ────────────────────────────────────────────────────
+  Watched: on a first small scroll, `One` was gone, the line read `Chapter` alone for a third of a
+  second, and then `II` arrived — a trigger and a replacement. Three small things, no added distance:
+  `One` starts to give way under the hand from the first pixel (`--sh-onset`); the numeral begins
+  while `One` is still leaving, so the line is never left without its second word; and the two share
+  one short movement — `One` settles down out of the line as `II` settles down into it, the way a
+  counter turns. `Chapter II` then stands exactly as long as it did.
+*/
+.sh[data-next] .sh-one {
+  color: color-mix(in srgb, var(--v2-ink) calc(var(--sh-onset, 1) * 100%), transparent);
+  transition:
+    opacity 0.46s var(--curve) 0.2s,
+    transform 0.6s var(--curve) 0.1s;
+}
+
+.sh[data-next][data-counted] .sh-one {
+  opacity: 0;
+  transform: translateY(0.07em);
+  transition:
+    opacity 0.34s var(--curve),
+    transform 0.5s var(--curve);
+}
+
+.sh[data-next] .sh-two {
+  transform: translateY(-0.07em);
+  transition:
+    opacity 0.26s var(--curve),
+    transform 0.4s var(--curve);
+}
+
+.sh[data-next][data-counted] .sh-two {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.5s var(--curve) 0.14s,
+    transform 0.7s var(--curve) 0.08s;
 }

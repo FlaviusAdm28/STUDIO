@@ -1,5 +1,6 @@
 import { site } from '@content'
 import WorkExperiences from './work-experiences'
+import Sheet from './sheet'
 
 /**
  * **The V2 state layer — states 01 to 09.**
@@ -293,6 +294,9 @@ export default function States() {
 
         Driven by `--v2-dip`, which the driver publishes from `story.ts` §10 `atmosphere.dip`.
       */}
+      {/* THE SHEET · J2B — integration lab. States 01 → 05 as one page; the type above stays mounted and unseen. */}
+      <Sheet />
+
       <div className="v2-dip" />
     </div>
   )

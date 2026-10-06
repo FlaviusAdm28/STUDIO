@@ -79,6 +79,17 @@ export default function WorkExperiences() {
   const [shown, setShown] = useState(0)
   const [swapping, setSwapping] = useState(false)
   const [live, setLive] = useState(false)
+  /*
+    Lab, `?sheet=next` only. **What is selected and what is presented are two things.** `at` is the
+    carousel's own state — the category the queue has reached — and nothing here ever changes it. While
+    the Opening still owns the arrival (`data-sheet-title='page'`), the section *presents* its first
+    category: the photograph the film ends on, that work's caption and that work's queue, because that is
+    the composition `A memory.` is carried into. When the Opening hands over, the section goes to the
+    category it really holds by its own exchange — the dip — exactly as if the queue had promoted it; and
+    when the Opening takes the arrival back, it returns to the first by the same exchange.
+  */
+  const [owned, setOwned] = useState(false)
+  const target = owned ? 0 : at
   const [widths, setWidths] = useState<number[]>([])
 
   const queue = useRef<HTMLDivElement>(null)
@@ -140,10 +151,19 @@ export default function WorkExperiences() {
   */
   useEffect(() => {
     const root = document.documentElement
-    const read = () => setLive(root.dataset.work === 'on')
+    /*
+      Lab, `?sheet=next` only (`data-sheet-title` is written by nothing else): while the Opening still
+      owns the headline's line the section is not yet the Work's, so the queue does not count and its
+      words are not pressable. The clock starts at the hand-over, from zero, at its own 8 seconds.
+    */
+    const read = () => {
+      const page = root.dataset.sheetTitle === 'page'
+      setOwned(page)
+      setLive(root.dataset.work === 'on' && !page)
+    }
     read()
     const mo = new MutationObserver(read)
-    mo.observe(root, { attributes: true, attributeFilter: ['data-work'] })
+    mo.observe(root, { attributes: true, attributeFilter: ['data-work', 'data-sheet-title'] })
     return () => mo.disconnect()
   }, [])
 
@@ -228,19 +248,34 @@ export default function WorkExperiences() {
     Guarded by the previous value rather than a mounted flag, so a development double-invocation of the
     effect cannot run an exchange on mount.
   */
-  const previous = useRef(at)
   useEffect(() => {
-    if (previous.current === at) return
-    previous.current = at
+    clock.current.at = at
+  }, [at])
+
+  /*
+    Keyed on what is to be *presented* (`target`), which is `at` everywhere but in the lab's
+    `?sheet=next`, where the Opening's arrival presents the first category. An exchange the queue did
+    not start — the hand-over, either way — is marked exactly as `promote` marks its own, so the clock
+    waits for it and the word that becomes the headline leaves the row full.
+  */
+  const previous = useRef(target)
+  useEffect(() => {
+    if (previous.current === target) return
+    previous.current = target
     const k = TIMING.work.carousel
     const root = document.documentElement
     const c = clock.current
-    c.at = at
+    c.leaving = target
+    c.pressed = -1
+    c.next = -1
+    c.elapsed = 0
+    c.swapping = true
+    paint()
     setSwapping(true)
     root.dataset.swapping = '1'
     const timers = [
-      window.setTimeout(() => setRow(at), k.out),
-      window.setTimeout(() => setShown(at), k.out + k.exchange.at),
+      window.setTimeout(() => setRow(target), k.out),
+      window.setTimeout(() => setShown(target), k.out + k.exchange.at),
       window.setTimeout(() => {
         setSwapping(false)
         root.dataset.swapping = '0'
@@ -252,7 +287,7 @@ export default function WorkExperiences() {
       }, k.out + k.gap + k.in),
     ]
     return () => timers.forEach((t) => window.clearTimeout(t))
-  }, [at])
+  }, [target])
 
   /*
     ── The row's measure ────────────────────────────────────────────────────────────────────────────
@@ -285,15 +320,38 @@ export default function WorkExperiences() {
   useLayoutEffect(() => {
     const el = queue.current
     if (!el || widths.length !== count) return
-    const gap = parseFloat(getComputedStyle(el).fontSize) * 1.6
-    const jumped = placed.current !== row ? row : -1
+    const from = placed.current
+    const jumped = from !== row ? row : -1
+    /*
+      Lab, `?sheet=next` only. **A step the queue did not take is not a promotion.** The Opening's
+      hand-over moves the row by something other than one place forward — back to the first category,
+      or straight to the one the carousel holds — and then the category that was showing does not
+      re-enter at the tail: it re-enters ahead of words that are standing. Sliding it there from the
+      tail carried it through them. Measured on 6 October 2026 at 390 and 1440: `Artists` crossed
+      `Weddings` (0 → 2) and `Selected Projects` (1 → 0), two words legible on top of each other for
+      150–210ms and up to 57px. So on those steps it is placed where it re-enters while it is still
+      not drawn, and only its ink arrives. The queue's own step, one place forward, is untouched.
+    */
+    const enters =
+      jumped >= 0 && row !== wrap(from + 1) && document.documentElement.dataset.next === 'on' ? from : -1
     placed.current = row
+    /*
+      Marked before anything here reads a style. The word's ink is already on its way in this commit,
+      and the first style read starts that arrival on whatever rule matches then: measured in Chrome,
+      with the mark set after the row's font size had been read, the arrival ran on the row's own
+      timing and the two words shared the place at part ink for ~150ms.
+    */
+    const entering = enters >= 0 ? words.current[enters] : null
+    entering?.setAttribute('data-enters', '')
+    const gap = parseFloat(getComputedStyle(el).fontSize) * 1.6
     let x = 0
     for (let k = 1; k <= count; k++) {
       const i = wrap(row + k)
       const word = words.current[i]
       if (!word) continue
       if (i === jumped) word.dataset.instant = ''
+      /* Never left over from an arrival that did not finish: the row's own rules apply unless set above. */
+      if (jumped >= 0 && i !== enters) delete word.dataset.enters
       word.style.setProperty('--x', `${x}px`)
       if (i !== row) x += widths[i] + gap
     }
@@ -310,6 +368,21 @@ export default function WorkExperiences() {
       if (word) {
         void word.offsetWidth
         delete word.dataset.instant
+      }
+      /*
+        Kept until its ink has arrived, not dropped at once like `data-instant`: the wait is part of
+        the arrival and the rule is the only place it is stated. Dropped when the arrival ends or is
+        cancelled, so the word is back on the row's rules before anything else can happen to it.
+      */
+      if (entering) {
+        const arrived = (e: TransitionEvent) => {
+          if (e.target !== entering || e.propertyName !== 'opacity') return
+          delete entering.dataset.enters
+          entering.removeEventListener('transitionend', arrived)
+          entering.removeEventListener('transitioncancel', arrived)
+        }
+        entering.addEventListener('transitionend', arrived)
+        entering.addEventListener('transitioncancel', arrived)
       }
     }
   }, [row, widths])
@@ -365,7 +438,7 @@ export default function WorkExperiences() {
         >
           {categories.map((c, i) => {
             const state =
-              i === row ? 'active' : i === at ? 'leaving' : !swapping && i === wrap(at + 1) ? 'next' : 'waiting'
+              i === row ? 'active' : i === target ? 'leaving' : !swapping && i === wrap(target + 1) ? 'next' : 'waiting'
             const reachable = live && (state === 'next' || state === 'waiting')
             return (
               <button

@@ -58,6 +58,14 @@ is `Input.dispatchTouchEvent` (`synthesizeScrollGesture` does not scroll under m
 controller is a background job with a 2h limit — restart it with the maximum timeout; isolated workers
 use their own profile, CDP/API ports and output folder (`run-*.sh`).
 
+**PERFORMANCE BASELINE.** A auditoria de performance realizada em produção (4 de Outubro de 2026) está
+arquivada em `docs/development/AUDIT-2026-10-SCROLL-PERFORMANCE.md`. Nenhuma das suas recomendações foi
+implementada.
+
+**SCROLL JOURNEY AUDIT.** A auditoria da distribuição do scroll (quantos gestos a jornada exige, mapa por
+segmento, mobile vs desktop, três estratégias e uma recomendação) está arquivada em
+`docs/development/AUDIT-2026-10-SCROLL-JOURNEY.md`. É só diagnóstico: nada foi implementado.
+
 ---
 
 *The sections below are the detailed record — the 1 October session and the 2 October additions — kept

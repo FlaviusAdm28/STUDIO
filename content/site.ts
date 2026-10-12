@@ -369,9 +369,14 @@ export const site = {
      * `rate` is §11.1's third permitted channel and it is **1 everywhere**. C5's preflight P2 closed it:
      * no state-specific value is authored by the design, and state 13's near-still is reached by the
      * approved crop and grade rather than by slowing playback.
+     *
+     * **The delivery encode, 12 October 2026.** `hero_demo4_6mbps.mov` is `hero_demo4.mov` re-encoded and
+     * nothing else: the same 2880 × 1440, the same 363 frames at 30fps, the same 12.12s, the same
+     * container. 6Mb/s where the master is 20.4 — 9.1MB against 30.8 — at 51.8dB PSNR, approved by eye
+     * by the design owner. The master stays beside it and is what any future encode starts from.
      */
     hero: {
-      src: '/media/hero/video/hero_demo4.mov',
+      src: '/media/hero/video/hero_demo4_6mbps.mov',
       rate: 1,
     },
 

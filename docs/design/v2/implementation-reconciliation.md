@@ -3797,3 +3797,53 @@ ends) and a pointer-change fix (the driver re-prices on `matchMedia('(pointer: c
 Known debts of these states, deliberately not acted on: the light's and C9 / C30 / C31's thresholds are
 written in `globals.css` rather than `src/motion/timing.ts` (moving them touches frozen zones); the old
 `.v2-of` / `.v2-ember` rules are inert and still in the sheet.
+
+---
+## C33 · `--haste` rests once the opening is over · **12 October 2026** · design owner decision
+
+**Decided after measurement on the phone.** From `data-opening="done"` on, the sequencer publishes the
+resting value of `--haste` (`base.current`) and never changes it again. During the opening nothing
+changes: the clock, the rate, the proportion the multiplier exists to hold.
+
+Why: the write landed on `:root` before the driver's first read of `scrollY` in the same frame, so every
+frame of a scroll paid for a second recalculation of the whole document. Measured on a Mi 11 Lite
+(Chrome 155), gesture window only, three passes against three interleaved controls: 21–45% more frames
+and 25–50% less style work per frame in all seven zones.
+
+One consequence, accepted: the earlier build left the hero's durations at 0.645× for the rest of the
+session once a visitor had touched or scrolled during the opening (`urged` is never reset). They are the
+resting durations again. One line in `src/app/opening.tsx`.
+
+---
+## C34 · Questions: written by the time the hand is through · **12 October 2026** · design owner decision · **PROVISIONALLY ACCEPTED**
+
+**A floor under the section's clocks, not a change to them.** Between its lock and its first release,
+each part of the list is at least as written as the hand's progress through that window
+(`TIMING.questions.written`, the variant called *G1 late*; no timed hold). The stylesheet takes the
+larger of clock and floor, under `--jclear`.
+
+Why: the anchor and the rows are clocks fired by a position, and the passage to Contact releases them by
+position. Measured on the phone the two are 1,040px apart and the anchor needs 1.7s: at an ordinary
+1,200px/s the question peaked at 73% of its ink and three rows of six were written; at 3,000px/s the
+question never passed 17%. The same on tablet and desktop. With the floor the question reaches full ink
+in every gesture measured, in both directions.
+
+It is a pure function of the driver's own position (never `scrollY`, which runs ahead of the spring and
+wrote the list over a Method that had not left). No trigger, clock, release or phase is changed, and the
+1 October read-through with its gate (C27) answers the clock alone, as before: measured identical at
+320 × 640 and 375 × 667.
+
+Chosen over the earlier ranges (*G1 early*) because those brought the slow gesture's writing forward by
+half a second; these leave it within 25ms. Known and accepted: on a slow hand coming *back* from Contact
+the list returns about 0.7s sooner than it did. The owner asked for no further timing or animation
+changes in this zone. `timing.ts`, `scroll-stage.tsx`, `globals.css`, and an assertion in `timeline.ts`.
+
+---
+## C35 · The Questions list no longer swallows the wheel · **12 October 2026** · defect, confirmed by the design owner
+
+`.asked` is a scroll container (`overflow-y: auto`) so that an open answer taller than the frame can be
+read; it also carried `overscroll-behavior: contain`. With nothing to scroll inside it, Chrome 154 kept
+the wheel there and the page did not move while the pointer was over a question — measured at 0px at
+1280 × 720, 1440 × 900 and 1920 × 1080, and confirmed by hand. The declaration is removed. The valve is
+unchanged: an overflowing list scrolls first and the next gesture reaches the page. Phones were never
+affected (the list is `overflow: visible` there).

@@ -102,9 +102,11 @@ export default function Environment() {
         different width mid-session is exactly the swap that voids the contract. So the element declares
         one file and keeps it.
 
-        The cost is real and is not hidden: these are 1.8MB and 2.3MB PNGs served as authored, where the
-        optimiser would have made them a tenth of that. Pre-encoding the production plates is delivery
-        work and belongs with visual QA — it changes the bytes, never the number of sources.
+        The cost was real and was not hidden: 1.8MB and 2.3MB PNGs served as authored. **Pre-encoded,
+        12 October 2026** — the bytes changed, the number of sources did not. Each plate is one WebP at
+        the PNG's own 1536 × 1024 (`content/site.ts`), q92, and q96 for the two studio frames, which have
+        to agree wherever the room is the same. The three a first visit fetches went from 5.97MB to
+        0.63MB. The PNGs stay beside them as the masters.
       */}
       {/*
         The studio — the ground for states 10–12, and the photograph that used to be an inset inside

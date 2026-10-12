@@ -99,7 +99,7 @@ export const projects = {
      * the canal"*, so **the frame travels right across the plate and the plate translates left**. Panning
      * the other way walks into more water and more gondolas and the mechanism inverts.
      */
-    plate: '/media/projects/venice/venice.png',
+    plate: '/media/projects/venice/venice.webp',
 
     /**
      * **How this plate reads behind the rail** — three measurements, written down.
@@ -185,7 +185,7 @@ export const projects = {
     title: 'Art Experience',
 
     /** `public/media/projects/artist/art.png`, supplied 7 September 2026. */
-    plate: '/media/projects/artist/art.png',
+    plate: '/media/projects/artist/art.webp',
 
     /**
      * **How this plate reads behind the rail** — three measurements, written down.
@@ -244,7 +244,7 @@ export const projects = {
     title: 'Selected Projects',
 
     /** `public/media/projects/selected/selected.png`, supplied 16 September 2026. */
-    plate: '/media/projects/selected/selected.png',
+    plate: '/media/projects/selected/selected.webp',
 
     /**
      * **How this plate reads behind the rail** — three measurements, written down.
@@ -405,7 +405,7 @@ export const site = {
      * content, and the page below it says everything that is said.
      */
     studio: {
-      src: '/media/studio/image19aug26.png',
+      src: '/media/studio/image19aug26.webp',
       width: 1536,
       height: 1024,
       alt: '',
@@ -421,7 +421,7 @@ export const site = {
      * cut. Identical dimensions for the same reason.
      */
     method: {
-      src: '/media/studio/method.png',
+      src: '/media/studio/method.webp',
       width: 1536,
       height: 1024,
       alt: '',

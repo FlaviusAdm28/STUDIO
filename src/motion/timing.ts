@@ -2800,14 +2800,6 @@ export const TIMING = {
       /** Listening → rest when the hand leaves. Soft, never a reset. */
       closes: 1.9,
       /**
-       * **The frame the world comes to rest on**, seconds of the hero file — fourth review, 26 September
-       * 2026: *"escolhe um frame… visualmente forte — preferencialmente um momento em que a figura esteja
-       * bem composta contra o sol."* Chosen in Chrome at 1920 × 889 against 5.3, 6.2, 7.2 and 8.3: at 4.4
-       * she is in profile beside the sun, hair lifted, the silhouette whole and clean, and the dress
-       * nowhere near the question. The later poses fold in on themselves or flare toward the type.
-       */
-      holdAt: 4.4,
-      /**
        * **The slowest the footage runs before it stops**, as a playback rate — and then it stops.
        *
        * Second pass, 26 September 2026: *"O comportamento atual de 1.0 → 0.07 não funciona… parece que
@@ -2816,10 +2808,31 @@ export const TIMING = {
        * as a fault rather than as time slowing. So the rate falls 1 → 0.3 on the curve and the footage
        * is paused there, on a whole frame: NORMAL → slowing → slow → STILL. Leaving plays it at 0.3 and
        * brings it back up the same curve.
+       *
+       * **13 October 2026 — the footage slows all the way to its stop, and there is no chosen frame.**
+       * Design owner: *"o próprio vídeo deve começar a abrandar progressivamente… quando o hover está
+       * completamente concluído, o vídeo deve estar totalmente pausado no fotograma em que chegou."* The
+       * parked frame (`holdAt`, 4.4s) and the dissolve into it are gone. 0.0625 is not a taste: it is
+       * the lowest rate a browser accepts (Chrome refuses anything under it), so it is as close to
+       * stopped as a playing video gets, and the pause that follows it is not seen as a step.
        */
-      slowest: 0.3,
-      /** How far into the gesture (on `--listen`) the rate reaches `slowest`; the rest runs slow. */
-      slowAt: 0.8,
+      slowest: 0.0625,
+      /**
+       * **The shape of the slowing**: the rate is `1 − k^slows`, `k` being the gesture's own linear
+       * progress — the number `--listen` is the eased form of. 2, chosen by eye by the design owner on
+       * 13 October 2026 against three others, because of what a 30fps file does at low rates: every
+       * frame stands for `1 / (30 × rate)` seconds, so time spent below about 0.3 is seen as stepping.
+       * Measured over the last quarter of the gesture, in Chrome:
+       *
+       *   `1 − --listen` (the first build)   2 frames, 0.37–0.40s apart, 0.7–0.8s spent below 0.3
+       *   `1 − k²`                           5–6 frames, 76 → 215ms apart and widening, 0.3s below 0.3
+       *   straight down to 0.3, then paused  6–7 frames, 77–111ms apart — even, but stopped from 9fps
+       *   straight down to 0.2, then paused  5 frames, the last 0.2s apart
+       *
+       * `--listen` eases out, so a rate drawn from it lingers where the footage steps; the square
+       * slows gently at first and crosses the low rates quickly, and still arrives at a stop.
+       */
+      slows: 2,
       /**
        * Updates to the rate are made in steps of this, not every frame. Each change re-times Chrome's
        * media clock; forty a second is enough on its own to make the footage hitch.

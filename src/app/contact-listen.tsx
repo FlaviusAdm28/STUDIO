@@ -18,7 +18,9 @@ import { TIMING, smoothstep } from '@/motion'
  *   - the scene drawing in, very slightly: a little less light, a little more definition —
  *     `globals.css`, on `.env-hero`
  *   - the contacts under it gaining presence — `globals.css`
- *   - **the footage losing speed, then stopping** — here, because a playback rate is not a style
+ *   - **the footage losing speed until it has stopped** — here, because a playback rate is not a
+ *     style. It is the footage itself, stopped on whatever frame the slowing reached: there is no chosen
+ *     frame and no second copy of the film (design owner, 13 October 2026)
  *
  * It is written on the root because the footage is the Environment's element and not a descendant of
  * the publication. Leaving Contact — the driver writes `data-contact="off"` — lets it go, and the world
@@ -50,21 +52,7 @@ export default function ContactListen({
     const root = document.documentElement
     const publication = button.closest<HTMLElement>('.publication')
     const calm = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const { opens, closes, slowest, slowAt, rateStep, holdAt } = TIMING.contact.listens
-
-    /*
-      **The chosen frame, parked.** The still copy of the footage is taken to `holdAt` once and never
-      played; `globals.css` dissolves the live footage into it over the second half of the gesture, so
-      whatever the loop was showing when the hand arrived, the world comes to rest on the same image.
-    */
-    const still = document.querySelector<HTMLVideoElement>('.env-hero-still')
-    const park = () => {
-      if (still !== null && Math.abs(still.currentTime - holdAt) > 0.01) still.currentTime = holdAt
-    }
-    if (still !== null) {
-      if (still.readyState >= 1) park()
-      else still.addEventListener('loadedmetadata', park, { once: true })
-    }
+    const { opens, closes, slowest, slows, rateStep } = TIMING.contact.listens
 
     /** How far the listening has gone, linear in time; `--listen` is this eased. */
     let k = 0
@@ -85,16 +73,18 @@ export default function ContactListen({
       if (state === null) root.removeAttribute('data-listen')
       else if (root.dataset.listen !== state) root.dataset.listen = state
       /*
-        **The world losing speed, then coming to rest on the chosen frame.** NORMAL → slowing → slow →
-        HOLD: the rate falls 1 → `slowest` on the gesture's own curve, reaching it at `slowAt`, while the
-        chosen frame (`holdAt`) dissolves in over it; when the gesture completes the live footage is
-        paused underneath, and what stands is the frame that was chosen, not the one the cursor
-        happened to stop on. Leaving dissolves back into the live footage as it gathers speed. The rate
-        moves in `rateStep`s, because every change re-times the media clock. At rest it is exactly 1.
+        **The world losing speed until it has stopped** — 13 October 2026. The rate is a function of
+        this gesture's own progress and of nothing else — `k`, the very number `--listen` was eased
+        from one line above — so the footage cannot be ahead of or behind what the sentence, the line
+        and the light are doing: there is no second clock to drift. It falls 1 → `slowest` on
+        `1 − k^slows` (`timing.ts` has why that shape), and when the gesture completes the footage is
+        paused on the frame it reached. Leaving plays it from that frame and takes the rate back up the
+        same curve, so nothing is sought and nothing jumps. The rate moves in `rateStep`s, because every
+        change re-times the media clock. At rest it is exactly 1.
       */
       const video = film()
       if (video !== null) {
-        const fall = Math.min(1, e / slowAt)
+        const fall = k ** slows
         const rate =
           k === 0 ? 1 : Math.max(slowest, Math.round((1 - (1 - slowest) * fall) / rateStep) * rateStep)
         if (Math.abs(video.playbackRate - rate) > 0.001) video.playbackRate = rate

@@ -74,21 +74,12 @@ export default function Environment() {
           tabIndex={-1}
         />
         {/*
-          **The frame Contact's listening comes to rest on** — design owner, 26 September 2026: *"a
-          pausa deve parecer uma escolha cinematográfica, não uma consequência técnica do cursor."* The
-          same file, never played: `contact-listen.tsx` parks it on `TIMING.contact.listens.holdAt`, and
-          the live footage dissolves into it as it slows — the loop's own grammar of one shot dissolving
-          into the next. Same plate, same framing, so the two are one picture when they meet.
+          **There is no second copy of the footage** — design owner, 13 October 2026: *"Não quero que o
+          efeito dependa de uma imagem estática da silhueta. Quero que o fundo seja o próprio vídeo, cuja
+          reprodução desacelera até parar."* Contact's listening used to dissolve into a parked frame of
+          the same file; now the element above is the only one, and `contact-listen.tsx` slows it to a
+          stop where it is. One element is also one download.
         */}
-        <video
-          className="env-hero-still"
-          src={hero.src}
-          muted
-          playsInline
-          preload="auto"
-          aria-hidden="true"
-          tabIndex={-1}
-        />
       </div>
 
       {/*

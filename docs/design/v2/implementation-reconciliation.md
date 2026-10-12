@@ -3847,3 +3847,28 @@ the wheel there and the page did not move while the pointer was over a question 
 1280 × 720, 1440 × 900 and 1920 × 1080, and confirmed by hand. The declaration is removed. The valve is
 unchanged: an overflowing list scrolls first and the next gesture reaches the page. Phones were never
 affected (the list is `overflow: visible` there).
+
+---
+
+## C36 · Contact's listening is the footage itself slowing to a stop · **13 October 2026** · design owner decision
+
+*"Não quero que o efeito dependa de uma imagem estática da silhueta. Quero que o fundo seja o próprio
+vídeo, cuja reprodução desacelera até parar… o vídeo deve parar naturalmente no ponto atingido pela
+desaceleração."* This supersedes the fourth review of 26 September 2026, which chose a frame (4.4s) and
+dissolved the slowed footage into a parked second copy of the file.
+
+There is one `<video>` now. Under a pointer or a keyboard focus on *Tell us where it begins* its rate
+falls from 1 on `1 − k²` — `k` being the gesture's own linear progress, the number `--listen` is eased
+from, so the footage has no clock of its own — to the lowest rate a browser accepts, and it is paused
+when the gesture completes, on the frame it reached. Leaving plays it from that frame, back up the same
+curve. The gesture is still 2.8s in and 1.9s out; the sentence, the line, the light and the contacts are
+untouched.
+
+The curve was chosen by eye by the design owner against `1 − --listen` and against stopping at 0.3 and
+at 0.2: a 30fps file steps below about a third of its speed, and the square crosses those rates in 0.3s
+where `1 − --listen` spent 0.7–0.8s there (`TIMING.contact.listens.slows`).
+
+One element is also one download: a first visit transfers the file once (9.14MB, one request) where two
+elements had transferred 9.5–15.9MB. The late-loading of the second copy that was built and approved
+for that on 12 October (*approach D*) is not in the build — there is no second copy left to load.
+`contact-listen.tsx`, `environment.tsx`, `globals.css`, `timing.ts`.

@@ -25,6 +25,14 @@ export default function Home() {
   return (
     <main>
       {/*
+        **The page's one `h1`, and it is drawn nowhere.** The title a visitor sees is in the film, and
+        the film is `aria-hidden` (`states.tsx`) — its words are read from the document, at reading
+        size. So the document had no heading of its own. `.a11y` is the project's screen-reader-only
+        pattern, the same one Contact's label uses: nothing is added to the frame.
+      */}
+      <h1 className="a11y">{site.title}</h1>
+
+      {/*
         Without scripting there is no scroll to time the shot with, so the shot is laid out flat
         instead: the hero composed as it ends, then the marker, then the statement, in that
         order. Not the shot with its parts removed — the same things, told down the page.

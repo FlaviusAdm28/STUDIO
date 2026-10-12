@@ -29,9 +29,32 @@ const schibsted = Schibsted_Grotesk({
   variable: '--font-schibsted',
 })
 
+/*
+  Where the page lives, for the absolute URLs a share card needs. Vercel says which deployment this is;
+  nothing here names a domain, because none has been decided (`open-decisions.md` §1). The icons and the
+  share image are files beside this one (`favicon.ico`, `icon.png`, `apple-icon.png`,
+  `opengraph-image.jpg`), which is how the framework finds them.
+*/
+const host = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL
+
 export const metadata: Metadata = {
+  metadataBase: new URL(host ? `https://${host}` : 'http://localhost:3000'),
   title: site.title,
   description: site.sentence,
+  alternates: { canonical: '/' },
+  openGraph: {
+    type: 'website',
+    url: '/',
+    siteName: site.title,
+    title: site.title,
+    description: site.sentence,
+    locale: 'en',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: site.title,
+    description: site.sentence,
+  },
 }
 
 export const viewport: Viewport = {

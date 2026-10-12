@@ -224,8 +224,15 @@ export default function Opening() {
         CSS divides every Chapter I duration by this, so the fades keep their proportion to the gaps
         between them at any rate. A transition already running is unaffected by a change here — which
         is what we want: each beat fades at the rate that was current when it began.
+
+        **Only while the opening runs.** From `done` on the published value is the resting one and never
+        changes again: there is no sequence left to hold in proportion, and this write was not free. It
+        lands on `:root` before the driver's first read of `scrollY` in the same frame, so every frame
+        of a scroll paid for a second recalculation of the whole document — measured on the Mi 11 Lite,
+        12 October 2026, 27–51% of the style cost of a gesture in all seven zones. The clock and
+        `rate` are untouched; only what CSS is told stops following the hand.
       */
-      const haste = (1 / rate.current).toFixed(3)
+      const haste = (1 / (root.dataset.opening === 'done' ? base.current : rate.current)).toFixed(3)
       if (haste !== published) {
         published = haste
         root.style.setProperty('--haste', haste)

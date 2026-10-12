@@ -1110,7 +1110,12 @@ const price = (table: readonly Price[] | undefined): Priced | null => {
  * them gets its own rhythm, and nothing here has to be told about it.
  */
 export const prices: ReadonlyMap<number, Priced> = new Map(
-  ([[5, pricing.five]] as ReadonlyArray<readonly [number, readonly Price[]]>)
+  (
+    [
+      [5, pricing.five],
+      [9, pricing.nine],
+    ] as ReadonlyArray<readonly [number, readonly Price[]]>
+  )
     .map(([from, table]) => [from, price(table)] as const)
     .filter((entry): entry is readonly [number, Priced] => entry[1] !== null),
 )
@@ -1950,6 +1955,39 @@ if (process.env.NODE_ENV !== 'production') {
       `questions.anchor.enters is ${askAnchor.enters} past a lock at ${askAnchor.afterLock}, and the ` +
         `rows fire at ${askFaq.afterLock}. It has to be positive and close at or before the rows.`,
     )
+  }
+
+  /*
+    **The guarantee is a floor inside the window, in the section's own order** — `questions.written`,
+    lab, 12 October 2026. Each range is a fraction of the distance from the lock to the first release. A
+    range that ends past 1 would still be writing a part the passage has begun to take; one out of order
+    would let a fast hand read the answer before its question, or a row before the anchor.
+  */
+  {
+    const w = TIMING.questions.written
+    const lastRow = r(w.rows.from + (askFaq.rows - 1) * w.rows.step + w.rows.over)
+    const ranges: ReadonlyArray<readonly [string, number, number]> = [
+      ['question', w.question.from, w.question.to],
+      ['answer', w.answer.from, w.answer.to],
+      ['rows', r(w.rows.from - w.ruleLeads), lastRow],
+    ]
+    const ordered =
+      w.question.from <= w.answer.from && w.answer.from <= w.rows.from && w.question.to <= w.answer.to
+    if (
+      ranges.some(([, from, to]) => from < 0 || to > 1 || !(to > from)) ||
+      !ordered ||
+      !(w.rows.step >= 0) ||
+      !(w.rows.over > 0) ||
+      !(w.exit > 0)
+    ) {
+      complain(
+        'The Questions guarantee does not finish inside its own window, or not in the order the section is read.',
+        `questions.written is question ${w.question.from}–${w.question.to}, answer ${w.answer.from}–` +
+          `${w.answer.to}, rows ${r(w.rows.from - w.ruleLeads)}–${lastRow} and exit ${w.exit}. Every range has ` +
+          `to sit within 0–1 of the lock-to-release window, the question may not begin after its answer nor ` +
+          `the answer after the rows, and exit has to be a distance.`,
+      )
+    }
   }
 
   /*

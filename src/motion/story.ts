@@ -1599,6 +1599,15 @@ export const pricing = {
    * ratio — it would only have made the arrivals long while the holds still were not holds.
    */
   five: TIMING.memories.pricing as readonly Price[],
+
+  /**
+   * **Junction 09 → 10 — the Work gives way, the rooms cross, About is written and stands.**
+   *
+   * Priced on 8 October 2026 (`TIMING.about.pricing` argues each span). The movement is the
+   * expensive part and the settle the cheap one, which is the opposite of junction 05 and for the
+   * opposite reason: 05's holds are the composition, and here the hold had become most of the junction.
+   */
+  nine: TIMING.about.pricing as readonly Price[],
 } as const
 
 /* ══════════════════════════════════════════════════════════════════════════════════════════════════

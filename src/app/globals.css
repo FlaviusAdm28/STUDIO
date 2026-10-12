@@ -823,7 +823,7 @@ html {
   --rf-rx: 12rem;
   --rf-ry: 16rem;
   left: calc(var(--mark-x) + 3.1rem - var(--rf-rx));
-  top: calc(236 / 760 * 100dvh + 5.3rem - var(--rf-ry));
+  top: calc(236 / 760 * 100lvh + 5.3rem - var(--rf-ry));
   width: calc(var(--rf-rx) * 2);
   height: calc(var(--rf-ry) * 2);
   pointer-events: none;
@@ -1194,7 +1194,7 @@ html {
   --masthead: calc(var(--mark-y) + var(--mark-size) * 1.25 + clamp(1.25rem, 3vh, 1.75rem));
 
   /* What is left of the viewport under it. Everything in the act is composed against this. */
-  --stage-h: calc(100dvh - var(--masthead));
+  --stage-h: calc(100lvh - var(--masthead));
 
   /*
     ── The work, the plate it becomes, and where the studio's type stands ────────────────────────
@@ -4397,7 +4397,7 @@ html[data-opening='running'] .ways a {
     each reads it from the rendered box rather than from a copy.
   */
   padding-top: var(--room-edge);
-  height: calc(100dvh + var(--method-pin) + var(--room-edge));
+  height: calc(100lvh + var(--method-pin) + var(--room-edge));
   margin-top: var(--band-mid);
 
   /*
@@ -4587,7 +4587,7 @@ html[data-opening='running'] .ways a {
     anchor. Both are given up together, and only together: the two are one block now, and a block cannot
     stand on two verticals. The axis (`x196`) is untouched and is the thing both sections share.
   */
-  --m-main-y: max(var(--m-head), calc((112 + 31) / 760 * 100dvh - var(--masthead)));
+  --m-main-y: max(var(--m-head), calc((112 + 31) / 760 * 100lvh - var(--masthead)));
 
   /*
     **The floor, and it is the section's own running label.** `.method-label` stands at the head of this
@@ -5457,9 +5457,8 @@ html[data-opening='running'] .ways a {
   display: grid;
   position: sticky;
   top: var(--masthead);
-  max-height: calc(100dvh - var(--masthead) - var(--band-tight));
+  max-height: calc(100lvh - var(--masthead) - var(--band-tight));
   overflow-y: auto;
-  overscroll-behavior: contain;
 
   /*
     **The valve has no chrome.** `overflow-y: auto` drew a classic Windows scrollbar down the middle of
@@ -5514,7 +5513,7 @@ html[data-opening='running'] .ways a {
     --asked-breath: 1.5rem;
     --asked-top: clamp(
       var(--asked-floor),
-      calc(100dvh - var(--asked-h, 0px) - var(--asked-breath)),
+      calc(100lvh - var(--asked-h, 0px) - var(--asked-breath)),
       var(--masthead)
     );
   }
@@ -5613,9 +5612,10 @@ html[data-opening='running'] .ways a {
   inset: -1px 0 auto;
   height: 1px;
   background: var(--rule);
-  transform: scaleX(var(--qr, 0));
+  /* `--qfr` is the guarantee's floor under the clock — `TIMING.questions.written`. 0 without the driver. */
+  transform: scaleX(max(var(--qr, 0), var(--qfr, 0)));
   transform-origin: left center;
-  opacity: calc(var(--qr, 0) * var(--rel-rule, 1));
+  opacity: max(calc(var(--qr, 0) * var(--rel-rule, 1)), calc(var(--qfr, 0) * var(--jclear, 1)));
   will-change: opacity, transform;
 }
 
@@ -6231,6 +6231,21 @@ a.write-line:focus-visible {
 .ask:nth-child(7) { --rel: calc((1 - var(--jgone7, 0)) * var(--jclear, 1)); --rel-rule: calc((1 - var(--jgoner7, 0)) * var(--jclear, 1)); }
 
 /*
+  **The guarantee — written by the time the hand is through** (`TIMING.questions.written`, lab, 12 October
+  2026). The driver publishes a floor per part, a pure function of its own position between the lock and
+  the first release; each row points its two generic locals at its own, exactly as it does for the clocks.
+  Every opacity below takes the larger of what the clock has written and that floor, under `--jclear` —
+  so a hand that outruns the clocks still finds the section written, and one that does not sees no
+  difference. 0 wherever the driver does not run, and `max(x, 0)` is `x`.
+*/
+.ask:nth-child(2) { --qf: var(--qf1, 0); --qfr: var(--qfr1, 0); }
+.ask:nth-child(3) { --qf: var(--qf2, 0); --qfr: var(--qfr2, 0); }
+.ask:nth-child(4) { --qf: var(--qf3, 0); --qfr: var(--qfr3, 0); }
+.ask:nth-child(5) { --qf: var(--qf4, 0); --qfr: var(--qfr4, 0); }
+.ask:nth-child(6) { --qf: var(--qf5, 0); --qfr: var(--qfr5, 0); }
+.ask:nth-child(7) { --qf: var(--qf6, 0); --qfr: var(--qfr6, 0); }
+
+/*
   **The ink, and it is the question's rather than the row's.** `--q` is on `.ask-q` and not on `.ask`
   because the row now holds two arrivals that must not be multiplied together: the rule has to be able
   to draw while the question is still nothing, and anything that gates the whole box gates the rule
@@ -6241,7 +6256,7 @@ a.write-line:focus-visible {
   question that has not been asked yet.
 */
 .ask-q {
-  opacity: calc(var(--q, 0) * var(--rel, 1));
+  opacity: max(calc(var(--q, 0) * var(--rel, 1)), calc(var(--qf, 0) * var(--jclear, 1)));
   will-change: opacity;
 }
 
@@ -6252,7 +6267,7 @@ a.write-line:focus-visible {
   unaffected.
 */
 .ask-a {
-  opacity: calc(var(--q, 0) * var(--rel, 1));
+  opacity: max(calc(var(--q, 0) * var(--rel, 1)), calc(var(--qf, 0) * var(--jclear, 1)));
 }
 
 /*
@@ -6343,7 +6358,7 @@ a.write-line:focus-visible {
     `--qin` is the envelope the scroll writes it inside — `TIMING.questions.anchor.enters`. 1 where the
     driver does not run, so nothing changes without scripting.
   */
-  opacity: calc(var(--qa, 0) * var(--rel, 1) * var(--qin, 1));
+  opacity: max(calc(var(--qa, 0) * var(--rel, 1) * var(--qin, 1)), calc(var(--qf0, 0) * var(--jclear, 1)));
 }
 
 .ask-anchor .ask-q::after {
@@ -6391,7 +6406,7 @@ a.write-line:focus-visible {
 */
 .ask-anchor .ask-a {
   /* The anchor's answer is detail and leaves early (`--jgoneb`); its question is the last to go. */
-  opacity: calc(var(--qa-body, 0) * (1 - var(--jgoneb, 0)) * var(--jclear, 1) * var(--qin, 1));
+  opacity: max(calc(var(--qa-body, 0) * (1 - var(--jgoneb, 0)) * var(--jclear, 1) * var(--qin, 1)), calc(var(--qfb, 0) * var(--jclear, 1)));
 }
 
 /*
@@ -7037,7 +7052,7 @@ a.write-line:focus-visible {
   );
   transform: translate(
     calc((666 - 196) / 1440 * 100vw * var(--jp1)),
-    calc(-0.76em + (50 - 462 / 760 * 100) * 1dvh * var(--jp1))
+    calc(-0.76em + (50 - 462 / 760 * 100) * 1lvh * var(--jp1))
   );
   opacity: var(--v2-arrived);
 }
@@ -7223,7 +7238,7 @@ a.write-line:focus-visible {
   */
   transform: translate(
     -50%,
-    calc(-50% - (380 - 308) / 760 * 100dvh * var(--s1) - (308 - 256) / 760 * 100dvh * var(--s2))
+    calc(-50% - (380 - 308) / 760 * 100lvh * var(--s1) - (308 - 256) / 760 * 100lvh * var(--s2))
   );
   font-size: calc(
     clamp(1rem, calc(46 / 1440 * 100vw), 3.75rem) - clamp(0px, calc((46 - 31) / 1440 * 100vw), 1.25rem) *
@@ -7599,7 +7614,7 @@ a.write-line:focus-visible {
   transform-origin: left center;
   transform: translate(
       calc((666 - 196) / 1440 * 100vw * var(--jp1)),
-      calc((50 - 462 / 760 * 100) * 1dvh * var(--jp1))
+      calc((50 - 462 / 760 * 100) * 1lvh * var(--jp1))
     )
     scale(calc(1 - (1 - 11 / 96) * var(--jp1)));
   letter-spacing: calc(0.42em * var(--jp1));
@@ -7624,7 +7639,7 @@ a.write-line:focus-visible {
 .v2-word {
   transform: translate(
       calc((666 - 196) / 1440 * 100vw * var(--jp1)),
-      calc(((50 - 462 / 760 * 100) * 1dvh + 0.26em) * var(--jp1))
+      calc(((50 - 462 / 760 * 100) * 1lvh + 0.26em) * var(--jp1))
     )
     scale(calc(1 - (1 - 11 / 96) * var(--jp1)));
 }
@@ -7925,7 +7940,7 @@ a.write-line:focus-visible {
   transform-origin: left center;
   transform: translate(
       calc((666 - 196) / 1440 * 100vw * var(--jp1)),
-      calc(((50 - 462 / 760 * 100) * 1dvh + 0.26em) * var(--jp1))
+      calc(((50 - 462 / 760 * 100) * 1lvh + 0.26em) * var(--jp1))
     )
     scale(calc(1 - (1 - 11 / 96) * var(--jp1)));
   letter-spacing: calc(0.42em * var(--jp1));
@@ -8146,7 +8161,7 @@ a.write-line:focus-visible {
   --a: 1;
   transform: translate(
     -50%,
-    calc(-50% - (380 - 308) / 760 * 100dvh * var(--s1) - (308 - 256) / 760 * 100dvh * var(--s2))
+    calc(-50% - (380 - 308) / 760 * 100lvh * var(--s1) - (308 - 256) / 760 * 100lvh * var(--s2))
   );
   font-size: calc(
     clamp(1rem, calc(46 / 1440 * 100vw), 3.75rem) - clamp(0px, calc((46 - 31) / 1440 * 100vw), 1.25rem) *
@@ -8984,7 +8999,7 @@ a.v2-ident-open:focus-visible {
   );
 
   background: none;
-  top: calc(236 / 760 * 100dvh - var(--mark-y));
+  top: calc(236 / 760 * 100lvh - var(--mark-y));
   padding-left: calc(38 / 1440 * 100vw);
   color: var(--rail-ink);
 }
@@ -9064,13 +9079,14 @@ a.v2-ident-open:focus-visible {
       — the shot is a held frame — so a ground there would be a dark wash across the top of Chapter I for
       no reason. `--jp9` is junction 09 → 10, which is About arriving, and it stays 1 for the rest of the
       document. So the masthead grows its ground exactly when there is first something under it to hide.
+
+      **Superseded by C32, 7 October 2026: the row has no ground of its own.** That gradient was a
+      background that knew which section it was over — nothing before About, the page's scrim after —
+      and the design owner's ruling is one layer behind the top line, the same in every section. The
+      glass below (`.ledger::after`) is that layer. The argument above is kept because it is why the
+      row was grounded, and it is what to weigh if type is ever seen running through the destinations.
     */
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--page-scrim) calc(var(--jp9, 0) * 92%), transparent) 0%,
-      color-mix(in srgb, var(--page-scrim) calc(var(--jp9, 0) * 78%), transparent) 62%,
-      transparent 100%
-    );
+    background: none;
     padding-bottom: clamp(1.75rem, 5vh, 2.5rem);
   }
 }
@@ -9203,7 +9219,15 @@ a.v2-ident-open:focus-visible {
     justify-content: flex-end;
     /* No side padding here: the rows carry the page's margins, so they can be pressed to the edge. */
     padding: 0 0 calc(9vh + env(safe-area-inset-bottom, 0px));
-    background: color-mix(in srgb, var(--page-scrim) 94%, transparent);
+    /*
+      **The same glass as the line it opens from** (C32) — the film refracted, dimmed and still there,
+      where there was a page of the register's scrim at 94%. Darker than the pane behind the line
+      because a page of 2.4rem type has to be read over whatever is behind it, a lit plate included;
+      the refraction is the line's own field, added below where it can be drawn.
+    */
+    background: rgb(12 11 10 / 0.3);
+    -webkit-backdrop-filter: blur(4px) saturate(1.08) contrast(1.04) brightness(0.62);
+    backdrop-filter: blur(4px) saturate(1.08) contrast(1.04) brightness(0.62);
     opacity: 0;
     visibility: hidden;
     transition:
@@ -9294,6 +9318,164 @@ a.v2-ident-open:focus-visible {
 
   .rail-index-word .rail-slot[data-swap] > .rail-out {
     display: none;
+  }
+}
+
+/*
+  ── The glass behind the top line · C32 ─────────────────────────────────────────────────────────
+
+  `implementation-reconciliation.md` C32, design owner, 7 October 2026. Wherever the Ledger is a line
+  across the top of the frame (900px and narrower), **one layer stands behind it and it is the same
+  layer in every section**: a pane of glass. It reads no section, anchor, direction or clock.
+
+  **What it is.** One pseudo-element, `.ledger::after`. The image behind the line is *refracted* — the
+  rail's own field (`#menu-glass`, static markup in `ledger.tsx`) displaces it by a few pixels — barely
+  softened (2px), and nudged in saturation, contrast and exposure; over that, 12% of the film's black.
+  A mask takes all of it to nothing below the line, so there is no edge, border, radius or shadow to
+  read as a component. The numbers are the ones approved on the phone as *G2* and are not tuned here.
+
+  **It enters with the line and then it is simply there.** Its opacity is `--rail-draw`, the value that
+  draws the rail in at the dock and stands at 1 for the rest of the document — so there is no glass
+  over Chapter I and Chapter II, where there is no line yet, and the same glass everywhere after.
+
+  **What it replaces.** Three things used to answer for the line, each in its own sections, and none of
+  them is behind it now:
+    · the row's own ground between 768 and 900 (`.ledger`'s gradient on `--jp9`) — removed above;
+    · the band under the line while Questions' anchor played (`.ledger::before`) — removed;
+    · the Environment's pool for the desktop rail (`.env-legibility`), which on these widths stood
+      where no rail is — not drawn here;
+  and the rail's grade (`.v2-rail-grade`), which is the Work's own burn and stays, is released until
+  below the pane instead of at the film's top eighth. Measured on a Mi 11 Lite by hiding each layer and
+  comparing the strip pixel by pixel: with these, only the pane paints behind the line.
+
+  **The line sits 5px into it.** `translate`, so nothing in the layout moves — not the rail's box, not
+  a section's margin. On a phone the line is `.rail-head`; between 768 and 900 the index shares that
+  line and moves with it. It is never applied to `.ledger-rail`: a transform there would become the
+  containing block of the phone's open Index, which is `position: fixed`.
+
+  **Where the field cannot be drawn, it is the same pane without the bend.** `url()` inside
+  `backdrop-filter` is Chromium's; the base declaration has none, and the refraction is added only
+  where the browser accepts the reference and is not iOS WebKit, which could not be tested and where
+  an unresolved reference must not be left to chance. Without `backdrop-filter` at all, the 12% tint
+  is what is left. The line's own ink is untouched in every case.
+
+  Without scripting there is no pane: `page.tsx`'s composed alternative does not draw it.
+*/
+/* The field's definition is markup at every width; it takes no room in the rail's column or its row. */
+.menu-glass-field {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  :root {
+    /* How far below the line the pane reaches, and where the pane ends measured from the frame's top. */
+    --menu-glass-reach: 2.25rem;
+    --menu-glass-foot: calc(8.25rem + var(--menu-glass-reach));
+  }
+
+  .ledger::after {
+    content: '';
+    position: absolute;
+    inset: 0 0 calc(-1 * var(--menu-glass-reach));
+    z-index: -1;
+    pointer-events: none;
+    background: rgb(12 11 10 / 0.12);
+    -webkit-backdrop-filter: blur(2px) saturate(1.08) contrast(1.06) brightness(0.9);
+    backdrop-filter: blur(2px) saturate(1.08) contrast(1.06) brightness(0.9);
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 38%,
+      rgb(0 0 0 / 0.55) 68%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(to bottom, #000 0%, #000 38%, rgb(0 0 0 / 0.55) 68%, transparent 100%);
+    opacity: var(--rail-draw, 0);
+  }
+
+  .ledger .rail-head {
+    translate: 0 -5px;
+  }
+
+  /* The desktop rail's pool: there is no rail where it stands on these widths. */
+  .env-legibility {
+    display: none;
+  }
+
+  /*
+    The Work's burn, released until below the pane — the pane's foot, plus whatever a retracted browser
+    bar adds to the frame above it — and at full density where it always was, 34% down. One geometry:
+    it does not know whether the film is hung from the top of the frame or from the bottom.
+  */
+  .v2-rail-grade {
+    --menu-glass-clear: calc(var(--menu-glass-foot) + 100lvh - 100svh);
+
+    -webkit-mask-image: linear-gradient(
+      180deg,
+      transparent 0,
+      transparent var(--menu-glass-clear),
+      rgb(0 0 0 / 0.45) max(24%, calc(var(--menu-glass-clear) + 3rem)),
+      #000 max(34%, calc(var(--menu-glass-clear) + 6rem))
+    );
+    mask-image: linear-gradient(
+      180deg,
+      transparent 0,
+      transparent var(--menu-glass-clear),
+      rgb(0 0 0 / 0.45) max(24%, calc(var(--menu-glass-clear) + 3rem)),
+      #000 max(34%, calc(var(--menu-glass-clear) + 6rem))
+    );
+  }
+}
+
+@media (min-width: 768px) and (max-width: 900px) {
+  .ledger .ledger-index {
+    translate: 0 -5px;
+  }
+
+  /*
+    **The same pane, denser, where the line carries the destinations** — design owner, 8 October 2026.
+    Between 768 and 900 the four other chapters stand on the line itself at 9px, and over Contact's sky
+    the pane at 12% left them at 2.1:1 (title 2.8:1), measured at 768, 820 and 900. At 30% and an
+    exposure of 0.62 — the density the open Index already reads them at on a phone — they stand at
+    3.0–3.6:1 and the title at 4.6–5.6:1; 20% did not reach 3:1 and 42% read as a bar. Only the tint
+    and the exposure change: the field, the blur, the saturation, the contrast, the reach, the mask and
+    the lift are the rule above, and it is still the one layer, the same in every section. Over a lit
+    sky — Contact, and the Work's brightest photograph — the top of the frame is visibly shaded.
+  */
+  .ledger::after {
+    background: rgb(12 11 10 / 0.3);
+    -webkit-backdrop-filter: blur(2px) saturate(1.08) contrast(1.06) brightness(0.62);
+    backdrop-filter: blur(2px) saturate(1.08) contrast(1.06) brightness(0.62);
+  }
+}
+
+@media (max-width: 767.98px) {
+  :root {
+    --menu-glass-foot: calc(4.5rem + var(--menu-glass-reach));
+  }
+}
+
+/* The refraction, where it can be drawn — see the note above. */
+@supports ((backdrop-filter: url('#menu-glass') blur(2px)) and (not (-webkit-touch-callout: none))) {
+  @media (max-width: 900px) {
+    .ledger::after {
+      backdrop-filter: url('#menu-glass') blur(2px) saturate(1.08) contrast(1.06) brightness(0.9);
+    }
+  }
+
+  @media (min-width: 768px) and (max-width: 900px) {
+    .ledger::after {
+      backdrop-filter: url('#menu-glass') blur(2px) saturate(1.08) contrast(1.06) brightness(0.62);
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .ledger .ledger-index {
+      backdrop-filter: url('#menu-glass') blur(4px) saturate(1.08) contrast(1.04) brightness(0.62);
+    }
   }
 }
 
@@ -10496,27 +10678,13 @@ a.v2-ident-open:focus-visible {
     padding-bottom: 1.25rem;
   }
 
-  .ledger::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 -2.5rem;
-    z-index: -1;
-    pointer-events: none;
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--page-scrim) 94%, transparent) 0%,
-      color-mix(in srgb, var(--page-scrim) 90%, transparent) 68%,
-      transparent 100%
-    );
-    opacity: 0;
-    transition: opacity var(--index-closes) var(--curve);
-  }
-
-  :root:has(.publication:is([data-anchor='playing'], [data-anchor='held']):not([data-asked-gone='1']))
-    .ledger::before {
-    opacity: 1;
-    transition-duration: var(--index-opens);
-  }
+  /*
+    **The band that stood under the line while the anchor played is gone** — C32, 7 October 2026. It
+    was `.ledger::before`, a gradient of the page's scrim raised by `data-anchor` and lowered on a
+    transition, so it stood on over the method on the way back and travelled with a flick. The line's
+    background is the glass now, in every section. Nothing about Questions changed: the driver still
+    writes `data-anchor` and `data-asked-gone`, and only this picture of them was removed.
+  */
 
   /*
     The couple's centre is 0.68 across the photograph, and on a portrait frame the photograph is drawn
@@ -10671,8 +10839,8 @@ a.v2-ident-open:focus-visible {
 
 :root {
   --os-in: clamp(0, calc((var(--jp1) - 0.35) / 0.65), 1);
-  --os-sun-x: calc(50% - 0.065 * max(100vw, 200dvh));
-  --os-sun-y: calc(50% - 0.13 * max(50vw, 100dvh));
+  --os-sun-x: calc(50% - 0.065 * max(100vw, 200lvh));
+  --os-sun-y: calc(50% - 0.13 * max(50vw, 100lvh));
   /* The black the frame had — §2's column, unchanged — and how much of it the sun is spared. */
   --os-out: calc(0.5 + 0.15 * var(--jp1) + 0.25 * var(--jp2) + 0.09 * var(--jp3));
   --os-hole: calc((0.16 * var(--os-in) + 0.2 * var(--jp2)) * (1 - var(--jp3)));
@@ -10891,7 +11059,7 @@ a.v2-ident-open:focus-visible {
     top: auto;
     bottom: min(
       calc(var(--g-foot) + var(--g-note-h) + 2 * var(--g-close) + var(--m-word) * 1.05),
-      calc(100dvh * (1 - 845 / 1024) - 4px - 1.05em)
+      calc(100lvh * (1 - 845 / 1024) - 4px - 1.05em)
     );
   }
 }
@@ -10907,7 +11075,7 @@ a.v2-ident-open:focus-visible {
     --asked-floor: var(--g-floor);
     --asked-top: clamp(
       var(--asked-floor),
-      calc(100dvh - var(--asked-h, 0px) - var(--asked-breath)),
+      calc(100lvh - var(--asked-h, 0px) - var(--asked-breath)),
       var(--g-anchor)
     );
   }
@@ -11415,4 +11583,98 @@ a.v2-ident-open:focus-visible {
   transition:
     opacity 0.5s var(--curve) 0.14s,
     transform 0.7s var(--curve) 0.08s;
+}
+
+/*
+  ── The held frames and the browser's bar · Core ────────────────────────────────────────────────
+
+  Design owner, 8 October 2026: the geometry validated behind `?vp=core` on 7–8 October, made the
+  page's own. Chrome on Android retracts its bar on the first scroll, and every held frame here was
+  sized by the viewport the bar changes (`inset: 0`, `dvh`) and hung from the edge the bar moves.
+  Measured on a Mi 11 Lite with a real finger: the composition rode up 56px with the bar over a 56px
+  black band, and then, on `resize`, the type jumped 28–34px and the photograph rescaled by 7% in one
+  frame.
+
+  **The rule.** Measured with a page of markers on that phone: while the bar moves, anything hung from
+  the **top** edge of the viewport travels 56px with it — `fixed` and `sticky` alike, during the
+  animation and after the `resize` — and anything hung from the **bottom** edge stands still on the
+  glass. So a frame that is *the experience* is hung from the bottom and sized by the viewport the bar
+  cannot change (`lvh`), and only what is *interface* — the Ledger — stays on the edge that moves.
+
+  **A sticky frame keeps exactly the travel it had.** A frame of height `viewport − x` pinned at
+  `top: x` reaches its pin and leaves it at the same two scroll positions as the same frame pinned at
+  `bottom: 0`, provided it rests at the *end* of its runway rather than the start — which is what
+  `align-content: end` is for, and a reversed column for the Questions list, whose runway is a block
+  after it. Measured against the top-hung layout with the bar retracted: every frame to the pixel at
+  164 scroll positions on the phone, and the document the same height.
+
+  **Held from the bottom alone — the top is released.** A frame that keeps a sticky `top` beside its
+  `bottom` is pushed back down by it when the bar returns and moves 56px exactly as before (measured).
+  So these frames have no `top`, and the driver reads where one locks from its bottom instead
+  (`scroll-stage.tsx`, `lockOffset`).
+
+  **The units are changed where the frames are declared, not here.** Every length the film's type, the
+  Ledger, the method and the Questions list took from `dvh` is `lvh` in its own rule above
+  (`--stage-h`, `--m-main-y`, `--asked-top`, `--os-sun-x` / `--os-sun-y` among them); comments beside
+  those rules that still say `dvh` describe the unit they were authored in. `.film`, `.stage`, `.act`
+  and `.opening` keep `dvh`: they were not part of what was validated.
+
+  Real finger, Mi 11 Lite, 8 October 2026, Work / About / Method / Questions / Contact with the bar
+  hiding and returning: only the Ledger moves; 0px on the composition in the recording; no frame
+  changes height; no step in the narrative position on `resize`. Not verified: a browser whose bar is
+  at the bottom of the screen (the top edge is then the still one), a real tablet, iOS Safari.
+*/
+.environment,
+.v2,
+.about-stage {
+  top: auto;
+  bottom: 0;
+  height: 100lvh;
+}
+
+.method {
+  align-content: end;
+}
+
+.method-stage {
+  top: auto;
+  bottom: 0;
+}
+
+/*
+  Contact's page hangs below its frame, so resting the frame at the end of the runway would lengthen the
+  document by exactly that overhang (`100lvh − --rule-y − 2px`). The runway gives it back: the height
+  the section had, less the overhang, is this.
+*/
+.closing {
+  align-content: end;
+  height: calc(var(--closing-pin) + var(--closing-settle) + 2px);
+}
+
+/* And the section's ground still reaches the foot of the page it carries. */
+.publication .closing::before {
+  bottom: calc(var(--rule-y) + 1px - 100lvh);
+}
+
+.closing-frame {
+  top: auto;
+  bottom: calc(100lvh - var(--rule-y) - 2px);
+}
+
+@media (max-width: 700px) and (min-height: 561px) {
+  .asked-hold {
+    display: flex;
+    flex-direction: column-reverse;
+  }
+
+  .asked-hold::after,
+  .asked {
+    flex: none;
+  }
+
+  /* Less what an open answer adds (`--asked-open`, the driver's), so the list still grows downward. */
+  .asked {
+    top: auto;
+    bottom: calc(100lvh - var(--asked-top) - var(--asked-h, 0px) - var(--asked-open, 0px));
+  }
 }

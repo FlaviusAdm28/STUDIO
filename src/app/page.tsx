@@ -138,6 +138,10 @@ export default function Home() {
             align-items: baseline; gap: clamp(1rem, 3vw, 2rem);
             width: auto; padding: var(--mark-y) var(--mark-x) 6vh;
             opacity: 1 !important; clip-path: none !important; }
+          /* The glass behind the top line (C32) enters on a value only the driver writes, so here it is
+             not drawn at all rather than left standing at nothing; the line keeps its own place too. */
+          .ledger::after { display: none; }
+          .ledger .rail-head, .ledger .ledger-index { translate: none; }
           /*
             The mark docks on a junction and there is no junction here, so it holds the one form it can
             be sure of: the three strokes stacked, at the head of the rail, which is where they spend
@@ -162,6 +166,7 @@ export default function Home() {
           */
           @media (max-width: 767.98px) {
             .ledger .ledger-index { position: static; display: block; padding: 0; background: none;
+              -webkit-backdrop-filter: none; backdrop-filter: none;
               opacity: 1; visibility: visible; transition: none; }
             .ledger .ledger-index ul { -webkit-mask-image: none; mask-image: none; flex-direction: row;
               flex-wrap: wrap; gap: 1.75rem clamp(1.125rem, 5vw, 1.75rem); }

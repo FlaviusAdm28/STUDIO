@@ -498,6 +498,39 @@ export default function Ledger() {
       */}
       <div className="ledger" data-index={lit ? (indexOpen ? 'open' : 'closed') : undefined}>
         {/*
+          **The glass's refraction field** — a definition, not a drawing. `globals.css` references it
+          from the `backdrop-filter` of the pane behind the top line (`.ledger::after`) and of the open
+          Index; nothing here paints, and nothing rewrites it: it is static markup, the same on every
+          render. A slow, low-frequency noise displaces what stands behind the line by a few pixels,
+          which is what makes the pane read as glass rather than as a tint.
+          `implementation-reconciliation.md` C32.
+        */}
+        <svg className="menu-glass-field" width="0" height="0" aria-hidden="true" focusable="false">
+          <filter
+            id="menu-glass"
+            x="0"
+            y="0"
+            width="100%"
+            height="100%"
+            colorInterpolationFilters="sRGB"
+          >
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.006 0.022"
+              numOctaves="2"
+              seed="11"
+              result="field"
+            />
+            <feDisplacementMap
+              in="SourceGraphic"
+              in2="field"
+              scale="16"
+              xChannelSelector="R"
+              yChannelSelector="G"
+            />
+          </filter>
+        </svg>
+        {/*
           On a phone, while the index is open, the rail is one modal region — the head line and the
           index together (C24). Everywhere else it carries no role, exactly as before.
         */}

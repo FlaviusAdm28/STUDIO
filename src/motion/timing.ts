@@ -1625,10 +1625,42 @@ export const TIMING = {
      * where the method's room begins to darken and `release` takes the type. Measured at 1920 × 889:
      * ~1,000px of stillness, about a viewport.
      */
+    /*
+     * **Earlier, and inside the cross** — design owner, 8 October 2026, after a pass on a Mi 11 Lite:
+     * *"capítulo termina → grande período de pouca mudança → mais scroll → finalmente começa o
+     * seguinte"*, with Work → About named the slowest passage on the site. The thresholds were
+     * 0.18 / 0.38 / 0.56, so the headline waited for the cross to be half done and the last group for
+     * the cross to be long over — each group started after the one before it had finished, and the
+     * junction read as separate events with scroll between them. At 0.14 / 0.30 / 0.46 the statement
+     * starts while venice is still in the room (§3's keyframe has it resolving at 30%, both rooms
+     * present), the support starts while the statement is resolving, and the detail is called before
+     * the cross has gone cold. The clocks are untouched — a group still resolves in its own time — and
+     * all three thresholds are still inside `settle`, so the room still answers each one.
+     * `pricing` below is the other half of the same change.
+     */
     arrives: {
-      at: { statement: 0.18, support: 0.38, detail: 0.56 },
+      at: { statement: 0.14, support: 0.3, detail: 0.46 },
       ms: { statement: 1500, support: 1300, detail: 1000, stagger: 140, leaves: 450 },
     },
+
+    /**
+     * **What each phase of 09 → 10 costs to cross** — the same instrument as `memories.pricing`, and
+     * the second junction to be given a rhythm of its own (8 October 2026).
+     *
+     * Measured at 392 × 779 before it: the junction was 8.73 viewports, the composition was complete
+     * at 0.63 of it and then stood, wholly still, for 2.56 viewports — the longest stretch on the site
+     * in which nothing on screen changed. The cross and the three arrivals are the *movement* and are
+     * priced above 1.00, so the hand spends its distance where the picture answers it; the standing
+     * frame after the last group is the *settle* and is priced below 1.00 — kept, because it is where
+     * About is read, and no longer the largest thing in the junction. `distance.act` is what
+     * shortens the junction as a whole; this decides how the shorter junction is spent.
+     */
+    pricing: [
+      [0.0, 0.06, 1.0], /*   the Work leaves  */
+      [0.06, 0.36, 1.3], /*  the two rooms cross; the statement and the support are called  */
+      [0.36, 0.6, 1.05], /*  the detail is called and written  */
+      [0.6, 1.0, 0.75], /*   About stands — the settle  */
+    ],
 
     /**
      * **The camera coming to rest in the studio.** A push of `push` (a fraction of the frame) that
@@ -1978,6 +2010,51 @@ export const TIMING = {
 
       /** Seconds the question's ink takes once it has begun, `rule.leads` after its row opens. */
       over: 0.33,
+    },
+
+    /**
+     * ── THE GUARANTEE · WRITTEN BY THE TIME THE HAND IS THROUGH ───────────────────
+     *
+     * **Between its lock and its first release, each part is at least as written as the hand's
+     * progress through that window** — lab, 12 October 2026, variant *G1 late*.
+     *
+     * The beats above are clocks fired by a position, and the passage to Contact releases the list by
+     * position too. Measured on the Mi 11 Lite: the lock and the first release are 1,040px apart and
+     * the anchor needs 1.7s, so at an ordinary 1,200px/s the hand is through in 0.87s — the question
+     * peaked at 73% of its ink, its answer at 33%, three rows of six; at 3,000px/s the question never
+     * passed 17% and the section read as skipped, in both directions.
+     *
+     * So the clocks keep writing and this is a **floor under them**: `max(clock, floor)`, the floor a
+     * pure function of the driver's position. Every range is a fraction of the window, 0 at the lock
+     * and 1 at the first release. A hand slower than the clocks never meets it and sees what it saw
+     * before; a hand that outruns them brings the part up itself. Nothing is timed, nothing is held
+     * and no clock is restarted, so it reverses exactly and cannot stop or retain the scroll.
+     *
+     * **Late, on purpose.** The earlier ranges (question 0.10 → 0.50) were ahead of the clock at
+     * 500px/s and brought the slow gesture's writing forward — 1,816ms of whole question against
+     * 1,303. These leave it at 1,456: at that speed the clock finishes at 0.73 of the window and the
+     * question's floor at 0.70.
+     *
+     * The order is the section's own: the question, its answer behind it, then the rows from the top.
+     * `timeline.ts` asserts it, and that the last row is whole before anything is released.
+     */
+    written: {
+      /** The anchor's question. */
+      question: { from: 0.2, to: 0.7 },
+      /** Its answer, behind it — `anchor.body.leads`, as a distance. */
+      answer: { from: 0.3, to: 0.8 },
+      /** The rows: where the first begins, how much later each next one does, and how long one takes. */
+      rows: { from: 0.5, step: 0.04, over: 0.25 },
+      /** How far ahead of its words a row's hairline runs — ruled first, written second (`faq.rule`). */
+      ruleLeads: 0.04,
+      /**
+       * **How the floor lets go**, in viewport heights past each part's own release. The driver fades a
+       * released part on a clock; a part the floor was holding leaves over this distance instead, and
+       * comes back over it on the way up — which is what brings the list back for a fast hand
+       * returning from Contact. 0.25 is ~210px: longer than a slow hand's clock needs, so there too
+       * the clock is what is seen.
+       */
+      exit: 0.25,
     },
   },
 
@@ -2789,7 +2866,17 @@ export const TIMING = {
     shotBeats: 9.4,
 
     /** Chapter III's act. Priced so a beat weighs the same in the hand as a beat of the film. */
-    act: { fine: '660vh', coarse: '990vh' },
+    /*
+     * **240 / 360 where it was 660 / 990** — design owner, 8 October 2026. This runway was priced for
+     * the act it is named after, and C5 retired the device; what stands on it now is the Work, *held*,
+     * and then 09 → 10. Measured on the phone geometry (392 × 779) at 990vh: the Work stood composed
+     * for 3.34 viewports with only its own clock changing the picture, and 09 → 10 was 8.73 viewports
+     * of which 40% changed nothing — on the design owner's own hand that morning, eleven swipes over a
+     * standing Work and fourteen more to a composed About. At 360vh the Work stands for ~1.7 viewports
+     * and 09 → 10 is ~3.6; at 240vh on a wheel, ~1.4 and ~2.8. The 1.5 ratio for a thumb is kept.
+     * It retimes nothing: `about.arrives` and `about.pricing` re-compose the shorter junction.
+     */
+    act: { fine: '240vh', coarse: '360vh' },
     actBeats: 3.2,
 
     /**
@@ -2811,7 +2898,15 @@ export const TIMING = {
      * 0.37 of a beat (`method.composed`), so the frame loses the same 0.37 at the same 150vh a beat —
      * otherwise those pixels would only reappear as empty room at the end, before Questions.
      */
-    method: { fine: '484.5vh', coarse: '726.75vh' },
+    /*
+     * **Coarse 654 where it was 726.75** — design owner, 8 October 2026, the same pass on a Mi 11 Lite
+     * that re-priced `act`: a thumb's premium over the wheel comes down from 1.5 to 1.35 on the
+     * publication's three runways (`method`, `about`, `asked`). Measured that morning on his own hand,
+     * a typical swipe travelled 0.72 of a viewport — the 1.5 was argued from a flick's momentum, and
+     * most of what he does is not a flick. The wheel's price, the beats and every proportion are
+     * untouched; `askedLead` moves with it so the lock keeps its place in the leaving window.
+     */
+    method: { fine: '484.5vh', coarse: '654vh' },
     methodBeats: 3.23,
 
     /**
@@ -2832,7 +2927,8 @@ export const TIMING = {
      *
      * The 1.5 ratio for a thumb is the one the three runways above already share.
      */
-    about: { fine: '175vh', coarse: '262vh' },
+    /* Coarse 236 where it was 262: 1.35 for a thumb, with `method` above (8 October 2026). */
+    about: { fine: '175vh', coarse: '236vh' },
 
     /**
      * **Questions' reading zone** — design owner, 20 September 2026: *"Depois de todas as perguntas
@@ -2860,7 +2956,8 @@ export const TIMING = {
      * passage began *What do you actually create?* had already left the top of the screen — and it is
      * meant to be the last thing standing.
      */
-    asked: { fine: '200vh', coarse: '300vh' },
+    /* Coarse 270 where it was 300: 1.35 for a thumb, with `method` above (8 October 2026). */
+    asked: { fine: '200vh', coarse: '270vh' },
 
     /**
      * **How far Questions stands inside the Method's trailing frame** — design owner, 21 September
@@ -2927,7 +3024,11 @@ export const TIMING = {
      * anchor began — a 67–134px hole at a normal hand, 360–450px at a slow one. 180vh on touch puts
      * the lock back at ~0.8 of the window, the relation the desktop already has.
      */
-    askedLead: { fine: '150vh', coarse: '180vh' },
+    /*
+     * **Coarse 171 where it was 180** (8 October 2026): the leaving window is 1.35× the wheel's now,
+     * not 1.5×, and 150 → 180 was fitted to put the lock at ~0.8 of it — the same line through 1.35.
+     */
+    askedLead: { fine: '150vh', coarse: '171vh' },
 
     /**
      * **The settle at the end of junction 13 → 14**, and it was `--closing-settle: 24vh` in

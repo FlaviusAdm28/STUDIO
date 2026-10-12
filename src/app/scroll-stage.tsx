@@ -43,6 +43,71 @@ import { pace as modelBPace } from '@/motion/modelb'
 import { bridgeOn, buildPrice, nextOn, sheetOn } from '@/motion/sheet'
 
 /**
+ * **Custom properties the driver computes and no longer writes** — mobile-lag experiment, phase 1,
+ * 7 October 2026.
+ *
+ * Forty-four names, literal. Every one was written on the root and read by nothing: thirty are read
+ * only by rules of the V1 composition whose selectors match no element (`.act-*`, `.card-*`, `.mark*`,
+ * `.veil`, `.dusk`, `.dawn*`, `.close-*`), and fourteen by no rule at all. Measured read-only at
+ * 392 × 779 — `D:\STUDIO-tools\mobile-lag\out\custom-property-map.md` is the record.
+ *
+ * **Only the write is skipped.** The tracks in `scroll.ts` are untouched, the values are still
+ * computed, and `transitions.ts` still declares each one's first frame in the generated stylesheet.
+ * Their neighbours in the same tables are deliberately absent: `--swap`, `--rl-warm` and `--rl-blue`
+ * have consumers.
+ */
+const ORPHAN_WRITES: ReadonlySet<string> = new Set([
+  /* `track` — 22 of its 23. */
+  '--veil',
+  '--dusk',
+  '--marker',
+  '--mkword',
+  '--mkblur',
+  '--mknum',
+  '--mktopic',
+  '--statement',
+  '--i1',
+  '--i2',
+  '--i3',
+  '--i4',
+  '--warmth',
+  '--dawn',
+  '--close',
+  '--out1',
+  '--out2',
+  '--tm',
+  '--stop',
+  '--mark3',
+  '--handoff',
+  '--studio',
+  /* `actTrack` — all 10. */
+  '--anav',
+  '--aframe',
+  '--adusk',
+  '--atitle',
+  '--anote',
+  '--alead',
+  '--asaid',
+  '--aprint',
+  '--aopen',
+  '--aoffer',
+  /* `relightTrack` — 3 of its 5. */
+  '--rl-open',
+  '--rl-light',
+  '--rl-settle',
+  /* Written directly. */
+  '--aperture',
+  '--state',
+  '--lunlit',
+  '--lindex',
+  '--l1',
+  '--l2',
+  '--l3',
+  '--l4',
+  '--l5',
+])
+
+/**
  * The shot, timed in scroll rather than seconds.
  *
  * Scroll position is the only input. The footage keeps looping underneath, never paused, never
@@ -137,6 +202,50 @@ export default function ScrollStage() {
       one way this can visibly break.
     */
     let perBeat = 1
+
+    /*
+      ── The browser's own bar is not the visitor's hand ───────────────────────────────────────────
+      Chrome on Android retracts its address bar on the first scroll and brings it back on the way up.
+      Measured on a Mi 11 Lite (Chrome 154, 392 × 779, 7 October 2026), in this order:
+
+        1. the bar animates for ~200ms — `visualViewport.height` 779 → 835, and nothing else changes;
+        2. over the same frames Chrome moves `scrollY` about 50px **against** the gesture, so the
+           flowing content stays still on the glass while the viewport grows around it;
+        3. about 1.4s later `resize` arrives, and only then do `innerHeight` and `100dvh` become 835.
+
+      A page in flow never notices. A film that is a function of `scrollY` does: it read (2) as the
+      visitor scrolling back — the shot ran 0.13 of a junction backwards under a hand going forwards,
+      and when that fell below the origin it was reset to its first frame and the origin re-anchored.
+      And it read (3) as the frame changing size, so the same pixel was a different position.
+
+      So the film is driven by **where the hand has taken the page**, which is the scroll position
+      with the bar's own compensation taken back out (`inset`), in a unit the bar cannot change
+      (`frameVh`). Nothing is predicted, timed or suppressed: both are read from the browser, and
+      both are exactly `0` and `innerHeight` wherever there is no retracting bar — measured, a
+      desktop window never has either differ.
+
+      `inset` is how much browser UI is retracted right now: the visual viewport against the layout
+      viewport, which on Chrome Android never changes (`clientHeight` stayed 779 through every state
+      above). Outside a plausible bar it is zero — a pinch-zoom is scaled out, and an on-screen
+      keyboard makes it negative.
+
+      `tallVh` is `100vh` in pixels, the unit `--pin`, `--act-pin`, `--method-pin` and `--b-cut` are
+      already written in. On Chrome Android that is the viewport with the bar retracted and it never
+      changes, while `innerHeight` is 779 or 835 depending on the bar — so the runway was priced in
+      one unit and walked in another for as long as the bar was showing.
+    */
+    const browserView = window.visualViewport ?? null
+    let inset = 0
+    let tallVh = 0
+    const senseBrowserBar = () => {
+      if (browserView === null) return
+      const layout = root.clientHeight
+      const retracted = browserView.height * browserView.scale - layout
+      inset = retracted > 2 && retracted < layout * 0.25 ? retracted : 0
+    }
+    /** The frame's height for pricing: `100vh` where a bar makes that taller than the window, else the window. */
+    const frameVh = () => (tallVh - window.innerHeight > 2 ? tallVh : window.innerHeight)
+
     /* MODEL B — the lab's switches, the lift in beats of `p`, and where the paced position has got to. */
     let modelB = { warp: false, pace: false }
     let lift = 0
@@ -149,6 +258,15 @@ export default function ScrollStage() {
     let perActBeat = 1
     let perMethodBeat = 1
     const price = () => {
+      /* `100vh`, measured rather than assumed, and re-measured with everything else a resize re-prices. */
+      const ruler = document.createElement('div')
+      ruler.style.cssText =
+        'position:fixed;top:0;left:0;width:0;height:100vh;visibility:hidden;pointer-events:none'
+      document.body.appendChild(ruler)
+      tallVh = ruler.offsetHeight
+      ruler.remove()
+      senseBrowserBar()
+
       const read = (name: string) => parseFloat(getComputedStyle(root).getPropertyValue(name))
       const pin = read('--pin')
       perBeat = (Number.isFinite(pin) ? pin / 100 : BEATS) / BEATS
@@ -361,6 +479,29 @@ export default function ScrollStage() {
      */
     let junctionsOnP: readonly JunctionSpan[] = []
 
+    /**
+     * **Where a held frame stands in the viewport when it locks**, as a distance from the top.
+     *
+     * Every frame on the page is `position: sticky` with a `top`, and that computed `top` *is* this
+     * number — it is what the three measurements below have always read, and for such a frame this
+     * returns it unchanged.
+     *
+     * A frame held from the **bottom** has no `top` to read (`auto`), and the measurement that assumed
+     * one came back `NaN`: on 7 October 2026, with the viewport experiment holding the closing frame
+     * by its bottom edge, `persistTop` was `NaN`, the persist block below never ran and Contact stood
+     * uncomposed at the foot of the site. The same distance is still in the box — the frame's height
+     * and its `bottom`, against the frame the page is priced in — so it is read from there instead.
+     */
+    const lockOffset = (frame: HTMLElement): number => {
+      const style = getComputedStyle(frame)
+      const top = parseFloat(style.top)
+      if (Number.isFinite(top)) return top
+      const bottom = parseFloat(style.bottom)
+      return Number.isFinite(bottom)
+        ? frameVh() - bottom - frame.getBoundingClientRect().height
+        : Number.NaN
+    }
+
     const place = () => {
       audit = true
       const excessBefore = askedExcess
@@ -435,12 +576,18 @@ export default function ScrollStage() {
             )
           )
         }, 0)
-        root.style.setProperty(
-          '--asked-h',
-          `${Math.round(askedList.getBoundingClientRect().height - answering)}px`,
-        )
+        const listHeight = askedList.getBoundingClientRect().height
+        const atRest = Math.round(listHeight - answering)
+        root.style.setProperty('--asked-h', `${atRest}px`)
+        /*
+          And what the open answers add, on the list itself. A list held from its **bottom** — the
+          phone's, `globals.css`, *The held frames and the browser's bar · Core* — grows upward when
+          an answer opens unless its offset gives the growth back; this is the growth, written in
+          the same `ResizeObserver` turn as the height it completes.
+        */
+        askedList.style.setProperty('--asked-open', `${(listHeight - atRest).toFixed(2)}px`)
         const listStandsAt = getComputedStyle(askedList).position === 'sticky'
-        const stuck = parseFloat(getComputedStyle(askedList).top)
+        const stuck = lockOffset(askedList)
         const head = !listStandsAt
           ? window.innerHeight * TIMING.questions.flowLock
           : Number.isFinite(stuck)
@@ -492,7 +639,7 @@ export default function ScrollStage() {
           ? Number.POSITIVE_INFINITY
           : closingEl.getBoundingClientRect().top +
             window.scrollY -
-            parseFloat(getComputedStyle(closingFrame).top)
+            lockOffset(closingFrame)
 
       /*
         **Whether the rail's *Questions* may land past the lock** — navigation QA, 28 September 2026.
@@ -560,7 +707,7 @@ export default function ScrollStage() {
         the reason the section is measured rather than the frame.
       */
       const band = parseFloat(getComputedStyle(methodEl).paddingTop)
-      const held = parseFloat(getComputedStyle(frame).top)
+      const held = lockOffset(frame)
       methodTop =
         methodEl.getBoundingClientRect().top +
         window.scrollY +
@@ -605,7 +752,8 @@ export default function ScrollStage() {
 
       Every number is in `story.ts` §7.
     */
-    let shown = window.scrollY
+    /* The hand's position — the scroll position with the browser bar's compensation taken out. */
+    let shown = window.scrollY + inset
     let velocity = 0
     let last = 0
 
@@ -621,15 +769,15 @@ export default function ScrollStage() {
      */
     const played = new Map<string, { open: boolean; since: number; from: number }>()
 
-    /** Converge exactly. After this, `shown` is `window.scrollY` to the bit. */
+    /** Converge exactly. After this, `shown` is the hand's position to the bit. */
     const settle = () => {
-      shown = window.scrollY
+      shown = window.scrollY + inset
       velocity = 0
     }
 
     /** One spring step. Returns whether it is still in flight. */
     const advance = (now: number): boolean => {
-      const target = window.scrollY
+      const target = window.scrollY + inset
       const d0 = shown - target
       /*
         Above this it is not a wheel gesture — a scrollbar track-click, Home/End, or a restored
@@ -805,7 +953,13 @@ export default function ScrollStage() {
         and gets it by snapping first.
       */
       const flying = typeof stamp === 'number' && !calm.matches ? advance(stamp) : (settle(), false)
-      const y = shown
+      /*
+        Two positions, and they differ only while a browser bar is retracted. `hand` is what the film
+        is a function of; `y` is the document position everything measured from layout is compared
+        with — a sticky frame really does pin where the document says it does.
+      */
+      const hand = shown
+      const y = shown - inset
 
       /*
         The opening is mandatory. Until it is over the shot holds its first frame — the page still
@@ -816,14 +970,14 @@ export default function ScrollStage() {
       let s = 0
       if (root.dataset.opening === 'running') {
         origin = null
-        held = y
+        held = hand
         anchor(y)
         if (sheetPrice !== null) window.__sheet?.(0, 0, clock)
       } else {
         if (origin === null) {
           origin = held
-          anchor(held, true)
-        } else if (y < origin) {
+          anchor(held - inset, true)
+        } else if (hand < origin) {
           /*
             Scrolling back up above where the shot began, which only happens to somebody who scrolled a
             long way during the opening. The origin follows them, so the stretch of scroll that did
@@ -834,10 +988,10 @@ export default function ScrollStage() {
             they have to scroll to get back to Chapter II — from "however far I flicked" to "not at
             all", which is the answer they would expect.
           */
-          origin = y
+          origin = hand
           anchor(y, true)
         }
-        const distance = Math.max(0, y - origin) / window.innerHeight / perBeat
+        const distance = Math.max(0, hand - origin) / frameVh() / perBeat
         const wanted = sheetPrice !== null ? sheetPrice.warp(distance) : distance
         /* The page is driven by the hand's own distance, in viewports; the film by `p`. */
         if (sheetPrice !== null) window.__sheet?.(distance * perBeat, wanted, clock)
@@ -880,10 +1034,12 @@ export default function ScrollStage() {
         see the other, and it is now one number computed in one place.
       */
       const p = s
-      const vhNow = window.innerHeight
-      const actAt = origin === null ? Number.POSITIVE_INFINITY : (actTop - origin) / vhNow / perBeat + lift
+      const vhNow = frameVh()
+      /* The origin as a document position: where the film's zero stands for anything measured from layout. */
+      const zero = origin === null ? null : origin - inset
+      const actAt = zero === null ? Number.POSITIVE_INFINITY : (actTop - zero) / vhNow / perBeat + lift
       const methodAt =
-        origin === null ? Number.POSITIVE_INFINITY : (methodTop - origin) / vhNow / perBeat + lift
+        zero === null ? Number.POSITIVE_INFINITY : (methodTop - zero) / vhNow / perBeat + lift
 
       /* The act's view of `p`. Clamped at zero: before its offset the segment simply has not begun. */
       const a = Math.max(0, (p - actAt) * (perBeat / perActBeat))
@@ -895,7 +1051,7 @@ export default function ScrollStage() {
       */
       {
         const next = aperture(p, a).toFixed(PRECISION)
-        if (written.get('--aperture') !== next) {
+        if (!ORPHAN_WRITES.has('--aperture') && written.get('--aperture') !== next) {
           written.set('--aperture', next)
           root.style.setProperty('--aperture', next)
         }
@@ -907,6 +1063,7 @@ export default function ScrollStage() {
       ] as const) {
         for (const [name, value] of at) {
           const next = value(source).toFixed(PRECISION)
+          if (ORPHAN_WRITES.has(name)) continue
           if (written.get(name) === next) continue
           written.set(name, next)
           root.style.setProperty(name, next)
@@ -1339,6 +1496,8 @@ export default function ScrollStage() {
         const afterLock = Number.isFinite(askedLock)
           ? (y - askedLock) / window.innerHeight
           : Number.NEGATIVE_INFINITY
+        /* Read here, beside the one above and before anything below is written: a read after a write is a forced recalculation. */
+        const askedVh = window.innerHeight
 
         /*
           The three states, written only when they change. `off` before the trigger, `playing` while
@@ -1442,6 +1601,46 @@ export default function ScrollStage() {
         phase('faq', faqFired, faqParts)
 
         /*
+          ── THE GUARANTEE · WRITTEN BY THE TIME THE HAND IS THROUGH ─────────────────────────
+
+          `TIMING.questions.written`: a floor under each clock above, from this same `y` — the driver's
+          own position, never `scrollY`. Stated against the raw scroll it ran ahead of the spring and
+          wrote the list over a Method that had not finished leaving. `u` is the hand's progress from the
+          lock to the first release; past a part's own release its floor lets go over `exit`, and comes
+          back over it on the way up. The stylesheet takes the larger of clock and floor, under `--jclear`.
+
+          Nothing here changes a trigger, a clock, a release or the phases: `data-anchor` and the gate
+          below still answer the clock alone.
+        */
+        {
+          const g = TIMING.questions.written
+          const releaseAt = (name: string): number => {
+            const part = persistSpans.releases.find(([n]) => n === name)
+            return part === undefined ? Number.POSITIVE_INFINITY : part[1]
+          }
+          const span = (persistSpans.startsBefore + persistSpans.length / 100) * askedVh
+          const begins = persistTop - persistSpans.startsBefore * askedVh
+          const first = begins + persistSpans.releases[0][1] * span
+          const on = Number.isFinite(askedLock) && Number.isFinite(persistTop) && first > askedLock
+          const u = on ? (y - askedLock) / (first - askedLock) : 0
+          const floor = (name: string, from: number, to: number, release: string) => {
+            const gone = smoothstep(clamp01((y - (begins + releaseAt(release) * span)) / (g.exit * askedVh)))
+            const next = (on ? smoothstep(clamp01((u - from) / (to - from))) * (1 - gone) : 0).toFixed(PRECISION)
+            if (written.get(name) === next) return
+            written.set(name, next)
+            pubEl.style.setProperty(name, next)
+          }
+          floor('--qf0', g.question.from, g.question.to, '--jgone1')
+          floor('--qfb', g.answer.from, g.answer.to, '--jgoneb')
+          for (let i = 0; i < faq.rows; i += 1) {
+            const n = i + 1
+            const from = g.rows.from + i * g.rows.step
+            floor(`--qf${n}`, from, from + g.rows.over, `--jgone${n + 1}`)
+            floor(`--qfr${n}`, from - g.ruleLeads, from - g.ruleLeads + g.rows.over, `--jgoner${n + 1}`)
+          }
+        }
+
+        /*
           ── THE LIST READS THROUGH, WHERE IT CANNOT STAND WHOLE ─────────────────────────────
 
           `clamp(0, y − from, excess)`: one pixel of list for one pixel of scroll, from the FAQ point
@@ -1508,8 +1707,8 @@ export default function ScrollStage() {
        * else is. That conversion is the whole reason the publication can stop being a separate world.
        */
       const flow = new Map<number, number>()
-      if (origin !== null) {
-        for (const [id, top] of flowTops) flow.set(id, (top - origin) / vhNow / perBeat + lift)
+      if (zero !== null) {
+        for (const [id, top] of flowTops) flow.set(id, (top - zero) / vhNow / perBeat + lift)
       }
 
       const placed = narrativePositions({
@@ -1596,7 +1795,7 @@ export default function ScrollStage() {
         audit against real numbers. Not one check is skipped, relaxed or made conditional on a value —
         this only stops them being asked a question that has no answer yet.
       */
-      if (audit && origin !== null) {
+      if (audit && zero !== null) {
         audit = false
         assertNarrative(placed)
         /*
@@ -1606,7 +1805,7 @@ export default function ScrollStage() {
         */
         assertReachable(
           placed,
-          (document.documentElement.scrollHeight - vhNow - origin) / vhNow / perBeat + lift,
+          (document.documentElement.scrollHeight - window.innerHeight - zero) / vhNow / perBeat + lift,
         )
         assertJunctions(junctionsOnP, boundaries)
         assertSegments(placed, boundaries, [
@@ -1774,6 +1973,7 @@ export default function ScrollStage() {
         const rl = span === undefined ? 0 : junctionAt(span, p)
         for (const [name, value] of relightTrack) {
           const next = value(rl).toFixed(PRECISION)
+          if (ORPHAN_WRITES.has(name)) continue
           if (written.get(name) === next) continue
           written.set(name, next)
           root.style.setProperty(name, next)
@@ -1804,6 +2004,7 @@ export default function ScrollStage() {
       */
       const put = (name: string, value: number) => {
         const next = String(value)
+        if (ORPHAN_WRITES.has(name)) return
         if (written.get(name) === next) return
         written.set(name, next)
         root.style.setProperty(name, next)
@@ -2276,6 +2477,18 @@ export default function ScrollStage() {
     }
 
     /*
+      The browser's bar moving. Not a resize — nothing is re-priced and nothing re-measured, because
+      no layout has changed yet; the frame is redrawn from the same hand position with the bar's new
+      share of it. `resize` events in the rendering steps run before animation frames, so the frame
+      this asks for already sees the scroll position Chrome paired with it.
+    */
+    const onBrowserBar = () => {
+      const was = inset
+      senseBrowserBar()
+      if (inset !== was) onScroll()
+    }
+
+    /*
       Any in-page link — the rail, a mark — and only one whose default went ahead. Listened for on the
       window, where the bubble ends, so a handler that declined the navigation has already said so.
     */
@@ -2358,6 +2571,7 @@ export default function ScrollStage() {
     read()
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onResize, { passive: true })
+    browserView?.addEventListener('resize', onBrowserBar)
     pointer.addEventListener('change', onResize)
     window.addEventListener('pageshow', rewind)
     window.addEventListener('click', onPress)
@@ -2368,6 +2582,7 @@ export default function ScrollStage() {
       grows?.disconnect()
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onResize)
+      browserView?.removeEventListener('resize', onBrowserBar)
       pointer.removeEventListener('change', onResize)
       window.removeEventListener('pageshow', rewind)
       window.removeEventListener('click', onPress)

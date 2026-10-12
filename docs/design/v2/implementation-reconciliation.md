@@ -3700,6 +3700,64 @@ tracking and ≤ 1 unit of weight, from stops landing ±0.0005 apart); one natur
 
 **Not validated:** iOS Safari and a physical touch device — not reachable from this environment.
 
+## C32 · Liquid glass behind the top menu: one layer, in every section · **7 October 2026** · design owner decision
+
+**Decided on the phone, variant by variant, and final.** Where the Ledger is a line across the top of
+the frame — 900px and narrower — its background is **one pane of glass, the same in every section**.
+
+- **G2**: a micro-tint of 12% of the film's black.
+- **Optical base A3**: the image behind the line is *refracted* — displaced 16px by a slow,
+  low-frequency field — with the least blur that still reads as glass (2px), and saturation 1.08,
+  contrast 1.06, exposure 0.90. A mask takes it to nothing 2.25rem below the line: no edge, border,
+  radius or shadow.
+- **The line is lifted 5px** into the pane. Nothing in the layout moves.
+- **Permanent once the rail has entered.** Its opacity is `--rail-draw`; it reads no section, anchor,
+  direction, clock or chapter.
+- **The same layer in every section, and no composition of its own in any of them.**
+- **The Index uses the same language**: open, it is the film refracted and dimmed (blur 4px, exposure
+  0.62, 30% tint) rather than a page of the register's scrim.
+- **Questions gives the menu no background of its own.** The band that stood under the line while the
+  anchor played (`.ledger::before`) is removed. The Questions logic is untouched — `data-anchor` and
+  `data-asked-gone` are still written; only that picture of them is gone.
+- **Contact gets no special layer.** Cream type on that lit sky has limited contrast; the tint was not
+  raised to answer it, and no adaptive ink was introduced. Recorded as a limitation of the present
+  ground, not as a debt of the glass.
+- **Opening and Chapter II have no glass**, because there is no line there yet.
+
+**What stood behind the line before, and what became of each** — measured on a Mi 11 Lite by hiding
+each layer for a frame and comparing the strip pixel by pixel:
+
+| Layer | Where it painted behind the line | Now |
+|---|---|---|
+| `.ledger::before` | Questions, while the anchor played or was held | removed |
+| `.ledger`'s own gradient on `--jp9` | 768–900px, from About on | removed |
+| `.env-legibility` | the Work; faintly at Contact | not drawn at 900px and narrower — it is the desktop rail's pool and stays on the desktop |
+| `.v2-rail-grade` | the Work only (it lives inside the film) | kept — it is the Work's own burn — and released until below the pane |
+
+**Implementation.** `globals.css` (*The glass behind the top line · C32*), the field's definition as
+static markup in `ledger.tsx`, and two lines in `page.tsx`'s no-scripting block, where the pane is not
+drawn. No timing, no driver change, nothing above 900px. Where `url()` in `backdrop-filter` is not
+available the pane is the same without the refraction; where `backdrop-filter` is not available it is
+the tint alone.
+
+**Departures and debts, stated.** The pane supersedes C24's *"The band has no ground"* only in that
+it now has one, and it is not a band. The 768–900 row lost the ground that kept the section's type
+from reading through the five destinations; that argument is kept beside the rule in `globals.css`.
+Cost on the phone: no measurable loss of frame rate; the display compositor's share of time rises
+with the pane (about 13–18% to 18–26%), most with the Index open. Not verified: iOS Safari.
+
+**Amended 8 October 2026 · design owner: between 768 and 900px the same pane is denser.** There the
+four other chapters stand on the line itself at 9px, and over Contact's sky the 12% pane left them at
+2.1:1 (title 2.8:1) — measured at 768, 820 and 900 in `?vp=core`. Four densities of the one pane were
+compared on the same frames (12% / 0.90, 20% / 0.75, 30% / 0.62, 42% / 0.50): 20% did not reach 3:1,
+42% read as a bar, and **30% tint at an exposure of 0.62** was approved — destinations 3.0–3.6:1,
+title 4.6–5.6:1 at Contact. Only the tint and the exposure change; the field, blur, saturation,
+contrast, reach, mask and lift are G2's, and it is still one layer, the same in every section, with
+no ground, scrim or section-specific treatment. 767px and narrower keep 12% / 0.90. Stated cost: over
+a lit sky — Contact, and the Work's brightest photograph — the top of the frame is visibly shaded.
+This amends *G2*'s 12% and *Contact gets no special layer*'s "the tint was not raised" for this range
+only; nothing is special to Contact. Not verified: a real tablet, iOS Safari.
+
 ## Approved states recorded here for completeness · 30 September – 2 October 2026 · design owner
 
 These were approved and frozen by the design owner and lived only in `docs/development/SESSION-HANDOFF.md`

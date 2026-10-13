@@ -235,6 +235,29 @@ export default function ScrollStage() {
       one unit and walked in another for as long as the bar was showing.
     */
     const browserView = window.visualViewport ?? null
+
+    /*
+      **Questions is entered and left differently under a thumb** — `TIMING.questions.thumb`, 13 October
+      2026. The same media query the stylesheet prices the runways by, read live: where it matches the
+      list stands about three viewports (`distance.asked`), and its entrance and its letting-go are
+      placed along that distance instead of inside the first and last fraction of it. Off a thumb every
+      value below resolves to the one it always was.
+    */
+    const thumb = window.matchMedia('(pointer: coarse)')
+    /** Where the rows are asked for, in viewport heights past the lock. */
+    const rowsAfterLock = () =>
+      thumb.matches ? TIMING.questions.thumb.rowsAfterLock : TIMING.questions.faq.afterLock
+    /*
+      **How hurried the hand is**, 0 → 1 — `TIMING.questions.thumb.swift`. The driver's own position
+      differenced frame to frame, eased up quickly and down slowly. 0 off a thumb and under the
+      threshold, where Questions' windows are exactly the authored ones; above it they widen. Kept
+      here because it has to outlive a frame.
+    */
+    let pace = 0
+    let paceAt = 0
+    let paceFrom = Number.NaN
+    /** Where each of Questions' positional values has got to — `questions.thumb.swift.least`. */
+    const eased = new Map<string, { v: number; at: number }>()
     let inset = 0
     let tallVh = 0
     const senseBrowserBar = () => {
@@ -429,6 +452,16 @@ export default function ScrollStage() {
       the film's own dissolve. `footageArmed` is whether that cue is still to be given on this pass.
     */
     let footageArmed = true
+    /*
+      **Not on iOS** — 13 October 2026. Seen on an iPhone, in a screen recording of production and in
+      two tapes of the driver: the cue's seek is issued (`seeking`, 0.3) and never completes — no
+      `seeked` for the eight seconds the tape goes on — and the picture stands on the sought frame for
+      as long as Contact is shown, while the sentence under it goes on breathing. Nothing had touched
+      the sentence. The footage plays everywhere else on that phone, so there it is simply left
+      running: Contact arrives on whatever the film is showing, and the film is never still. The same
+      test `globals.css` uses for the engine, because it is the engine and not the size of the screen.
+    */
+    const cuesFootage = !CSS.supports('-webkit-touch-callout', 'none')
     /*
       `listReleased`, `passageOn`, `passageAt`, `passageLast` and `passageY` are gone — C26, 29 September
       2026. The passage 13 → 14 is a position now (`persistAt` above), and the list's parts start at
@@ -658,7 +691,7 @@ export default function ScrollStage() {
         landing whatever the room.
       */
       const passageStarts = persistTop - TIMING.environment.persisting.startsBefore * window.innerHeight
-      const faqLands = askedLock + TIMING.questions.faq.afterLock * window.innerHeight + 2
+      const faqLands = askedLock + rowsAfterLock() * window.innerHeight + 2
       const listStands = askedList !== null && getComputedStyle(askedList).position === 'sticky'
       root.style.setProperty(
         '--asked-fits',
@@ -961,6 +994,44 @@ export default function ScrollStage() {
       const hand = shown
       const y = shown - inset
 
+      {
+        const s = TIMING.questions.thumb.swift
+        const dt = paceAt === 0 ? 0 : Math.min(0.1, Math.max(0, (clock - paceAt) / 1000))
+        const speed = dt > 0 && Number.isFinite(paceFrom) ? Math.abs(shown - paceFrom) / dt : 0
+        paceAt = clock
+        paceFrom = shown
+        const wanted =
+          thumb.matches && !calm.matches ? clamp01((speed - s.from) / (s.full - s.from)) : 0
+        if (dt > 0) pace = wanted + (pace - wanted) * Math.exp(-dt / (wanted > pace ? s.rises : s.falls))
+        if (wanted === 0 && pace < 0.002) pace = 0
+        /* While it is still easing back the windows are still moving, so the frame loop stays up. */
+        if (pace > 0) playing = true
+      }
+
+      /**
+       * A positional value of Questions that **brings ink in** no faster than `swift.least` allows, and
+       * takes it away exactly where position says. `shows` is the direction of the value that means
+       * more ink: `1` for a floor or the envelope, `-1` for how far gone a part is. Off a thumb, with
+       * reduced motion, the first time it is asked for and on a press that lands the section, it is
+       * the value itself.
+       */
+      const noFasterThan = (key: string, target: number, shows: 1 | -1 = 1): number => {
+        if (!thumb.matches || calm.matches) return target
+        const was = eased.get(key)
+        if (was === undefined || navigated || (target - was.v) * shows <= 0) {
+          eased.set(key, { v: target, at: clock })
+          return target
+        }
+        const dt = Math.min(0.1, Math.max(0, (clock - was.at) / 1000))
+        const s = TIMING.questions.thumb.swift
+        const step = dt / (s.least + (s.leastHurried - s.least) * pace)
+        const v = Math.abs(target - was.v) <= step ? target : was.v + Math.sign(target - was.v) * step
+        was.v = v
+        was.at = clock
+        if (v !== target) playing = true
+        return v
+      }
+
       /*
         The opening is mandatory. Until it is over the shot holds its first frame — the page still
         scrolls, and `opening.tsx` turns that scrolling into a faster opening instead.
@@ -1105,6 +1176,16 @@ export default function ScrollStage() {
          * leaves this out and lets go at its own speed.
          */
         out: number = seconds,
+        /**
+         * What position alone already guarantees of this value, 0 → 1. The larger of it and the clock
+         * is what is written: a part the hand has carried past its own stretch is gone whether or not
+         * its fade has had the time. 0 everywhere but the thumb's letting-go (`lettingGo`).
+         */
+        least = 0,
+        /** A delay on the way *out*, in seconds — 0 everywhere but the thumb's rows (`rowsLetGo`). */
+        leavesAfter = 0,
+        /** A ceiling position puts on the value, 1 → 0 — 1 everywhere but the thumb's rows. */
+        most = 1,
       ): number => {
         const msOf = (opening: boolean) => (calm.matches ? 0 : (opening ? seconds : out) * 1000)
         const ms = msOf(open)
@@ -1123,7 +1204,7 @@ export default function ScrollStage() {
             latch === undefined ? (open ? 1 : 0) : progressOf(latch, clock, msOf(latch.open))
           played.set(name, {
             open,
-            since: clock + (open && !calm.matches ? delay * 1000 : 0),
+            since: clock + (calm.matches ? 0 : (open ? delay : leavesAfter) * 1000),
             from: at,
           })
         }
@@ -1136,7 +1217,7 @@ export default function ScrollStage() {
           test reported *at rest* and the loop stopped on the frame it had just started.
         */
         if (p01 !== (state.open ? 1 : 0)) playing = true
-        const next = smoothstep(p01).toFixed(PRECISION)
+        const next = Math.min(Math.max(smoothstep(p01), least), most).toFixed(PRECISION)
         if (written.get(name) === next) return p01
         written.set(name, next)
         el.style.setProperty(name, next)
@@ -1275,6 +1356,59 @@ export default function ScrollStage() {
         `persistSpans.length` is in viewport-hundredths, so the divisor is the same shape as a runway's
         price without being one: nothing authored a length, the seconds did.
       */
+      /*
+        ── Where each part of the list lets go ──────────────────────────────────────────────────────
+        Off a thumb a part is released where the passage says (`persistSpans.releases`, a fraction of
+        `j`) and position guarantees nothing about it until `--jclear`. Under a thumb the same parts,
+        in the same authored order and spacing, are laid along the stretch `questions.thumb.leaves`
+        gives them — from `from` of the standing zone to the frame `--jclear` begins on — and each is
+        gone *by position* a fixed part of that stretch after it starts. Pure in `y`, so it returns the
+        list over the same distances on the way back up.
+      */
+      const lettingGo = (() => {
+        const vh = window.innerHeight
+        const span = (persistSpans.startsBefore + persistSpans.length / 100) * vh
+        const begins = persistTop - persistSpans.startsBefore * vh
+        const t = TIMING.questions.thumb.leaves
+        const hurried = TIMING.questions.thumb.swift.leaves
+        const staged =
+          thumb.matches && Number.isFinite(askedLock) && Number.isFinite(persistTop) && begins > askedLock
+        /* In a hurry the letting-go begins earlier in the zone and each part takes more of its stretch. */
+        const startsAt = t.from + (hurried.from - t.from) * pace
+        const takes = t.over + (hurried.over - t.over) * pace
+        const from = staged ? askedLock + startsAt * (begins - askedLock) : begins
+        const until = begins + persistSpans.dusk.from * span
+        const stretch = until - from
+        /* The rows and their hairlines keep their authored spacing; the description and the question follow. */
+        const rows = persistSpans.releases.filter(([n]) => n !== '--jgoneb' && n !== '--jgone1')
+        const first = rows.length > 0 ? rows[0][1] : 0
+        const last = rows.length > 0 ? rows[rows.length - 1][1] : 0
+        /** The document position at which a part is released. */
+        const at = (name: string, authored: number): number => {
+          if (!staged) return begins + authored * span
+          const on =
+            name === '--jgone1'
+              ? t.question
+              : name === '--jgoneb'
+                ? t.answer
+                : (last > first ? (authored - first) / (last - first) : 0) * t.rows
+          return from + on * stretch
+        }
+        return {
+          staged,
+          at,
+          /** How far gone that part is by position alone — 0 standing, 1 gone; 0 off a thumb. */
+          gone: (name: string, authored: number): number => {
+            if (!staged) return 0
+            const start = at(name, authored)
+            const over = Math.min(takes * stretch, until - start)
+            return over > 0 ? smoothstep(clamp01((y - start) / over)) : y >= start ? 1 : 0
+          },
+          /** Where the standing zone the floors are written in ends. */
+          zoneEnds: staged ? begins : begins + persistSpans.releases[0][1] * span,
+        }
+      })()
+
       if (publicationEl !== null && Number.isFinite(persistTop)) {
         /*
           **The passage's own `0 → 1`, from scroll position and nothing else** — C26, 29 September 2026.
@@ -1323,7 +1457,7 @@ export default function ScrollStage() {
         else if (footageArmed) {
           footageArmed = false
           const film = document.querySelector<HTMLVideoElement>('.env-hero')
-          if (film !== null && j < persistSpans.crosses.to) {
+          if (film !== null && cuesFootage && j < persistSpans.crosses.to) {
             film.currentTime = TIMING.contact.arrives.seekTo
             if (!calm.matches) void film.play().catch(() => {})
           }
@@ -1365,17 +1499,20 @@ export default function ScrollStage() {
           let questionGone = 0
           let turning = 0
           for (const [name, at, over] of persistSpans.releases) {
-            const out = j >= at
+            const out = lettingGo.staged ? y >= lettingGo.at(name, at) : j >= at
             const latch = played.get(name)
             const turns = latch !== undefined && latch.open !== out && out
+            const least = noFasterThan(`gone${name}`, lettingGo.gone(name, at), -1)
             const p01 = play(
               publicationEl,
               name,
               out,
               over,
               turns ? TIMING.environment.persisting.releases.together * turning++ : 0,
+              over,
+              least,
             )
-            if (name === '--jgone1') questionGone = p01
+            if (name === '--jgone1') questionGone = Math.max(p01, least)
           }
           /*
             **Whether the questions have left the room** — the question goes last and alone, so once it
@@ -1529,20 +1666,52 @@ export default function ScrollStage() {
           and the lock is further down still. So the anchor answers the scroll alone.
         */
         const anchorFired = afterLock >= anchor.afterLock
+        /** How much wider the thumb's envelopes are than authored this frame — 1, up to `swift.enters`. */
+        let widens = 1
+        /**
+         * One of the thumb's own envelopes (`questions.thumb.opens`), 0 → 1 in viewport heights past the
+         * lock: the ceiling a part is written under. 1 off a thumb.
+         */
+        const opens = (key: string, from: number, over: number): number =>
+          thumb.matches
+            ? noFasterThan(key, smoothstep(clamp01((afterLock - from * widens) / (over * widens))))
+            : 1
         /*
           **The envelope the anchor is written inside — position, not time** (`anchor.enters`). The
           clock below still writes the type; this is how much of the room it is allowed to take yet, so
           the Method → Questions dissolve follows the hand and holds wherever the hand stops.
         */
         {
-          const next = smoothstep(clamp01((afterLock - anchor.afterLock) / anchor.enters)).toFixed(PRECISION)
+          const enters = thumb.matches
+            ? TIMING.questions.thumb.enters +
+              (TIMING.questions.thumb.swift.enters - TIMING.questions.thumb.enters) * pace
+            : anchor.enters
+          widens = thumb.matches ? enters / TIMING.questions.thumb.enters : 1
+          const next = noFasterThan(
+            '--qin',
+            smoothstep(clamp01((afterLock - anchor.afterLock) / enters)),
+          ).toFixed(PRECISION)
           if (written.get('--qin') !== next) {
             written.set('--qin', next)
             pubEl.style.setProperty('--qin', next)
           }
         }
         const qa = play(pubEl, '--qa', anchorFired, anchor.over, 0)
-        const qaBody = play(pubEl, '--qa-body', anchorFired, anchor.body.over, anchor.body.leads)
+        const qaBody = play(
+          pubEl,
+          '--qa-body',
+          anchorFired,
+          anchor.body.over,
+          anchor.body.leads,
+          anchor.body.over,
+          0,
+          0,
+          opens(
+            'opens-description',
+            TIMING.questions.thumb.opens.description.from,
+            TIMING.questions.thumb.opens.description.over,
+          ),
+        )
         phase('anchor', anchorFired, [qa, qaBody])
 
         /*
@@ -1563,7 +1732,19 @@ export default function ScrollStage() {
           delays inbound only.
         */
         const faq = TIMING.questions.faq
-        const faqFired = afterLock >= faq.afterLock
+        /*
+          **On a thumb the rows also wait for the description** — `questions.thumb.rowsAfterDescription`:
+          the title, its description, then the list. `qaBody` is the description's own clock as it
+          stands this frame, so there is no second clock; a press that lands the section, and reduced
+          motion, find it already at 1.
+        */
+        /* In a hurry the rows are asked for, and let go, further from the lock — `swift.rowsAfterLock`. */
+        const rowsFrom = thumb.matches
+          ? rowsAfterLock() + (TIMING.questions.thumb.swift.rowsAfterLock - rowsAfterLock()) * pace
+          : rowsAfterLock()
+        const faqFired =
+          afterLock >= rowsFrom &&
+          (!thumb.matches || qaBody >= TIMING.questions.thumb.rowsAfterDescription)
         const faqParts: number[] = []
 
         for (let i = 0; i < faq.rows; i += 1) {
@@ -1576,9 +1757,22 @@ export default function ScrollStage() {
           const delay = i * faq.stagger + (i >= faq.breathAfter ? faq.breath : 0)
 
           /* The rule goes first within the row: it is what opens the space. */
-          faqParts.push(play(pubEl, `--qr${n}`, faqFired, faq.rule.over, delay))
+          /*
+            On a thumb the rows let go from the bottom, one after another (`questions.thumb.rowsLetGo`),
+            and each is written under its own envelope (`questions.thumb.opens`). Off a thumb both are
+            neutral.
+          */
+          const letsGo = thumb.matches ? (faq.rows - 1 - i) * TIMING.questions.thumb.rowsLetGo : 0
+          const under = opens(
+            `opens-row${n}`,
+            TIMING.questions.thumb.opens.rows.from + i * TIMING.questions.thumb.opens.rows.step,
+            TIMING.questions.thumb.opens.rows.over,
+          )
+          faqParts.push(
+            play(pubEl, `--qr${n}`, faqFired, faq.rule.over, delay, faq.rule.over, 0, letsGo + (thumb.matches ? faq.rule.leads : 0), under),
+          )
 
-          const at = play(pubEl, `--qi${n}`, faqFired, faq.over, delay + faq.rule.leads)
+          const at = play(pubEl, `--qi${n}`, faqFired, faq.over, delay + faq.rule.leads, faq.over, 0, letsGo, under)
           faqParts.push(at)
 
           /*
@@ -1614,29 +1808,52 @@ export default function ScrollStage() {
         */
         {
           const g = TIMING.questions.written
+          /* The ranges: the thumb's own where the letting-go is staged, the section's everywhere else. */
+          const w = (() => {
+            if (!lettingGo.staged) return g
+            const a = TIMING.questions.thumb.written
+            const b = TIMING.questions.thumb.swift.written
+            const mix = (x: number, z: number) => x + (z - x) * pace
+            return {
+              question: { from: mix(a.question.from, b.question.from), to: mix(a.question.to, b.question.to) },
+              answer: { from: mix(a.answer.from, b.answer.from), to: mix(a.answer.to, b.answer.to) },
+              rows: {
+                from: mix(a.rows.from, b.rows.from),
+                step: mix(a.rows.step, b.rows.step),
+                over: mix(a.rows.over, b.rows.over),
+              },
+              ruleLeads: mix(a.ruleLeads, b.ruleLeads),
+            }
+          })()
           const releaseAt = (name: string): number => {
             const part = persistSpans.releases.find(([n]) => n === name)
             return part === undefined ? Number.POSITIVE_INFINITY : part[1]
           }
           const span = (persistSpans.startsBefore + persistSpans.length / 100) * askedVh
           const begins = persistTop - persistSpans.startsBefore * askedVh
-          const first = begins + persistSpans.releases[0][1] * span
+          const first = lettingGo.zoneEnds
           const on = Number.isFinite(askedLock) && Number.isFinite(persistTop) && first > askedLock
           const u = on ? (y - askedLock) / (first - askedLock) : 0
           const floor = (name: string, from: number, to: number, release: string) => {
-            const gone = smoothstep(clamp01((y - (begins + releaseAt(release) * span)) / (g.exit * askedVh)))
-            const next = (on ? smoothstep(clamp01((u - from) / (to - from))) * (1 - gone) : 0).toFixed(PRECISION)
+            /* Staged, a part's floor leaves exactly as the part does; otherwise over `exit` past its release. */
+            const gone = lettingGo.staged
+              ? lettingGo.gone(release, releaseAt(release))
+              : smoothstep(clamp01((y - (begins + releaseAt(release) * span)) / (g.exit * askedVh)))
+            const next = noFasterThan(
+              name,
+              on ? smoothstep(clamp01((u - from) / (to - from))) * (1 - gone) : 0,
+            ).toFixed(PRECISION)
             if (written.get(name) === next) return
             written.set(name, next)
             pubEl.style.setProperty(name, next)
           }
-          floor('--qf0', g.question.from, g.question.to, '--jgone1')
-          floor('--qfb', g.answer.from, g.answer.to, '--jgoneb')
+          floor('--qf0', w.question.from, w.question.to, '--jgone1')
+          floor('--qfb', w.answer.from, w.answer.to, '--jgoneb')
           for (let i = 0; i < faq.rows; i += 1) {
             const n = i + 1
-            const from = g.rows.from + i * g.rows.step
-            floor(`--qf${n}`, from, from + g.rows.over, `--jgone${n + 1}`)
-            floor(`--qfr${n}`, from - g.ruleLeads, from - g.ruleLeads + g.rows.over, `--jgoner${n + 1}`)
+            const from = w.rows.from + i * w.rows.step
+            floor(`--qf${n}`, from, from + w.rows.over, `--jgone${n + 1}`)
+            floor(`--qfr${n}`, from - w.ruleLeads, from - w.ruleLeads + w.rows.over, `--jgoner${n + 1}`)
           }
         }
 

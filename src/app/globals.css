@@ -2654,6 +2654,21 @@ a.act-open:focus-visible {
     width: auto;
   }
 
+  /*
+    **The folio keeps the measure of the widest one, or the chapter beside it jumps.** Lying down, the
+    folio's box is the first thing on the chapter's line, and it took the width of whichever number was
+    arriving: `01` is 13.28px and `02`–`05` are 15.33–15.59, so on Work → About the running chapter was
+    pushed 2.05px to the right in the first frame of the exchange, with *Work* still at full ink — measured
+    on a Mi 11 Lite as 2.2px in one frame, in every one of eight recordings. 1.733em is `05`, the widest of
+    the five, at this register's own size and tracking (15.59px at 9px); re-measure it if the face changes.
+
+    Only the box is held. The number is still set from the column's axis, the gap is still the head's, and
+    neither exchange is touched. Above 900px the folio has a line of its own and this does not apply.
+  */
+  .rail-head > .rail-folio {
+    min-width: 1.733em;
+  }
+
   .rail-title {
     width: auto;
     margin-top: 0;
@@ -5563,8 +5578,13 @@ html[data-opening='running'] .ways a {
     passage begins, so its questions are released in place rather than under the head line. For scale,
     the desktop's own hold is 150vh on a mouse and 300 on touch.
   */
+  /*
+    **323.5 where it was 175** (13 October 2026): the 148.5vh `TIMING.distance.method` gave up on a
+    thumb, taken in here so the page is as long as it was — `distance.method` argues it and carries the
+    measurements. The list stands for about three viewports on a phone instead of one and a quarter.
+  */
   .asked-hold::after {
-    height: 175vh;
+    height: 323.5vh;
   }
 }
 
@@ -9382,6 +9402,34 @@ a.v2-ident-open:focus-visible {
     translate: 0 -5px;
   }
 
+  /*
+    **The rail's own box reaches up to the line it lifted, or its wipe cuts that line.** `.ledger-rail`
+    clips and masks to its border box, and the line stands 5px above that box's top. Measured at
+    402 x 754: the box began at y 31.66 and the running chapter's ink at 29.33, so the top 2.33px of the
+    *k* and of the *W*'s serifs fell outside it, from the first frame the line is drawn until the rail
+    lights and `data-index` releases the wipe.
+
+    **It is the mask that cuts, and in Safari it cannot be asked not to.** 11 October's rule moved the
+    clip's top edge and the mask's tile up by the rise and relied on `mask-clip: no-clip` to paint above
+    the box. Chrome honours that and showed the line whole. WebKit accepts the declaration and still
+    confines the mask to the border box: photographed in WebKit 26.6 with that rule in force, the mask
+    alone removed rows 29.33-31.33 (the clip alone removed nothing), and the design owner saw the *k* cut
+    on an iPhone on 13 October. A frontier drawn outside its own box is what does not travel.
+
+    So the box is given the rise instead: 5px of padding above, taken back by the same margin. Nothing
+    inside it moves (the head, its lift, the index and the gap stand where they stood, to the hundredth of
+    a pixel) and the Ledger is no taller. The wipe needs no correction at all, because the mask's tile and
+    the clip's percentages are both this box again: the knife falls where the mask reaches zero, as the
+    base rule says, and the clip is shut at `draw: 0`. `--rail-rise` is the lift's own 5px and must stay
+    equal to it.
+  */
+  .ledger .ledger-rail {
+    --rail-rise: 5px;
+
+    padding-top: var(--rail-rise);
+    margin-top: calc(-1 * var(--rail-rise));
+  }
+
   /* The desktop rail's pool: there is no rail where it stands on these widths. */
   .env-legibility {
     display: none;
@@ -10823,8 +10871,28 @@ a.v2-ident-open:focus-visible {
   --os-in: clamp(0, calc((var(--jp1) - 0.35) / 0.65), 1);
   --os-sun-x: calc(50% - 0.065 * max(100vw, 200lvh));
   --os-sun-y: calc(50% - 0.13 * max(50vw, 100lvh));
-  /* The black the frame had — §2's column, unchanged — and how much of it the sun is spared. */
-  --os-out: calc(0.5 + 0.15 * var(--jp1) + 0.25 * var(--jp2) + 0.09 * var(--jp3));
+  /*
+    **State 01 stands at .15 of this black, not §2's .50** — design owner, 14 October 2026: *"quando o
+    site abre, sinto que o filtro escurece demasiado o background. No Contact gosto mais da cor e da
+    luminosidade da imagem."* Measured on the same frame of the file at 1440 × 900: the Opening read a
+    mean of 36 levels against Contact's 105, and the whole of that difference is two layers Contact
+    does not have — this grade, flat at .50, and `.v2-scrim` over it. The scrim is left alone: its
+    gradient is what holds the links at the foot of the frame and the shape of the night. Only the
+    flat half is eased, so the sky's band passes .71 of the picture instead of .42 and the frame
+    reads 57 — still little over half of Contact. The title's contrast against its ground goes
+    5.6 → 4.2 and the line under it 7.3 → 6.4; the links keep 10.8.
+
+    Chosen by the owner from four seen side by side — .50, .30, .22 and this one. With the grade at
+    nothing the frame would read about 65: what is left is the scrim.
+
+    From 02 on the column is §2's, unchanged: the same .65, reached from .15 instead of from .50.
+    This one number is the whole of the change; .5 puts state 01 back where §2 had it.
+  */
+  --os-first: 0.15;
+  /* The black the frame had — §2's column from 02 — and how much of it the sun is spared. */
+  --os-out: calc(
+    var(--os-first) + (0.65 - var(--os-first)) * var(--jp1) + 0.25 * var(--jp2) + 0.09 * var(--jp3)
+  );
   --os-hole: calc((0.16 * var(--os-in) + 0.2 * var(--jp2)) * (1 - var(--jp3)));
   --os-r: calc(0.5 * 100vmax - 0.2 * 100vmax * var(--jp2));
   /* The light's strength at each state it lives through: Chapter II, Philosophy, thesis, occasions. */
@@ -11367,7 +11435,9 @@ a.v2-ident-open:focus-visible {
 
 :root[data-next='on'] {
   /* How dark the One Sun grade is allowed to get. It was 0.99. */
-  --os-out: calc(0.5 + 0.15 * var(--jp1) + 0.2 * var(--jp2) + 0.03 * var(--jp3));
+  --os-out: calc(
+    var(--os-first) + (0.65 - var(--os-first)) * var(--jp1) + 0.2 * var(--jp2) + 0.03 * var(--jp3)
+  );
 }
 
 :root[data-next='on'] .v2-grade {
@@ -11606,57 +11676,104 @@ a.v2-ident-open:focus-visible {
   changes height; no step in the narrative position on `resize`. Not verified: a browser whose bar is
   at the bottom of the screen (the top edge is then the still one), a real tablet, iOS Safari.
 */
-.environment,
-.v2,
-.about-stage {
-  top: auto;
-  bottom: 0;
-  height: 100lvh;
-}
-
-.method {
-  align-content: end;
-}
-
-.method-stage {
-  top: auto;
-  bottom: 0;
-}
-
 /*
-  Contact's page hangs below its frame, so resting the frame at the end of the runway would lengthen the
-  document by exactly that overhang (`100lvh − --rule-y − 2px`). The runway gives it back: the height
-  the section had, less the overhang, is this.
+  ── Which edge the bar is on decides which edge a frame hangs from · 13 October 2026 ─────────────
+
+  Everything above was measured on Chrome for Android, whose bar is at the **top**. Safari on iOS keeps
+  its bar at the **bottom**, and the rule's own closing line said that case had never been seen. It has
+  now, on the design owner's iPhone (Safari 27, 402 x 874; the window is 714px with the bar out and 754
+  with it in, `100lvh` 754), recorded at 60 frames a second:
+
+    - a frame hung from the bottom **rides the bar there**: on every retraction the photograph and the
+      type slid 40px down under a menu that stayed where it was;
+    - and for the 0.25-0.35s it takes, **a black band stood at the top of the page**, in a sawtooth:
+      4, 7, 11, 15, 17, 20, 22px, back to 6, up to 12, back to 3, gone. Safari re-lays the page out in
+      steps of about 100ms while the bar moves (714, 725, 743, 752, 754) and slides a bottom-hung layer
+      smoothly in between; what it slides is the part of the frame that was inside the window at the
+      last step, so the strip the slide uncovers at the top has nothing painted in it until the next
+      one. Twenty retractions in forty-two seconds, twenty bands; none on any return of the bar.
+
+  It is the rule above, read the other way round: **the experience hangs from the edge that stands
+  still.** On iOS that is the top. So there the frames are the top-hung ones every section declares for
+  itself (`top`, `--stage-h`, `--asked-top`, `--rule-y`) with the one thing Core was right about
+  everywhere, their size: the three that fill the window are `100lvh` tall rather than as tall as the
+  window happens to be, so nothing is re-scaled when the bar moves, and the 40px they stand past the
+  window is under Safari's own glass. Nothing in them has to be moved while the bar travels, which is
+  the whole of the fix: no slide, and no strip for a slide to uncover.
+
+  `-webkit-touch-callout` is how a stylesheet knows it is in WebKit on iOS; there is no query for where
+  a browser keeps its bar. It is the wrong answer for a visitor who has moved Safari's bar to the top, or
+  who uses another iOS browser that keeps it there: for them this is the layout as it was before Core.
+
+  The driver needs nothing: `lockOffset` reads a frame's `top` where it has one and its `bottom` where
+  it does not, and the two layouts were measured identical to the pixel with the bar retracted.
+
+  Not hidden and not held: no layer is drawn over the band, the bounce at the top and the foot of the
+  page is the browser's and is untouched, and no height is fixed to a number.
 */
-.closing {
-  align-content: end;
-  height: calc(var(--closing-pin) + var(--closing-settle) + 2px);
-}
-
-/* And the section's ground still reaches the foot of the page it carries. */
-.publication .closing::before {
-  bottom: calc(var(--rule-y) + 1px - 100lvh);
-}
-
-.closing-frame {
-  top: auto;
-  bottom: calc(100lvh - var(--rule-y) - 2px);
-}
-
-@media (max-width: 700px) and (min-height: 561px) {
-  .asked-hold {
-    display: flex;
-    flex-direction: column-reverse;
+@supports (-webkit-touch-callout: none) {
+  .environment,
+  .v2,
+  .about-stage {
+    top: 0;
+    bottom: auto;
+    height: 100lvh;
   }
+}
 
-  .asked-hold::after,
-  .asked {
-    flex: none;
-  }
-
-  /* Less what an open answer adds (`--asked-open`, the driver's), so the list still grows downward. */
-  .asked {
+@supports not (-webkit-touch-callout: none) {
+  .environment,
+  .v2,
+  .about-stage {
     top: auto;
-    bottom: calc(100lvh - var(--asked-top) - var(--asked-h, 0px) - var(--asked-open, 0px));
+    bottom: 0;
+    height: 100lvh;
+  }
+
+  .method {
+    align-content: end;
+  }
+
+  .method-stage {
+    top: auto;
+    bottom: 0;
+  }
+
+  /*
+    Contact's page hangs below its frame, so resting the frame at the end of the runway would lengthen the
+    document by exactly that overhang (`100lvh − --rule-y − 2px`). The runway gives it back: the height
+    the section had, less the overhang, is this.
+  */
+  .closing {
+    align-content: end;
+    height: calc(var(--closing-pin) + var(--closing-settle) + 2px);
+  }
+
+  /* And the section's ground still reaches the foot of the page it carries. */
+  .publication .closing::before {
+    bottom: calc(var(--rule-y) + 1px - 100lvh);
+  }
+
+  .closing-frame {
+    top: auto;
+    bottom: calc(100lvh - var(--rule-y) - 2px);
+  }
+
+  @media (max-width: 700px) and (min-height: 561px) {
+    .asked-hold {
+      display: flex;
+      flex-direction: column-reverse;
+    }
+
+    .asked-hold::after,
+    .asked {
+      flex: none;
+    }
+
+    /* Less what an open answer adds (`--asked-open`, the driver's), so the list still grows downward. */
+    .asked {
+      top: auto;
+      bottom: calc(100lvh - var(--asked-top) - var(--asked-h, 0px) - var(--asked-open, 0px));
+    }
   }
 }

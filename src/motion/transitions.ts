@@ -407,6 +407,8 @@ ${declare(firstState(), '  ')}
     --about-pin: ${aboutPin.coarse};
     --asked-hold: ${askedHold.coarse};
     --asked-lead: ${askedLead.coarse};
+    /* The rail's press lands where the rows are asked for, and on a thumb that is questions.thumb. */
+    --asked-lands: ${TIMING.questions.thumb.rowsAfterLock};
   }
 }
 

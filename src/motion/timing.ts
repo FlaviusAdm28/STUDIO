@@ -2056,6 +2056,223 @@ export const TIMING = {
        */
       exit: 0.25,
     },
+
+    /**
+     * ── ON A THUMB · the same section, entered and left over the room it now has ────────────────
+     *
+     * 13 October 2026, design owner, on an iPhone, after `distance.asked` gave the list about three
+     * viewports to stand in on touch: *the entrance happens too fast and has none of the elegance of
+     * the other transitions; the exit is abrupt.* Both were true and both were this file's own
+     * numbers, written for a zone of one viewport and a quarter:
+     *
+     *   - **the entrance was fired inside its first third of a viewport.** The question at the lock,
+     *     its envelope closed 0.3 of a viewport later and all six rows fired at 0.34 — about 256px on a
+     *     phone — after which everything was a clock. In a zone of 2,080px the composition was asked
+     *     for in its first eighth and the other seven eighths added nothing;
+     *   - **the exit fitted in 270px and ended on a cliff.** The answer and the six rows are released
+     *     between 0.01 and 0.082 of the passage and the question at 0.12 — 16 to 190px — each on a
+     *     clock of 0.7–0.9s, and at 0.17 `--jclear` takes whatever is left over 95px. A hand at
+     *     1,500px/s is through all of it in 0.18s: no fade is a quarter done, and the cliff takes the
+     *     whole list at once.
+     *
+     * Nothing here adds a beat, a clock or a distance, and nothing here is read on a wheel: these are
+     * the same parts in the same order, **placed along the scroll** the section now has on touch. The
+     * driver reads this block where the pointer is coarse and the block above everywhere else.
+     */
+    thumb: {
+      /**
+       * `anchor.enters` for a thumb: the question's envelope rises with the hand over 0.45 of a
+       * viewport (~340px on a phone) instead of 0.3, so the Method's last thoughts and the question
+       * change places as a crossing that is felt rather than a switch.
+       */
+      enters: 0.45,
+      /**
+       * `faq.afterLock` for a thumb — and `anchor.hold` with it, they are one number. The rows are
+       * asked for 0.7 of a viewport past the lock (~530px) where they were asked at 0.34.
+       *
+       * 0.85 was built first and measured on a Mi 11 Lite at a steady 600px/s: the entrance was the
+       * most gradual of all, and the finished composition stood whole for only 494px (0.8s) where it
+       * had stood 1,272. 0.7 gives most of that back.
+       *
+       * **And not before the description is written** — design owner, 13 October 2026, second pass:
+       * *title, then the description, then the list; the description must not arrive after the
+       * questions.* The anchor's answer is on a clock of 1.7s from the lock and the rows were on a
+       * position, so a hand that reached this point sooner than that — anything over ~310px/s — drew
+       * the first hairlines under a description still being written. On a thumb the rows now wait for
+       * both: this far past the lock, *and* the description `rowsAfterDescription` of the way through
+       * its own clock. It is the anchor's own progress; there is no second clock.
+       */
+      rowsAfterLock: 0.7,
+      /**
+       * How far through its clock the description has to be before the rows may be asked for.
+       *
+       * 1 — the anchor held — was built first and measured on a Mi 11 Lite: the order was right and
+       * the finished composition stood whole for 414px at a steady 600px/s where it had stood 671,
+       * because the list was now starting 1.7s after the lock at any hand. 0.6 is the description two
+       * thirds inked when the first hairline is drawn and four fifths when the first question is
+       * read under it: still unmistakably title, description, list, and half a second sooner.
+       */
+      rowsAfterDescription: 0.6,
+      /**
+       * **Going back up, the rows let go one after another, from the bottom** — seconds between two.
+       *
+       * Everywhere else a composition lets go all at once (`play`), and at a wheel's pace that reads
+       * as one soft release. Filmed on a phone frame at 1,500px/s coming up from Questions into the
+       * Method, 60% of everything that changed on screen changed inside a tenth of a second, and 87%
+       * at 3,000 — the reference transitions put 17–35% there. It was these six rows and their
+       * hairlines going on the same frame while the Method's thoughts came back one at a time.
+       *
+       * So on a thumb they leave the way they came, reversed: the last question first, each a beat
+       * after the one below it. And the scroll guarantees the end of it — a row is never more written
+       * than the anchor's own envelope (`--qin`), so by the lock, where the Method returns, the list
+       * is gone however fast the hand was.
+       */
+      rowsLetGo: 0.07,
+      /**
+       * **The way back up to the Method is the entrance read backwards, along the scroll.**
+       *
+       * `enters` gave the question an envelope and nothing else had one, so coming up the whole
+       * section was taken off by that single envelope at once: filmed at 1,500px/s, question,
+       * description and all six rows went from whole to gone together inside 0.18s, over the last
+       * 340px before the lock. The description and each row now have an envelope of their own, in
+       * viewport heights past the lock like `enters`, staged so that going up the list thins from
+       * the bottom, then the description, and the question last — over about 600px instead of 340 —
+       * and going down each is fully open before its own clock starts, so the entrance is unchanged.
+       *
+       *     rows          row n opens over `rows.over` from `rows.from + n × rows.step` (n = 0 the top)
+       *     description   opens over `description.over` from `description.from`
+       *     question      `enters`, as before
+       *
+       * They widen with the hand exactly as `enters` does (`swift.enters`), and like every envelope
+       * here they bring ink in no faster than `swift.least` and take it away where position says.
+       */
+      opens: {
+        description: { from: 0.1, over: 0.4 },
+        rows: { from: 0.3, step: 0.05, over: 0.25 },
+      },
+      /**
+       * `written` for a thumb: the same floor, as fractions of the lock-to-passage zone, **in the
+       * order the section is read and without one part beginning before the one above it is whole**:
+       * the question, then its description, and only when that is complete the hairlines and the rows.
+       * It closes by 0.74 of the zone rather than 0.95. Each range ends no earlier than its clock does
+       * at 500px/s in a 2,080px zone (question 0.36, description 0.41, last row 0.74 now that the rows
+       * wait for the description), so a slow hand still sees the clock.
+       */
+      written: {
+        question: { from: 0.1, to: 0.36 },
+        answer: { from: 0.18, to: 0.42 },
+        rows: { from: 0.46, step: 0.03, over: 0.13 },
+        ruleLeads: 0.04,
+      },
+      /**
+       * **How the list lets go on a thumb: along the scroll, in the reverse of the order it was read,
+       * with no cliff.**
+       *
+       * The parts are `environment.persisting.releases` and the clocks those releases start are
+       * untouched. What is set here is *where* each one starts and what the scroll guarantees:
+       *
+       *   - `from`: the letting-go begins this far through the standing zone (the last ~250px of it
+       *     on a phone) and runs to the frame `--jclear` used to cut at, `persisting.dusk` — ~520px
+       *     where the releases had 190;
+       *   - `rows`: the rows and their hairlines keep their authored spacing — in pairs from the
+       *     bottom, each hairline after its words — scaled into the stretch up to here;
+       *   - `answer`, `question`: where on the stretch the description and then the question begin
+       *     to leave. **The description leaves after the list, not in the middle of it** (it was
+       *     released with the first pair of rows): what was read first is the last to go;
+       *   - `over`: each part is gone by position this fraction of the stretch after it starts —
+       *     the larger of that and its clock is what is drawn. The question's reaches zero exactly
+       *     where `--jclear` begins, so the guarantee has nothing left to take.
+       *
+       * A pure function of position at a given pace: coming back up from Contact returns the parts
+       * over the same distances in the reverse order — question, description, list.
+       */
+      leaves: { from: 0.88, rows: 0.34, answer: 0.46, question: 0.64, over: 0.34 },
+      /**
+       * ── A HAND IN A HURRY · the same windows, wider ─────────────────────────────────────────────
+       *
+       * Design owner, 13 October 2026, on an iPhone with the block above: *at an ordinary scroll the
+       * transitions are right; at a fast one the entrance is aggressive and the exit abrupt.* Measured
+       * on a Mi 11 Lite at a steady 3,000px/s: the whole composition formed in 0.31s and left in
+       * 0.16s — each part inside 65–130ms, which is a pop however well it is ordered. The windows
+       * above are distances, and a distance is a shorter time the faster it is crossed.
+       *
+       * So the faster the hand, the **wider** each window is, and nothing else changes: the same
+       * parts, the same order, still positions on the scroll and still reversible. `pace` is how
+       * hurried the hand is, 0 at `from` px/s and below — where every number above is exactly what
+       * is used, so an ordinary scroll is untouched — and 1 at `full` and above. It rises quickly
+       * (`rises`, seconds) so a flick is answered inside its first frames, and falls slowly (`falls`)
+       * so a hand that slows or stops inside the section sees the composition settle back to its
+       * ordinary self over about a second rather than re-arrange under the finger.
+       *
+       * At `pace` 1 the entrance takes the first three quarters of the zone with each part two to
+       * three times as long as it was, and the letting-go begins at 0.66 of the zone instead of 0.88
+       * with each part's own fade over half its stretch instead of a third: at 6,000px/s that is about
+       * 0.25s of forming and 0.15s of leaving in a zone the hand crosses in a third of a second. It
+       * cannot be made gentle at that speed, only continuous: the standing whole is what gives way.
+       *
+       * No clock is added and none is changed, the scroll is never held, and off a thumb `pace` is 0.
+       */
+      swift: {
+        from: 2000,
+        full: 5000,
+        rises: 0.12,
+        falls: 0.9,
+        /**
+         * **Nothing position decides here happens in less than this**, in seconds — 13 October 2026.
+         *
+         * Measured against the two transitions the design owner holds up as right, filmed at a steady
+         * 3,000px/s on a phone frame: Work → About spends 1.0s on the middle four fifths of its change
+         * and About → Method 1.76s, with 27% and 9% of it in the busiest tenth of a second. Method →
+         * Questions spent 0.40s with 32% — and coming back up, Questions → Method put **87%** of its
+         * change into one tenth of a second, and Contact → Questions 64%.
+         *
+         * The difference is one of grammar, not of numbers. In the references, and in the Method's own
+         * leaving, *position decides when a thing begins and a clock decides how long it takes*; the
+         * scrolled guarantee is a last resort a flick meets. Questions on a thumb had it the other way
+         * round at speed: its floors and its letting-go are ranges of position, so past a certain hand
+         * they *are* the animation, and they are exactly as fast as the hand.
+         *
+         * So a part that position is **bringing in** — forming on the way down, returning on the way
+         * back up from Contact — now gets there at no more than `1 / least` a second. A hand slow
+         * enough that the range itself takes longer than this is not touched (at 600px/s the shortest
+         * range here is 260px, 0.43s); a fast one sees every part form over at least this long. It is
+         * the scroll's value still, reached a little later; no clock is started and nothing is held.
+         *
+         * **Only what appears, never what leaves.** The first build eased both ways, and filmed coming
+         * up out of Questions at 1,500px/s the list — which is carried down the screen the moment the
+         * hand is above its lock — travelled 190px still written before it went. A part leaving is
+         * leaving because the frame it stands in is about to move, so it leaves exactly where
+         * position says; what softens a fast exit is distance (`enters`, `rowsAfterLock` and `leaves`
+         * below, all wider in a hurry), not time.
+         */
+        /*
+         * **0.12 at an ordinary pace, 0.26 in a hurry — 0.45 was built first and cost the list.**
+         * Measured on a Mi 11 Lite at a steady 1,500px/s with 0.45 at every pace: the last rows were
+         * still forming when the letting-go began, so the composition never once stood whole (it had
+         * stood whole for 498px), and at 3,000px/s the rows arrived at the very end of the zone. A
+         * part that takes 0.45s to appear has travelled 675px at 1,500px/s. So the floor on the time
+         * is short where the hand is ordinary — 0.12s, under the shortest range there, which leaves
+         * that pace exactly as it was — and rises with `pace` to `leastHurried`.
+         */
+        least: 0.12,
+        leastHurried: 0.26,
+        /**
+         * `thumb.enters` and `thumb.rowsAfterLock` at `pace` 1. The envelope the question rises in,
+         * and falls in on the way back up, is twice as long; and the rows are asked for — and, coming
+         * back up, let go — further from the lock, so a fast hand leaving upward has the list thin
+         * over more than a viewport before the frame starts to move, instead of inside a third of one.
+         */
+        enters: 0.9,
+        rowsAfterLock: 1.25,
+        written: {
+          question: { from: 0.04, to: 0.36 },
+          answer: { from: 0.12, to: 0.43 },
+          rows: { from: 0.46, step: 0.015, over: 0.22 },
+          ruleLeads: 0.03,
+        },
+        leaves: { from: 0.66, over: 0.55 },
+      },
+    },
   },
 
   grounds: {
@@ -2919,7 +3136,27 @@ export const TIMING = {
      * most of what he does is not a flick. The wheel's price, the beats and every proportion are
      * untouched; `askedLead` moves with it so the lock keeps its place in the leaving window.
      */
-    method: { fine: '484.5vh', coarse: '654vh' },
+    /*
+     * **Coarse 484.5 where it was 654 — a thumb pays the wheel's price here, and Questions is given the
+     * difference** (13 October 2026). On the design owner's iPhone and on the Mi 11 Lite a hand going
+     * through this frame speeds up: nothing in a held frame answers the finger, so the flicks come
+     * harder. Measured on the iPhone, his own hand: 1,759–3,600px/s through Work and About, then 6,958,
+     * 4,382, 7,147, 9,077 and 9,036 inside the Method, arriving at Questions at 7,929px/s — and Questions,
+     * 913px long, was crossed in 268ms. In eight recorded entries (2,203–12,220px/s) the hand never once
+     * came to rest inside it.
+     *
+     * The premium was the cause's own length, so it is what goes: 654 → 484.5 takes 169.5vh out of the
+     * blind runway. `askedLead` below gives 21vh of that back by moving the lock down with the leaving
+     * window, and `asked` takes in the other 148.5 — so **the page is as long as it was**, and Questions'
+     * first release and Contact stand where they stood. The beats, their order and every proportion are
+     * untouched; a beat on a thumb is now the wheel's 150vh.
+     *
+     * What it costs, measured on the Mi 11 Lite at a steady hand (no fling): at 500px/s all eleven
+     * pieces are written and the whole composition stands 0.64–0.71s before it leaves (1.23s before); at
+     * 900px/s the last note reaches 0.91–0.93 where it reached 1; at 1,500px/s six or seven of eleven
+     * are whole where ten were. The Method is less patient with a quick hand, and that is the trade.
+     */
+    method: { fine: '484.5vh', coarse: '484.5vh' },
     methodBeats: 3.23,
 
     /**
@@ -2970,7 +3207,16 @@ export const TIMING = {
      * meant to be the last thing standing.
      */
     /* Coarse 270 where it was 300: 1.35 for a thumb, with `method` above (8 October 2026). */
-    asked: { fine: '200vh', coarse: '270vh' },
+    /*
+     * **Coarse 418.5 where it was 270**: the 148.5vh the Method's thumb premium gave up, above
+     * (13 October 2026). The phone's own hold in `globals.css` (175vh below 700px) takes the same.
+     * Measured on the Mi 11 Lite with the same synthetic flicks in a row from the same place, medians
+     * of three: the list stood 121–201ms on rising flicks before and 377–786ms after; 149–382ms on
+     * moderate ones before and 435ms to more than a second after; coming back up, 482–607ms before
+     * and 699–789 after. It does not hold an extreme hand — at 10,000px/s this zone is still under a
+     * third of a second — and nothing here stops the scroll.
+     */
+    asked: { fine: '200vh', coarse: '418.5vh' },
 
     /**
      * **How far Questions stands inside the Method's trailing frame** — design owner, 21 September
@@ -3041,7 +3287,11 @@ export const TIMING = {
      * **Coarse 171 where it was 180** (8 October 2026): the leaving window is 1.35× the wheel's now,
      * not 1.5×, and 150 → 180 was fitted to put the lock at ~0.8 of it — the same line through 1.35.
      */
-    askedLead: { fine: '150vh', coarse: '171vh' },
+    /*
+     * **Coarse 150** (13 October 2026): `method` is the wheel's price on a thumb now, so the leaving
+     * window is the wheel's and the lock takes the wheel's place in it — the same line, through 1.
+     */
+    askedLead: { fine: '150vh', coarse: '150vh' },
 
     /**
      * **The settle at the end of junction 13 → 14**, and it was `--closing-settle: 24vh` in

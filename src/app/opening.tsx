@@ -139,7 +139,18 @@ export default function Opening() {
     */
     const plate = document.querySelector<HTMLVideoElement>(HERO_PLATE)
     video.current = plate
+    /*
+      **Not on iOS** — 13 October 2026. On an iPhone this seek never completes: three tapes of the
+      driver read `seeking` true from the first frame to the last, twenty seconds on, with the element
+      playing, `readyState` 4 and `currentTime` standing at 0.04 throughout. That one unfinished seek is
+      why the subtitle's gate could not read the footage's clock there, why Contact's own cue never
+      landed, and the footage is seen standing still when Contact arrives. So there the element is
+      left exactly as the browser made it and is simply played at `MOTION`; the light's first
+      `rollsAfterLight` rise on the plate before it has a frame, where the ramp is at its faintest.
+    */
+    const seeksBeforePlaying = !CSS.supports('-webkit-touch-callout', 'none')
     const nudge = () => {
+      if (!seeksBeforePlaying) return
       if (plate !== null && plate.paused && plate.currentTime === 0) plate.currentTime = 0.04
     }
     if (plate !== null) {
@@ -183,6 +194,36 @@ export default function Opening() {
       if (held && later !== null) later.inert = false
       held = false
     }
+
+    /*
+      **How far the footage has run, measured without asking it the time** — 13 October 2026.
+
+      The subtitle waits for the footage's second shot, and the only witness was `currentTime`. On the
+      design owner's iPhone (Safari 27) that number does not move: recorded there over 30 seconds of a
+      hero that was visibly playing, it read 0.04 — the nudge below — the whole time, and changed only
+      when something sought the file. So the gate never opened by itself: on two reloads filmed that
+      day the title stood alone for 3.6 and 3.7 seconds and the line arrived on the frame a finger
+      touched the glass (any intent opens the gate); with no touch it would have waited for
+      `arrivesRegardlessAt`, twelve seconds.
+
+      Two witnesses that do not depend on it: the media time of the frames the compositor actually
+      presents (`requestVideoFrameCallback`, where there is one), and the time the element has spent
+      playing with data to play — which at rate 1 *is* how far the footage has run. The gate takes
+      whichever of the three says most. Where `currentTime` is honest all three agree and nothing
+      changes; a footage that really is stalled still accumulates nothing and still falls back.
+    */
+    let ran = 0
+    let presented = 0
+    type FrameWatcher = HTMLVideoElement & {
+      requestVideoFrameCallback?: (callback: (now: number, frame: { mediaTime: number }) => void) => number
+    }
+    const watched = plate as FrameWatcher | null
+    const onFrame = (_now: number, frame: { mediaTime: number }) => {
+      presented = Math.max(presented, frame.mediaTime)
+      /* Only until the line has been allowed: after that nobody reads it. */
+      if (lineAt.current === null) watched?.requestVideoFrameCallback?.(onFrame)
+    }
+    watched?.requestVideoFrameCallback?.(onFrame)
 
     let previous = performance.now()
     let seen = window.scrollY
@@ -252,6 +293,12 @@ export default function Opening() {
       let target: Beat = BLACK
       for (const [value, ms] of schedule) if (t >= ms) target = value
 
+      /* `HAVE_FUTURE_DATA` and not paused: the footage is running, whatever it reports as its time. */
+      {
+        const el = video.current
+        if (lineAt.current === null && el !== null && !el.paused && el.readyState >= 3) ran += step
+      }
+
       if (target >= IDENTITY && t >= cues.subtitle) {
         const el = video.current
         /*
@@ -266,7 +313,7 @@ export default function Opening() {
           el === null ||
           el.error !== null ||
           (el.paused && t > cues.motion + chapterOneStory.subtitle.stallGrace) ||
-          el.currentTime >= chapterOneStory.subtitle.waitsForFootageAt
+          Math.max(el.currentTime, presented, ran / 1000) >= chapterOneStory.subtitle.waitsForFootageAt
         if (footageReady) {
           if (lineAt.current === null) lineAt.current = t
           target = LINE

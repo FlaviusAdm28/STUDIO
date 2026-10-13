@@ -3872,3 +3872,77 @@ One element is also one download: a first visit transfers the file once (9.14MB,
 elements had transferred 9.5–15.9MB. The late-loading of the second copy that was built and approved
 for that on 12 October (*approach D*) is not in the build — there is no second copy left to load.
 `contact-listen.tsx`, `environment.tsx`, `globals.css`, `timing.ts`.
+
+---
+
+## C37 · On a touch device nothing holds Contact's footage · **13 October 2026** · design owner decision
+
+*"Em dispositivos táteis, a frase 'Tell us where it begins' não controla o vídeo… Em dispositivos
+híbridos, privilegia a reprodução contínua quando houver ambiguidade."* The footage had been seen
+standing still in Contact on an iPhone, and a first answer that refused touch events one by one did not
+change it on the device.
+
+Two changes, and C36's listening is untouched under a mouse and the keyboard on a desktop:
+
+- **The listening exists only for a hand that hovers** (`contact-listen.tsx`). One rule where the
+  target is chosen, not one per event: `(hover: hover) and (pointer: fine)` and not
+  `(any-pointer: coarse)`, read live. A phone, a tablet and a laptop with a touch screen fail it; there
+  `--listen` stays 0 and the footage is never re-rated or paused by the sentence. The cost is stated:
+  on a touch-screen laptop the mouse no longer slows the footage either.
+- **The arrival cue is not given on iOS** (`scroll-stage.tsx`, `TIMING.contact.arrives`). This is what
+  the iPhone was actually showing. In the owner's recording of production (13 October, 10:28) Contact
+  stands composed for three seconds with the sentence at rest and breathing, and the sky above it does
+  not change by one level in ninety frames; the same sky moves in the hero of the same recording. In
+  two tapes of the driver from that phone the cue's seek is issued and never completes — `seeking` at
+  0.3 and no `seeked`, the element reporting itself playing throughout. Nobody had touched the
+  sentence. So on that engine the footage is left running and Contact arrives on whatever the film is
+  showing. Android and desktop keep the cue.
+
+- **The opening's first-frame seek is not made on iOS** (`opening.tsx`). The owner's tape of this build
+  (13 October, 19:03, loaded at Contact with the cue above already gone) still read `seeking` true on
+  every frame from the first to the last, 22 seconds, with the element playing and `currentTime` at
+  0.04 — the value that seek writes — and the owner still saw the footage stop on the way in. The
+  element is in an unfinished seek from the moment the page loads; the cue was a second seek on top of
+  it. So on that engine nothing writes `currentTime` at all. The cost: the light's first half second
+  rises on a plate with no frame yet.
+
+**Not verified: iOS Safari on a device.** The freeze and the unfinished seek are observed there; that
+leaving the seek out ends the freeze is the inference, and it has not been seen. Why that engine does
+not finish the seek is not known.
+
+## C38 · State 01 stands at .15 of the grade, not §2's .50 · **14 October 2026** · design owner decision
+
+*"Na página inicial, quando o site abre, sinto que o filtro escurece demasiado o background. No Contact
+gosto mais da cor e da luminosidade da imagem."* A departure from §2's exposure column at state 01
+only; from 02 on the column is unchanged.
+
+Measured on the same frame of the file (6.0s) at 1440 × 900: the Opening's frame read a mean of 36
+levels and Contact's 105. The footage carries no filter in either (`contrast(1) brightness(1)
+saturate(1)`), so the whole difference is two layers that stand over it at state 01 and do not exist at
+Contact: `.v2-grade`, a flat `#060505` at .50, and `.v2-scrim`, the storyboard's gradient (.50 at the
+top, .16 at 40%, .82 at the foot). Their transmissions multiply: .42 of the picture in the sky's band.
+
+Only the flat grade is eased — `--os-first` in `globals.css`, with `--os-out` reaching §2's .65 at
+state 02 from there. The scrim is untouched: its shape is the night and its foot is what holds the
+links. The owner saw four values side by side, on a desktop and on a phone, and chose the lightest:
+
+| `--os-first` | frame, 1440 × 900 | frame, 390 × 844 | title | line under it | links |
+|---|---|---|---|---|---|
+| .50 (§2) | 36 | 40 | 5.6 | 7.3 | 10.8 |
+| .30 | 48 | 53 | 4.8 | 6.8 | 10.8 |
+| .22 | 53 | 59 | 4.5 | 6.6 | 10.9 |
+| **.15** | **57** | **63** | **4.2** | **6.4** | **10.9** |
+
+(Mean luminance of the frame in levels of 255; contrast of the type's computed ink against the mean of
+its own ground.) With the grade at nothing the frame would read about 65 — the rest is the scrim, and
+going further means re-shaping it, which was not asked.
+
+In motion, filmed in Chrome: the light's rise on an untouched load keeps its shape (largest rise between
+two samples 1.5 – 2.0 levels at every value), and 01 → 02 darkens without ever brightening and ends on
+the same level as before (51), from 100 instead of from 61.
+
+**Open, iOS only, not seen on a device:** since C37 the footage has no frame on an iPhone until about
+0.1s after it is played, 0.5s into the light. Imitated in Chrome (the element hidden until then), the
+sky's band stepped by 8 levels at once with the grade at .50 and by 11 at .30 (10 and 14 on a phone
+frame), where the rise is otherwise never more than 2; at .15 it was not measured and will be larger
+in proportion. Nothing was changed for it.

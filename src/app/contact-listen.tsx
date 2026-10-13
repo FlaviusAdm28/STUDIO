@@ -66,6 +66,18 @@ export default function ContactListen({
 
     const film = () => document.querySelector<HTMLVideoElement>('.env-hero')
 
+    /*
+      **The listening exists only for a hand that hovers** — design owner, 13 October 2026: on a touch
+      device the sentence does not control the footage at all, and where a device is ambiguous the
+      footage plays on. So this is one rule in one place rather than a rule per event: the primary
+      pointer hovers and is fine, **and** no pointer the device has is coarse. A phone, a tablet and a
+      laptop with a touch screen all fail it, and there the listening never starts — no `--listen`, no
+      rate, no pause — whatever a tap, a focus or a return to the page does. Read live: a screen can be
+      docked and a mouse can be the only pointer left.
+    */
+    const hand = window.matchMedia('(hover: hover) and (pointer: fine)')
+    const finger = window.matchMedia('(any-pointer: coarse)')
+
     const write = () => {
       const e = smoothstep(k)
       root.style.setProperty('--listen', e.toFixed(4))
@@ -115,7 +127,7 @@ export default function ContactListen({
     }
 
     const aim = () => {
-      const next = hovering || focused ? 1 : 0
+      const next = hand.matches && !finger.matches && (hovering || focused) ? 1 : 0
       if (next === target && (frame !== 0 || k === target)) return
       target = next
       if (frame === 0) {

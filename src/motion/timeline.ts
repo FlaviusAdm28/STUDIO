@@ -1991,6 +1991,63 @@ if (process.env.NODE_ENV !== 'production') {
   }
 
   /*
+    **The thumb's entrance and letting-go are held to the same order** — `questions.thumb`, 13 October
+    2026. The envelope has to close before the rows are asked for; the floor has to be in the section's
+    order and finish before the letting-go begins, or a fast hand would have a row still being written
+    as the list starts to leave; and the letting-go has to end inside its own stretch.
+  */
+  {
+    const t = TIMING.questions.thumb
+    const w = t.written
+    const lastRow = r(w.rows.from + (askFaq.rows - 1) * w.rows.step + w.rows.over)
+    const ordered =
+      w.question.from <= w.answer.from && w.answer.from <= w.rows.from && w.question.to <= w.answer.to
+    if (
+      !(t.enters > 0) ||
+      t.enters > t.rowsAfterLock ||
+      !(t.rowsAfterDescription > 0 && t.rowsAfterDescription <= 1) ||
+      !(t.rowsLetGo >= 0) ||
+      /* Every envelope is open before the part it holds is asked for on the way down. */
+      !(t.opens.description.over > 0 && t.opens.rows.over > 0 && t.opens.rows.step >= 0) ||
+      r(t.opens.rows.from + (askFaq.rows - 1) * t.opens.rows.step + t.opens.rows.over) >
+        r(t.rowsAfterLock + (askFaq.rows - 1) * askFaq.stagger) ||
+      !ordered ||
+      w.question.from < 0 ||
+      !(w.question.to > w.question.from) ||
+      !(w.answer.to > w.answer.from) ||
+      !(w.rows.over > 0) ||
+      !(w.rows.step >= 0) ||
+      w.rows.from - w.ruleLeads < 0 ||
+      lastRow > t.leaves.from ||
+      /* The description is whole before the first hairline is drawn, at any pace. */
+      w.answer.to > r(w.rows.from - w.ruleLeads) ||
+      t.swift.written.answer.to > r(t.swift.written.rows.from - t.swift.written.ruleLeads) + 0.0001 ||
+      !(t.leaves.from > 0 && t.leaves.from < 1) ||
+      /* It leaves in the reverse of the order it was read: the list, the description, the question. */
+      !(t.leaves.rows > 0 && t.leaves.rows < t.leaves.answer && t.leaves.answer < t.leaves.question) ||
+      !(t.leaves.question < 1) ||
+      !(t.leaves.over > 0) ||
+      r(t.leaves.question + t.leaves.over) > 1.0001 ||
+      !(t.swift.full > t.swift.from && t.swift.from > 0) ||
+      !(t.swift.rises > 0 && t.swift.falls > 0) ||
+      !(t.swift.least > 0 && t.swift.leastHurried >= t.swift.least) ||
+      !(t.swift.enters >= t.enters && t.swift.rowsAfterLock >= t.rowsAfterLock) ||
+      t.swift.enters > t.swift.rowsAfterLock ||
+      !(t.swift.leaves.from > 0 && t.swift.leaves.from <= t.leaves.from) ||
+      !(t.swift.leaves.over >= t.leaves.over)
+    ) {
+      complain(
+        "The thumb's Questions do not form, stand and leave in order.",
+        `questions.thumb enters ${t.enters}, rows at ${t.rowsAfterLock}; written question ` +
+          `${w.question.from}–${w.question.to}, answer ${w.answer.from}–${w.answer.to}, rows ` +
+          `${r(w.rows.from - w.ruleLeads)}–${lastRow}; leaves from ${t.leaves.from}, question at ` +
+          `${t.leaves.question} over ${t.leaves.over}. The envelope closes before the rows, the floor ` +
+          `finishes before the letting-go begins, and the question is gone by the end of its stretch.`,
+      )
+    }
+  }
+
+  /*
     **The breath has to be one**, and it is a duration rather than a distance now, so the only thing
     that can go wrong is it being absent: at zero the six rows run at one flat interval and the three
     and three the section is composed in stop existing.

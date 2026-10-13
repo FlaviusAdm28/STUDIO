@@ -403,6 +403,31 @@ export default function Ledger() {
   const shut = useCallback(() => setIndex(false), [])
 
   /*
+    **Whether the hand is on the keyboard** — `data-keyed` on the root, read by the rail's focus
+    indicator and by nothing else. The index is a modal region: opening it has to put focus on its first
+    link and closing it has to hand focus back, both by script, and a browser may call a scripted focus
+    `:focus-visible` whatever opened the index. So the rail does not ask the browser who is steering; it
+    is told here. A key that is not a bare modifier turns it on, any pointer turns it off.
+  */
+  useEffect(() => {
+    const root = document.documentElement
+    const key = (event: KeyboardEvent) => {
+      if (event.key === 'Shift' || event.key === 'Control' || event.key === 'Alt' || event.key === 'Meta') return
+      if (root.dataset.keyed === undefined) root.dataset.keyed = ''
+    }
+    const pointer = () => {
+      if (root.dataset.keyed !== undefined) delete root.dataset.keyed
+    }
+    window.addEventListener('keydown', key, true)
+    window.addEventListener('pointerdown', pointer, true)
+    return () => {
+      window.removeEventListener('keydown', key, true)
+      window.removeEventListener('pointerdown', pointer, true)
+      delete root.dataset.keyed
+    }
+  }, [])
+
+  /*
     **While the index is open it is the whole page.** The head line and the index are one modal region;
     everything else is made inert — every sibling of every ancestor of the region, so nothing outside it
     can be reached, read or pressed — and the page's scroll is held. Focus starts on the first chapter

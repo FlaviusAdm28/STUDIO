@@ -2470,14 +2470,42 @@ a.act-open:focus-visible {
 }
 
 .ledger-word:hover,
-.ledger-word:focus-visible {
+:root[data-keyed] .ledger-word:focus-visible {
   color: var(--rail-ink-hover, var(--ink));
 }
 
+/*
+  **Focus in the rail is a rule under the word, and only the keyboard draws it** — 14 October 2026.
+
+  It was a box, `outline: 1px` at `0.5rem`, and the rail cannot hold a box. The rail clips to its own
+  left edge, which is the words' left edge, so the box's left side was always cut; and on a phone the
+  word is as wide as the frame, so both sides stood outside it. What was left was two hairlines — one
+  above the word, one through the top of the word below it — and the design owner saw exactly that at
+  *Work*, with *About* under it.
+
+  It showed without a key being pressed because the index, when it opens, puts focus on its first
+  link by script (it is a modal region and has to), and a browser may call that `:focus-visible`
+  whatever opened it. So two things, and neither is an exception for one event:
+
+    · the indicator is the rail's own grammar for a word that answers — the hairline `Index` stands
+      on, as wide as the word's ink — drawn inside the word's box, where nothing can cut it;
+    · and it is drawn, with the ink that rises with it, only while `data-keyed` is on the root:
+      `ledger.tsx` sets it on a key and takes it off on a pointer. A finger never sees it.
+*/
 .rail-door:focus-visible,
 .ledger-word:focus-visible {
-  outline: 1px solid var(--rail-ink-quiet, var(--ink-quiet));
-  outline-offset: 0.5rem;
+  outline: none;
+}
+
+:root[data-keyed] .rail-door:focus-visible .rail-in,
+:root[data-keyed] .ledger-word:focus-visible .rail-in {
+  background: linear-gradient(currentColor, currentColor) 0 100% / calc(100% - var(--rail-tracked, 0em)) 1px
+    no-repeat;
+}
+
+/* The trailing letter-space of tracked capitals is not part of the rule; a serif word has none. */
+.ledger-word {
+  --rail-tracked: 0.24em;
 }
 
 /* ---------- The register: the Work aside ---------- *//* ---------- The register: the Work aside ---------- */
@@ -9036,7 +9064,7 @@ a.v2-ident-open:focus-visible {
 
 .rail-door:hover,
 .ledger-word:hover,
-.ledger-word:focus-visible {
+:root[data-keyed] .ledger-word:focus-visible {
   color: color-mix(in srgb, rgb(9 8 7) calc(var(--rail-stone, 0) * 100%), #f7efe2);
 }
 
@@ -9202,11 +9230,12 @@ a.v2-ident-open:focus-visible {
   /* Pressed, hovered and focused, its ink rises as the rail's does. */
   .ledger:has(.rail-index:hover) .rail-index-word,
   .ledger:has(.rail-index:active) .rail-index-word,
-  .ledger:has(.rail-index:focus-visible) .rail-index-word {
+  :root[data-keyed] .ledger:has(.rail-index:focus-visible) .rail-index-word {
     color: color-mix(in srgb, rgb(9 8 7) calc(var(--rail-stone, 0) * 100%), #f7efe2);
   }
 
-  .ledger:has(.rail-index:focus-visible) .rail-index-word {
+  /* Closing the index hands focus back to this control by script; only a key may ring it. */
+  :root[data-keyed] .ledger:has(.rail-index:focus-visible) .rail-index-word {
     outline: 1px solid var(--rail-ink-quiet, var(--ink-quiet));
     outline-offset: 0.5rem;
   }
@@ -9294,6 +9323,7 @@ a.v2-ident-open:focus-visible {
     letter-spacing: 0;
     line-height: 1.15;
     text-transform: none;
+    --rail-tracked: 0em;
   }
 
   /*
@@ -9488,8 +9518,16 @@ a.v2-ident-open:focus-visible {
   }
 }
 
-/* The refraction, where it can be drawn — see the note above. */
-@supports ((backdrop-filter: url('#menu-glass') blur(2px)) and (not (-webkit-touch-callout: none))) {
+/*
+  The refraction, where it can be drawn — see the note above.
+
+  **And not in Gecko** — 14 October 2026. Firefox answers yes to the question below (155, measured)
+  and does not draw a `url()` in `backdrop-filter`; a list it cannot draw is not drawn at all, so on
+  Firefox for Android the open Index had no pane — no blur and no dimming, the page at full strength
+  behind the words. `-moz-appearance` is the property only that engine has. There the pane is the
+  base declaration, the same one iOS takes: the blur, the grade and the tint, without the bend.
+*/
+@supports ((backdrop-filter: url('#menu-glass') blur(2px)) and (not (-webkit-touch-callout: none)) and (not (-moz-appearance: none))) {
   @media (max-width: 900px) {
     .ledger::after {
       backdrop-filter: url('#menu-glass') blur(2px) saturate(1.08) contrast(1.06) brightness(0.9);

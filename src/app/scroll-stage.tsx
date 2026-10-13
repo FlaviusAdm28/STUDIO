@@ -2708,10 +2708,43 @@ export default function ScrollStage() {
     /*
       Any in-page link — the rail, a mark — and only one whose default went ahead. Listened for on the
       window, where the bubble ends, so a handler that declined the navigation has already said so.
+
+      **The page goes to the section itself; the browser's fragment navigation is not used** — 14
+      October 2026. On an iPhone every press of the menu reloaded the document: filmed, Safari's
+      address bar shows a load beginning in the frame the page jumps, the opening plays again from
+      black, and the page then goes to the fragment of the address — badly, because that scroll
+      arrives during the opening and is taken for the film's origin (a tape from the same phone had
+      `--origin` at 30,009 and a document 47,317px tall after such a load).
+
+      A fragment navigation writes a history entry, and WebKit reports it with `popstate` — Chromium
+      does not, which is why Android never showed it. The framework's router listens for `popstate`
+      and reloads the page when the entry is not one it wrote. Imitated in WebKit 26.6 by handing it
+      such an entry, the result is the recording: a second load of `/#contact`, the opening again, and
+      a scroll position of 55,653 on the first state. That Safari 27 hands it exactly that could not
+      be observed here; what is certain is the reload, and that nothing in this file asks for one.
+
+      So nothing is handed to the history at all. The press is declined and the section is brought to
+      the top by the same rule the browser would have used (`scrollIntoView`, which honours the
+      section's own scroll margin), in the same order as before: the driver is told, then the page
+      moves. No address is written and nothing is assigned to `location`; the price is that the
+      address no longer names the section and Back no longer walks the sections, and neither was a
+      thing the film relied on — it always begins at its beginning (`layout.tsx`).
+
+      A press with a modifier, or with another button, is the browser's. So is a fragment with no
+      element behind it.
     */
     const onPress = (event: MouseEvent) => {
       if (event.defaultPrevented) return
-      if (event.target instanceof Element && event.target.closest('a[href^="#"]')) navigated = true
+      const link =
+        event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href^="#"]') : null
+      if (link === null) return
+      navigated = true
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+      const id = decodeURIComponent((link.getAttribute('href') ?? '').slice(1))
+      const section = id === '' ? null : document.getElementById(id)
+      if (section === null) return
+      event.preventDefault()
+      section.scrollIntoView()
     }
 
     /*

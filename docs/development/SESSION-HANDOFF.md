@@ -1,4 +1,96 @@
-# CHAPTER ONE — CURRENT STATE · session handoff — 1 October 2026, updated end of 2 October 2026
+# CHAPTER ONE — CURRENT STATE · session handoff — 14 October 2026
+
+## ▶ WHERE WE ARE — 14 October 2026 · read this first
+
+**The site is live and this branch is ahead of it.** Production is `master` at `8b2802d` (Vercel).
+`v2` carries two commits production does not have: `b6fc788` (13 October) and the one this handoff
+ships with (see *Git* below). **Nothing has been merged to `master` or deployed since `8b2802d`** — that
+is the design owner's decision to take, not a step that is owed.
+
+**What the two commits are.** A round of defects found on real phones after the launch, each fixed in
+an isolated copy, validated by the design owner on the device, and only then consolidated:
+
+| Area | What changed | Register |
+|---|---|---|
+| Rail on iOS | the running chapter no longer shifts on Work → About; the title's ink is no longer cut by WebKit's mask (the *k* of *Work*) | comments in `globals.css` |
+| Safari's bar | fixed frames hang from the top on iOS; no black band while the bar retracts | comments in `globals.css` |
+| Opening on iOS | nothing writes the footage's `currentTime` there; the subtitle's gate reads presented frames and play time as well as the clock | C37 |
+| Opening, light | state 01 at .15 of the grade instead of .50 (`--os-first`) — the owner's choice of four | C38 |
+| Questions on a thumb | runway redistributed (page length unchanged); order title → description → list; staged entry and exit that widen with the hand | `TIMING.questions.thumb` |
+| Contact | on any device with a coarse pointer the sentence never re-rates or pauses the footage; mouse and keyboard on a desktop unchanged | C37 |
+| Rail, focus | no box; a rule under the word, drawn only while the keyboard is in use (`data-keyed`) | C39 |
+| In-page links | answered by the page (`scrollIntoView`), not by fragment navigation — Safari iOS was reloading the document | C40 |
+| Index glass | no refraction in Gecko, so Firefox draws the pane | C41 |
+
+**Frozen by the design owner in this round — do not change without being asked** (the items frozen on
+1–2 October, listed further down, all still stand):
+
+- **In-page navigation does not use native anchors (C40).** The address does not name the section and
+  Back does not walk the sections; both were accepted. Restoring `href` navigation brings the iOS
+  reload back.
+- **Contact on touch (C37).** The sentence does not control the footage on phones, tablets or
+  touch-screen laptops. Hover and keyboard on a pointer-only desktop are as C36 left them.
+- **Nothing seeks the footage on iOS (C37).** Not the opening's first-frame nudge and not Contact's
+  arrival cue. On that engine an unfinished seek leaves the element seeking for good.
+- **`--os-first: 0.15` (C38).** The scrim is untouched; from state 02 the exposure column is §2's.
+- **Questions on a thumb** as shipped in `b6fc788`: distances, order, `thumb.opens`, `swift`.
+- **The rail's box-based fixes** (`.rail-folio` min-width, `--rail-rise`) and the iOS top-hung frames.
+- **The rail's focus indicator (C39)** and the Gecko exclusion for the refraction (C41).
+
+**Validated, and by whom.** Do not restate the owner's validation as a test run from a workstation.
+
+| Where | What | By |
+|---|---|---|
+| iPhone, Safari 27 (402 × 874) | menu clipping, black band, opening, Questions, footage running in Contact, menu navigation without reload, glass, focus lines gone | design owner, by hand |
+| Mi 11 Lite, Chrome 155 | menu navigation, full scroll, Contact touches, no overflow or console errors | synthetic touch through DevTools, and the design owner by hand |
+| Mi 11 Lite, Firefox 157 | glass (photographed), menu navigation by a self-running script (`element.click()`, not a finger) | script here; design owner by hand |
+| Mi 11 Lite, Mi Browser 14.65 | menu navigation by the same script, five runs | script here |
+| Chrome 154 and WebKit 26.6, desktop | six viewports, Contact by mouse / keyboard / touch / hybrid, menu by mouse and keyboard, focus indicator | automated here |
+
+**Known limitations and open items — none needs code now:**
+
+- **Mi Browser, once in five runs:** the footage stayed paused for the whole run and the Opening and
+  Contact stood on black. Not reproduced in four further runs, warm or cold, on this build or on
+  production's. Cause unknown; not attributable to this round.
+- **Opening on iOS, first half second (C38):** the footage has no frame until about 0.1s after it is
+  played. Imitated in Chrome it is a single step of 8–14 levels in the sky; at `.15` it was not
+  measured. The owner has not reported seeing it. A fix exists in outline (prime the first frame with
+  play-then-pause instead of a seek) and touches the iOS start the owner validated — only on request.
+- **A second tap about 0.35s after choosing a destination** goes to the page under the finger, the
+  menu having closed; while it closes the Index still accepts a tap on another word. Observed, left.
+- **Questions → Contact and back at speed** are dominated by Contact's own light step and its
+  all-at-once release — Contact's approved design, not touched.
+- **Desktop still has the old order in Questions**; the new order is the thumb's only.
+- **Safari on a Mac in a narrow window:** whether it draws the refraction was not checked (C41).
+- **Not installed on the test phone:** Edge, Samsung Internet. **iPad:** never tested.
+- **Vercel:** whether a push to `v2` builds a preview was not checked.
+
+**How the work was done, and should be done again.** One isolated git worktree per fix under `D:\`
+(`STUDIO-ios-v3` … `STUDIO-ios-v9`, `STUDIO-menu`, `STUDIO-nav`), served on a port of its own for the
+owner's phone, integrated only after the owner's word. The copies, the recordings and the tools are
+kept on that machine and are not part of the repository:
+
+- tools and evidence: `D:\STUDIO-tools\ios-1013\` (its `README.md` is the index; `out\` holds the
+  owner's recordings as frames, device tapes, photographs and every patch);
+- the running log of the whole round, in Portuguese: `D:\STUDIO-tools\mobile-lag\out\SESSION-STATE.md`.
+
+A worktree needs `node_modules` joined to the main copy's and `npx next build --webpack` (Turbopack
+refuses the junction). The owner's phone reaches the machine at `192.168.1.228`; **every port other
+than 3000 was temporary and has been shut down** — start one again when a copy needs showing.
+`http://localhost:3000` is the main copy's dev server. Production is the Vercel deployment of `master`.
+
+**Next, only if the design owner asks:** merge `v2` into `master` and deploy; the iOS first-frame step;
+the aesthetic exploration of the Opening parked on 2 October.
+
+## Git — 14 October 2026
+
+`v2` = `origin/v2`, two commits ahead of `master` = `origin/master` = production (`8b2802d`):
+`b6fc788` *fix: consolidate approved mobile, video and opening refinements*, and the commit that adds
+C39–C41 and this section — `git log -1` names it.
+
+---
+
+# Previous handoff — 1 October 2026, updated end of 2 October 2026
 
 ## ▶ WHERE WE ARE — end of 2 October 2026 · read this first
 

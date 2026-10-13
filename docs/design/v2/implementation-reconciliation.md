@@ -3946,3 +3946,72 @@ the same level as before (51), from 100 instead of from 61.
 sky's band stepped by 8 levels at once with the grade at .50 and by 11 at .30 (10 and 14 on a phone
 frame), where the rise is otherwise never more than 2; at .15 it was not measured and will be larger
 in proportion. Nothing was changed for it.
+
+## C39 · Focus in the rail is a rule under the word, and only the keyboard draws it · **14 October 2026** · defect, confirmed by the design owner
+
+Seen by the owner while moving through the menu: hairlines beside *Work* and *About* that belonged to
+nothing. They were the rail's focus indicator — `outline: 1px` at `0.5rem` round the word — and the rail
+cannot hold a box. It clips to its own left edge, which is the words' left edge, so the box's left side
+was always cut; on a phone the word is as wide as the frame and both sides stood outside it. What was
+left was one line above the word and one through the top of the word below.
+
+It showed without a key because the phone's Index is a modal region: opening it puts focus on its first
+link by script, closing it hands focus back, and a browser may call a scripted focus `:focus-visible`
+whatever opened it. Reproduced in Chrome 154 and WebKit 26.6 on a desktop (a key earlier, then a
+pointer, then the scripted focus); not reproduced by touch on a Mi 11 Lite.
+
+- **The indicator** is the hairline `Index` already stands on, as wide as the word's ink, drawn inside
+  the word's own box (`globals.css`). No box anywhere in the rail's words or its title.
+- **It is drawn only while the keyboard is in use** — `data-keyed` on the root, set by `ledger.tsx` on a
+  key that is not a bare modifier and removed on any pointer. The ink that rises with focus and the ring
+  on `Index` follow the same rule.
+
+Unchanged and re-measured: the rail's boxes at every width to 900px (150 and 100 compared, 0 differ),
+the title's ink in WebKit (nothing removed by clip or mask — the *k* fixed on 13 October), type,
+spacing and choreography. A keyboard visitor sees a rule where there was a cut box; that is the one
+visible change and it was shown to the owner side by side.
+
+## C40 · In-page links are answered by the page, not by the browser's fragment navigation · **14 October 2026** · defect, confirmed by the design owner on an iPhone
+
+On Safari for iOS every press of the menu reloaded the document. Filmed by the owner: the address bar
+shows a load beginning in the frame the page jumps, the opening plays again from black, and the page
+then goes to the fragment in the address — badly, *Work* worst, because that scroll arrives during the
+opening and the film takes it for its origin (measured on such a load: an origin of 30,009 and a
+document 47,317px tall on the phone; millions of pixels in Chrome and WebKit on a desktop).
+
+The links were plain `<a href="#section">` and nothing in the site asks for a reload. A fragment
+navigation writes a history entry; WebKit reports it with `popstate` and Chromium does not (measured
+in both), which is why Android never showed it. The framework's router listens for `popstate` and
+reloads the page when the entry is not one it wrote. Handed such an entry, WebKit 26.6 reproduces the
+recording exactly. **That Safari 27 hands it exactly that was not observed** — it is the explanation
+that fits everything seen, and the fix does not depend on it being the only one.
+
+- `scroll-stage.tsx`: a press on an in-page link is declined and the section is brought to the top by
+  the rule the browser would have used (`scrollIntoView`, which honours the section's scroll margin).
+  The driver is told first, as before. Nothing is written to history and nothing is assigned to
+  `location`. A press with a modifier or another button stays the browser's.
+- `layout.tsx`: a fragment already in the address is taken off it before anything else runs, so the
+  page begins at its beginning — the rule that file already states.
+
+**The cost, accepted by the owner:** the address no longer names the section, and Back no longer walks
+the sections. **Do not restore native fragment navigation** unless the reload is shown not to return.
+
+Validated by the owner on the iPhone: no reload, no restart of the opening, every destination reached.
+Measured here: one load of the document and no history event in Chrome and WebKit; the same
+destinations, to the pixel, as the native navigation gave; the keyboard's next Tab still lands inside
+the section chosen.
+
+## C41 · The Index's pane is drawn without the refraction in Gecko · **14 October 2026** · defect, confirmed by the design owner
+
+On Firefox for Android the open Index had no glass: the page stood at full strength behind the words.
+The refraction (`url('#menu-glass')` in `backdrop-filter`) is added inside an `@supports` test, and
+Firefox answers yes to that test (155 and 157, measured) without drawing a `url()` there; a filter list
+it cannot draw is not drawn at all, so the blur and the dimming went with it.
+
+The test now also excludes Gecko (`not (-moz-appearance: none)`), so Firefox takes the base
+declaration — the same pane iOS has always taken: the blur, the grade and the tint, without the bend.
+Chromium keeps the refraction; iOS is as it was. Photographed on the phone's own Firefox 157 before and
+after, and approved there by the owner.
+
+Not looked at: desktop WebKit also answers yes to the test; whether Safari on a Mac draws it in a
+narrow window was not checked.

@@ -80,10 +80,16 @@ export const viewport: Viewport = {
  * - Doing it before any listener exists matters because the hero treats a scroll event as the
  *   visitor asking to move on, and accelerates. A programmatic reset after hydration would fire
  *   that event and rush the opening for somebody who had not touched anything.
+ * - A fragment in the address is taken off it for the same reason, and here for the same reason:
+ *   the browser scrolls to a fragment once the document is in, which is during the opening, and the
+ *   film takes wherever the page stands when the opening ends as its origin. Measured on a load of
+ *   `/#contact`: an origin of 30,009 and a document 47,317px tall. Nothing in the site writes a
+ *   fragment any more (`scroll-stage.tsx`), so this is for an address that already carries one.
  */
 const BEGIN_AT_THE_BEGINNING = `
   try {
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    if (location.hash) history.replaceState(history.state, '', location.pathname + location.search);
     window.scrollTo(0, 0);
   } catch (e) {}
 `

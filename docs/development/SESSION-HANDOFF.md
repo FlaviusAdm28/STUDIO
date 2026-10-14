@@ -1,13 +1,91 @@
 # CHAPTER ONE — CURRENT STATE · session handoff — 14 October 2026
 
-## ▶ WHERE WE ARE — 14 October 2026 · read this first
+## ▶ LATER ON 14 October 2026 · Next.js 16.3.8 (`1210f07`) · read this first
+
+**Git.** `v2` = `origin/v2` = `1210f07` *fix: update Next.js to 16.3.8*, three commits ahead of
+`master` = `origin/master` = production (`8b2802d`): `b6fc788`, `fbb4a5d` and `1210f07`. **Nothing has
+been merged to `master` or deployed.** The section below this one describes the first two and still
+stands in full — every frozen decision in it is unchanged.
+
+**Why.** A read-only audit of `fbb4a5d` found `next@16.2.12` affected by published advisories, one of
+them critical. 16.3.8 is the first release that fixes all of them (GHSA-p293-qw3h-jr36,
+GHSA-2xp9-vwfh-vxw4, GHSA-vcvr-r3jv-pc5j, GHSA-cjq9-62q9-8jv4, GHSA-4jqv-mc3x-m676, GHSA-mcj8-r9mp-w47p,
+GHSA-f87g-xv8r-7p7x, GHSA-39w2-rjm5-chcv) and brings postcss 8.5.23 and sharp 0.35.5; 16.4.0 was a
+week-old feature release with nothing more to fix. Real exposure in production was low — the site is
+static on Vercel and uses neither `next/image` nor `next/og` — but `next dev` and `next start` on this
+Windows machine were exposed, and the transitive packages were behind.
+
+**What changed — three files, nothing in `src/`, `content/` or the stylesheet:**
+
+| File | Change |
+|---|---|
+| `package.json` | `next` and `eslint-config-next` 16.2.12 → 16.3.8, exact pins kept |
+| `package-lock.json` | only the Next tree (`next`, `@next/*`, `sharp` and `@img/*`, `postcss`, `@swc/helpers`, `nanoid`, `source-map-js`) and `fastq` |
+| `next.config.ts` | `agentRules: false` — from 16.3, `next dev` writes an agent-rules block into `CLAUDE.md` whenever it runs under an AI agent and restores it on every start; the option is documented and only disables that write (verified: `next dev` in this copy leaves `CLAUDE.md` untouched) |
+
+**How it was validated.** In an isolated worktree first (`D:\STUDIO-next-upgrade`, its own
+`node_modules`), then again on `D:\STUDIO` before the commit, each time against the `fbb4a5d` build
+served beside it:
+
+- typecheck, lint, build; `timeline.ts`'s assertions in `next dev` — pass;
+- the served CSS and the motion style are byte-identical to `fbb4a5d`'s; the visible HTML is the same;
+- 320 / 360 / 375 / 390 / 768 / 1440 / 1920 in Chrome: 0 console errors, 0 failed requests, 0 overflow,
+  states 1 → 14 → 1, the same document heights and the same landing positions as the baseline;
+- `six`: the differences against the baseline (55–81 values a viewport) lie inside the baseline's own
+  run-to-run noise (55–79) and are the same clock-driven properties;
+- in-page navigation (Chrome and WebKit, phone and desktop): one document load, same landings;
+  menu focus, the Index glass, Questions' reach (92 / 14 / 0 / 0), Contact by mouse / keyboard / touch /
+  hybrid (0 fields different), the iOS branch (0 writes to `currentTime`), the Opening's beats — equal
+  to the baseline;
+- **Xiaomi Mi 11 Lite, on the isolated copy:** Chrome 155 by synthetic touch (full walk, menu, Contact
+  including leaving Chrome and coming back — footage always running); Firefox 157 and Mi Browser 14.65
+  by the self-running script (`element.click()`, not a finger);
+- **iPhone, Safari, on the isolated copy: the design owner by hand — satisfactory.**
+
+**`npm audit`.** `--omit=dev`: 5 (1 critical, 4 high) → **0**. Full tree: 12 → 7 high, all in the ESLint
+toolchain (`brace-expansion`, `braces`, `js-yaml` through `eslint` and `eslint-config-next`) —
+development only, never shipped, deliberately not touched.
+
+**Vercel.** A push to `v2` does build a preview. For `1210f07`: GitHub deployment `7067890044`,
+environment *Preview*, status **success** (14 October, 14:17 UTC),
+`https://studio-b2pzbc5go-flavio15.vercel.app`. The preview sits behind Vercel Authentication: from
+this machine it redirects to `vercel.com/login`, so what it serves was not inspected here — open it
+signed in. (`fbb4a5d`'s own Vercel status still reads *pending* on GitHub; `b6fc788`'s is *success*.)
+
+**Known, unchanged, not in this round's scope:**
+
+- **Mi Browser — pre-existing, not a priority.** It intermittently refuses the hero's `play()` with
+  `NotAllowedError: play() can only be initiated by a user gesture`: 1 run in 7 on 14 October (and once
+  in five on the earlier builds), no trigger found — same origin, new origin, cold and warm starts all
+  played. The refused run reported a duration of 12.121 s against 12.145 s in every run that played.
+  The video's behaviour was not changed for it.
+- **WebKit desktop:** after a mouse *click* on Contact's sentence the footage sometimes does not
+  advance for 0.6 s once released — already in the 13 October measurements, the same before and after
+  the update. Not checked on a Mac.
+- **The old worktrees share packages.** `STUDIO-ios-*`, `STUDIO-menu` and `STUDIO-nav` have
+  `node_modules` joined to `D:\STUDIO\node_modules`, so they now run Next 16.3.8 against a
+  `package.json` that says 16.2.12; serving one of their old builds may need its own `npm ci`.
+  `D:\STUDIO-next-upgrade` has its own `node_modules` and is kept as it is.
+- **On Windows, stopping `npx next start` leaves the `next` child on its port** — and that child holds
+  the SWC binary, so a later `npm ci` fails with `EPERM`. Start servers as
+  `node node_modules/next/dist/bin/next start -p <port>`.
+
+**Before `v2` can be promoted — only when the design owner asks:**
+
+1. open the `1210f07` preview signed in and pass it once by hand (iPhone, Android, desktop);
+2. merge `v2` into `master` (fast-forward from `8b2802d`) and let Vercel build production;
+3. replay production from the first frame on the iPhone and the Xiaomi, and confirm Vercel's status;
+4. keep `8b2802d` named as the rollback.
+
+## ▶ WHERE WE ARE — 14 October 2026 · the round of phone fixes
 
 **The site is live and this branch is ahead of it.** Production is `master` at `8b2802d` (Vercel).
-`v2` carries two commits production does not have: `b6fc788` (13 October) and the one this handoff
-ships with (see *Git* below). **Nothing has been merged to `master` or deployed since `8b2802d`** — that
-is the design owner's decision to take, not a step that is owed.
+`v2` carries three commits production does not have: `b6fc788` (13 October), `fbb4a5d` (the one this
+section was written with) and `1210f07` (the Next.js update, above). **Nothing has been merged to
+`master` or deployed since `8b2802d`** — that is the design owner's decision to take, not a step that is
+owed.
 
-**What the two commits are.** A round of defects found on real phones after the launch, each fixed in
+**What the first two commits are.** A round of defects found on real phones after the launch, each fixed in
 an isolated copy, validated by the design owner on the device, and only then consolidated:
 
 | Area | What changed | Register |
@@ -63,7 +141,8 @@ an isolated copy, validated by the design owner on the device, and only then con
 - **Desktop still has the old order in Questions**; the new order is the thumb's only.
 - **Safari on a Mac in a narrow window:** whether it draws the refraction was not checked (C41).
 - **Not installed on the test phone:** Edge, Samsung Internet. **iPad:** never tested.
-- **Vercel:** whether a push to `v2` builds a preview was not checked.
+- ~~**Vercel:** whether a push to `v2` builds a preview was not checked.~~ It does — see the Next.js
+  section above.
 
 **How the work was done, and should be done again.** One isolated git worktree per fix under `D:\`
 (`STUDIO-ios-v3` … `STUDIO-ios-v9`, `STUDIO-menu`, `STUDIO-nav`), served on a port of its own for the
@@ -75,7 +154,9 @@ kept on that machine and are not part of the repository:
 - the running log of the whole round, in Portuguese: `D:\STUDIO-tools\mobile-lag\out\SESSION-STATE.md`.
 
 A worktree needs `node_modules` joined to the main copy's and `npx next build --webpack` (Turbopack
-refuses the junction). The owner's phone reaches the machine at `192.168.1.228`; **every port other
+refuses the junction) — or its own `npm ci`, which lets Turbopack build (`D:\STUDIO-next-upgrade`). The
+owner's phone reaches the machine at `192.168.1.228` (`192.168.1.233` later on 14 October — check
+`ipconfig`); **every port other
 than 3000 was temporary and has been shut down** — start one again when a copy needs showing.
 `http://localhost:3000` is the main copy's dev server. Production is the Vercel deployment of `master`.
 
@@ -84,9 +165,10 @@ the aesthetic exploration of the Opening parked on 2 October.
 
 ## Git — 14 October 2026
 
-`v2` = `origin/v2`, two commits ahead of `master` = `origin/master` = production (`8b2802d`):
-`b6fc788` *fix: consolidate approved mobile, video and opening refinements*, and the commit that adds
-C39–C41 and this section — `git log -1` names it.
+`v2` = `origin/v2` = `1210f07`, three commits ahead of `master` = `origin/master` = production
+(`8b2802d`): `b6fc788` *fix: consolidate approved mobile, video and opening refinements*, `fbb4a5d`
+*fix: finalize mobile navigation and browser compatibility* (C39–C41 and the *phone fixes* section),
+and `1210f07` *fix: update Next.js to 16.3.8*.
 
 ---
 

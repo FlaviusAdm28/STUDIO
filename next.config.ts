@@ -5,6 +5,12 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   /* The dev badge sits in the frame. Nothing uninvited belongs in the composition. */
   devIndicators: false,
+  /*
+    From 16.3, `next dev` appends its own agent-rules block to `CLAUDE.md` whenever it runs under an AI
+    agent, and writes it back on every start. `CLAUDE.md` is the project's working notes and nothing
+    else writes to it.
+  */
+  agentRules: false,
 
   /*
     **`127.0.0.1` and `localhost` are different origins to Next 16, and the difference is fatal in dev.**

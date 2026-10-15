@@ -977,6 +977,15 @@ export default function ScrollStage() {
       frame = 0
       /* Real time, for the method's played beats. `now` further down is the film's state index. */
       const clock = stamp ?? window.performance.now()
+      /*
+        **The window's height, read once, before this frame writes anything** — AUD-002, 15 October 2026.
+        On a phone `innerHeight` brings style and layout up to date, so each read below that came after a
+        write recalculated the subtree just written (`.publication`'s 90 elements, the method's) — work the
+        frame's own recalculation does again. It cannot change inside one callback: measured on the Xiaomi,
+        42 358 reads in 5 273 callbacks, with the bar moving between 779 and 835, and not one differed from
+        the callback's first. The bar changes it between tasks, never during one.
+      */
+      const windowH = window.innerHeight
       /* Set by the method's played beats while any of them is in transit; it keeps the loop alive. */
       let playing = false
 
@@ -1225,7 +1234,7 @@ export default function ScrollStage() {
       }
 
       if (methodEl !== null) {
-        const vh = window.innerHeight
+        const vh = windowH
         /*
           The method's view of `p` — same construction as the act's, a different price.
 
@@ -1366,7 +1375,7 @@ export default function ScrollStage() {
         list over the same distances on the way back up.
       */
       const lettingGo = (() => {
-        const vh = window.innerHeight
+        const vh = windowH
         const span = (persistSpans.startsBefore + persistSpans.length / 100) * vh
         const begins = persistTop - persistSpans.startsBefore * vh
         const t = TIMING.questions.thumb.leaves
@@ -1422,7 +1431,7 @@ export default function ScrollStage() {
           (`TIMING.environment.persisting` records what each one answered), and none of them has
           anything left to answer.
         */
-        const vh = window.innerHeight
+        const vh = windowH
         /* Whether the closing frame is held — Contact is placed from it. */
         const locked = y >= persistTop
         const begins = persistTop - persistSpans.startsBefore * vh
@@ -1631,10 +1640,10 @@ export default function ScrollStage() {
           `TIMING.questions.anchor.afterLock` is the argument.
         */
         const afterLock = Number.isFinite(askedLock)
-          ? (y - askedLock) / window.innerHeight
+          ? (y - askedLock) / windowH
           : Number.NEGATIVE_INFINITY
-        /* Read here, beside the one above and before anything below is written: a read after a write is a forced recalculation. */
-        const askedVh = window.innerHeight
+        /* The frame's own read (`windowH`), taken before anything was written: a read after a write is a forced recalculation. */
+        const askedVh = windowH
 
         /*
           The three states, written only when they change. `off` before the trigger, `playing` while

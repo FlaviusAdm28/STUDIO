@@ -157,6 +157,69 @@ abandonada. Nenhum resultado desta auditoria vem desse caminho.
 - **Risco:** médio; não muda valores, só onde são escritos.
 - **Validação:** `reach-check`, `six-diff` na zona de Questions, telefone real nos dois sentidos.
 
+#### AUD-002 · diagnóstico e correcção na `v3` (15 Out 2026) — **aprovada a 15 Out 2026, commit local em `v3`**
+
+**Diagnóstico (Xiaomi real, produção `dd53786`).** A assimetria registada acima **não se reproduziu**: com
+o próprio `phone-scroll.mjs`, em aba nova, depois de visitar o Contact e no percurso completo a 400 px/s,
+Questions a subir 38,4–40,2 fps e a descer 36,5–39,2 fps, estilo 22–25 ms/frame nos dois sentidos (os
+68–74 ms/frame de 14 Out ficam por explicar). A zona "Questions" desta auditoria é p 13 → 14, ou seja a
+passagem Questions → Contact; a medição cobriu p 12,5 → 14. Por atribuição (trace com invalidation
+tracking e pilhas JS): ~70–80 % do estilo é uma recalculação do documento inteiro por frame, causada pelas
+escritas em `:root` (território do AUD-001, não tocado); **todas** as recalculações da subárvore de
+`.publication` (90 elementos) e de `#method` eram **forçadas dentro do rAF do driver**, por leituras de
+`window.innerHeight` feitas depois de escritas no mesmo frame (`scroll-stage.tsx`, antigas linhas 1634 e
+1369) — no Android essa leitura põe estilo e layout em dia. Trabalho redundante: a recalculação do fim do
+frame volta a fazê-lo.
+
+**Correcção** (`src/app/scroll-stage.tsx`, +15 −6): `read()` lê `window.innerHeight` uma vez no início,
+antes de qualquer escrita (`windowH`), e reutiliza-o nas cinco leituras do diagnóstico (Method, `lettingGo`,
+passagem Questions → Contact, `afterLock`, `askedVh`). Timings, CSS, `spine.ts`, `timeline.ts`, `scroll.ts`,
+Environment e AUD-003 intactos. **Equivalência do valor, medida antes de editar:** getter instrumentado no
+controlo, Xiaomi — 42 358 leituras em 5 273 callbacks, a barra a mudar a altura entre 779 e 835, nenhuma
+leitura diferente da primeira do mesmo callback.
+
+**Desempenho, Xiaomi real** (`phone-scroll.mjs`, controlo `dd53786` em `:3301` vs candidata em `:3302`,
+alternados, 2 rondas, 400 / 1 200 / 4 000 px/s nos dois sentidos):
+
+| Zona · sentido | fps controlo → candidata | estilo/frame | frames > 50 ms |
+|---|---|---|---|
+| Questions ↑ | 38,1 → 41,5 (**+9,0 %**) | 24,9 → 20,0 (**−19,6 %**) | 13,8 → 9,7 |
+| Questions ↓ | 39,1 → 40,9 (+4,6 %) | 21,4 → 18,8 (−12,5 %) | 14,2 → 8,2 |
+| Method ↑ | 38,9 → 40,5 (+4,0 %) | 20,3 → 18,3 (−10,0 %) | 14,3 → 6,5 |
+| Method ↓ | 37,9 → 38,6 (+1,9 %) | 21,1 → 19,6 (−7,2 %) | 18,5 → 9,8 |
+
+Estilo/frame mais baixo nas 12 combinações (−6,6 % a −26,6 %), fps mais alto em todas (+0,9 % a +12,7 %),
+p95 igual ou melhor em todas; o máximo de um frame piorou em duas (Questions ↑ 4 000: 74 → 98 ms; Method ↓
+1 200: 74 → 90 ms), registado como ruído de frame único. **Atribuição:** as recalculações forçadas pelo
+driver nas duas leituras (32–166 por gesto no controlo) passam a **0** em todas as velocidades e nos dois
+sentidos; parte do trabalho passa para a recalculação do fim do frame (+6–13 % em ms), o ganho líquido é o
+da tabela.
+
+**Regressão:** typecheck, lint, build; asserções do `timeline.ts` em `next dev` a 1920, 1440, 768 e 390 —
+0 erros e 0 avisos, só a nota informativa documentada do offset 08 → 09; `six` nas seis viewports — 0
+overflow, 0 problemas, 0 pedidos falhados, `six-diff` 55–75 valores por viewport contra 51–77 em
+comparações anteriores do controlo consigo próprio; `reach-check` (Questions B + D-gate) idêntico em
+320, 375, 390 e 402; transições ↓/↑ Method → fim da página, por paragem, no Xiaomi e a 390 e 1440 — dentro
+do ruído controlo vs controlo, estados `data-*` iguais.
+
+**Revisão visual** (controlo vs candidata, About → Method → Questions → Contact, nos dois sentidos: capturas
+em repouso a cada ¼ de viewport e screencast durante um gesto contínuo, emparelhado por posição de scroll;
+Xiaomi, 1440 × 900 e 390 × 844): posição publicada idêntica em todas as paragens; composição, texto, rail e
+luz iguais. As diferenças vistas são o fotograma do vídeo junto ao Contact e a fase de animações de relógio
+nas capturas em movimento; em repouso a diferença é 0–0,01.
+
+**Anomalia de `--junction-at`.** Numa primeira passagem a 1440 × 900 a descer, a candidata publicou
+`--junction-at` parado em duas paragens seguidas (y 9720 e 9945), com valores a avançar só a cada ~900 ms.
+**Não se reproduziu**: seis repetições alternadas (três por build) e a revisão visual deram valores
+idênticos ao controlo em todas as paragens. A hipótese de uma janela de captura estrangulada pelo browser
+**não está comprovada**.
+
+**Pendente:** a revisão visual foi amostrada (folhas de contacto vistas nas junções em causa, na zona da
+anomalia e nas maiores diferenças; o resto só por métrica de píxeis); gestos sintéticos por CDP, não um
+dedo; iPhone / iOS Safari não testado.
+
+**Estado:** aprovada pelo design owner a 15 Out 2026; commit local em `v3`, sem push nem deploy.
+
 ### AUD-003 · O carrossel do Work consome 35 % da main thread em repouso
 
 - **Categoria:** performance · **Estado:** CONFIRMADO · **Severidade:** P2 · **Esforço:** baixo

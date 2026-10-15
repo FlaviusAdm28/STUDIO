@@ -13,6 +13,17 @@
   time in this order: AUD-003 → AUD-002 → AUD-001 (property by property). `master` and `v2` are not
   touched by it. Nothing of `v3` is committed or pushed until the design owner has seen each step's
   measurements.
+- **15 Oct 2026 — AUD-002 approved and committed locally on `v3`; not pushed, not deployed.** The frame
+  driver (`scroll-stage.tsx`, `read()`) now reads `window.innerHeight` once, before it writes anything,
+  and reuses it in the five reads that came after writes — on Android each of those forced a style
+  recalculation of `.publication` / `#method`. Measured on the real Xiaomi, control vs candidate, both
+  directions at 400 / 1200 / 4000 px/s: those forced recalculations go to 0; style per frame lower in all
+  12 cases (−7 % to −27 %), fps higher in all (Questions ↑ +9 %, style −20 %). Tests (typecheck, lint,
+  build, `timeline.ts` assertions in dev, `six`, `reach-check`, both-way transitions) and the visual
+  review (Xiaomi, 1440, 390) equal to the control. A `--junction-at` anomaly seen once at 1440 did not
+  reproduce; its cause is not proven. **Still pending:** the visual review was sampled, gestures were
+  synthetic, iPhone / iOS Safari not tested. The 14 Oct asymmetry (68–74 ms/frame up) did not reproduce.
+  Details: the audit document's AUD-002 section. AUD-001 has not started.
 - **15 Oct 2026 — AUD-003 approved (with `devicePixelRatio >= 2`) and committed locally on `v3`; not
   pushed, not deployed.** Measured on the real Xiaomi (DPR 2.75), control vs variant, 2 alternated runs
   each: **−68 % style recalculations, −27.4 % main thread, −73.6 % queue writes** at rest; exchanges,

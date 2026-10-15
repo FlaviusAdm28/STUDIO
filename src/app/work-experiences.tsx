@@ -113,6 +113,22 @@ export default function WorkExperiences() {
     leaving: -1,
   })
 
+  /*
+    **Only a step the eye could see is written** — AUD-003, 14 October 2026.
+
+    The loop runs every frame and the filling word's `--p` changed on every one of them, so the row was
+    restyled every frame for as long as the Work stood still: measured on the Xiaomi at rest, 84
+    recalculations a second and 202 ms/s of style, the only recalculation on the page. Across `holds` the
+    fill's edge crosses a word of ~80px, which at that phone's density is one device pixel every ~36ms —
+    so most of those writes moved the edge by a fraction of a pixel. On dense screens a write now waits
+    until the edge has moved a whole device pixel. 0 and 1 are always written exactly, and nothing about
+    *when* anything happens is decided here: the clock, the promotion and the press read `elapsed`, not
+    what was written.
+    (Repeating an unchanged value was already free — the browser drops it — so that is not the saving.)
+  */
+  const written = useRef<number[]>([])
+  const span = useRef<number[]>([])
+
   const paint = () => {
     const c = clock.current
     const p = clamp01(c.elapsed / TIMING.work.queue.holds)
@@ -122,6 +138,17 @@ export default function WorkExperiences() {
       if (i === c.leaving) fill = 1
       else if (i === c.pressed) fill = c.pressedFill
       else if (i === c.next) fill = p
+      const last = written.current[i]
+      if (last === fill) return
+      const ratio = window.devicePixelRatio
+      const pixels = (span.current[i] ?? 0) * ratio
+      /*
+        Only at 2 device pixels per CSS pixel and above (design owner, 14 October 2026). At 1 the step is a
+        whole CSS pixel — measured, the edge advanced in 1px steps ~17 times a second where it had glided by
+        fractions — so there every change is written, as before; so it is while the word has no measure yet.
+      */
+      if (ratio >= 2 && pixels > 0 && last !== undefined && fill > 0 && fill < 1 && Math.abs(fill - last) * pixels < 1) return
+      written.current[i] = fill
       el.style.setProperty('--p', String(fill))
     })
   }
@@ -297,7 +324,11 @@ export default function WorkExperiences() {
     the moment the frame changes size.
   */
   useLayoutEffect(() => {
-    const measure = () => setWidths(words.current.map((el) => (el ? el.getBoundingClientRect().width : 0)))
+    const measure = () => {
+      const measured = words.current.map((el) => (el ? el.getBoundingClientRect().width : 0))
+      span.current = measured
+      setWidths(measured)
+    }
     measure()
     const ro = new ResizeObserver(measure)
     words.current.forEach((el) => el && ro.observe(el))

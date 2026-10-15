@@ -1,6 +1,44 @@
 # CHAPTER ONE — CURRENT STATE · session handoff — 14 October 2026
 
-## ▶ LATER ON 14 October 2026 · Next.js 16.3.8 (`1210f07`) · read this first
+## ▶ END OF 14 October 2026 · production promoted, production audit, branch `v3`
+
+- **Production = `master` = `origin/master` = `v2` = `origin/v2` = `dd53786`** (Vercel deployment
+  `7068328100`, success, live at `https://studio-pi-ivory.vercel.app/`). `v2` was fast-forwarded into
+  `master` from `8b2802d`, which stays the rollback point. The sections below were written before the
+  promotion: where they say production is `8b2802d`, read `dd53786`.
+- **Production audit:** `docs/development/production-audit-2026-10-14.md` — AUD-001 … AUD-009, measured
+  on the public domain (Xiaomi real, Chrome and WebKit desktop, emulated networks), with the backlog and
+  what stays frozen.
+- **`v3`** is a new local branch created from `dd53786` for measured performance work, one finding at a
+  time in this order: AUD-003 → AUD-002 → AUD-001 (property by property). `master` and `v2` are not
+  touched by it. Nothing of `v3` is committed or pushed until the design owner has seen each step's
+  measurements.
+- **15 Oct 2026 — AUD-003 approved (with `devicePixelRatio >= 2`) and committed locally on `v3`; not
+  pushed, not deployed.** Measured on the real Xiaomi (DPR 2.75), control vs variant, 2 alternated runs
+  each: **−68 % style recalculations, −27.4 % main thread, −73.6 % queue writes** at rest; exchanges,
+  fill timing, taps, Enter and reduced motion equivalent to the control, 0 errors. **Still pending:** a
+  visual check of the fill edge by eye on the Xiaomi, and the iPhone / iOS Safari. Details: the audit
+  document's AUD-003 section. AUD-002 has not started.
+- **AUD-003 (as of 14 Oct) — implemented, validated on desktop, NOT approved and NOT committed.** The queue's fill is
+  written only when its edge moves a whole device pixel, and only where `devicePixelRatio >= 2` (design
+  owner's decision; DPR 1 keeps the original every-change writes). Validated against the control build:
+  typecheck, lint, build, `timeline.ts` assertions; Work at rest (DPR 1 identical to the original, DPR 2
+  −85 % recalculations / −47 % main thread in emulation); edge motion captures at DPR 1 and 2.75; word
+  presses, keyboard, exchange, reduced motion; `six`, navigation, menu focus, iOS branch, Questions,
+  Contact — all equal to the control. Measurements, visual comparison and limitations: the audit
+  document's AUD-003 section.
+- **Not validated in this variant:** the Xiaomi (locked during the session — the first variant's −67 %
+  recalculations / −25 % main thread there carries over only by construction) and the iPhone.
+- **Next step (design owner's decision):** either approve and make a local commit on `v3`, or first measure
+  on the Xiaomi unlocked (`work-rest.mjs phone 3301` vs `3302`). No push of `v3` was asked for.
+- **AUD-002 has not started.**
+- **Working state at the end of 14 Oct:** branch `v3` at `dd53786` with three uncommitted changes —
+  `src/app/work-experiences.tsx` (modified), `docs/development/SESSION-HANDOFF.md` (modified),
+  `docs/development/production-audit-2026-10-14.md` (new, untracked). The control build for comparisons is
+  `D:\STUDIO-v3-control` (detached at `dd53786`, its own `node_modules`, built). The measurement scripts are
+  outside the repo, in the session scratchpad (`v3/`, `prod/`); the tools they use are in `D:\STUDIO-tools`.
+
+## ▶ LATER ON 14 October 2026 · Next.js 16.3.8 (`1210f07`)
 
 **Git.** `v2` = `origin/v2` = `1210f07` *fix: update Next.js to 16.3.8*, three commits ahead of
 `master` = `origin/master` = production (`8b2802d`): `b6fc788`, `fbb4a5d` and `1210f07`. **Nothing has

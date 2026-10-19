@@ -3202,6 +3202,13 @@ rather than the figure.
 
 ## C24 · On a phone the Ledger is one line, and its index opens as a page · **28 September 2026** · design owner decision
 
+> **Revised by C42, 19 October 2026.** The control's *picture* and its accessible names are no longer
+> the ones below: the word *Index* / *Close* on its 1px rule is three rules that turn into a cross, and
+> the head button is named "Abrir navegação" / "Fechar navegação". The rest of this entry stands as
+> written — one line, the whole head line as the button, the modal region, its focus order, the three
+> ways it closes, reduced motion and `TIMING.ledger.index`. The text below is kept as the decision it
+> was; C42 records what changed and why.
+
 **What this replaces, and where.** C2 and C7 left the Ledger's mobile placement "not yet designed at
 any breakpoint". Until now the rail therefore lay down into the masthead's old composition, "preserved
 rather than designed", as a row of type rather than a menu trigger. The archived `decisions.md` gave
@@ -4015,3 +4022,52 @@ after, and approved there by the owner.
 
 Not looked at: desktop WebKit also answers yes to the test; whether Safari on a Mac draws it in a
 narrow window was not checked.
+
+## C42 · On a phone the Index is three rules that turn into a cross · **19 October 2026** · design owner decision
+
+**What this revises.** C24's visible control and its accessible names, and only those. C24 said *the
+control is a word, never a symbol* and *there is no icon*, and answered §10 (*understood before it is
+used*) with that argument. The design owner has now decided otherwise for this one control: below 768px
+the word *Index* — and *Close* while open — is replaced by three horizontal rules that turn into a ×.
+C24's original text is kept above, marked as revised; nothing else in it changes.
+
+**What it is.**
+
+- Three 1px rules in the rail's own ink and halo (`--rail-ink`, `--rail-halo`), so they read on the
+  photographs and on the stone as the type did. Lengths 100 / 70 / 85%, right-aligned. No ground, box,
+  circle or visible text.
+- **Sized in the running chapter's own `em`.** Its font-size is `.rail-title`'s — `clamp(1.125rem, 6vw,
+  1.5rem)` — and the mark is 1.10 × 0.52em of it: 21 × 10px at 320, 25.7 × 12.2 at 390, 26.4 × 12.5
+  from about 400px. Half the width of *Work* and four fifths of its cap height at every width; chosen
+  against 0.80, 0.95 and 1.25em at 320, 360, 390, 414 and 430. Centred on half the cap height.
+- The right edge stands where the word's last letter ended (its trailing letter-space kept as a
+  0.18rem margin), so the head line keeps its margins.
+- **Open:** the outer two rules meet on the box's centre and cross, each arm at 0.82 of the width so
+  the × spans the cap height; the middle one is taken in. `TIMING.ledger.icon.turns`, 280ms both ways,
+  on the shared curve, no overshoot. Reduced motion takes none of it: the cross is simply there.
+- It is a picture (`aria-hidden`). The control is still the whole head line (C24), at least 44px
+  tall, and both the rules and the button read the one state, `data-index` on `.ledger`.
+
+**Accessible names.**
+
+- Head button, closed: "Abrir navegação". Open: "Fechar navegação". Both from `site.ledger.index`.
+- The button carries `lang="pt-PT"`: the owner wrote the names in Portuguese and the page is `en`, so
+  without it a screen reader would read them with English sounds.
+- Retired: "Index — current chapter: {chapter}" and "Close index". The running chapter is no longer
+  part of the button's name; it is still the line's own text.
+- Unchanged: the modal region's name ("Index"), the chapter links, the running line.
+
+**Focus.** C39's indicator for *Index* was the hairline the word stood on, and that hairline went with
+the word. What is left is C39's keyboard-only ring on the control — `outline: 1px` at 0.5rem round the
+rules, drawn only under `data-keyed`. Focus order, the trap while open, Escape and the return of focus
+to the head button are C24's and did not change.
+
+**Validated, 19 October 2026.** Chrome (CDP emulation) at 320, 360, 390, 414 and 430: open by the rules
+and by the chapter's name, close by the ×, Escape, Enter from the keyboard with focus moving into the
+index and back, `aria-expanded` and the names following the state, transition 0.28s and 0s under reduced
+motion, nothing drawn at 768 and up. On the owner's Mi 11 Lite (Chrome 155) by CDP-injected touch —
+not a finger: open, close, a chapter link, no errors.
+
+**Debts, stated.** §10's argument in C24 no longer covers this control; the rules have to be learned
+in the way a word does not. The names are in another language from the page. Not tested with a real
+screen reader, on iOS, or by hand on the phone.

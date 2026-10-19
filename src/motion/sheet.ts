@@ -52,6 +52,17 @@ export const SHEET = {
   /* Ink, by position. The thesis begins before the head is named: chosen, not an accident (J2B). */
   writes: 0.78,
   heads: 0.94,
+  /**
+   * **`Philosophy` is chained to the thesis, not only to position** (19 October 2026). The two were
+   * separate position triggers, 0.16 viewports apart (~135px at 844, ~144 at 900), and the thesis
+   * writes itself on a 0.94s clock: a hand coming to rest anywhere in that band left the thesis whole
+   * and `II` standing alone, for as long as the hand stayed — forward, and again backward into the
+   * band. So the head is also written this many ms after the thesis began, which puts its 0.6s fade on
+   * the thesis's last phase (both lines whole at 0.94s); the position still heads it at once if the
+   * hand gets there first. It lets go with the thesis, never before. First on thumbs; on every pointer
+   * since the same frame was seen at 1440.
+   */
+  headsAfterWriting: 350,
   lift: [1.12, 1.9] as const,
   occasions: [1.28, 1.5, 1.72] as const,
   chain: 350,
@@ -278,6 +289,10 @@ const ANCHORS_NEXT = anchorsOf([...TABLE, ...NEXT])
  *   c        1.69   −26%   ← in use       2.95   −31%   ← in use
  *   d        —                            2.50   −42%
  *
+ *   `c` on a wheel since 19 October 2026: 2.78 viewports to the hand-over (−35%), because junction
+ *   07 itself was re-priced for the camera's speed — the note above `c` below. The phone is unchanged
+ *   to the hand-over; its fourth row only shortens what follows it.
+ *
  * **`c` is the one in use.** Watched with real gestures at 390 × 844 and 1440 × 900, slow, normal and
  * flick, forward and back: the sequence reads as it did, and at a normal hand the word still stands
  * ~0.35–0.45s in the slot before it is rewritten. `d` was rejected: on a flick the photograph was
@@ -291,9 +306,28 @@ const LAND: Record<string, { coarse: typeof TABLE; fine: typeof TABLE }> = {
     coarse: [[2.85, 5, 1], [3.33, 6, 1], [3.95, 7, 0.5]],
     fine: [[3.1, 5, 1], [4.7, 6, 1], [5.55, 7, 0.5]],
   },
+  /*
+    `c`'s fourth row on a thumb — 19 October 2026. The Work's own type is whole at junction 07 @ 0.45
+    (`work.arrives.block`) and the hand-over is at 0.5, but the rail's index control (the word *Index*
+    then, three rules since C42) is drawn only at state 08 (`lit`, the end of 07) — and the second half
+    of 07 was still at the runway's price: 1.56 viewports at 390 × 844 (y 3156 → 4469), with the frame
+    finished and nothing changing in it but the camera's pan coasting out. Three short swipes for the
+    Index to appear. Now 0.45 viewports: the same values of `p`, in the same order, over less scroll.
+    Junction 08 → 09 — the Work standing, with its Index — keeps its price.
+    The same row on a mouse or a trackpad, the same day: there the tail was 1.03 viewports at 1440 × 900
+    (y 4555 → 5480), the frame and the rail both finished. It was set to 0.63 — not a thumb's 0.45:
+    on a wheel the pan is wide enough that 0.45 made the camera pick up ~1.4× at 07 @ 0.5, as the type
+    landed, and 0.63 gave the pan one speed on both sides of the hand-over.
+    Then the whole of 07 on a wheel, same day, and this is the row as it stands: the photograph
+    crossed state 07 at 0.78× the speed it left 06 with (0.162 → 0.127 px per px of scroll at 1440, the
+    same ratio at 768 and 1920), just as the Work's type began. Both halves of 07 now cost 0.78 of what
+    they did (0.80 → 0.625, 0.63 → 0.49), so the pan keeps one speed across 07 and still across the
+    hand-over — and the junction is 0.31 viewports shorter. The type arrives over 0.59 viewports
+    instead of 0.73, still slower than a thumb's.
+  */
   c: {
-    coarse: [[2.82, 5, 1], [3.24, 6, 1], [3.75, 7, 0.5]],
-    fine: [[3.0, 5, 1], [4.25, 6, 1], [5.05, 7, 0.5]],
+    coarse: [[2.82, 5, 1], [3.24, 6, 1], [3.75, 7, 0.5], [4.2, 8, 0]],
+    fine: [[3.0, 5, 1], [4.25, 6, 1], [4.875, 7, 0.5], [5.365, 8, 0]],
   },
   d: {
     coarse: [[2.82, 5, 1], [3.24, 6, 1], [3.75, 7, 0.5]],

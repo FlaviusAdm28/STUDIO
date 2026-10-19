@@ -609,17 +609,19 @@ export const site = {
 
     /**
      * **The index on a phone** — `implementation-reconciliation.md` C24, design owner, 28 September
-     * 2026. Below 768px the head is one line and this word opens the Ledger as a page; the same place
-     * reads `close` while it is open. A word and never a symbol: §10, *understood before it is used*.
+     * 2026. Below 768px the head is one line and the control at its end opens the Ledger as a page.
+     * It was the word *Index* (*Close* while open); from 19 October 2026, design owner (C42), it is
+     * three rules that turn into a cross, so the only words left here are the ones a screen reader
+     * speaks.
      *
-     * The button's accessible name is `named` followed by the running chapter's own word while closed
-     * (*Index — current chapter: Questions*), and `closeNamed` while open. `label` names the open region.
+     * The button's accessible name is `opens` while closed and `closes` while open, in `lang` — the
+     * owner wrote them in Portuguese, and the page is `en`, so the button carries its own language
+     * and is not read with English sounds. `label` names the open region.
      */
     index: {
-      open: 'Index',
-      close: 'Close',
-      named: 'Index — current chapter:',
-      closeNamed: 'Close index',
+      opens: 'Abrir navegação',
+      closes: 'Fechar navegação',
+      lang: 'pt-PT',
       label: 'Index',
     },
 

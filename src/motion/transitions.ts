@@ -95,6 +95,8 @@ const settings: ReadonlyArray<readonly [string, string]> = [
   /* The index on a phone opening and closing — `TIMING.ledger.index`, C24. */
   ['--index-opens', `${TIMING.ledger.index.opens}ms`],
   ['--index-closes', `${TIMING.ledger.index.closes}ms`],
+  /* The control's rules turning into a cross — `TIMING.ledger.icon`. */
+  ['--index-turns', `${TIMING.ledger.icon.turns}ms`],
 
   /*
     ── The Work's carousel · `TIMING.work.carousel` ────────────────────────────────────────────────

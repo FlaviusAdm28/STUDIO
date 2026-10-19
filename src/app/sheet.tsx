@@ -81,6 +81,8 @@ export default function Sheet() {
       top1: number
       lift: number
       topicX: number
+      /** The numeral's glyphs alone, in em of the mark, without its tracking. */
+      numEm: number
       wordEm: number
       ocFs: number
       /** The Work's title, as the page finds it: its box relative to the page, and its setting. */
@@ -211,7 +213,7 @@ export default function Sheet() {
       /* Where `A memory.` stands inside the stack, before it is carried. */
       /* Its text's own top: in `next` the element carries block padding so its mask cannot cut a descender. */
       const survivorTop = survivor !== null ? survivor.offsetTop + parseFloat(getComputedStyle(survivor).paddingTop) : 0
-      G = { axis, T, L, Lt, heroTop, thH, gapHead, gapOcc, top1, lift, topicX: axis + numW + L * 0.55, wordEm, ocFs, title, survivorTop }
+      G = { axis, T, L, Lt, heroTop, thH, gapHead, gapOcc, top1, lift, topicX: axis + numW + L * 0.55, numEm: numW / L - 0.84, wordEm, ocFs, title, survivorTop }
     }
 
     /* Ink: triggers by position, drawn by the stylesheet's clocks. */
@@ -240,6 +242,8 @@ export default function Sheet() {
       return node === null ? 0 : ink
     }
     let last: [number, number] = [0, 0]
+    /* When the thesis was last asked to write itself. */
+    let writtenAt = -1
 
     const flag = (name: string, value: boolean) => {
       if (value) {
@@ -273,7 +277,14 @@ export default function Sheet() {
       sans.style.setProperty('--sh-mark-ink', lerp(0.76, 1, u).toFixed(3))
       sans.style.top = `${((0.8185 / f - 0.8623) * (1 - u)).toFixed(4)}em`
 
-      topic.style.transform = `translate(${g.topicX.toFixed(2)}px, ${(headY + (g.L - g.Lt) * 0.86).toFixed(2)}px)`
+      /*
+        The head can be written while the numeral is still being filed (`headsAfterWriting`), so
+        `Philosophy` stands where the numeral is, not where it will land: after its glyphs and its current
+        tracking, on its current line. From the landing (kr = 1) this is exactly the fixed place.
+      */
+      const topicX = g.axis + g.wordEm * fs * (1 - closes) + f * fs * (g.numEm + 2 * lerp(SHEET.track, 0.42, u)) + g.L * 0.55
+      const topicY = y + (g.L - g.Lt) * 0.86
+      topic.style.transform = `translate(${topicX.toFixed(2)}px, ${topicY.toFixed(2)}px)`
       thesis.style.transform = `translate(${g.axis.toFixed(2)}px, ${thesisTop.toFixed(2)}px)`
       thesis.style.opacity = lerp(1, SHEET.thesisRests, k2).toFixed(3)
       stack.style.transform = `translate(${g.axis.toFixed(2)}px, ${(thesisTop + g.thH + g.gapOcc).toFixed(2)}px)`
@@ -282,13 +293,19 @@ export default function Sheet() {
       /* NEXT — the first pixels of the first scroll are answered by the hand: `One` begins to give way before the count's clock. */
       if (next) el.style.setProperty('--sh-onset', (1 - 0.45 * span(s, [0, SHEET.counts])).toFixed(3))
       flag('data-swapped', kr >= SHEET.swapAt)
-      flag('data-written', s >= SHEET.writes)
-      flag('data-headed', s >= SHEET.heads)
+      const writing = s >= SHEET.writes
+      if (!writing) writtenAt = -1
+      else if (writtenAt < 0) writtenAt = now
+      flag('data-written', writing)
+      /* The head follows the thesis's own clock as well as the hand (`SHEET.headsAfterWriting`). */
+      const chained = writing && now - writtenAt >= SHEET.headsAfterWriting
+      flag('data-headed', s >= SHEET.heads || chained)
+      const headWaits = writing && !chained && s < SHEET.heads
       /* The hero's second level lets go with `One`, on the same clock. */
       if (s >= SHEET.counts) root.dataset.sheetCounted = ''
       else delete root.dataset.sheetCounted
 
-      pending = false
+      pending = headWaits
       for (let i = 0; i < 3; i += 1) {
         const wanted = s >= SHEET.occasions[i]
         const prior = i === 0 || (on[i - 1] && now - since[i - 1] >= SHEET.chain)

@@ -387,18 +387,7 @@ export default function Ledger() {
   const lit = (stateOf(filmState)?.ledger.active ?? null) !== null
   const indexOpen = index && lit
 
-  /*
-    *Index* and *Close* are one slot exchanged by the rail's own exchange — the same `step` and
-    `RailSlot` the chapters use, with no role, so it is a change of word and not of rank. The same
-    adjust-during-render pattern as the composition above, for the same reason.
-  */
   const indexCopy = site.ledger.index
-  const [toggle, setToggle] = useState<Slot>(() => step(null, word(indexCopy.open), 'plain', 'plain'))
-  const [toggleFor, setToggleFor] = useState(false)
-  if (toggleFor !== indexOpen) {
-    setToggleFor(indexOpen)
-    setToggle((prev) => step(prev, word(indexOpen ? indexCopy.close : indexCopy.open), 'plain', 'plain'))
-  }
 
   const shut = useCallback(() => setIndex(false), [])
 
@@ -601,13 +590,16 @@ export default function Ledger() {
               )}
 
               {/*
-                *Index* / *Close*, on the head's baseline, over a 1px rule of its own width — the rule is
-                the affordance (§6). Drawn only below 768px, and only once the rail is lit. It is the
-                picture of the control; the control itself is the whole line, below.
+                Three rules on the head's baseline, turning into a cross while the index is open — design
+                owner, 19 October 2026, in place of the word *Index*. Drawn only below 768px, and only once
+                the rail is lit. It is the picture of the control; the control itself is the whole line,
+                below, and `data-index` on `.ledger` is the one state both read.
               */}
               {lit && (
                 <span className="rail-index-word" aria-hidden="true">
-                  <RailSlot key={toggle.nonce} slot={toggle} className="rail-index-slot" />
+                  <span className="rail-index-rule" />
+                  <span className="rail-index-rule" />
+                  <span className="rail-index-rule" />
                 </span>
               )}
             </p>
@@ -615,8 +607,8 @@ export default function Ledger() {
 
           {/*
             **The whole head line is one button** (C24): it spans the frame and is at least 44px tall, so
-            the chapter's name opens the index as surely as the word does. Its name says both what it does
-            and where the visitor is; open, it says it closes.
+            the chapter's name opens the index as surely as the rules do. Its name says what it does, and
+            follows the same state the rules do: open, it says it closes.
           */}
           {lit && rail.running && (
             <button
@@ -625,9 +617,8 @@ export default function Ledger() {
               type="button"
               aria-expanded={indexOpen}
               aria-controls="ledger-index"
-              aria-label={
-                indexOpen ? indexCopy.closeNamed : `${indexCopy.named} ${rail.running.word}`
-              }
+              lang={indexCopy.lang}
+              aria-label={indexOpen ? indexCopy.closes : indexCopy.opens}
               onClick={() => setIndex((was) => !was)}
             />
           )}

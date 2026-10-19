@@ -1374,6 +1374,14 @@ export const TIMING = {
      * Reduced motion takes neither — the index is simply there, and simply gone.
      */
     index: { opens: 520, closes: 320 },
+
+    /**
+     * **The control's three rules turning into a cross, and back** — design owner, 19 October 2026.
+     * Interface response, as `index` is. 280ms, inside the 250–300 asked for: it answers the press and
+     * finishes well before the index has been drawn, so the cross is there to close what is opening.
+     * One duration both ways, on the shared curve, no overshoot. Reduced motion takes none of it.
+     */
+    icon: { turns: 280 },
   },
 
   /* ─────────────────────────────────────────────────────────────────────────────────────────────

@@ -1,4 +1,84 @@
-# CHAPTER ONE — CURRENT STATE · session handoff — 14 October 2026
+# CHAPTER ONE — CURRENT STATE · session handoff — 19 October 2026 (end of day)
+
+## ▶ END OF 19 October 2026 · Opening II → Philosophy, the Work's scroll, the Index as three rules · read this first
+
+Recorded at the end of 19 October 2026. This section is self-contained: it says what was committed,
+what was deliberately left out, what was tested and how, and what is still open.
+
+### Committed on `v3` (pushed to `origin/v3`; not merged to `master`, so not in production)
+
+- **Opening, II → Philosophy** (`src/app/sheet.tsx`, `SHEET.headsAfterWriting` in `src/motion/sheet.ts`).
+  The thesis and `Philosophy` were two position triggers 0.16 viewports apart, and the thesis writes on
+  a 0.94s clock, so a hand at rest inside that band left `II` alone with the whole thesis, forward and
+  backward. `Philosophy` is now also written 350ms after the thesis begins (position still heads it at
+  once if the hand gets there first), on every pointer, and it is placed after the numeral's *current*
+  glyphs and tracking rather than its landing place, so it never cramps into `IIPhilosophy` mid-move.
+  Measured: time with `II` alone at rest, 1.0–1.6s before, 0ms after, phones and desktops.
+- **The Work's scroll** (`LAND.c` in `src/motion/sheet.ts`). On a thumb, a fourth row `[4.2, 8, 0]`:
+  the second half of junction 07 (Work whole → state 08, where the phone's Index is drawn) went from
+  1.56 to 0.45 viewports at 390 × 844 — the "three micro-scrolls" before the Index. On a wheel the
+  rows are now `[4.875, 7, 0.5], [5.365, 8, 0]`: the whole of 07 costs 0.78 of what it did, which
+  removed a 0.78× drop in the camera's speed at state 07 and keeps one speed across the hand-over at
+  07.5 (1.00× measured at 768, 1440, 1920); Work whole → camera still is 0.56 viewports (was ~1.1).
+  Junction 08 → 09, the Work standing before About, is unchanged on both (0.66 vp wheel, 0.9 thumb).
+- **The phone's Index is three rules that turn into a ×** — `implementation-reconciliation.md` **C42**,
+  which revises C24's visible control and accessible names (C24 kept, marked as revised).
+  `src/app/ledger.tsx` (the picture; the control is still the whole head line), `content/site.ts`
+  (`opens` "Abrir navegação" / `closes` "Fechar navegação", `lang` pt-PT), `src/app/globals.css` (the
+  rules, sized in `.rail-title`'s own em: 1.10 × 0.52em), `TIMING.ledger.icon.turns` 280ms in
+  `src/motion/timing.ts`, published as `--index-turns` by `src/motion/transitions.ts`.
+
+### Deliberately NOT committed (still uncommitted in the working copy)
+
+- **B1** (`src/app/globals.css`, `.ask[open] .ask-a` — `both` → `backwards`) and **B4**
+  (`src/app/scroll-stage.tsx`, `if (navigated) pace = 0`). Not part of this work, and the 15 October
+  notes say they go nowhere without the design owner's approval. They were staged out by hunk; the
+  working copy still has them.
+- **The 15 and 16 October sections of this file.** They were uncommitted notes from earlier sessions;
+  they are still in the working copy, below this section. In short, as they record: production =
+  `master` = `e09f09d` (AUD-002/003), domain aliasing and a post-deploy visual pass not confirmed.
+
+### Tested on 19 October, and how
+
+- `npm run typecheck`, `npm run lint`, `npm run build` (Next 16.3.8, Turbopack): pass, no warnings. The
+  repository has no automated tests. The committed snapshot (without B1/B4) was also checked on its own.
+- **Chrome, CDP emulation**, against `next start`: 320, 360, 390, 414, 430 (touch) and 768, 1440, 1920
+  (mouse) — the whole site from the first frame to Contact and back, settled steps with frames, a fast
+  continuous pass: 0 console errors, 0 exceptions, 0 failed requests, no horizontal overflow, fonts and
+  images loaded, state 14 reached and the reverse pass monotonic. The Work's camera speed, the Index's
+  entry and the reverse at all eight widths; the icon's open / close / Escape / keyboard / reduced
+  motion at the five phone widths; rail destinations and Tab order at 1440; reduced motion at 390 and
+  1440; the no-script page at 390 and 1440.
+- **The owner's Mi 11 Lite 5G** (M2101K9G, Android 13, Chrome 155.0.8059.81), over USB: `adb reverse`
+  of the phone's `localhost:3000` to the PC's `next start` (removed afterwards), driven through
+  `D:\STUDIO-tools\mobile-lag\phone.mjs`. Whole site forward and back, the icon, an Index link to
+  Questions, a question opened: no errors. **Touch was CDP-injected, not a finger** (MIUI blocks `adb
+  input`). Frame times there (p50 22ms, p95 33–44ms, 20 + 12 frames over 50ms) include the
+  instrumentation's own cost and were not compared with the baseline.
+
+### Not tested
+
+A finger on the phone; iOS Safari; Firefox and Mi Browser; a real screen reader; a trackpad. Smoothness
+was judged from frame sequences, strips and measured speeds, not from watching continuous motion (the
+comparison videos are in the session scratchpad only).
+
+### Known, open, not changed
+
+- **The no-script page** overlaps About's faded type with the Questions rows and shows dark gradient
+  bands — identical on production (`e09f09d`), so not from this work. Out of scope until asked.
+- Rhythm candidates outside the Work, not changed: Method's composed frame stands still for 1.1–1.8
+  viewports; Questions' list for 0.9–1.5; Questions → Contact is a fast exchange (~0.24 viewports) with
+  the studio empty for a moment.
+- An old `next start` from this repository was found listening on `:3000` (started 11:22 on 19 Oct, not
+  by this session) while `.next` was rebuilt several times: restart it before testing against it.
+
+### Next steps, in this order
+
+1. Validate on the phone **by hand** (finger) and on the iPhone: the Work's scroll, the Index rules,
+   II → Philosophy.
+2. Decide B1/B4 with section C of the 15 October notes (uncommitted; in the working copy of this file).
+3. Production only on request: merge `v3` into `master` (no force), then confirm the domain's
+   deployment and replay production from the first frame.
 
 ## ▶ END OF 14 October 2026 · production promoted, production audit, branch `v3`
 

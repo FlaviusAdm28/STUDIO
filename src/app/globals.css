@@ -9182,30 +9182,75 @@ a.v2-ident-open:focus-visible {
     width: 100%;
   }
 
+  /*
+    **Three rules, and a cross while the index is open** — design owner, 19 October 2026 (C42),
+    in place of the word *Index*. The right edge stays where the word's last letter ended (its
+    trailing letter-space, 0.18rem, is kept as a margin), so the head line keeps its margins.
+
+    **Sized in the running chapter's own `em`** — the font-size is `.rail-title`'s, 6vw between 18 and
+    24px, so the mark is in one proportion to *Work* at every width rather than one size beside a word
+    that grows. At 18 × 9px it was a third of the title's width beside a 15px cap at 390; compared
+    there and at 320, 360, 414 and 430 against 0.80, 0.95 and 1.25em, **1.10 × 0.52em** is the size
+    that answers the word without competing with it: half the width of *Work*, four fifths of its cap
+    height. Centred on half the cap height (0.31em above the baseline), so it sits with the capital
+    rather than with the x-height. The rules stay 1px — the serif's own hairline at this size.
+    Unequal and right-aligned closed; crossed on the box's centre open, each arm shortened to 0.82 so
+    the cross spans the cap height (0.64em) instead of outgrowing the word it closes.
+  */
   .rail-index-word {
     display: inline-block;
     position: relative;
     margin-left: auto;
-    font-family: var(--v2-sans, var(--voice));
-    font-size: 0.75rem;
-    font-weight: 400;
-    letter-spacing: 0.24em;
-    line-height: 1;
-    text-transform: uppercase;
+    margin-right: 0.18rem;
+    font-size: clamp(1.125rem, 6vw, 1.5rem);
+    width: 1.1em;
+    height: 0.52em;
+    vertical-align: 0.05em;
     color: var(--rail-ink, var(--ink));
-    text-shadow: var(--rail-halo);
     transition: color var(--fade-nav-hover) var(--curve);
   }
 
-  /* The rule, as wide as the word's ink — the trailing letter-space is not part of it. */
-  .rail-index-word::after {
-    content: '';
+  .rail-index-rule {
     position: absolute;
-    left: 0;
-    right: 0.24em;
-    bottom: -0.45em;
+    right: 0;
     height: 1px;
     background: currentColor;
+    box-shadow: var(--rail-halo);
+    transform-origin: 50% 50%;
+    transition:
+      transform var(--index-turns) var(--curve),
+      width var(--index-turns) var(--curve),
+      opacity var(--index-turns) var(--curve);
+  }
+
+  .rail-index-rule:nth-child(1) {
+    top: 0;
+    width: 100%;
+  }
+
+  .rail-index-rule:nth-child(2) {
+    top: calc(50% - 0.5px);
+    width: 70%;
+  }
+
+  .rail-index-rule:nth-child(3) {
+    bottom: 0;
+    width: 85%;
+  }
+
+  /* Open: the outer two meet on the centre and cross; the middle one is taken in. */
+  .ledger[data-index='open'] .rail-index-rule:nth-child(1) {
+    transform: translateY(calc(0.26em - 0.5px)) rotate(45deg) scaleX(0.82);
+  }
+
+  .ledger[data-index='open'] .rail-index-rule:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0.2);
+  }
+
+  .ledger[data-index='open'] .rail-index-rule:nth-child(3) {
+    width: 100%;
+    transform: translateY(calc(-0.26em + 0.5px)) rotate(-45deg) scaleX(0.82);
   }
 
   /* The control: the whole head line, laid over the picture of it. */
@@ -9335,7 +9380,7 @@ a.v2-ident-open:focus-visible {
   }
 }
 
-/* Reduced motion: the index is simply there, and simply gone; *Index* and *Close* change without a fade. */
+/* Reduced motion: the index is simply there, and simply gone; the rules become the cross without turning. */
 @media (max-width: 767.98px) and (prefers-reduced-motion: reduce) {
   .ledger .ledger-index,
   .ledger[data-index='open'] .ledger-index,
@@ -9344,12 +9389,8 @@ a.v2-ident-open:focus-visible {
     transition: none;
   }
 
-  .rail-index-word .rail-slot[data-swap] > .rail-in {
-    animation: none;
-  }
-
-  .rail-index-word .rail-slot[data-swap] > .rail-out {
-    display: none;
+  .rail-index-rule {
+    transition: none;
   }
 }
 

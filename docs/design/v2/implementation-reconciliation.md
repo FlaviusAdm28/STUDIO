@@ -1768,9 +1768,12 @@ adaptation rule — and the four preflight questions closed on 27 August 2026 wi
 2. ~~**C5's plate count is contradictory inside V2.**~~ **Closed by §11.2.** Three plates ship;
    `dawn_warm.png` is a derivative and must not appear in production code. What survives is smaller:
    states 04 and 05 are grounds without a plate and §5 names no plate for 05 — recorded in C5.
-3. **`open-decisions.md` §7 is answered but still recorded as open** (C6), and its §7 still points at
+3. ~~**`open-decisions.md` §7 is answered but still recorded as open**~~ (C6), and its §7 still points at
    `design-system-inputs.md`, which is now `docs/design/archive/brand/design-system-inputs.md`.
-   `docs/brand/` is locked and was not edited.
+   `docs/brand/` is locked and was not edited. **Closed, 21 October 2026.** At the design owner's
+   request §7 now records the answer — §5's two families — and C43's one exception, and no longer points
+   at `design-system-inputs.md` (`99aefa6`). `open-decisions.md` is the working file, not one of the
+   locked documents.
 4. **`docs/development/01-validation.md:4` and `02-motion-system.md:4`** both read *"governed by
    `docs/brand/` (locked)"*. The path still resolves, but its contents changed underneath the claim —
    `05-storyboard.md`, `design-system-inputs.md` and `vision.md` left that directory for the archive.
@@ -4108,5 +4111,5 @@ Work / Questions / Contact each reaching their destination, no console errors, n
 
 **Debts, stated.** §5's two-family rule now has one exception, recorded as answered in
 `docs/brand/open-decisions.md` §7 at the design owner's request (`99aefa6`, 21 October 2026). The share
-metadata still carries the old line
-(`opengraph-image.alt.txt`). Not tested on iOS Safari or by hand on a physical phone.
+metadata carried the old line until `8b04dd0`, which set `opengraph-image.alt.txt` to the new one and
+re-captured `opengraph-image.jpg` with the tagline. Not tested on iOS Safari or by hand on a physical phone.

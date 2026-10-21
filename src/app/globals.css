@@ -5778,8 +5778,14 @@ html[data-opening='running'] .ways a {
   padding-bottom: clamp(1.1rem, 2.6vh, 1.75rem);
 }
 
+/*
+  `backwards`, not `both`: a forwards fill held the answer at the keyframe's `var(--q)` — the arrival
+  only — so an open answer ignored `--rel` and `--qf` and stood alone, at full ink, after its question
+  and the rest of the list had been released (measured, 390 and 1440, 15 October 2026). Once the 180ms
+  are over the answer is back on its own opacity rule (`.ask-a`, further down), the question's expression.
+*/
 .ask[open] .ask-a {
-  animation: answer var(--fade-answer) var(--curve) both;
+  animation: answer var(--fade-answer) var(--curve) backwards;
 }
 
 /*
@@ -5826,9 +5832,8 @@ html[data-opening='running'] .ways a {
     transform: translateY(5px);
   }
   /*
-    `var(--q)` rather than `1`: the animation fills forwards, so a literal would pin the answer at
-    full ink and override the row's own arrival for the rest of the section's life. With the custom
-    property it lands on whatever the question is at, which is 1 whenever a press could have happened.
+    `var(--q)` rather than `1`: it lands on whatever the question is at, which is 1 whenever a press
+    could have happened, so the hand-over to the row's own rule when the animation ends is seamless.
   */
   to {
     opacity: var(--q, 1);

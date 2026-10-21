@@ -18,7 +18,7 @@
 
 ## Blocking design
 
-7. **The two typefaces.** See `design-system-inputs.md` for the selection criteria. `04-visual-language.md` §4 says what type is for; it deliberately does not say how many faces answer it.
+7. **The two typefaces — answered, with one approved exception.** `final-design-spec.pdf` §5 answers it: Cormorant Garamond 300 for every statement, Schibsted Grotesk for every label and micro-caps — two families, no others. **The exception is C43** (design owner, 21 October 2026): the hero's tagline, *Your moments, made timeless.*, is set in Tenor Sans 400, in capitals, and nothing else is. Set in Cormorant the line read as the same voice as the name; set in Schibsted capitals it read as interface. Tenor's slight stroke contrast and classical capitals answer the serif instead of labelling it, and keep the old cover's wide tracking. The record is `docs/design/v2/implementation-reconciliation.md` C43; in the build it is one token, `--v2-tagline`, read by the tagline alone. Kept here rather than deleted so the exception is visible beside the rule. Not an open question.
 8. **The palette,** and whether an accent colour exists at all.
 9. **Wordmark, or the name simply set in the display face.**
 10. **Is dark the studio's resting state, or light?** This decides the homepage.

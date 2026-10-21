@@ -1013,6 +1013,14 @@ export default function ScrollStage() {
           thumb.matches && !calm.matches ? clamp01((speed - s.from) / (s.full - s.from)) : 0
         if (dt > 0) pace = wanted + (pace - wanted) * Math.exp(-dt / (wanted > pace ? s.rises : s.falls))
         if (wanted === 0 && pace < 0.002) pace = 0
+        /*
+          **A press is not a hurried hand.** An in-page link moves the page thousands of pixels in one frame,
+          which this read as a full-speed thumb: on a phone the rail's *Questions* widened every window to
+          `swift`, so the rows waited for `rowsAfterLock` 1.25 below a landing priced at 0.7 — measured at
+          390 × 844, first row 2.9s after the press against 0.7s arriving by scroll (15 October 2026).
+          `navigated` is the press until the page has arrived, as it is for `noFasterThan` and the spring.
+        */
+        if (navigated) pace = 0
         /* While it is still easing back the windows are still moving, so the frame loop stays up. */
         if (pace > 0) playing = true
       }

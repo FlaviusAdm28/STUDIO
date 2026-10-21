@@ -4071,3 +4071,41 @@ not a finger: open, close, a chapter link, no errors.
 **Debts, stated.** §10's argument in C24 no longer covers this control; the rules have to be learned
 in the way a word does not. The names are in another language from the page. Not tested with a real
 screen reader, on iOS, or by hand on the phone.
+
+## C43 · The hero's tagline is set in a third face, Tenor Sans · **21 October 2026** · design owner decision
+
+**What this departs from.** §5: *"Two families, no others. Cormorant Garamond 300 for every
+statement… Schibsted Grotesk for every label and micro-caps."* The design owner has decided that one
+line — the hero's tagline, `.v2-sub`, *Your moments, made timeless.* — is set in **Tenor Sans 400**.
+Nothing else changes face: every label, micro-cap and the quick navigation stay Schibsted, every
+statement stays Cormorant. The exception has its own token (`--v2-tagline`) so it cannot spread by
+accident, and it falls back to Schibsted's stack.
+
+**Why.** On 20 October the line moved to Cormorant and read as the same voice as the name; on 21 October
+it went back to Schibsted capitals and read as interface. Four rounds were compared on the real hero, in
+isolated copies, at 1440, 1920 and 390 and over several moments of the footage: Schibsted at two
+settings, Jost, Tenor Sans, Lato Light, production's own setting (Schibsted 0.34em, ink 0.44), and three
+refinements of the two the owner preferred. The owner chose the hybrid: Tenor's slight stroke contrast
+and classical capitals answer the Cormorant instead of labelling it, and the old cover's wide tracking
+is kept.
+
+**What it is.**
+
+- Desktop: `clamp(11px, 0.8287vw, 16px)`, tracking opening from 0.15em at 821 to 0.26em by ~1250, ink
+  0.62. Sized so the line is exactly as wide as *Chapter* (3.156 of the title's size): measured 1.00 at
+  1440 (11.9px) and 1920 (15.9px), 1.04 at 1280, 1.22 at 1024 where the 11px floor holds.
+- Phone (≤ 820): `min(0.2077 × title, 11px)`, 0.15em — one line at 0.92 of the title's width on every
+  phone (9.6px at 320, 10.0 at 390, 10.3 at 430, 11 at 768 and 820). 820 → 821 is one size, one tracking
+  and one width.
+- Place: the approved distance to the title, within ~1.5px (`top` + 0.25em for Tenor's lower cap).
+  Entry unchanged: 300ms after the name, 800ms fade.
+- Cost: one weight; the Latin file the page loads is 10KB.
+
+**Validated, 21 October 2026.** Chrome (CDP, `next start`) at 320, 360, 390, 430, 768, 820, 821, 1024,
+1280, 1440 and 1920: one line, inside the frame and clear of the quick navigation, the title identical
+to before, the footage playing, the whole page scrolled 1 → 14 and back with no horizontal overflow,
+Work / Questions / Contact each reaching their destination, no console errors, no failed request.
+
+**Debts, stated.** §5's two-family rule now has one exception, and `docs/brand/open-decisions.md` §7 is
+not updated by it — that file is the owner's. The share metadata still carries the old line
+(`opengraph-image.alt.txt`). Not tested on iOS Safari or by hand on a physical phone.

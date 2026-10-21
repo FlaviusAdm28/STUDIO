@@ -298,8 +298,11 @@ export const site = {
   /** The title is the identity. There is no mark. */
   title: 'Chapter One',
 
-  /** Arrives with the second shot of the footage. */
-  openingLine: 'Where moments become digital.',
+  /**
+   * Arrives with the second shot of the footage. Design owner, 20 October 2026: *"Your moments, made
+   * timeless."*, in place of *Where moments become digital.*
+   */
+  openingLine: 'Your moments, made timeless.',
 
   /**
    * Beneath the timestamp. Deliberately not a city — the sentence notes that the
@@ -844,7 +847,18 @@ export const site = {
         categories: [
           { word: 'Weddings', headline: 'Wedding experiences', work: 'venice' },
           { word: 'Artists', headline: 'Art experiences', work: 'artist' },
-          { word: 'Selected Projects', headline: 'Experiences beyond categories', work: 'selected' },
+          /*
+           * `lines` is where the headline may break, chosen rather than left to the measure: it is 11.7em,
+           * 352px at a phone's 30px against 268 of room at 320, so on one line it was cut ("…categori").
+           * The stylesheet decides *whether* it breaks (below 768 only); this decides *where*. Visual
+           * audit, 20 October 2026; variant C.
+           */
+          {
+            word: 'Selected Projects',
+            headline: 'Experiences beyond categories',
+            lines: ['Experiences', 'beyond categories'],
+            work: 'selected',
+          },
         ] as const,
       },
 
@@ -1230,6 +1244,13 @@ export const site = {
        * the authored break is the desktop composition, and a phone is not that frame.
        */
       ask: ['Is there something', 'that deserves its own experience?'] as const,
+      /*
+       * The same two lines, with the one place the second may break — the third line the note above says
+       * a phone needs, authored ("that deserves / its own experience?") instead of two lines shrunk to fit.
+       * The stylesheet breaks it below 768 only; the desktop keeps the two authored lines. Visual audit,
+       * 20 October 2026; variant C, mobile only.
+       */
+      askParts: [['Is there something'], ['that deserves', 'its own experience?']] as const,
 
       /**
        * 21px Cormorant, and it is the writing line's own words rather than a subtitle to the question.

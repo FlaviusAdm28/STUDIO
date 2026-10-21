@@ -544,13 +544,19 @@ export default function Publication() {
             */}
             <div className="contact-compose">
               <p className="contact-ask">
-                {contact.ask.map((line, i) => (
+                {contact.askParts.map((parts, i) => (
                   <span
                     className="contact-line"
-                    key={line}
+                    key={parts.join(' ')}
                     style={{ ['--c' as string]: `var(--c-q${i + 1}, 0)` }}
                   >
-                    {line}
+                    {/* One span per authored part; the stylesheet decides whether a part is its own line. */}
+                    {parts.map((part, k) => (
+                      <span className="contact-part" key={part}>
+                        {k > 0 && ' '}
+                        {part}
+                      </span>
+                    ))}
                   </span>
                 ))}
               </p>

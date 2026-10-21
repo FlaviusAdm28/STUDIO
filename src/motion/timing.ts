@@ -81,17 +81,31 @@ export const TIMING = {
     /** The studio name. Takes the screen the timestamp vacated. */
     chapterOne: { at: 2200, fade: 1400 },
 
-    /** The line under the name. Gated on the footage, with a fallback if it never loads. */
+    /**
+     * The line under the name. Gated on the footage, with a fallback if it never loads.
+     *
+     * **300ms into the name, over 800ms** — design owner, 20 October 2026: the line follows the title
+     * closely and quietly, as one lockup arriving. It was 650 / 1000 with the footage gate at 1.0s, and
+     * the gate was the one deciding (measured: the line began ~743ms after the name). The footage rolls
+     * at MOTION, 250ms before the name, so 0.55s of footage *is* 300ms into the name: the two gates now
+     * agree, and the gate still holds the line if the footage is late. Opacity only, on the shared curve
+     * — the name arrives without travelling, so neither does its second line.
+     */
     subtitle: {
-      afterChapterOne: 650,
-      fade: 1000,
-      waitsForFootageAt: 1.0,
+      afterChapterOne: 300,
+      fade: 800,
+      waitsForFootageAt: 0.55,
       arrivesRegardlessAt: 12000,
       stallGrace: 2500,
     },
 
-    /** The interface arriving last. When this finishes, the film is released. */
-    navigation: { afterSubtitle: 1000, fade: 1000 },
+    /**
+     * The interface arriving last. When this finishes, the film is released.
+     *
+     * `afterSubtitle` 1450 rather than 1000 since the line moved ~443ms earlier (above): the interface,
+     * and with it the end of the opening, keep the instant they already had.
+     */
+    navigation: { afterSubtitle: 1450, fade: 1000 },
   },
 
   /* ─────────────────────────────────────────────────────────────────────────────────────────────

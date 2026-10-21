@@ -98,7 +98,7 @@ export default function Sheet() {
       const rem = 16
       /* The project's own tokens: `--x196`, `--v2-title-size`, `--lockup`, and the title's baseline at 462 / 760. */
       const axis = clamp(0.20024 * W - 92.34, 0.08 * W, (196 / 1440) * W)
-      const T = clamp(Math.max(0.02407 * W + 33.51, (96 / 1440) * W), 2 * rem, 8 * rem)
+      const T = clamp(Math.max(0.02708 * W + 37.7, (96 / 1440) * W), 2 * rem, 8 * rem)
       const L = clamp((16 / 1440) * W, 0.75 * rem, 1.25 * rem)
       const Lt = (L * 12.5) / 11
       const heroTop = (462 / 760) * H - 0.76 * T

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Cormorant_Garamond, Schibsted_Grotesk } from 'next/font/google'
+import { Cormorant_Garamond, Schibsted_Grotesk, Tenor_Sans } from 'next/font/google'
 import { site } from '@content'
 import { motionCss } from '@/motion'
 import './globals.css'
@@ -27,6 +27,19 @@ const schibsted = Schibsted_Grotesk({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-schibsted',
+})
+
+/*
+  **The one departure from the two, for one line.** Tenor Sans sets the hero's tagline and nothing else
+  (`--v2-tagline` in `globals.css`) — design owner, 21 October 2026, recorded against §5 as
+  `docs/design/v2/implementation-reconciliation.md` C43. One weight; the Latin file the page loads is
+  10KB (measured on the build).
+*/
+const tenor = Tenor_Sans({
+  subsets: ['latin'],
+  weight: ['400'],
+  display: 'swap',
+  variable: '--font-tenor',
 })
 
 /*
@@ -96,7 +109,7 @@ const BEGIN_AT_THE_BEGINNING = `
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${cormorant.variable} ${schibsted.variable}`}>
+    <html lang="en" className={`${cormorant.variable} ${schibsted.variable} ${tenor.variable}`}>
       <body>
         <script dangerouslySetInnerHTML={{ __html: BEGIN_AT_THE_BEGINNING }} />
 

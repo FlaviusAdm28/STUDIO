@@ -113,9 +113,9 @@ export type Beat = (typeof beat)[keyof typeof beat]
      1600  the time begins to leave, as the image comes up behind it
      2000  the footage rolls — 500ms after the light, so the image is alive as it is lit
      2200  the time is gone, and the identity arrives in the same instant
-     2850  the subtitle is allowed to arrive — if the footage agrees
+     2500  the subtitle is allowed to arrive — if the footage agrees
+     3300  the subtitle settles
      3600  the identity settles
-     3850  the subtitle settles
 
    The footage was measured rather than guessed, and this is built around what it actually is:
    2880 × 1440, a 2:1 frame, 12.121s long, and palindromic. A landscape to 2.0s, a dissolve up

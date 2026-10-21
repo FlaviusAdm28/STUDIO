@@ -78,6 +78,12 @@
   */
   --v2-serif: var(--font-cormorant), Georgia, 'Times New Roman', serif;
   --v2-sans: var(--font-schibsted), ui-sans-serif, system-ui, 'Segoe UI', Helvetica, sans-serif;
+  /*
+    The one exception to the two, and it sets one line: the hero's tagline (`.v2-sub`). Design owner,
+    21 October 2026 — `implementation-reconciliation.md` C43. Nothing else may read it; a label is still
+    `--v2-sans`. Its fallback is Schibsted's stack, so without it the line is the label face it was.
+  */
+  --v2-tagline: var(--font-tenor), var(--font-schibsted), ui-sans-serif, system-ui, 'Segoe UI', Helvetica, sans-serif;
 
   /* §5's label and micro-caps face. */
   --voice: var(--v2-sans);
@@ -4364,8 +4370,14 @@ html[data-opening='running'] .ways a {
     width: calc(100vw - var(--about-x) * 2);
   }
 
+  /*
+    17px, the publication's reading size — visual audit, 20 October 2026 (variant C). It was the
+    clamp's 15px floor here while the Questions hold 17 ("there is no viewport at which it should be
+    15"). Narrow frame only: above 820 the evidence column keeps the desktop's own size.
+  */
   .about-text {
     max-width: 30em;
+    font-size: 1.0625rem;
   }
 
   .about-rule {
@@ -6801,10 +6813,20 @@ a.write-line:focus-visible {
   The contact row is 294px of tracked capitals against 264 of room at 320. Below 360 it tightens its
   tracking and its separators and holds one line — breaking would leave a `·` at the head of the second,
   and as the question settles narrower than the row, the row would re-break mid-arrival too.
+
+  **Three authored lines, and the cap follows them** — visual audit, 20 October 2026 (variant C, below
+  768 only). Two lines fitted by shrinking left the last moment of the site at 20–28px. The second
+  line now breaks where the copy does (`askParts`, "that deserves / its own experience?"), so the widest
+  line is the first, 7.83em; `/ 8.6` keeps it, tracking included, inside the room. 320 → 28px,
+  390 → 34, 430 → 38. Still no re-break mid-arrival: every line is authored. 768 and wider: two lines.
 */
 @media (max-width: 767.98px) {
   .closing {
-    --c-size: min(clamp(1.75rem, 5.6vw, 2.75rem), calc(var(--c-room) / 13.2));
+    --c-size: min(clamp(1.75rem, 8.8vw, 2.75rem), calc(var(--c-room) / 8.6));
+  }
+
+  .contact-part {
+    display: block;
   }
 }
 
@@ -8022,13 +8044,77 @@ a.write-line:focus-visible {
     baseline anchor (0.24) plus the board's gap (0.26); at 1440 it resolves to 510 exactly, which is
     where this line already was.
   */
-  top: calc(var(--y462) + 0.5 * var(--v2-title-size));
+  /*
+    0.45 since 20 October 2026 (design owner: the line ~4–6px closer to the name): 4.8px at 1440, 6.4 at
+    1920 — the line is 23% larger than the board's, and at 0.5 it had begun to read as a second block.
+    Then 0.515 (design owner, same day, against the captures: ~6–8px more air on the desktop): +6.2px
+    at 1440, +8.3 at 1920.
+  */
+  /*
+    `+ 0.25em` since the line became Schibsted capitals (21 October 2026): the same box puts a 12px cap
+    3px higher than the serif's ascenders were, so the ink is put back where it was approved — measured,
+    the line's ink top 50.4px below the title's baseline at 1440 (50.4 before) and 65.5 at 1920 (66.2).
+    `+ 0.15em` once the line grew to 16px (same day): the cap's own inset grows with it, so less is put
+    back — 50.8 at 1440, 65.9 at 1920, 43.9 at 1280 (44.5 in the serif), 35.7 at 1024 (37.8).
+    `+ 0.25em` in Tenor Sans (21 October 2026, C43), whose cap sits lower in its box: 49.4 at 1440, 66.2
+    at 1920, 43.5 at 1280, 36.8 at 1024 — the same place within ~1.5px.
+  */
+  top: calc(var(--y462) + 0.515 * var(--v2-title-size) + 0.25em);
   margin: 0;
-  font-family: var(--v2-sans);
-  font-size: clamp(0.625rem, calc(10 / 1440 * 100vw), 0.875rem);
-  letter-spacing: 0.34em;
+  /*
+    **Your moments, made timeless.** — design owner, 20 October 2026, in place of the tracked capitals of
+    *Where moments become digital.* The line is set in the title's own face and weight, in sentence case
+    with no tracking, at 0.22 of the title (21px at 1440, 28 at 1920; 16 on a phone, the floor), so it
+    reads as the identity's second line rather than as a label beside it — quieter by size and by ink,
+    never by a second face. Its place, its measure and its arrival are the ones the line already had.
+
+    Floor 1.25rem rather than 1 — 20 October 2026, compared at 1024, 1440 and 1920: 0.22 holds 21px under
+    96 and 28 under 128 (half the title's width, which is the desktop lockup), but between 821 and ~1380
+    the floor was what showed, and 16px under a 68px title at 1024 read as a caption. 20 meets the
+    phone's own cap at 820 (below), so the line crosses the breakpoint at one size. 0.25 was tried and
+    began to compete with the title at 1440.
+
+    **Then 0.27, floor 24 and cap 34** — design owner, same day: the desktop line ~20–25% larger. 25.9px
+    under 96 at 1440 (+23%), 34 under 128 at 1920 (+21%), 24 at 1024 (+20%); the title stays 3.7× it.
+
+    **Then the label's voice again, with the new words** — design owner, 21 October 2026 (option 1,
+    *sans-serif editorial*): set in the serif, the line and the name read as one voice. The old line's
+    contrast came from Schibsted, capitals and tracking, so the line takes those back and keeps its text,
+    its ink, its place and its arrival. The capitals are `text-transform` only — the content stays
+    sentence case.
+
+    **Then a sixth of the title, 11 → 17.5px, tracked 0.16em** — design owner, same day: at 12px under 96
+    the line read as a caption at 1440 and 1920. 16px at 1440, 14.2 at 1280, 11.4 at 1024, capped at
+    17.5 from ~1680 (128 / 6 would be 21 at 1920 and begin to compete). The floor is 11 because that is
+    the phone's cap, met at 820, so 820 → 821 is one size; the tracking is the phone's for the same
+    reason, and at 16px it still reads as tracked capitals without lengthening the line. 0.68 of the title's width
+    from 1024 to 1440, 0.56 at 1920.
+
+    **Then Tenor Sans, as wide as `Chapter`** — design owner, 21 October 2026, the hybrid of four rounds
+    compared on the real hero (`implementation-reconciliation.md` C43, which records the departure from
+    §5's two families). Schibsted read as interface; Tenor's slight stroke contrast and classical
+    proportions answer the Cormorant instead of labelling it, and the old cover's wide tracking is kept.
+
+    The line is exactly as wide as *Chapter* on the desktop: *Chapter*'s ink is 3.156 of the title's
+    size (0.624 of `Chapter One`), the phrase in Tenor's capitals is 18.37em, so at 0.26em tracking the
+    size is 3.156 × 6.667vw / (18.37 + 27 × 0.26) = 0.8287vw — 11.9px at 1440, 15.9 at 1920, both
+    measured 1.00 of *Chapter*; capped at 16. The floor is 11, the phone's cap met at 820, so 820 → 821 is
+    one size; the tracking opens from the phone's 0.15em at 821 to 0.26em by ~1250 for the same reason,
+    so the width does not step at the breakpoint either. Between them, the floor holds: 11px at 1024,
+    1.22 of *Chapter*, rather than a laptop's line at 8.5.
+  */
+  font-family: var(--v2-tagline);
+  font-weight: 400;
+  font-size: clamp(0.6875rem, 0.8287vw, 1rem);
+  letter-spacing: clamp(0.15em, calc(0.15em + (100vw - 821px) * 0.0026), 0.26em);
   text-transform: uppercase;
-  color: rgb(242 236 224 / 0.44);
+  /*
+    0.58 since 20 October 2026 (design owner): the same warm ink, quieter. 0.62 since the line became
+    Tenor (C43): compared at 0.52, 0.58 and 0.62 on four moments of the footage, 0.62 is the one that
+    still reads on the warm sun frames without competing with the name. The element's own opacity is the
+    fade's.
+  */
+  color: rgb(242 236 224 / 0.62);
   /*
     **The measure is the title's, so the second level can never out-measure the first.**
 
@@ -8052,7 +8138,7 @@ a.write-line:focus-visible {
   */
   max-width: calc(5 * var(--v2-title-size));
   white-space: normal;
-  line-height: 1.9;
+  line-height: 1.3;
   opacity: var(--v2-line);
 }
 
@@ -8069,10 +8155,52 @@ a.write-line:focus-visible {
   *MOMENTS* — 133px against the title's 220 at 390, the 0.60 ratio the composition was approved at.
   3.4 rather than 3.2 because 3.2 left only 0.6px of headroom over the first line's own width and broke
   into *three* lines below 385; 3.4 holds two lines down to 320 and changes nothing at 390 or 768.
+
+  **On a phone the serif line is set to the title's measure** — 20 October 2026. It is one line, and its
+  size is the one at which it is exactly as wide as `Chapter One`: the line is 11.89em (measured, the
+  shipping face at weight 300 with its tracking) against the title's 5.136em, so 0.432 of the title —
+  17.8px at 320, 18.5 at 390, 18.9 at 430, capped at 20 (768), where it meets the desktop floor. The two
+  lines then share both edges and read as one lockup. Compared against 16px on two lines (a caption under
+  the title) and 0.40 (one line, 0.93 of the title — short of the edge without meaning to be).
+
+  The gap opens with it: 0.64 of the title from the baseline anchor, 0.40 below the descent, about 0.9
+  of the line's own size — the desktop's lockup keeps ~1.2, and the 0.5 used up to here left the
+  title's `p` touching the line's ascenders at 390. 0.58 and 0.64 compared; 0.58 still read tight.
+
+  The measure is a guard only — a fallback face wider than Cormorant wraps rather than overflows; with
+  the shipping face nothing at 320 or wider reaches it (212px against 222 at 320).
 */
 @media (max-width: 820px) {
   .v2-sub {
-    max-width: calc(3.4 * var(--v2-title-size));
+    /*
+      0.54 since the design owner asked for the line ~4–6px closer (4.6px at 320, 4.8 at 390, 5.9 at
+      768), then 0.44 for another ~4–6px the same way: −4.6 at 320, −4.8 at 390, −5.9 at 768.
+    */
+    /*
+      `+ 0.15em` puts the capitals' ink where the serif's was (±0.6px at 320–430). `+ 0.25em` in Tenor
+      (C43), whose cap sits lower: 22.1px at 320, 23.4 at 390, 23.8 at 430.
+    */
+    top: calc(var(--y462) + 0.44 * var(--v2-title-size) + 0.25em);
+    /*
+      0.41 since the title grew 12.5% (design owner, same day): 0.95 of the title's width, so the line
+      can never reach past *Chapter One* — the 0.432 above shared the edge exactly and a fallback or a
+      rounding could cross it. 19.0px at 320, 19.8 at 390, 20.2 at 430; capped at 24, reached at 768,
+      which is the desktop's floor, so 820 → 821 is still one size.
+
+      **Schibsted capitals since 21 October 2026**: 0.22 of the title with 0.16em tracking — 10.2px at
+      320, 10.6 at 390, 10.9 at 430, capped at 11 (768), the desktop's floor, so 820 → 821 is still one
+      size. Measured, one line at 0.90 of the title's width on every phone. 0.20 was 0.82 and read as
+      a footnote.
+
+      **Tenor Sans since 21 October 2026 (C43)**: 0.2077 of the title with 0.15em tracking — one line at
+      0.92 of the title's ink on every phone: 9.6px at 320, 10.0 at 390, 10.3 at 430, capped at 11 (from
+      ~530, 768 and 820 included), which is the desktop's floor, so 820 → 821 is one size. Tenor is
+      wider than Schibsted, so the size is a step below for the same measure; the desktop's 0.26em would
+      take it under 9.5px at 320.
+    */
+    font-size: min(calc(0.2077 * var(--v2-title-size)), 0.6875rem);
+    letter-spacing: 0.15em;
+    max-width: calc(5.4 * var(--v2-title-size));
   }
 }
 
@@ -8475,6 +8603,26 @@ a.write-line:focus-visible {
 }
 
 /*
+  **On a phone the block stands above the couple** — visual audit, 20 October 2026 (variant C, below
+  768 only). At 374 / 760 the block crossed both figures' heads and shoulders in a portrait crop
+  (y 370–447 at 390 × 844). At 19% it stands on the dark of the palazzo, clears the artist's head on
+  her plate and the desk on the third, and the caption keeps the lower right. `A memory.` is carried
+  into this slot by `sheet.tsx`, which measures the real title, so the carry travels further up and
+  nothing of its own moves. Revisits C13's *"at the height the narrative stood at"* for the phone only.
+
+  The one headline with authored `lines` takes its break here, where no width holds it on one line.
+*/
+@media (max-width: 767.98px) {
+  .v2-make {
+    top: 19%;
+  }
+
+  .v2-make-part {
+    display: block;
+  }
+}
+
+/*
   **The eyebrow, and it is deliberately not the protagonist.** Small, uppercase, sans, editorial
   tracking — §5's own label register, the same one the Ledger's index is set in. It names the frame the
   section is read in and it never changes, which is what makes the line under it read as a revision.
@@ -8820,6 +8968,16 @@ a.v2-ident-open:focus-visible {
 .v2-sub,
 .v2-of {
   transition: opacity calc(var(--fade-subtitle) * var(--haste, 1)) var(--curve);
+}
+
+/*
+  Reduced motion keeps the beat and drops the fade: the line is simply there when its beat comes
+  (design owner, 20 October 2026). Elsewhere the opening only runs on a faster clock for it.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .v2-sub {
+    transition: none;
+  }
 }
 
 .v2-title {
@@ -9740,10 +9898,16 @@ a.v2-ident-open:focus-visible {
         ≤ 787   2.407vw + 33.51px — the straight line through the phone's own 42.9 at 390
 
     Verified: 96 at 1440, 128 at 1920, 52.0 at 768, 42.9 at 390 — unchanged at all four.
+
+    **The phone's line is 12.5% larger** — design owner, 20 October 2026: *Chapter One* up 10–15% on a
+    phone. The whole branch is scaled (2.407 × 1.125, 33.51 × 1.125), so it is still one straight line and
+    still meets §2's at a crossing rather than a step — now at ~952px instead of 787: 46.4 at 320, 48.3 at
+    390, 49.3 at 430, 58.5 at 768; from 952 up, §2's own 6.667vw is untouched (96 at 1440, 128 at 1920).
+    `sheet.tsx` restates this curve and moves with it.
   */
   --v2-title-size: clamp(
     2rem,
-    max(calc(2.407vw + 33.51px), calc(96 / 1440 * 100vw)),
+    max(calc(2.708vw + 37.7px), calc(96 / 1440 * 100vw)),
     8rem
   );
   /*
@@ -10703,9 +10867,10 @@ a.v2-ident-open:focus-visible {
   press with the element and takes no part in layout. The queue's horizontal clip is kept; only the
   vertical clip is released, so the press area can reach above and below a 21px band.
 
-  Below 768px only — the desktop's pointer targets are unchanged.
+  Below 768px, and on a touch screen up to 1023 (visual audit, 20 October 2026: a 768–1023 tablet had
+  the bare 21px queue and 11px offer). A fine pointer at 768 and wider is unchanged.
 */
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (max-width: 1023.98px) and (pointer: coarse) {
   .v2-queue[data-overflow] {
     overflow: visible;
     overflow-x: clip;
@@ -10850,8 +11015,8 @@ a.v2-ident-open:focus-visible {
    clock is touched. Every value below is a function of the junction progress the driver already
    publishes (--jp1 … --jp5), or of Chapter I's existing beats.
 
-   1 · The tagline is 1.125× on the desktop frame. Below 820px it keeps its size: larger, the mobile
-       column breaks it into one word per line.
+   1 · (The tagline's 1.125× on the desktop frame belonged to the tracked capitals; the serif line of
+       20 October 2026 is sized from the title — see `.v2-sub`.)
    2 · The quick navigation (`site.nav`) replaces *I of III*: the rail's register, on the title's axis,
        in the bottom band, arriving on the INTERFACE beat and leaving with the tagline.
    3 · One Sun — the image disappears; the light survives.
@@ -10865,12 +11030,6 @@ a.v2-ident-open:focus-visible {
          steps back up-right, rises over the occasions and leaves with the dark as Venice opens.
        The footage plays as the film it is — no loop, seek or hold on a shot.
    ─────────────────────────────────────────────────────────────────────────────────────────────────── */
-@media (min-width: 821px) {
-  .v2-sub {
-    font-size: calc(1.125 * clamp(0.625rem, calc(10 / 1440 * 100vw), 0.875rem));
-  }
-}
-
 .v2-nav {
   position: absolute;
   left: calc(var(--x196) + 0.0469 * var(--v2-title-size));
@@ -11543,9 +11702,14 @@ a.v2-ident-open:focus-visible {
   **The Work's title, a step larger** — the one structural change to the Work this lab is allowed.
   38 → 46 on the reference frame and 22 → 26 on a phone: the size the occasions' own first line was
   drawn at (46 / 1440), so the line `A memory.` grows into is a size the Opening already used.
+
+  **Floor 30px, not 26** — visual audit, 20 October 2026 (variant C, mobile and tablet). At 26 the
+  title was 1.11× the rail's 23.4px at 390, against 1.53× on the desktop. The preferred term passes 30
+  at ~939px, so nothing at 1024 and above changes; `A memory.` is carried into the new size by
+  construction (`sheet.tsx` measures the real title).
 */
 :root[data-next='on'] .v2-make-slot {
-  font-size: clamp(1.625rem, calc(46 / 1440 * 100vw), 3.625rem);
+  font-size: clamp(1.875rem, calc(46 / 1440 * 100vw), 3.625rem);
 }
 
 /*
@@ -11854,5 +12018,75 @@ a.v2-ident-open:focus-visible {
       top: auto;
       bottom: calc(100lvh - var(--asked-top) - var(--asked-h, 0px) - var(--asked-open, 0px));
     }
+  }
+}
+
+/* ══ Below the desktop · legibility and the narrow tablet ═══════════════════════════════════════════
+
+  Visual audit, 20 October 2026, and its variant C, integrated **below 1024 only**: from 1024 the
+  desktop composition is the baseline's, unchanged. Everything here is an override with an explicit
+  breakpoint, after the rules it overrides; the rules that already had a narrow-frame block were edited
+  in place (`.v2-make-slot`, `.v2-make`, `.v2-sub`, `.about-text`, `.closing`, the touch press areas).
+*/
+
+/*
+  **The label register reaches 10px.** Seven clamps resolved to 9px (the metadata line to 8) at every
+  width below ~1360. Below 1024 the floor is 10; size only — tracking, case and ink are untouched, so
+  the metadata stays as quiet as it was meant to be. The rail is deliberately not here: its 768–900
+  composition is frozen (2 October 2026) and its phone index has its own scale. The method's note joins
+  from 768 only — below that its place is part of the mobile grid frozen on 1 October 2026.
+*/
+@media (max-width: 1023.98px) {
+  .v2-make-label,
+  .v2-queue,
+  .about-lines li,
+  .v2-nav {
+    font-size: 0.625rem;
+  }
+
+  .v2-ident-name {
+    font-size: 0.9375rem;
+  }
+
+  .v2-ident-line {
+    font-size: 0.625rem;
+  }
+
+  .v2-ident-open {
+    font-size: 0.6875rem;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .mnote {
+    font-size: 0.625rem;
+  }
+}
+
+/*
+  **768–820: the narrow tablet has a composition of its own.** Here the publication is still the
+  phone's (the ≤ 820 rules), and stretched to a 768 × 1024 frame it measured: About's claim in the
+  middle of the wall with ~330px empty above it and its evidence across the figure's back and elbow;
+  the Questions on `--mark-x` with the lamp's shade across rows 3–4. From 821 the desktop composition
+  already clears both (checked at 900), so this stops at 820.
+
+  - About: the claim at the top of the wall, its evidence directly under it, both above the figure's
+    head (y ≈ 470 at 768 × 1024).
+  - Questions: the desktop's own axis (`38 / 1440 × 100vw + 13rem`, 228px at 768), so the column clears
+    the lamp and meets the desktop rule at 821 without a step.
+*/
+@media (min-width: 768px) and (max-width: 820px) {
+  .about-claim {
+    top: 13vh;
+  }
+
+  .about-evidence {
+    top: calc(13vh + 2.2 * clamp(2.125rem, 10vw, 3.25rem) + 3vh);
+    bottom: auto;
+    width: min(27rem, 58vw);
+  }
+
+  .page-asked {
+    --page-x: calc(38 / 1440 * 100vw + 13rem);
   }
 }

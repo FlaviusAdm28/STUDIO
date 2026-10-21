@@ -71,7 +71,11 @@ const tallest = categories
   .map((_, i) => workOf(i))
   .reduce((a, b) => (linesOf(b) > linesOf(a) ? b : a))
 
-const longest = categories.map((c) => c.headline).reduce((a, b) => (b.length > a.length ? b : a))
+/* A headline's authored parts (`lines` in `site.ts`), or the headline as one part. */
+const partsOf = (c: (typeof categories)[number]): readonly string[] => ('lines' in c ? c.lines : [c.headline])
+
+/* The longest *line*, so a headline that breaks on a phone does not make the slot two lines tall for all. */
+const longest = categories.flatMap(partsOf).reduce((a, b) => (b.length > a.length ? b : a))
 
 export default function WorkExperiences() {
   const [at, setAt] = useState(0)
@@ -510,7 +514,12 @@ export default function WorkExperiences() {
               data-lit={shown === i ? '1' : '0'}
               aria-hidden={shown === i ? undefined : true}
             >
-              {c.headline}
+              {partsOf(c).map((part, k) => (
+                <span className="v2-make-part" key={part}>
+                  {k > 0 && ' '}
+                  {part}
+                </span>
+              ))}
             </span>
           ))}
         </span>

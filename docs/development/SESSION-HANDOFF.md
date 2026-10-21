@@ -1,4 +1,237 @@
-# CHAPTER ONE — CURRENT STATE · session handoff — 19 October 2026 (end of day)
+# CHAPTER ONE — CURRENT STATE · session handoff — 21 October 2026
+
+## ▶ 21 October 2026 · the tagline is Tenor Sans, as wide as *Chapter* (C43) · B1 and B4 committed · read this first
+
+Self-contained. It supersedes the 20 October section below **for the tagline's typography and for the Git
+state**, and it supersedes the 15 October instruction not to commit B1/B4: the design owner asked on
+21 October for B1 and B4 to be reviewed and committed if they were correct, and they were.
+
+### Git — on `v3`, pushed to `origin/v3` (not merged to `master`, so **not in production**)
+
+| Commit | What |
+|---|---|
+| `403bd36` | feat(hero): the tagline in Tenor Sans (C43), the phrase *Your moments, made timeless.*, the 12.5% larger phone title, the 300 / 800ms entry, the phone/tablet composition of 20 October (variant C) |
+| `908821f` | fix(questions): B1 — an open answer follows its question out of the list |
+| `5ee890e` | fix(scroll): B4 — a menu press is not a hurried hand |
+| (this commit) | docs: this section |
+
+Production is still `master` = `e09f09d`. Nothing was deployed. Each commit's tree was built:
+`403bd36`'s is the review control (below), `908821f`'s was exported with `git archive` and built,
+`5ee890e`'s is what :3000 serves.
+
+### B1 and B4 — the review of 21 October
+
+A control build (`D:\STUDIO-review-ctl`, :3209) was the working tree with **only** B1 and B4 reverted;
+:3000 was the working tree with both. Same scripts as on 15 October (copied from that session's
+scratchpad), Chrome headless/CDP, plus WebKit for B1.
+
+- **B1** (orphan probe, rows 1/3/6, down and back): with B1 **0** orphan frames and max Δ 0 everywhere;
+  without it 5–31 per row — 1920, 1440, 1280, 768, 390, 375 (Chromium) and 1440, 390 (WebKit).
+- **B4** (`qnav3`, menu vs scroll, from the Work): first row after a menu press on touch **~1.40s**
+  (control 2.3–2.9s) at 390, 375, 320, 768; ordinary scroll unchanged; a fast scroll (synthetic,
+  120px / 16ms) still waits ~4.1–4.9s on touch, as the control does — `swift` holds for gestures;
+  1440 unchanged (B5's 12ms rows, pre-existing). From Contact on touch the section now arrives whole
+  (title, description and rows at ~0ms), as it already did on desktop; the control left the rows
+  2.3–2.8s behind a title that was already there.
+- **B1 + B4 together** (never run before today): `six` at 320, 360, 375, 768, 1440, 1920 — 49–85 driver
+  values differ out of ~6,000 against **61–95 between two runs of the control itself** (noise); 0
+  overflow, 0 errors, 0 failed requests, identical document heights. Both-way transitions at 390 and
+  1440: 33–48 differ against 29–49 control-vs-control. Reduced motion: **0** values differ, both ways.
+  `reach-check` (320, 375, 390, 402): identical. INDEX / rail from the Work to About, Method, Questions
+  and Contact at 320, 390, 430 (phone index opens and closes), 768, 1024, 1440, 1920: identical landings,
+  all in view, no errors.
+- Variant C, reviewed again: the third Work headline breaks over two lines at 390 without touching
+  anything (the slot's ghost is the longest *line* on purpose); on desktop it stays one line, unclipped.
+  Contact's three phone lines reach full ink within 1.5s of arriving at the end of the page.
+
+### The decision (design owner)
+
+- **The phrase stays** `Your moments, made timeless.` (`site.openingLine`, unchanged; capitals by CSS).
+  *Where moments become digital.* is not coming back.
+- **The tagline is set in Tenor Sans 400** — the "hybrid" of the comparison rounds below. A departure
+  from §5's two families, recorded as `docs/design/v2/implementation-reconciliation.md` **C43**.
+
+### The tagline's final values (`.v2-sub`, `src/app/globals.css`; the font in `src/app/layout.tsx`)
+
+- Face: `--v2-tagline` = `var(--font-tenor)`, falling back to Schibsted's stack. Used by `.v2-sub` only.
+  `layout.tsx` loads `Tenor_Sans` (weight 400, Latin; the file the page loads is 10KB) as `--font-tenor`.
+- Desktop (≥ 821): `font-size: clamp(0.6875rem, 0.8287vw, 1rem)`;
+  `letter-spacing: clamp(0.15em, calc(0.15em + (100vw - 821px) * 0.0026), 0.26em)`; ink
+  `rgb(242 236 224 / 0.62)` (was 0.58); `top: --y462 + 0.515 × title + 0.25em` (was + 0.15em).
+  The line is as wide as *Chapter* (whose ink is 3.156 × the title's size).
+- Phone (≤ 820): `font-size: min(calc(0.2077 * title), 0.6875rem)`; `letter-spacing: 0.15em`;
+  `top: --y462 + 0.44 × title + 0.25em`. One line at 0.92 of the title's width.
+- Unchanged: text, `uppercase`, weight 400, `line-height: 1.3`, `max-width`, entry (300ms after the
+  name, 800ms fade, no fade under reduced motion), the title, everything else.
+
+| Viewport | Size | Tracking | Width | ÷ *Chapter* | ÷ title | Gap to title |
+|---|---|---|---|---|---|---|
+| 320×700 | 9.63px | 0.15em | 217 | 1.48 | 0.92 | 22.1 |
+| 360×800 | 9.86 | 0.15 | 222 | 1.48 | 0.92 | 23.4 |
+| 390×844 | 10.02 | 0.15 | 226 | 1.48 | 0.92 | 23.4 |
+| 430×932 | 10.25 | 0.15 | 231 | 1.48 | 0.92 | 23.8 |
+| 768×1024 | 11 | 0.15 | 248 | 1.34 | 0.84 | 28.0 |
+| 820×1180 | 11 | 0.15 | 248 | 1.31 | 0.82 | 28.6 |
+| 821×900 | 11 | 0.15 | 248 | 1.31 | 0.82 | 33.2 |
+| 1024×768 | 11 | 0.198 | 262 | 1.22 | 0.76 | 36.8 |
+| 1280×800 | 11 | 0.258 | 280 | 1.04 | 0.65 | 43.5 |
+| 1440×900 | 11.93 | 0.26 | 304 | 1.00 | 0.63 | 49.4 |
+| 1920×1080 | 15.91 | 0.26 | 405 | 1.00 | 0.63 | 66.2 |
+
+(Gap = the tagline's cap top below the title's baseline, px.)
+
+### How it was chosen (isolated copies `D:\STUDIO-tagline-A` … `-G`, removed after the integration)
+
+`tar` copies of `D:\STUDIO` without `node_modules`/`.next`/`.git`, a junction to `D:\STUDIO\node_modules`,
+`next build --webpack`, one `next start` each, and comparison pages of side-by-side frames:
+
+- Round 1 — A Jost 350, B Tenor Sans 400, C Lato Light 300 (after a 16-face specimen over the footage).
+- D — production's exact setting with the new text: Schibsted 400, `1.125 × clamp(10px, 10/1440 vw, 14px)`
+  (11.25px at 1440, 15 at 1920, 10 on a phone), 0.34em, ink 0.44, two lines on a phone.
+- Round 2 — E (D refined, Schibsted 0.28em, ink 0.52), F (B enlarged, Tenor 0.15em, ink 0.58),
+  **G (hybrid, Tenor 0.26em, ink 0.62) — chosen.**
+- Rejected, not to be reintroduced without a new decision: A, B, C, D, E, F, and the Schibsted 16px
+  setting that was on :3000 earlier on 21 October.
+
+### Tests (21 October, Chrome by CDP against `next start`, the hybrid copy on :3207 and then :3000)
+
+- 320, 360, 390, 430, 768, 820, 821, 1024, 1280, 1440, 1920: the phrase on one line, inside the frame
+  and clear of the quick navigation; the title (Cormorant 300, size, ink, place) identical before and after;
+  the footage playing; the whole page scrolled down and back, narrative position 1 → 14 monotonic both
+  ways, no horizontal overflow; Work / Questions / Contact from the hero each reach their destination;
+  0 console errors or warnings, 0 failed requests, the font files 200. :3000 and :3207 gave identical
+  numbers at every viewport.
+- Entry measured on :3000: the line starts 271–278ms after the name and reaches full ink 653ms later
+  (unchanged).
+- Legibility over four moments of the footage (warm sun at ~4, 7 and 10s; the dark landscape after the
+  loop), 1440 and 390.
+- `npm run typecheck`, `npm run lint`, `npm run build`: pass.
+
+### Not verified / open
+
+- iOS Safari and a physical phone (iPhone, Mi 11 Lite) — not tested.
+- The no-scripting version was not re-checked (the change is CSS + a font).
+- **Pre-existing, not changed:** the tagline steps ~4.6px further from the title between 820 and 821
+  (28.6 → 33.2): the phone and desktop `top` formulas (0.44 / 0.515 × title) differ. Size, tracking and
+  width do not step.
+- `opengraph-image.alt.txt` still carries *Where moments become digital.* (from 20 October; needs the
+  owner's word).
+- `docs/brand/open-decisions.md` §7 is not updated by C43 (the owner's file).
+- B1 and B4 were validated in emulation only: **no physical iPhone, no real finger flick on a phone.**
+  The 768×1024 fast scroll in which no row reached 0.05 within 5s (15 October) is unchanged and still
+  unexplained — identical with and without B4.
+- B5 (desktop: rows before the title by the menu) and B2 (keeping an open answer visible) remain open
+  and untouched.
+
+### Next steps
+
+1. On a physical iPhone and the Mi 11 Lite: the tagline (size, one line, entry), the orphan answer
+   (open a question, keep scrolling to Contact), menu → Questions, and a fast flick into Questions.
+2. The owner decides whether `v3` goes to production (merge to `master`); nothing was deployed.
+3. `opengraph-image.alt.txt` (the old line) — needs the owner's word.
+4. Resume the page-by-page evaluation.
+
+## ▶ END OF 20 October 2026 · the hero is settled as it stands on :3000 — nothing from the explorations is integrated · read this first
+
+Recorded at the end of 20 October 2026. Self-contained: the decision, what was explored and rejected, the
+approved visual state, the real Git state, and what is open. Nothing below was committed.
+
+### The decision (design owner, end of day)
+
+- **Keep exactly the state of the main project, `D:\STUDIO`, as served by `next start` on :3000.** The hero
+  keeps its original composition and the tagline **“Your moments, made timeless.”** with the typography,
+  size, spacing, position and fade listed under *Approved visual state* below.
+- **Integrate nothing from any of today's explorations.** None of them is an approved design decision.
+- **No new global visual explorations.** The next session evaluates the site **page by page**. Do not reopen
+  the hero's redesign unless the design owner explicitly asks for it.
+
+### Explored today and rejected — do not integrate, do not reintroduce
+
+All of these lived only in isolated copies (`tar` copy without `node_modules`/`.next`/`.git`, a read-only
+junction to `D:\STUDIO\node_modules`, `next build --webpack`) and have been deleted.
+
+- **Hero refinement in main** — a Liquid Glass quick navigation, a scroll cue (`hero-cue.tsx`,
+  `TIMING.chapterOne.cue`) and an authored phone break of the tagline after the comma. Removed from main the
+  same day; only the new tagline text survived, later re-styled (below).
+- **Editorial index** (`D:\STUDIO-hero-index`, :3301) — rejected: "a conventional minimal editorial site".
+- **Three hero concepts** (`D:\STUDIO-hero-concept-A/B/C`, :3302–3304): A *the title is the index* (a drum
+  of destinations hanging from `One`), B *the hour* (the arrival minute kept + a map of the visit), C *the
+  montage* (the tagline on its own card, settling on the footage's cut; credits; rack focus). Rejected.
+- **Production-vs-local comparison variants** (`D:\STUDIO-cmp-*`, :3301–3306): B the footage entered at
+  2.4s via a `#t=2.4` media fragment (the warm sun/silhouette shot first; measured in the file: landscape
+  0–2.0s, dissolve 2.0–2.4s, warm 2.4–9.8s, dissolve back 9.8–10.3s), C the tagline in real Cormorant 300
+  italic (0.25 / 0.36 of the title, ink 0.62), D `.env-hero { object-position: 32% center }` on desktop so
+  `One` stops touching the silhouette, E = B + C + D. **All rejected.** The measurements stay true of the
+  material if the question is ever asked again; the variants are not decisions.
+- Earlier the same day: a visual audit, three composition variants (`D:\STUDIO-var-*`, of which the mobile
+  half of variant C *was* integrated — see below) and a three-typeface exploration (rejected, removed).
+
+### Approved visual state of the hero (as on :3000, confirmed in the code)
+
+- Text: `site.openingLine` = `'Your moments, made timeless.'` (`content/site.ts`). The markup is the
+  original single span (`states.tsx` is unchanged from HEAD).
+- `.v2-sub` (`src/app/globals.css`): Cormorant Garamond 300 (`--v2-serif`), sentence case
+  (`text-transform: none`), `letter-spacing: 0.005em`, `line-height: 1.3`, colour
+  `rgb(242 236 224 / 0.58)` (the element's own opacity is the fade's, 0 → 1).
+  - Desktop size `clamp(1.5rem, 0.27 × title, 2.125rem)` — 24px at 1024, 25.9 at 1440, 34 at 1920.
+  - Phone (≤ 820) size `min(0.41 × title, 1.5rem)` — 19.0 at 320, 19.8 at 390, 20.2 at 430, 24 at 768;
+    one line, ~0.95 of the title's width (the line must never be wider than `Chapter One`).
+  - Vertical place: `top: --y462 + 0.515 × title` on desktop, `+ 0.44 × title` on a phone.
+- Title on a phone **12.5% larger**: the phone branch of `--v2-title-size` is `2.708vw + 37.7px` (was
+  `2.407vw + 33.51px`), still crossing §2's `6.667vw` without a step, now at ~952px — 46.4 at 320, 48.3 at
+  390, 58.5 at 768; unchanged from 952 up (96 at 1440, 128 at 1920). **`sheet.tsx` restates this curve**
+  (`T = 0.02708·W + 37.7`) and must move with it. Widths 821–951 also grow slightly.
+- Entry: `TIMING.chapterOne.subtitle` = `afterChapterOne 300`, `fade 800`, `waitsForFootageAt 0.55`
+  (was 650 / 1000 / 1.0; measured the line now starts 300–306ms after the name), and
+  `navigation.afterSubtitle 1450` (was 1000) so the interface and the end of the opening keep their
+  instant (+1757ms after the name against +1743 before). Opacity only, shared `--curve`. Under
+  `prefers-reduced-motion` the line has no fade (`.v2-sub { transition: none }`), it simply appears on its
+  beat. The `story.ts` timeline comment was updated to 2500 / 3300.
+- The rest of the hero is the original: footage, framing (`object-position: center`), the quick
+  navigation (Work · Questions · Contact, tracked capitals, no glass), no scroll cue.
+
+### Other pending (uncommitted) work in the same working copy — preserved, not part of the hero decision
+
+- **B1 / B4** (15 October; still awaiting the design owner): `globals.css` `.ask[open] .ask-a` `both` →
+  `backwards`; `scroll-stage.tsx` `if (navigated) pace = 0`.
+- **Visual audit, variant C — mobile and tablet only (integrated 20 October; desktop ≥ 1024 identical to
+  before)**: the Work block at 19% height on a phone with the authored break of *Experiences / beyond
+  categories* (`site.ts` `lines`, `work-experiences.tsx` parts); Contact in three authored lines on a phone
+  (`site.ts` `askParts`, `publication.tsx` parts); a 10px floor for the label register below 1024;
+  `.v2-make-slot` floor 30px; About's text 17px on the narrow frame; touch press areas up to 1023 on a
+  coarse pointer; a 768–820 composition for About and Questions.
+- The 15, 16 and 19 October notes and this section of this file.
+
+### Git — confirmed at the end of 20 October
+
+- Branch `v3`, HEAD `8be24bc` = `origin/v3`. Production is `master` = `origin/master` = `e09f09d`.
+- Working copy, 9 files modified, nothing staged, nothing untracked:
+  `content/site.ts`, `docs/development/SESSION-HANDOFF.md`, `src/app/globals.css`,
+  `src/app/publication.tsx`, `src/app/scroll-stage.tsx`, `src/app/sheet.tsx`,
+  `src/app/work-experiences.tsx`, `src/motion/story.ts`, `src/motion/timing.ts`.
+- Validation of the current state: `typecheck`, `lint` and `build` passed after the last code change
+  (the final spacing edit was CSS only: lint + build re-run). Chrome (headless, real binary) at 320, 390,
+  430, 768, 1024, 1440, 1920: tagline on one line, no horizontal overflow, 0 console errors, 1 → 14 → 1
+  monotonic; checked visually in the owner's Chrome on :3000.
+
+### Open / not done
+
+- **Share metadata still says the old line**: `src/app/opengraph-image.alt.txt` is
+  `Chapter One — Where moments become digital.` (rendered as `og:image:alt` / `twitter:image:alt`), and the
+  share image itself may carry it. Not changed — needs the design owner's word.
+- **Not tested on a physical phone** (iPhone or the Mi 11 Lite): the larger phone title, the tagline's size
+  and spacing, the 300ms entry.
+- Nothing of today is committed. Production is untouched.
+- :3000 was restarted several times today from the assistant's session (`npm run start` in `D:\STUDIO`); the
+  owner's own WebStorm-terminal `npm run start` was stopped once (it was serving a stale build). After a
+  reboot, start it again with `npm run build && npm run start` if the build is not current.
+
+### Next step
+
+Resume the **page-by-page** evaluation of the site. The hero is settled as above; do not reopen its
+redesign — no new hero concepts, no Liquid Glass, scroll cue, clock, index, credits or reframing — unless
+the design owner explicitly asks.
+
 
 ## ▶ END OF 19 October 2026 · Opening II → Philosophy, the Work's scroll, the Index as three rules · read this first
 
@@ -80,6 +313,213 @@ comparison videos are in the session scratchpad only).
 3. Production only on request: merge `v3` into `master` (no force), then confirm the domain's
    deployment and replay production from the first frame.
 
+## ▶ END OF 16 October 2026 · AUD-002/AUD-003 in production · read this first
+
+Recorded at the end of 16 October 2026 from the git commands and the GitHub deployments API run in that
+session. No code was changed, no test was run, and B1/B4 were not touched. **This section supersedes the
+*Repository* facts in section A of 15 October below; everything else there (B1–B5, the next steps in C,
+servers in D) still stands.**
+
+### Confirmed (observed in git or on the GitHub API)
+
+- **`master` = `origin/master` = `e09f09d`.** Local `master` was fast-forwarded from `dd53786` to
+  `v3` (`git fetch . v3:master`, no checkout, no merge commit) and pushed with `git push origin
+  master:master` — `dd53786..e09f09d`, no force. Commits published: `c46c121` (AUD-003, *perf(work):
+  reduce queue fill writes on dense screens*) and `e09f09d` (AUD-002, *perf(scroll): avoid forced layout
+  reads in frame driver*).
+- **`v3` = `origin/v3` = `e09f09d`.** `v3` was **not** pushed on 16 Oct — the two AUD commits were already
+  on `origin/v3` before the merge (the 15 Oct note *"both AUD commits are local only"* was out of date).
+- **`v2` = `origin/v2` = `dd53786`**, unchanged. No branch or worktree was created, moved or removed.
+- **Vercel built production for `e09f09d`:** GitHub deployment `7124446416`, environment `Production`,
+  created 2026-10-16T16:43:25Z, status **`success`**, deployment URL
+  `https://studio-r4qalgj98-flavio15.vercel.app`. (Earlier, `e09f09d` also had a Preview deployment,
+  `7103976757`, from the `v3` push on 15 Oct.)
+- **The main domain `https://studio-pi-ivory.vercel.app/` answers HTTP 200** (a `curl -I` after the
+  deployment reported success). That is all that was checked on it.
+- **Uncommitted in `v3`, not in any commit, not in production:** `src/app/globals.css` (B1),
+  `src/app/scroll-stage.tsx` (B4), and this file. Nothing staged, no stash.
+
+### Inferred, NOT confirmed
+
+- **Production Branch = `master`.** Not read from Vercel's settings (no Vercel CLI, no `.vercel/`, no `gh`
+  on this machine). Inferred from the deployment history: pushes to `v2`/`v3` produce *Preview*, and the
+  only *Production* deployments (`8b2802d`, `dd53786`, `e09f09d`) followed pushes to `master`.
+- **That the main domain serves `e09f09d`.** A 200 proves the domain is up, not which deployment it is
+  aliased to. Not checked in the Vercel dashboard, not compared by content.
+- Note, unexplained: the GitHub API reports `production_environment: false` on deployment `7124446416`
+  even though its environment is `Production`. Not investigated.
+
+### Not done
+
+- **No post-deploy validation** of production: no visual pass, no replay from the first frame, no
+  iPhone/Xiaomi check. AUD-002/003 were validated before the merge (production audit,
+  `docs/development/production-audit-2026-10-14.md`); production itself has not been looked at since.
+- **B1 and B4 remain unvalidated together** — section B/C of 15 October below is unchanged and is still
+  the plan for them.
+
+### Next steps, in this order
+
+1. **Confirm production:** in the Vercel dashboard, check that `studio-pi-ivory.vercel.app` points to the
+   deployment of `e09f09d` (and, while there, that the Production Branch is `master`). Then replay
+   production from the first frame on desktop and on the iPhone/Xiaomi (memory: audit production
+   directly, on the real URL).
+2. **Rollback, if production is wrong:** the previous production is `dd53786` (deployment `7068328100`);
+   promote it back in Vercel. Older rollback point `8b2802d`. Do not force-push `master`.
+3. **Then resume B1/B4** with section C of 15 October below (steps 1–7): confirm the diffs, menu vs scroll
+   comparison, regression on B1 + B4, iPhone. No commit, push or deploy of B1/B4 without the design
+   owner's approval.
+4. When committing locally later, this file's uncommitted changes go in a separate docs commit.
+
+## ▶ END OF 15 October 2026 · Questions: the orphan answer and the menu entry · read this first
+
+Verified against the repository, the processes and the test outputs at ~23:35 on 15 October 2026, not
+from conversation memory. Distinguishes **done**, **done but not fully validated**, **pending**,
+**deferred** and **awaiting a decision**.
+
+### A · Repository
+
+- **Branch `v3`, HEAD `e09f09d`** (*perf(scroll): avoid forced layout reads in frame driver (AUD-002)*),
+  on top of `c46c121` (AUD-003) and `dd53786` (= production = `master` = `v2`). Both AUD commits are
+  local only. *(Superseded 16 Oct: both are on `origin/v3` and `origin/master`, and in production — see above.)*
+- **Uncommitted (working tree), nothing staged, no stash:**
+  - `src/app/globals.css` — the orphan-answer fix (B1), modified 22:09.
+  - `src/app/scroll-stage.tsx` — the menu-entry driver fix (B4), modified 23:13.
+  - `docs/development/SESSION-HANDOFF.md` — this file (the two Questions bullets under *END OF 14 October*
+    were also added today and are uncommitted).
+- **No commit, push, merge or deploy was made for any of today's Questions work.** Production is still
+  `dd53786`; rollback point still `8b2802d`.
+- **Worktrees** (`git worktree list`, unchanged by today's work): `D:\STUDIO` (`v3`), the comparison build
+  `D:\STUDIO-v3-control-e09` (detached at `e09f09d`, its own `node_modules`, built 15 Oct 15:03 — has
+  **neither** of today's fixes), `D:\STUDIO-v3-control` (`dd53786`), and the older diagnostic worktrees
+  (`STUDIO-ios-*` at `8b2802d`, `STUDIO-menu` / `STUDIO-nav` at `b6fc788`, `STUDIO-next-upgrade`,
+  `STUDIO-tools/mobile-lag/wt-*`). Do not remove any of them.
+- **Servers running at the end of the day** (`next start -H 0.0.0.0`, checked with
+  `Get-NetTCPConnection`):
+  - `http://192.168.1.241:3000` — `D:\STUDIO` working tree. Build `.next/BUILD_ID` at **23:14:32**, after
+    both edits (globals.css 22:09, scroll-stage.tsx 23:13), so it serves **B1 + B4 together** — not only
+    the orphan fix.
+  - `http://192.168.1.241:3001` — `D:\STUDIO-v3-control-e09`, `e09f09d`, **without** B1 and B4: the
+    comparison version.
+
+### B · Work and decisions of 15 October
+
+**B1 · Questions — the orphan answer. DONE (approved, implemented, desktop/emulation validated); iPhone
+NOT yet validated.**
+- **Symptom:** an opened answer stayed alone at full ink after its question and the rest of the list had
+  been released on the way to Contact.
+- **Cause:** `.ask[open] .ask-a { animation: answer … both }`. The forwards fill held the answer at the
+  keyframe's `to { opacity: var(--q) }` — the arrival value — so it ignored `--rel` and `--qf` for the
+  rest of the section's life.
+- **Fix:** `both` → `backwards` (`src/app/globals.css`, `.ask[open] .ask-a`, with the reasoning in a
+  comment; the keyframe comment updated). After the 180ms the answer is back on its own `.ask-a` rule.
+- **Tests run (scripts in the 15 Oct session scratchpad,
+  `C:\Users\35191\AppData\Local\Temp\claude\D--STUDIO\2f9dbf4c-fb1e-44aa-bd2c-02d03da582cb\scratchpad\`):**
+  - Orphan probe (`qfix.mjs` / `qopen.mjs`), rows 1, 3, 6: **before** orphan frames 5–31 per row in every
+    viewport (1920×1080, 1440×900, 1280×720, 768×1024, 390×844, 375×667; Chromium) and in WebKit
+    (1440×900, 390×844); **after** 0 orphan frames, max Δ 0, everywhere. Results:
+    `qfix-{before,after}-{chromium,webkit}.json`. Re-run after B4 at 23:33 (1920, 1440, 1280, 768, 390):
+    still 0.
+  - `six` (320×640 … 1920×1080): overflow 0, problems 0, failed 0, before and after. `six-diff`
+    before/after differs in 39–67 values per viewport, the same order as before/before2 (27–64) — i.e.
+    run-to-run noise, method-word values. Captures: `D:\STUDIO-tools\ios-1013\out\six-qa-{before,after,before2}-*`.
+  - `reach-check` 320×640, 375×667, 390×844, 402×754: :3000 identical to :3001.
+  - Both-way transitions (`trans-rm{a,b}.json`, 390×844 and 1440×900): problems 0.
+  - Reduced motion, 390×844 and 1440×900, down and up: 0 values differ.
+  - **These regression runs were made at 22:26–22:44, i.e. on B1 alone, before B4 existed.**
+- **Still needed:** visual check on the real iPhone (iOS Safari cannot be tested from here).
+
+**B2 · Keeping an open answer fully visible while it is read. DEFERRED by the design owner — do NOT
+implement.** Diagnosis and measurements are in the *Backlog* bullet under *END OF 14 October* below.
+Reason for not proceeding: on desktop/tablet the only acceptable future study is a minimal adjustment of
+the list's **internal** scroll (`.asked`); on a phone any fix must scroll the page, which *is* the
+timeline — it would touch the scroll engine and the mobile composition. Do not resume without a new
+approval.
+
+**B3 · Questions by the menu on a phone — diagnosis.** An in-page link (the rail's *Questions*) moves the
+page thousands of pixels in one frame; the driver's `pace` read it as a full-speed thumb, so on touch
+(`thumb.matches && !calm.matches`) every window widened to `swift` and the rows waited for
+`rowsAfterLock` 1.25 below a landing priced at 0.7. Measured at 390×844: first row **2.9s** after the
+press, against ~0.8s arriving by ordinary scroll.
+
+**B4 · The driver fix. AUTHORISED (minimal change) and IMPLEMENTED in the working tree; partially
+validated; NOT committed.** `src/app/scroll-stage.tsx`, in the `pace` block (~line 1016):
+`if (navigated) pace = 0` — while `navigated` (the press, until the page has arrived, the same flag that
+`noFasterThan` and the spring already use) `pace` is neutralised; real gestures still reach `swift`.
+- **Evidence so far** (`qnav3.mjs`, output in the 15 Oct session's `tasks\bk3f9yer9.output`; BEFORE = a
+  build without B4, AFTER = :3000 with B4; the origin is a script argument and was not printed, so the
+  BEFORE port is not recorded):
+  | | 390×844 | 375×667 | 320×640 | 768×1024 | 1440×900 |
+  |---|---|---|---|---|---|
+  | menu from Work, first row — before | 2629ms | 2655 | 2484 | 2910 | 12 |
+  | menu from Work, first row — after | **1400** | **1400** | **1401** | **1401** | 12 |
+  | ordinary scroll, first row (after) | 777 | 965 | 883 | 666 | 470 |
+  | fast scroll, first row — before / after | 4541 / 4775 | 4737 / 4670 | 4599 / 4820 | none / none | 508 / 493 |
+  - Menu → Questions on touch: rows now follow the title (~1.30s) and description (~1.54s) at ~1.40s
+    instead of ~2.6–2.9s. Fast scroll still waits ~4.6–4.8s on touch → **`swift` preserved for gestures.**
+  - Menu from Contact (touch): before, title/description at once and rows at ~2.6–2.9s; after, everything
+    at once (~1–3ms). Desktop unchanged. Worth a look on the phone — it is a consequence of the fix, not a
+    separate change.
+  - 768×1024 fast scroll: no row reached 0.05 within the 5s window, **before and after alike** — not
+    caused by B4; unexplained, note only.
+  - The "fast scroll" here is a **synthetic** Playwright scroll, not a real finger.
+  - `next build` completed for :3000 (BUILD_ID 23:14:32) and B1's orphan probe was re-run on that build
+    (still 0).
+- **NOT yet run on B1 + B4:** standalone `typecheck` and `lint`, `six` / `six-diff`, `reach-check`, both-way
+  transitions, reduced motion, the exit to Contact, a real fast flick on a phone, the iPhone. Do not mark
+  B4 approved until these exist.
+
+**B5 · Desktop — the rows arrive before the title by the menu. OPEN, OUT OF SCOPE, awaiting the design
+owner's decision.** At 1440×900 the six rows are at full ink ~12ms after the press while the title and
+description play their own ~1.3–1.5s clock (confirmed again by `qnav3`, before and after B4 — B4 does
+not touch it). Cause and measurement: the *Open, separate problem* bullet under *END OF 14 October*
+below. Not changed.
+
+### C · Next steps, in this order
+
+1. **Confirm the driver's state:** `git diff -- src/app/scroll-stage.tsx` must show exactly the one
+   `if (navigated) pace = 0` block with its comment (it did at 23:35, 15 Oct). It is already implemented —
+   do not re-implement or extend it.
+2. **Menu vs scroll comparison** with `qnav3.mjs` (`node qnav3.mjs <origin> <LABEL>`, env `VIEWS`,
+   `MODES=menu,scroll`, `START=work|bottom`) on :3001 vs :3000 at 390×844, 375×667, 320×640, 768×1024,
+   1440×900, from the Work and from Contact; plus a **real** fast flick on the Xiaomi/iPhone to confirm
+   `swift` still holds for gestures.
+3. **Regression on B1 + B4:** exit to Contact, the orphan probe, `six` + `six-diff`, `reach-check`,
+   reduced motion, both-way transitions, `npm run typecheck`, `npm run lint`, `npm run build`.
+4. Restart the test server if needed (section D) and **validate on the real iPhone**: the orphan answer
+   (open a question, keep scrolling to Contact), menu → Questions, and a fast flick into Questions.
+5. **Later, the design owner decides** whether B5 (desktop entry order) is worth investigating.
+6. **Do not resume B2** (open-answer visibility) without a new approval.
+7. Only after the design owner has seen the evidence: a local commit on `v3` (B1 and B4 as separate
+   commits). No push, merge or deploy unless asked.
+
+### D · Servers and resuming
+
+- **Assume nothing is running after a reboot.** Check:
+  `Get-NetTCPConnection -State Listen -LocalPort 3000,3001` and, for each `OwningProcess`,
+  `Get-CimInstance Win32_Process -Filter "ProcessId=<pid>" | Select CommandLine` — the command line shows
+  which directory is being served.
+- **Is the build current?** Compare `D:\STUDIO\.next\BUILD_ID`'s time with
+  `git diff --stat` / the mtime of `src/app/globals.css` and `src/app/scroll-stage.tsx`. If the build is
+  newer than every source change (true at the end of 15 Oct: 23:14:32 vs 23:13:48), **do not rebuild** —
+  just start it. If any source is newer, run `npm run build` first; `next start` serves whatever `.next`
+  holds and will otherwise serve stale code.
+- **Start** (from each directory, in the background): `D:\STUDIO` → `npx next start -H 0.0.0.0 -p 3000`;
+  `D:\STUDIO-v3-control-e09` → `npx next start -H 0.0.0.0 -p 3001` (its build is from 15 Oct 15:03 at
+  `e09f09d`, no rebuild needed). Then `curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/` →
+  200. Never use `next dev` for these comparisons.
+- **The iPhone and the PC must be on the same local network.** At the end of 15 Oct the PC was
+  `192.168.1.241` on Ethernet (network `NOS-24B4-5`, Private profile). DHCP can change it (it was
+  `.228` / `.233` on 14 Oct): confirm with `Get-NetIPAddress -AddressFamily IPv4` before giving the phone a
+  URL.
+- **Evidence of the day** (do not delete): the session scratchpad above (`qprobe`, `qdebug*`, `qshots/`,
+  `qoverflow`, `qfix*`, `qopen`, `qvis`, `qnav`, `qnav2`, `qnav3`, `trans-rm*`, and `tasks\*.output`), and
+  `D:\STUDIO-tools\ios-1013\out\six-{aud002,fh,qa}-*`. Because the scratchpad lives in `%TEMP%`, the
+  whole of it (`scratchpad\` and `tasks\`) was **copied** on 15 Oct 23:40 to
+  **`D:\STUDIO-tools\questions-1015\`** — use that copy; the original was left in place. `qnav3.mjs` needs
+  `D:\STUDIO-tools\browser-automation` (Playwright) as before.
+
+---
+
 ## ▶ END OF 14 October 2026 · production promoted, production audit, branch `v3`
 
 - **Production = `master` = `origin/master` = `v2` = `origin/v2` = `dd53786`** (Vercel deployment
@@ -93,6 +533,21 @@ comparison videos are in the session scratchpad only).
   time in this order: AUD-003 → AUD-002 → AUD-001 (property by property). `master` and `v2` are not
   touched by it. Nothing of `v3` is committed or pushed until the design owner has seen each step's
   measurements.
+- **Backlog · Questions — keep the open question fully visible while it is read. Deliberately deferred
+  (design owner, 15 October 2026): do not implement now.** On short frames an opened answer can be
+  partly cut. Measured: on the desktop and tablet the list scrolls inside its own box with no scrollbar
+  (`.asked`, `max-height` + `overflow-y: auto`), so rows 5–6 lose 10–65px at 1440 × 900, 1366 × 768,
+  1280 × 720, 1024 × 768 and 768 × 1024; on a phone it is the viewport (375 × 812: 16px; 375 × 667: up to
+  93px; 320 × 640: up to 171px), and the iPhone with Safari's bar showing is suspected but not measured
+  (`--asked-top` is priced on `100lvh`). Future study for desktop/tablet: a minimal adjustment of the
+  list's **internal** scroll only, never the page. On a phone any fix has to scroll the page, which is the
+  timeline — it would touch the scroll engine and the choreography.
+- **Open, separate problem · Questions by the menu on the desktop: the rows arrive before the title.**
+  Measured at 1440 × 900 (15 October 2026): after the rail's *Questions* the six rows are at full ink in
+  the first frame, while the anchor's title and description still play their own ~1.3–1.5s clock — the
+  order is rows, title, description instead of title, description, rows. Cause: a press lands the rows
+  (`navigated` forgets their latches, `scroll-stage.tsx`, navigation QA of 27 September) and off a thumb
+  nothing makes them wait for the description. Recorded only; not changed.
 - **15 Oct 2026 — AUD-002 approved and committed locally on `v3`; not pushed, not deployed.** The frame
   driver (`scroll-stage.tsx`, `read()`) now reads `window.innerHeight` once, before it writes anything,
   and reuses it in the five reads that came after writes — on Android each of those forced a style

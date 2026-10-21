@@ -57,7 +57,8 @@ site itself at 1200 × 630, the footage at ~7.5s, the scrollbar hidden for the c
   (B4).
 - B2 and B5, untouched. The 768 × 1024 fast scroll in which no row of Questions arrives within 5s,
   unchanged and unexplained.
-- `docs/brand/open-decisions.md` §7 and C43 (the third face).
+- ~~`docs/brand/open-decisions.md` §7 and C43 (the third face).~~ Done: §7 records C43 as an answered,
+  approved exception (`99aefa6`).
 
 ## ▶ 21 October 2026 · the tagline is Tenor Sans, as wide as *Chapter* (C43) · B1 and B4 committed
 
@@ -175,7 +176,8 @@ scratchpad), Chrome headless/CDP, plus WebKit for B1.
   width do not step.
 - `opengraph-image.alt.txt` still carries *Where moments become digital.* (from 20 October; needs the
   owner's word).
-- `docs/brand/open-decisions.md` §7 is not updated by C43 (the owner's file).
+- ~~`docs/brand/open-decisions.md` §7 is not updated by C43 (the owner's file).~~ Done later the same
+  day, at the owner's request (`99aefa6`).
 - B1 and B4 were validated in emulation only: **no physical iPhone, no real finger flick on a phone.**
   The 768×1024 fast scroll in which no row reached 0.05 within 5s (15 October) is unchanged and still
   unexplained — identical with and without B4.

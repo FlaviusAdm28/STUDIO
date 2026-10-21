@@ -4106,6 +4106,7 @@ is kept.
 to before, the footage playing, the whole page scrolled 1 → 14 and back with no horizontal overflow,
 Work / Questions / Contact each reaching their destination, no console errors, no failed request.
 
-**Debts, stated.** §5's two-family rule now has one exception, and `docs/brand/open-decisions.md` §7 is
-not updated by it — that file is the owner's. The share metadata still carries the old line
+**Debts, stated.** §5's two-family rule now has one exception, recorded as answered in
+`docs/brand/open-decisions.md` §7 at the design owner's request (`99aefa6`, 21 October 2026). The share
+metadata still carries the old line
 (`opengraph-image.alt.txt`). Not tested on iOS Safari or by hand on a physical phone.

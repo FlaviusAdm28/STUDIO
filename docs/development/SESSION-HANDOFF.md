@@ -1,6 +1,65 @@
-# CHAPTER ONE — CURRENT STATE · session handoff — 21 October 2026
+# CHAPTER ONE — CURRENT STATE · session handoff — 21 October 2026 (end of day)
 
-## ▶ 21 October 2026 · the tagline is Tenor Sans, as wide as *Chapter* (C43) · B1 and B4 committed · read this first
+## ▶ LATER ON 21 October 2026 · the top could not be reached again on an iPhone — fixed · share image updated · read this first
+
+Self-contained; the section below (`35dd3ac` and before) still stands. One commit on `v3` after it, pushed
+to `origin/v3`; **not** merged to `master`, nothing deployed.
+
+### The bug (design owner, iPhone, Safari)
+
+Menu → Contact, a fast scroll back up: the page stopped on Chapter II and no further scrolling up reached
+the first screen.
+
+**Cause** — `src/app/scroll-stage.tsx`, the film's origin. It follows the hand back up (`hand < origin →
+origin = hand`, the case of somebody who scrolled during the opening) and had no floor. Two inputs put the
+hand above the document's top for a few frames: WebKit's rubber-band (a negative `scrollY` while the page
+bounces at the top) and the input spring passing its target when a fast scroll stops dead at 0. The origin
+then stayed negative for good, so the page at rest at the top was `-origin` into the film and every further
+pull up pushed it further. The jump to Contact is only what produces the long, fast flick and the large
+bounce; it reproduces with no navigation at all. **B1 and B4 are not involved.**
+
+**Fix** — two lines: `held = Math.max(0, hand)` while the opening runs, and
+`origin = Math.max(0, hand); anchor(origin - inset, true)` where the origin follows the hand. Above the top
+the shot is at its first frame anyway, so nothing else changes. Validated by the design owner in Safari on
+the iPhone, on an isolated copy (`D:\STUDIO-fix-origin`, :3211, since removed); the integrated build was
+not re-tested on the iPhone.
+
+### Measured
+
+| | Before | After |
+|---|---|---|
+| One 120px bounce at the top, simulated as WebKit reports it (Chrome, 390 and 1440) | `--origin` −70 to −89px, top at p 1.16–1.21 | `--origin` 0, p 1 |
+| One 300px bounce | −191 to −199px, p 1.43–1.47 | 0, p 1 |
+| Fast return from Contact, 150px/frame (spring only) | −0.2 to −0.5px | 0 |
+| Xiaomi Mi 11 Lite, Chrome 155, CDP touch (Chrome's own fling, not a finger): start→Contact fast / slow, start→Work fast, INDEX→Contact, interrupted gestures | origin −0.17 / −0.36px in two scenarios, p 1.001 (invisible; Chrome never reports `scrollY` < 0) | 0 in all five, p 1 |
+| Scrolled 2600px during the opening, then back up (the rule's own case) | origin 2600 → 1200 | identical |
+
+On Android a drag down at the top is Chrome's pull-to-refresh: the page reloads and the opening plays again.
+That is the browser's, not the site's.
+
+Regression on the integrated build (:3000): the 11 viewports (320 … 1920: tagline, one line, no overflow,
+narrative 1 → 14 → 1, the hero's links, the footage, 0 console errors), INDEX / rail landings at 7 sizes,
+B4 (menu → Questions on touch, first row ~1.40s) and B1 (0 orphan frames, Chromium and WebKit) unchanged;
+`six` against the build without the fix within run-to-run noise. `typecheck`, `lint`, `build` pass.
+
+### Share image
+
+`src/app/opengraph-image.alt.txt` (rendered as `og:image:alt` and `twitter:image:alt`) is now
+*Chapter One — Your moments, made timeless.*, without the trailing newline the file used to carry into the
+tag. `src/app/opengraph-image.jpg` was re-captured the way it was first made (`daa90cf`): the hero from the
+site itself at 1200 × 630, the footage at ~7.5s, the scrollbar hidden for the capture only, JPEG 44.8KB
+(was 49.3KB) — it showed *Where moments become digital.* Nothing else in the metadata changed.
+
+### Still open
+
+- The integrated build on a physical iPhone (the copy was validated there; the code is identical).
+- The 15 October checks on a physical phone: the orphan answer (B1), menu → Questions and a real fast flick
+  (B4).
+- B2 and B5, untouched. The 768 × 1024 fast scroll in which no row of Questions arrives within 5s,
+  unchanged and unexplained.
+- `docs/brand/open-decisions.md` §7 and C43 (the third face).
+
+## ▶ 21 October 2026 · the tagline is Tenor Sans, as wide as *Chapter* (C43) · B1 and B4 committed
 
 Self-contained. It supersedes the 20 October section below **for the tagline's typography and for the Git
 state**, and it supersedes the 15 October instruction not to commit B1/B4: the design owner asked on

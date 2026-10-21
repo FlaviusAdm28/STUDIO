@@ -1058,7 +1058,8 @@ export default function ScrollStage() {
       let s = 0
       if (root.dataset.opening === 'running') {
         origin = null
-        held = hand
+        /* Never above the document's top — see the origin's own floor below. */
+        held = Math.max(0, hand)
         anchor(y)
         if (sheetPrice !== null) window.__sheet?.(0, 0, clock)
       } else {
@@ -1075,9 +1076,20 @@ export default function ScrollStage() {
             first frame, so moving the origin cannot change a single value. All it changes is how far
             they have to scroll to get back to Chapter II — from "however far I flicked" to "not at
             all", which is the answer they would expect.
+
+            **It stops at the document's top.** The hand can stand above it for a few frames: WebKit
+            reports a negative `scrollY` while the page bounces at the top, and the input spring can
+            pass the target when a fast scroll stops dead at 0. Followed there, the origin stayed
+            negative for good, so a page at rest at the top was `-origin` into the film and could never
+            show its first frame again — and every further pull up made it worse (21 October 2026, an
+            iPhone: menu → Contact, a fast scroll back up, stuck on Chapter II). Simulated as WebKit
+            reports it, one 120px bounce left `--origin` at −70 to −89px and the top at p 1.16–1.21; a
+            300px bounce, p 1.45. On the Xiaomi, which does not bounce, the spring alone left −0.2 to
+            −0.4px. Above the top the shot is at its first frame anyway, so the floor changes nothing
+            else. The design owner validated it in Safari on that iPhone the same day.
           */
-          origin = hand
-          anchor(y, true)
+          origin = Math.max(0, hand)
+          anchor(origin - inset, true)
         }
         const distance = Math.max(0, hand - origin) / frameVh() / perBeat
         const wanted = sheetPrice !== null ? sheetPrice.warp(distance) : distance

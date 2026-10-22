@@ -107,6 +107,8 @@ export default function WorkExperiences() {
     at: 0,
     swapping: false,
     held: false,
+    /** Whether the film has reached state 08, where the camera lands and the rail's rules are drawn. */
+    arrived: false,
     elapsed: 0,
     /** The word the clock is filling, or -1 while an exchange runs. */
     next: count > 1 ? 1 : -1,
@@ -191,10 +193,19 @@ export default function WorkExperiences() {
       const page = root.dataset.sheetTitle === 'page'
       setOwned(page)
       setLive(root.dataset.work === 'on' && !page)
+      /*
+        **The clock counts from the arrival, not from the hand-over** — design owner, 22 October 2026.
+        The hand-over is 07 @ 0.5 and the camera lands at state 08, where the rules are drawn: measured on
+        the Xiaomi, a hand lingering between the two (y 3103 → 3333 at 392 × 779) saw the first category
+        turn 8s after the hand-over, before the rules, with the camera still landing. So time is only
+        added from state 08 on — a pause, like `held`, never a reset; the section's own presence still
+        resets it, as before.
+      */
+      clock.current.arrived = Number(root.dataset.filmState ?? 0) >= 8
     }
     read()
     const mo = new MutationObserver(read)
-    mo.observe(root, { attributes: true, attributeFilter: ['data-work', 'data-sheet-title'] })
+    mo.observe(root, { attributes: true, attributeFilter: ['data-work', 'data-sheet-title', 'data-film-state'] })
     return () => mo.disconnect()
   }, [])
 
@@ -223,7 +234,7 @@ export default function WorkExperiences() {
       last = now
       if (c.pressed < 0 && !c.swapping) {
         c.next = count > 1 ? wrap(c.at + 1) : -1
-        if (!c.held && !reduced.matches && c.next >= 0) c.elapsed += step
+        if (!c.held && c.arrived && !reduced.matches && c.next >= 0) c.elapsed += step
         if (c.elapsed >= TIMING.work.queue.holds) {
           c.elapsed = TIMING.work.queue.holds
           paint()

@@ -7878,12 +7878,16 @@ a.write-line:focus-visible {
   §2 state 06: *warm source upper right*. It arrives with the photograph and goes as the frame pans off
   the canal — §3's 08 → 09 — so it belongs to the two states that are lit from that corner and to no
   others.
+
+  It leaves across 07 now, not 08 (C44, 22 October 2026): the pan off the canal ends at state 08, and so
+  does the light, so nothing may still be changing in the arrived frame. On the Xiaomi this glow was the
+  last thing moving after the rules were drawn — 8% of the luminance of the top third, over ~775px.
 */
 .v2-warm {
   position: absolute;
   inset: 0;
   background: radial-gradient(52% 46% at 78% 24%, rgb(255 206 146 / 0.16), transparent 74%);
-  opacity: calc(var(--jp5) * (1 - var(--jp8)));
+  opacity: calc(var(--jp5) * (1 - var(--jp7)));
 }
 
 /* ── State 01 ───────────────────────────────────────────────────────────────────────────────────── */

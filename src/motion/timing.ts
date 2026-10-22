@@ -1221,11 +1221,21 @@ export const TIMING = {
        *
        * `con` follows the luminance up and stops climbing where the light does; `sat` is derived from the
        * luminance rather than authored, so it cannot disagree with it.
+       *
+       * **The light now ends with the camera, at true exposure** — design owner, 22 October 2026 (C44).
+       * Measured on the Xiaomi (392 × 779): the camera stopped and the three rules were drawn at state 08
+       * (y 3363), and the photograph then went on brightening 0.835 → 1.0 for ~775px more, with
+       * saturation 0.91 → 1 and contrast 0.985 → 1 on the first 230px of it — the frame said there was
+       * more to come after it had arrived. So the rise is still one gesture in one direction, but its
+       * last stop is state 08 itself (`at: 1`) at true exposure, contrast 1 and therefore saturation 1:
+       * the light lands with the camera, on the smoothstep's flat end, and from the rules on nothing in
+       * the frame changes until the Work leaves. The paragraph above about 08 → 09 continuing the lift
+       * is history. State 08 in `spine.ts` carries the new end, `1`.
        */
       stops: [
         { at: 0.02, lum: 0.62, con: 0.96 },
         { at: 0.46, lum: 0.75, con: 0.97 },
-        { at: 0.82, lum: 0.835, con: 0.985 },
+        { at: 1, lum: 1, con: 1 },
       ],
       sat: { from: 0.74, to: 1, over: [0.52, 1.0] },
     },
@@ -1465,6 +1475,10 @@ export const TIMING = {
        * queueing. The light settles later still, and the lift to true exposure later again, so nothing
        * in the passage ends on the same frame as anything else.
        *
+       * **Superseded for the light by C44 (22 October 2026):** the lift to true exposure now lands with
+       * the camera at state 08, as the rules are drawn — see `dock.exposure`. The type still lands first
+       * and the camera settles under it; nothing changes in the frame after the arrival.
+       *
        * `from` is junction 06 — the section now opens in the same junction the rail is drawn in, so the
        * two overlap by design rather than waiting for each other. `spans` still runs to the end of
        * junction 08 → 09, so every window closes inside the exposure lift.
@@ -1498,7 +1512,9 @@ export const TIMING = {
        * needs the paper before About writes on it — so the room is made at this end instead. Complete at
        * 0.5 gives **657px**, twice what it had, and it costs the arrival nothing: the junction's own
        * exposure lift is still running, so the type arrives into a frame that is still coming up to true
-       * exposure and the light finishing last is what closes the passage.
+       * exposure and the light finishing last is what closes the passage. (Since C44 the type still
+       * arrives into a frame coming up to true exposure, but the light finishes with the camera at state
+       * 08, as the rules are drawn, rather than across 08 → 09.)
        */
       block: [0.0, 0.26],
 

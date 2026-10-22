@@ -346,17 +346,18 @@ export const states: readonly State[] = [
     id: 8,
     name: 'The Ledger',
     plate: PLATE.VENICE,
-    /* 0.835 — the promotion's own settled value, and the last stop of `TIMING.dock.exposure`. The film's
-       curve drives the plate across junctions 06 → 08; this is what the Environment hands back to at the
-       far end, so the two meet without a step. State 09 keeps §2's 1 and is still the brightest state. */
-    exposure: 0.835,
+    /* 1 — the last stop of `TIMING.dock.exposure`. The film's curve drives the plate across junctions
+       06 → 08; this is what the Environment hands back to at the far end, so the two meet without a step.
+       It was 0.835, with 09's 1 reached across 08 → 09; since C44 (22 October 2026) the light lands with
+       the camera here, so 08 → 09 is a mix of 1 and 1 and the arrived frame holds still. */
+    exposure: 1,
     ground: null,
     ledger: { exposure: null, ink: null, active: 'work', chapter: 'III', unlit: false, index: true },
     anchor: 'strokes stack at x38 y236; rules extend downward',
     runway: 'shot',
     beats: ['shotStory.chapterThreeStands'],
     composed: false,
-    note: 'The one state with no composition of its own. The index is drawn here, and in this pass it is drawn at the beat that already reveals the navigation — the decompose choreography (§3, 2.90s) is C4. Exposure raised from §2\'s .19, design owner\'s direction 3 September 2026: the reveal completes as the menu writes itself in, so the room is nearly at its final light by the time the index is legible. True 1.00 is still reserved for state 09.',
+    note: 'The one state with no composition of its own. The index is drawn here, and in this pass it is drawn at the beat that already reveals the navigation — the decompose choreography (§3, 2.90s) is C4. Exposure raised from §2\'s .19, design owner\'s direction 3 September 2026: the reveal completes as the menu writes itself in, so the room is nearly at its final light by the time the index is legible. Since C44 (22 October 2026) it is true exposure, 1.00: the light lands with the camera, as the rules are drawn, and 08 → 09 no longer lifts.',
   },
   {
     id: 9,

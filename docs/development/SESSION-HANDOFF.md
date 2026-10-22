@@ -1,6 +1,116 @@
 # CHAPTER ONE — CURRENT STATE · session handoff — 22 October 2026
 
-## ▶ RESUME HERE · 22 October 2026 · v3 committed locally, not pushed · read this first
+## ▶ RESUME HERE · 22 October 2026, end of day · `3c9e80d` is in production · read this first
+
+Self-contained. The section after this one was written on 22 October **before** the push and is kept for
+its record of the day's changes and measurements; its *Git* and *Servers* parts are superseded here.
+
+### Git and production
+
+- `master` = `origin/master` = `v3` = `origin/v3` = **`3c9e80d`** (*docs: C44-C48 and the 22 October
+  handoff*). `master` went `e09f09d → 3c9e80d` by fast-forward (`git fetch . v3:master`, no merge
+  commit), then `git push origin master` and `git push origin v3`, both normal pushes, no force.
+- The push to `master` deployed production on Vercel (Production Branch = `master`): GitHub status
+  *"Deployment has completed"*, success. The published chunk was checked from outside: it carries
+  `sheetClear` (C47), the queue's `data-film-state` (C46), `:focus-visible` (C48) and Tenor Sans (C43).
+- Production now also carries the 9 commits that were on `v3` and not yet in production on 21 October
+  (C43 Tenor Sans, B1, B4, the origin's floor, II → Philosophy, the Work's scroll, the Index as three rules).
+- Rollback point, if one is ever needed: the production deployment of `e09f09d`, promoted back in Vercel.
+  Never force-push `master`.
+- Working tree clean at the end of the day.
+
+### What is in `3c9e80d` from 22 October
+
+Nine commits, one purpose each (`git log --oneline e09f09d..3c9e80d` lists them with the earlier nine):
+
+| Commit | What | Record |
+|---|---|---|
+| `b747966` | Performance: one follow-up frame at a time in the Work (`sheet.tsx`); `frameH` in `read()` (`scroll-stage.tsx`) | C49 |
+| `5cf6fd7` | The Work's titles clear the top bar when Chrome's bar is out (`globals.css`, `.v2-make`) | code comment |
+| `8ee6a24` | The camera lands on the arrival and the rules come ~150px earlier on a thumb (`LAND.c.coarse`) | C45 |
+| `7f729b7` | The light lands with the camera: true exposure at state 08; `.v2-warm` leaves across 07 | C44 |
+| `4a1be95` | The queue's clock counts from state 08 | C46 |
+| `6a492e5` | The Work is left from the category showing (Chapter Landing lab Exp. 5/6) | C47 |
+| `3c7358c` | The page's line keeps a two-line title whole (`Experiences beyond categories`) | C47 |
+| `eb2ead0` | A tap does not hold the queue; keyboard focus still does | C48 |
+| `3c9e80d` | Documentation (C44–C48, the handoff) | — |
+
+### Validation — what is established, and what kind of evidence it is
+
+- **Technical, passed before the push:** `tsc --noEmit` 0; `eslint --max-warnings 0 .` 0; `next build` of an
+  isolated copy identical to `3c9e80d`, 0 warnings (`QmzrWdIhmKL9ycRHNbBLM`); every intermediate commit
+  typechecked and linted on its own. Vercel's own production build: success.
+- **Measured on the Xiaomi Mi 11 Lite (392 × 779, Chrome 155), CDP-synthesised touch, on isolated builds
+  before the commits** — each entry C44–C49 states its numbers and where they were taken (C49's first half
+  was measured in headless Chrome, not on the phone). The committed code differs from the last of those
+  builds (:3230) only by comment reflow and the removal of the unread `owned` state.
+- **Measured on the desktop (1440 × 889, CDP controller, programmatic scroll):** C44 (the grade constant from
+  the arrival to the Work's release; screenshots) and C46 (no turn during a 10s linger before state 08).
+- **Production validated visually by the design owner on real devices, Xiaomi/Android and iPhone/iOS —
+  no visual problems found. Done.** A general visual inspection of the published site on both phones,
+  not a systematic run of every test scenario.
+
+### Validation status by item
+
+These are checks still to be made, not known problems: none of them is a reported defect.
+
+| Item | Status |
+|---|---|
+| Visual validation of production on Android (Xiaomi) and iOS (iPhone) | **Done** — no visual problems found |
+| Desktop interaction: the Work's exit from each category, a click on a queue word, hover holding the queue | Pending confirmation |
+| The four viewports of `01-validation.md` (1920 × 1080, 1440 × 900, 768 × 1024, 390 × 844) | Not confirmed systematically after the latest changes |
+| The no-scripting build, against `next start` | Pending confirmation |
+| `prefers-reduced-motion` | Pending confirmation |
+| Console and network requests on the published site | Pending explicit inspection |
+| Performance at a fixed 90 Hz | Inconclusive — the 22 October frame-interval comparisons overlapped, partly because the phone switches itself between 90 and 60 Hz |
+| iOS Safari, scenario by scenario (the Work's exit, the queue, C43; the 21 October items B1, B4, INDEX → Contact → top, the bounce) | Not validated systematically; the visual pass above is not that test |
+| The top bar's composition (`5cf6fd7`) | See below — no specific decision recorded |
+
+**The top bar's composition.** With Chrome's bar out, the Work's block is lowered by `100lvh − 100svh`, and
+in the 21 October captures `Art experiences` then crosses the artist's head. The owner finds the site
+visually right on both phones; there is no specific decision recorded on that detail. It is neither a
+confirmed bug nor an approved exception.
+
+### Open, not started
+
+- `opening.tsx` reads `window.scrollY` in its rAF every frame for the life of the page; on the Xiaomi it is
+  now the largest forced style recalculation (~1.7s per 16s back-and-forth in the Work). The next candidate,
+  diagnosed and unchanged. The whole-document style recalculation driven by `:root` writes remains the
+  dominant cost.
+- From 21 October, unchanged: Method → Questions (`Methodns`), the clocked ink lagging on fast reversals,
+  the Questions rows after a swipe arrival on Android.
+
+### Machine state at the end of the day (none of it survives a reboot; nothing depends on it)
+
+- Running: `:3000` `next dev` of `D:\STUDIO` (PID 23100); `:3221` `next start` of
+  `D:\STUDIO-tools\tmp\diag-20261022` (PID 11224); the desktop CDP controller on `:9333` (PID 33496,
+  `D:\STUDIO-tools\browser-automation\control.mjs`).
+- `D:\STUDIO-tools\tmp` holds only the two references: `build-commit-20261022` (the content of `3c9e80d`,
+  build `QmzrWdIhmKL9ycRHNbBLM`) and `diag-20261022` (the morning's working tree, `ef6852e` + the two
+  uncommitted fixes of 21 October, build `KCUEAab_GjiVw3J5UGHZ-`, the reference of every A/B of the day).
+- Cleanup: the 15 other copies were removed in two passes and the 9 test servers on `:3222`–`:3230` stopped;
+  **8.11 GB recovered** (D: free 5.87 → 13.98 GB). Junctions were unlinked before any folder was removed;
+  `D:\STUDIO\node_modules` and the reference's `node_modules` were checked intact at every step.
+- Kept: `D:\STUDIO-tools\diag-2026-10-22\` whole — scripts, raw data, traces, screenshots, reports, and the
+  14 `build.log` of the removed copies under `build-logs\<copy>\build.log`.
+- ADB (Xiaomi `c3e8fb35`): `reverse tcp:3000`, `forward tcp:9555` (CDP). **Obsolete and harmless:** `reverse
+  tcp:3228`, `tcp:3229`, `tcp:3230` — their servers no longer exist. `:3221` has no reverse (the ADB
+  connection reset once on 22 October and dropped every route).
+
+### Next steps, in order
+
+1. The pending checks above, starting with desktop interaction and the four viewports, then no-scripting,
+   reduced motion and the published console/network.
+2. If the owner wants one, a recorded decision on the top bar's composition (see above).
+3. iOS Safari scenario by scenario.
+4. If performance is reopened: fix the Xiaomi at 90 Hz, then the `opening.tsx` `scrollY` read — one change,
+   one interleaved A/B, as on 22 October.
+5. Optional housekeeping, only when asked: remove the obsolete reverses; stop `:3221` and the `:9333`
+   controller; decide whether `diag-20261022` is still worth its 0.62 GB.
+
+---
+
+## ▶ 22 October 2026, before the push · superseded the same evening — its Git and servers parts are history
 
 Self-contained. It replaces the operational state of the 21 October section below (git, servers, what is
 uncommitted); everything else below still stands as history.

@@ -2232,6 +2232,10 @@ Every one of these was invisible to the typecheck and the DOM, and was found by 
 >
 > Chosen by the design owner from four explorations (Q1–Q4) as **Q2 · *fila que roda***, and implemented
 > as explored: *"não quero mais uma ronda de exploração de alternativas."*
+>
+> **Revised on 22 October 2026, the queue itself unchanged:** its clock counts from state 08, not from the
+> title's hand-over (C46); the section is left from the category it shows (C47); and keyboard focus holds
+> the queue but a tap does not (C48).
 
 ### The composition
 
@@ -4231,3 +4235,57 @@ carousel had stopped for good.
 holds on a pointer. Measured: after a tap on `Artists` or `Selected Projects` the queue turned three times
 at a steady ~9.05s (8s and the exchange) with the focus still on the word; tabbing into the queue held the
 fill at 0.44 for 6s and tabbing out released it.
+
+## C49 · Two pieces of redundant work removed from the Work's frame · **22 October 2026** · performance, approved by the design owner
+
+**Not a design decision** — nothing drawn changes — recorded here as C33 was, because it changes what a
+frame costs and the numbers are the argument. Commit `b747966`.
+
+**1 · One follow-up frame at a time (`src/app/sheet.tsx`, fixed 21 October, committed 22 October).** While
+a clock was running the page asked for a follow-up frame on every call, and the driver calls it every
+frame, so each scrolled frame started another chain that lived as long as the clock: in the Work the page
+was drawn 7–23 times a frame, reading `--sh-wipe` back after the driver's writes. Now one follow-up frame is
+held at a time, asked for after the driver's own, and a follow-up whose frame the driver has already drawn
+only keeps the chain alive. Measured in headless Chrome at 392 × 779 with touch: draws per frame
+7.24–23.28 → 0.71–1.00; style reads of `.sh` per frame 0.81–17.41 → 0.06–0.40; outside the Work unchanged.
+On the Xiaomi there was no valid measurement of this change alone, so it is recorded as redundant work
+removed, not as the phone's lag cured.
+
+**2 · The pricing frame read once (`src/app/scroll-stage.tsx`, `frameH`).** `read()` called `frameVh()`
+twice, and the second call, after the sheet's draw and the origin's writes, read `innerHeight` and forced a
+style recalculation (~119 elements each, 0.78–0.86s per 16s back-and-forth in the Work on the Xiaomi).
+`frameVh()` depends only on `tallVh`, which changes only in `price()`, and on `innerHeight`, which does not
+change inside one callback (AUD-002), so it is now read once, before any write. Measured on the Xiaomi
+Mi 11 Lite, before and after interleaved in one session:
+
+- the forced group of the second call is gone; forced style+layout per back-and-forth 2.85–2.89 →
+  1.97–2.02s (trace, 2 + 2 runs); LoAF forced time lower without overlap in the slow entry, the fast
+  entry and the back-and-forth (3 + 3 runs);
+- recalculations per frame 2.44–2.47 → 1.96–1.99, style per frame 27.9–29.0 → 25.5–27.1ms — but the total
+  style time fell only ~5%: about half the forced work moved into the frame's own recalculation, which
+  now covers more elements (median 119 → 303);
+- **frame intervals over whole journeys overlap — inconclusive.** Only the slice where the sheet writes
+  before the read (y 5.62 → 6.5 of the calibration) was faster without overlap in every refresh mode
+  measured. The phone switches itself between 90 and 60 Hz, which limits every comparison of that day.
+
+What remains of the cost is the whole-document style recalculation driven by `:root` custom-property
+writes, and the next forced read is `opening.tsx`'s `scrollY` in its rAF — both open.
+
+## Status of C44–C49 at publication · 22 October 2026
+
+All six are in **`3c9e80d`**, published to production on 22 October (`master` fast-forwarded from
+`e09f09d`; Vercel production deployment completed). `docs/development/SESSION-HANDOFF.md` carries the
+detail; in short:
+
+- **Technical, passed:** typecheck, lint with no warnings, and a production build of the exact content;
+  every intermediate commit typechecked and linted alone.
+- **Measured on the Xiaomi with CDP touch**, on isolated builds before the commits: each entry above states
+  what. C44 and C46 were also checked at 1440 × 889 on the desktop.
+- **Visual validation of production on Android and iOS — done, no visual problems found.** The design
+  owner inspected the published site on the Xiaomi and the iPhone: a general visual pass on real devices,
+  not a scenario test.
+- **Checks still to make — not known defects:** desktop interaction with the Work's exit and the queue; the
+  four viewports; the no-scripting build; reduced motion; console and network on production; iOS Safari
+  scenario by scenario. Performance at a fixed 90 Hz is inconclusive. The top bar's composition
+  (`Art experiences` crossing the artist's head with Chrome's bar out) looked right to the owner on both
+  phones, but no specific decision on that detail has been recorded.

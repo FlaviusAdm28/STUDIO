@@ -84,16 +84,18 @@ export default function WorkExperiences() {
   const [swapping, setSwapping] = useState(false)
   const [live, setLive] = useState(false)
   /*
-    Lab, `?sheet=next` only. **What is selected and what is presented are two things.** `at` is the
-    carousel's own state — the category the queue has reached — and nothing here ever changes it. While
-    the Opening still owns the arrival (`data-sheet-title='page'`), the section *presents* its first
-    category: the photograph the film ends on, that work's caption and that work's queue, because that is
-    the composition `A memory.` is carried into. When the Opening hands over, the section goes to the
-    category it really holds by its own exchange — the dip — exactly as if the queue had promoted it; and
-    when the Opening takes the arrival back, it returns to the first by the same exchange.
+    **The landing state is not the exit state** — Chapter Landing lab, Exp. 5 (8 October 2026; in v3
+    since 22 October). `at` is the carousel's own state, the category the queue has reached. The section
+    used to present its first category whenever the Opening owned the arrival (`data-sheet-title='page'`,
+    read as `owned ? 0 : at`), so on the way *back* it was made to return to `Wedding experiences` — its
+    own exchange, its dip — before the page would take the line (seen on the phone: Art → dark → Wedding
+    for 0.4s → A memory.). Now the section always presents the category it holds, and leaves from it. The
+    landing is still canonical because the carousel is put back on its first category where nobody can
+    see it happen: once the hand is above the Work's first presence (`data-sheet-clear`, written by the
+    page), silently, with no exchange.
   */
-  const [owned, setOwned] = useState(false)
-  const target = owned ? 0 : at
+  const target = at
+  const silent = useRef(false)
   const [widths, setWidths] = useState<number[]>([])
 
   const queue = useRef<HTMLDivElement>(null)
@@ -191,7 +193,6 @@ export default function WorkExperiences() {
     */
     const read = () => {
       const page = root.dataset.sheetTitle === 'page'
-      setOwned(page)
       setLive(root.dataset.work === 'on' && !page)
       /*
         **The clock counts from the arrival, not from the hand-over** — design owner, 22 October 2026.
@@ -202,10 +203,17 @@ export default function WorkExperiences() {
         resets it, as before.
       */
       clock.current.arrived = Number(root.dataset.filmState ?? 0) >= 8
+      if (root.dataset.sheetClear === '1' && clock.current.at !== 0) {
+        silent.current = true
+        setAt(0)
+      }
     }
     read()
     const mo = new MutationObserver(read)
-    mo.observe(root, { attributes: true, attributeFilter: ['data-work', 'data-sheet-title', 'data-film-state'] })
+    mo.observe(root, {
+      attributes: true,
+      attributeFilter: ['data-work', 'data-sheet-title', 'data-film-state', 'data-sheet-clear'],
+    })
     return () => mo.disconnect()
   }, [])
 
@@ -307,6 +315,24 @@ export default function WorkExperiences() {
     const k = TIMING.work.carousel
     const root = document.documentElement
     const c = clock.current
+    if (silent.current) {
+      /*
+        Out of frame: no dip, no clock held — the section is simply on its first category when it is
+        next seen.
+      */
+      silent.current = false
+      c.leaving = -1
+      c.pressed = -1
+      c.next = count > 1 ? wrap(target + 1) : -1
+      c.elapsed = 0
+      c.swapping = false
+      paint()
+      setRow(target)
+      setShown(target)
+      setSwapping(false)
+      root.dataset.swapping = '0'
+      return
+    }
     c.leaving = target
     c.pressed = -1
     c.next = -1

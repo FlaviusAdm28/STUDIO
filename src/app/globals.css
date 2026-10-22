@@ -397,8 +397,18 @@ html {
   dissolves into About is the one that was showing. Still zero once 09 → 10 is through, so the selection
   never stands as the publication's ground.
 */
+/*
+  Chapter Landing lab, Exp. 6 (8 October 2026; in v3 since 22 October) · **it leaves with the
+  photograph's own presence, on the way back up as well.** It carried `--work-in`, the Work's arrival,
+  so going back from Art the Art plate went with the Work's type and Venice stood on screen between Art
+  and `A memory.` (seen on the phone, ~0.4s). It now stands for as long as the ground does —
+  `--env-venice`, and `--sh-open`, the same hand-over the Venice plate itself rides with `A memory.` —
+  so the photograph under the line being un-written is the one that was showing. The first category
+  draws nothing here (`--exp-at` 0), and the carousel is put back on it only once the photograph has
+  gone, so the landing still stands on Venice.
+*/
 .env-plate-experience {
-  opacity: calc(var(--work-in, 0) * var(--env-venice, 0));
+  opacity: calc(var(--env-venice, 0) * var(--sh-open, 1));
 }
 
 /*
@@ -411,7 +421,13 @@ html {
 .env-venice {
   --work-full: clamp(0, calc((var(--work-in, 0) - 0.999) * 1000), 1);
   --ground-leaving: clamp(0, calc((1 - var(--env-venice, 1)) * 1000), 1);
-  opacity: calc(1 - var(--exp-at, 0) * var(--work-full) * var(--ground-leaving));
+  /*
+    Chapter Landing lab, Exp. 6 (8 October 2026; in v3 since 22 October) · and while the Work is not
+    whole and another category is showing — the way back up — Venice is not drawn under it, for the
+    reason above: it would bleed through as both went down.
+  */
+  --work-part: clamp(0, calc((0.999 - var(--work-in, 0)) * 1000), 1);
+  opacity: calc(1 - var(--exp-at, 0) * max(var(--work-full) * var(--ground-leaving), var(--work-part)));
 }
 
 /*

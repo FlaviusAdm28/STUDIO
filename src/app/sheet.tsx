@@ -144,7 +144,15 @@ export default function Sheet() {
         const fs = parseFloat(cs.fontSize)
         const lh = cs.lineHeight === 'normal' ? fs * 1.2 : parseFloat(cs.lineHeight)
         title = { x: r.left - box.left, y: r.top - box.top, fs, lh }
-        standin.textContent = real.textContent
+        /*
+          Chapter Landing lab, Exp. 5 (8 October 2026; in v3 since 22 October) · the line reads what the
+          Work is showing, not always its first category: a re-measure (Chrome's bar returning on the way
+          back up is a resize) was putting the first category's words back into a line that had just been
+          taken back as another category — seen on the phone, 5 reps in 15.
+        */
+        const showing = (next ? document.querySelector<HTMLElement>('.v2-make-word[data-lit="1"]') : null) ?? real
+        const showingWidth = Math.ceil(showing.getBoundingClientRect().width)
+        standin.textContent = showing.textContent
         if (next) {
           /* The rewriting's edge: how soft it is, and how far it has to travel. */
           /*
@@ -158,9 +166,9 @@ export default function Sheet() {
           el.style.setProperty('--sh-clear', `${(fs * 0.9).toFixed(1)}px`)
           /* The new line's ink trails the old line's leaving by this much, so `W` is not read on top of `A`. */
           el.style.setProperty('--sh-lag', `${(fs * (LAG ?? 0.3)).toFixed(1)}px`)
-          el.style.setProperty('--sh-wipe-end', `${Math.ceil(r.width)}px`)
+          el.style.setProperty('--sh-wipe-end', `${showingWidth}px`)
           /* Where the edge stands once the new line is whole: its far end, plus what trails the edge. */
-          written = Math.ceil(r.width) + fs * (LAG ?? 0.3) + fs * 0.2
+          written = showingWidth + fs * (LAG ?? 0.3) + fs * 0.2
         }
         Object.assign(standin.style, {
           transform: `translate(${title.x.toFixed(2)}px, ${title.y.toFixed(2)}px)`,
@@ -226,12 +234,12 @@ export default function Sheet() {
     let leavingAt = -1
     /* NEXT — the rewriting's edge position at which `Wedding experiences` is whole (set by `measure`). */
     let written = 0
+    /* Chapter Landing lab, Exp. 5 — whether the page's line was being written on the last frame. */
+    let titledBefore = false
     /* NEXT — backward: whether the page's new line still has ink in the slot, and when it last gave the slot back. */
     let lineOut = false
     let givenBackAt = -1
     let feather = 0
-    /* NEXT — the Work's first headline: the page takes the line back only while this is the one lit. */
-    const firstWord = next ? document.querySelector<HTMLElement>('.v2-make-word') : null
     const inkOf = (node: HTMLElement | null): number => {
       let ink = 1
       for (let e: HTMLElement | null = node; e !== null && e !== document.documentElement; e = e.parentElement) {
@@ -508,8 +516,38 @@ if (memory3 && survivor !== null && g.title !== null) {
           const within = at7 > 0
           flag('data-within', within)
           const wants = handed
-          if (!wants && within && el.hasAttribute('data-handed') && firstWord !== null && firstWord.dataset.lit !== '1')
-            handed = true
+          /*
+            Chapter Landing lab, Exp. 5 (8 October 2026; in v3 since 22 October) · it waited here for the
+            Work to be back on its first category before taking the line (`firstWord.dataset.lit !== '1'`
+            kept it handed). The page now takes the line at once, in the words the Work is showing, and
+            un-writes *those* into `A memory.`.
+          */
+          /*
+            Only at the two moments the change cannot be seen: as the page takes the line back (its words are
+            then the Work's own, pixel for pixel), and as it begins to write the line again on the way in (the
+            line is then not on screen). Never while the line is standing or being un-written.
+          */
+          const titledNow = atOf(6, p) >= NEXT_MOVE.rewritesAt
+          const takesBack = !handed && el.hasAttribute('data-handed')
+          const writesAgain = titledNow && !titledBefore
+          titledBefore = titledNow
+          if ((takesBack || writesAgain) && standin !== null) {
+            const lit = document.querySelector<HTMLElement>('.v2-make-word[data-lit="1"]')
+            if (lit !== null && lit.textContent !== null && standin.textContent !== lit.textContent) {
+              standin.textContent = lit.textContent
+              const wide = Math.ceil(lit.getBoundingClientRect().width)
+              const fs = parseFloat(getComputedStyle(lit).fontSize)
+              el.style.setProperty('--sh-wipe-end', `${wide}px`)
+              written = wide + fs * (LAG ?? 0.3) + fs * 0.2
+            }
+          }
+          /*
+            Chapter Landing lab, Exp. 6 (8 October 2026; in v3 since 22 October) · only once the photograph
+            itself has gone (below where `A memory.` begins to rise, `--sh-open` 0) may the carousel be put
+            back on its first category, unseen.
+          */
+          if (at5(p) < NEXT_MOVE.from[1] - 0.02 && atOf(6, p) <= 0) root.dataset.sheetClear = '1'
+          else delete root.dataset.sheetClear
           flag('data-handed', handed)
           if (handed) root.dataset.sheetLine = 'work'
           else delete root.dataset.sheetLine
@@ -580,6 +618,7 @@ if (memory3 && survivor !== null && g.title !== null) {
       delete root.dataset.sheetCounted
       delete root.dataset.sheetTitle
       delete root.dataset.sheetLine
+      delete root.dataset.sheetClear
     }
   }, [])
 

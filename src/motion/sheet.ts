@@ -324,9 +324,31 @@ const LAND: Record<string, { coarse: typeof TABLE; fine: typeof TABLE }> = {
     they did (0.80 → 0.625, 0.63 → 0.49), so the pan keeps one speed across 07 and still across the
     hand-over — and the junction is 0.31 viewports shorter. The type arrives over 0.59 viewports
     instead of 0.73, still slower than a thumb's.
+    The last quarter of 07 on a thumb, 22 October 2026: on the Xiaomi (392 × 779) the camera stood at
+    0.95 of its pan by 07 @ 0.75 and spent the last ~225px of scroll on the remaining 3.5px of its
+    78px throw, with nothing else visibly changing, before the three rules were drawn at 08. That
+    quarter now costs 0.06 viewports instead of 0.225, and 08 stands at 4.035.
+    Then the landing itself, the same day: priced as two straight rows, the camera ran at 0.37 of its
+    pan per viewport into 07 @ 0.75, jumped to 1.37 there and stopped dead 0.06 viewports later. The
+    hand-over (3.75) and 08 (4.035) are where they were; between them the rows are now laid on a speed
+    that starts at the first half's own (0.55), peaks at 0.73 a third of the way and falls to nothing at
+    08 — v0 · (1 − s)(1 + 2.98s), the same distance and the same pan, so the camera lands on its last
+    0.2 viewports instead of braking on its last 0.06. Straight rows on a smoothstep leave a saw of
+    ±0.1 at each row (~0.01px of camera per px of scroll at 392); the old step was a full 1.0.
   */
   c: {
-    coarse: [[2.82, 5, 1], [3.24, 6, 1], [3.75, 7, 0.5], [4.2, 8, 0]],
+    coarse: [
+      [2.82, 5, 1],
+      [3.24, 6, 1],
+      [3.75, 7, 0.5],
+      [3.793, 7, 0.549],
+      [3.836, 7, 0.61],
+      [3.878, 7, 0.68],
+      [3.921, 7, 0.759],
+      [3.964, 7, 0.845],
+      [4.006, 7, 0.936],
+      [4.035, 8, 0],
+    ],
     fine: [[3.0, 5, 1], [4.25, 6, 1], [4.875, 7, 0.5], [5.365, 8, 0]],
   },
   d: {

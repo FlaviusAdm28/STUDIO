@@ -42,6 +42,14 @@ export default function Sheet() {
     const occasions = [...el.querySelectorAll<HTMLElement>('.sh-occasion')]
     const survivor = q('.sh-survivor')
     const standin = q('.sh-standin')
+    /*
+      **The page's line is the Work's headline in its own parts, not its text** — 22 October 2026. On a
+      phone `Experiences beyond categories` is set as two lines (`.v2-make-part`, block below 768px); its
+      text alone ran on one line twice as wide as the measured title, so the wipe, which ends at the
+      title's width, cut it at `Experiences beyond c`. Copying the parts lets the same rule break it.
+    */
+    const lineFrom = (from: HTMLElement) =>
+      standin?.replaceChildren(...Array.from(from.childNodes, (node) => node.cloneNode(true)))
     const memory3 = memory3On()
     if (memory3) el.setAttribute('data-memory3', '')
     /* NEXT — set before anything is measured: the Work's title has its new size under this attribute. */
@@ -152,7 +160,7 @@ export default function Sheet() {
         */
         const showing = (next ? document.querySelector<HTMLElement>('.v2-make-word[data-lit="1"]') : null) ?? real
         const showingWidth = Math.ceil(showing.getBoundingClientRect().width)
-        standin.textContent = showing.textContent
+        lineFrom(showing)
         if (next) {
           /* The rewriting's edge: how soft it is, and how far it has to travel. */
           /*
@@ -534,7 +542,7 @@ if (memory3 && survivor !== null && g.title !== null) {
           if ((takesBack || writesAgain) && standin !== null) {
             const lit = document.querySelector<HTMLElement>('.v2-make-word[data-lit="1"]')
             if (lit !== null && lit.textContent !== null && standin.textContent !== lit.textContent) {
-              standin.textContent = lit.textContent
+              lineFrom(lit)
               const wide = Math.ceil(lit.getBoundingClientRect().width)
               const fs = parseFloat(getComputedStyle(lit).fontSize)
               el.style.setProperty('--sh-wipe-end', `${wide}px`)

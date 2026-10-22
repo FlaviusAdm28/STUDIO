@@ -852,7 +852,7 @@ these.** Four such departures exist and are flagged below; none was taken silent
 | **05 → 06** | accumulate · *the residue* | **4.20s**; **46px / 100%, 31px / 34%, 22px / 12%** on one optical centre; occasions at *t 0.00 · hold 0.90s* and *t 0.90 → 1.60s*; venice .13; warm source upper right | **A throughout.** The three slots and the arrival rhythm are V2's own, converted to fractions of the junction (**0.214 → 0.381**, **0.429 → 0.595**). **D**: the stack clears from **0.78** so its resolved frame stands for about a fifth of the junction — it had existed for 2.5% of it. **D**: this layer's ground hands over to the Environment at **0.75**, late, so *the black acquires a photograph* rather than brightening through a lit hero on the way. |
 | **06 → 07** | change register · *the word "chapter"* | *changes register in place — **no travel***; lockup origin **x752**; chapter line 9px / .30em, 46px under; venice .09 | **B**: the register change is `scale` + tracking on one node, in place. **A departed — see F1 and F2.** |
 | **07 → 08** | decompose · *the numeral* | **2.90s**; mark at **x38 y236**; index drawn out of the numeral, rule length encodes depth, WORK lit first; venice panned 20%, .19 | **B**: the index is drawn on this junction's own progress rather than on `actStory.navigation`, a V1 beat belonging to a runway that has not started — it left the rail carrying the mark alone at a state §2 says is *index drawn*. **A unpaid — see F4.** |
-| **08 → 09** | lift · *the photograph* | Exposure to **1.00 true**; *the frame pans off the canal*; **80px serif x196, bottom 74**; nothing mounted, swapped or fetched | **A throughout** — C5's Environment performs the lift and the 20% pan; this pass only stopped painting over it. **D**: the work's type arrives from **0.35** of the lift. |
+| **08 → 09** | lift · *the photograph* | Exposure to **1.00 true**; *the frame pans off the canal*; **80px serif x196, bottom 74**; nothing mounted, swapped or fetched | **A throughout** — C5's Environment performs the lift and the 20% pan; this pass only stopped painting over it. **D**: the work's type arrives from **0.35** of the lift. **Revised by C44 (22 October 2026):** the exposure reaches 1.00 at state 08, with the camera; 08 → 09 no longer lifts. |
 
 ### 02 → 03 read as five phases · **B** · design owner's direction, 29 August 2026
 
@@ -4113,3 +4113,121 @@ Work / Questions / Contact each reaching their destination, no console errors, n
 `docs/brand/open-decisions.md` §7 at the design owner's request (`99aefa6`, 21 October 2026). The share
 metadata carried the old line until `8b04dd0`, which set `opengraph-image.alt.txt` to the new one and
 re-captured `opengraph-image.jpg` with the tagline. Not tested on iOS Safari or by hand on a physical phone.
+
+## C44 · The light lands with the camera: true exposure at state 08 · **22 October 2026** · design owner decision
+
+**What this revises.** §3's junction 08 → 09, *"lift · the photograph — exposure to 1.00 true"*, and the
+design owner's own direction of 14 September 2026 (`TIMING.dock.exposure`): *one monotonic rise
+`0.62 → 0.835` settling with the camera, then state 09 continuing the same movement `0.835 → 1.0` across
+08 → 09*, with *"the light finishing last is what closes the passage"* (`TIMING.work.arrives`). The rise
+is still one gesture in one direction; it now ends at state 08, where the camera stops and the three
+rules (C42) are drawn, instead of one viewport later.
+
+**Why.** Measured on the Xiaomi Mi 11 Lite (392 × 779, Chrome 155): the camera stopped and the rules were
+drawn at y 3363, and the photograph then went on brightening `0.835 → 1.0` for ~775px of scroll, with
+saturation `0.91 → 1` and contrast `0.985 → 1` across the first ~230px of it, while nothing else in the
+frame moved. The composition read as not yet arrived. The owner chose to have the arrival be the end of
+every change in the frame.
+
+**What it is.**
+
+- `TIMING.dock.exposure.stops`: the last stop moves from `{ at: 0.82, lum: 0.835, con: 0.985 }` to
+  `{ at: 1, lum: 1, con: 1 }`. The rise from `0.75` (at `0.46`) now runs on one smoothstep to `1.0` at
+  `j = 1`, which is state 08, and lands there with zero slope. `sat` is derived from the luminance and
+  reaches 1 with it.
+- `spine.ts` state 08: exposure `0.835 → 1`, so the Environment hands back to the film's last stop
+  without a step and 08 → 09 is a mix of 1 and 1. The `--film-at` ramp across the first 0.3 of 08 now
+  mixes equal values, so it changes nothing.
+- `.v2-warm`, §2's *warm source upper right*, leaves across junction 07 instead of 08
+  (`1 − --jp7`). It was the last thing changing after the arrival: with the light fixed, real
+  screenshots on the Xiaomi still differed between the rules (y 3400) and the end of 08 (y 4100) by 8%
+  of the top third's luminance, all of it this glow. It still goes as the frame pans off the canal; the
+  pan ends at 08.
+- Scroll distances, the camera's pan and its landing (`LAND.c`, C45), the rules, the Work's type, the
+  Work's stay and its release at 09 → 10 are unchanged by this entry. The carousel's clock was changed
+  the same day, separately — it now counts from state 08 (C46). It applies on every
+  pointer: the curve is read off the narrative position, not the pointer's price.
+
+**What it departs from.** §2's column gave state 08 `.19` (already raised to 0.835 on 3 September 2026)
+and reserved true exposure for state 09; 09 is still 1.00, and is now reached at 08 and held. §3's
+08 → 09 *lift* now has no exposure left to perform; *"the frame pans off the canal"* already finished at
+08 (`panAt` ends at state 08). The type of the Work still arrives into a frame coming up to its light; it
+is the light, not the type, that finishes with the camera.
+
+## C45 · The camera lands on the arrival, and the rules come with it · **22 October 2026** · design owner decision
+
+**What this revises.** `LAND.c.coarse` in `src/motion/sheet.ts` — the landing price on a thumb (19 October
+2026). The row for a mouse or a trackpad (`fine`) is unchanged.
+
+**Why.** Measured on the Xiaomi Mi 11 Lite (392 × 779): the camera stood at 0.95 of its pan by 07 @ 0.75
+and spent the last ~225px of scroll on the remaining 3.5px of its 78px throw, with nothing else visibly
+changing, before the three rules (C42) were drawn at state 08 — one small swipe of nothing. Shortened, the
+landing then ran at 0.37 of the pan per viewport into 07 @ 0.75, jumped to 1.37 there and stopped dead
+0.06 viewports later.
+
+**What it is.**
+
+- The last quarter of 07 costs 0.06 viewports instead of 0.225, so state 08 stands at 4.035 instead of
+  4.2: on the Xiaomi the rules are drawn ~150px earlier (y 3525 → 3375) and everything after 08 moves up
+  by the same distance.
+- Between the hand-over (3.75, unchanged) and 08 the rows are laid on a speed that starts at the first
+  half's own (0.55), peaks at 0.73 a third of the way and falls to nothing at 08 —
+  `v0 · (1 − s)(1 + 2.98s)` — six rows, the same distance and the same pan.
+- Measured with real touch on the Xiaomi: the camera stops at y 3363 with the rules in the same frame,
+  slow and fast; the title, caption, queue and rules stand where they stood, to the pixel.
+
+## C46 · The Work's queue counts from the arrival · **22 October 2026** · design owner decision
+
+**What this revises.** C14's clock in `src/app/work-experiences.tsx`: it ran from the hand-over of the
+title (`data-sheet-title` cleared, 07 @ 0.5) while the section was composed (`data-work`).
+
+**Why.** The hand-over is ~100–250px before state 08, where the camera lands and the rules are drawn. A
+hand lingering there for 8s saw `Art experiences` replace `Wedding experiences` before the rules, with the
+camera still landing — measured on the Xiaomi at y 3185, rules at y 3333.
+
+**What it is.** Time is added to the clock only while `data-film-state` is 8 or more — a pause, like the
+existing `held`, never a reset. Everything else is as it was: the section's presence still resets the
+clock, 8s still fills a word, a press still promotes at once. Measured on the Xiaomi: the first turn
+7.99–8.06s after state 08 on a fast entry, a slow entry with a 9s pause before the rules (no turn during
+the pause), a return above 08 before the first turn (the time above 08 not counted) and a 5s keyboard
+hold; the same at 1440 × 889.
+
+## C47 · The Work is left from the category that is showing · **22 October 2026** · design owner decision
+
+**What this revises.** The backward hand-over of 6 October 2026 (`sheet.tsx`, `work-experiences.tsx`):
+*"backward the Work first returns to its first category — its exchange, its dip — and the page takes the
+line back in the dark of it."*
+
+**Why.** Going back up from `Art experiences` or `Selected Projects`, the Work changed to
+`Wedding experiences` with its dip, and Venice stood under `A memory.` as it was rewritten — measured on
+the Xiaomi at y 3059, from both. The owner wants the exit to start from the photograph that is showing,
+fading while `A memory.` is written.
+
+**What it is.** Experiments 5 and 6 of the Chapter Landing lab (`D:\STUDIO-lab-landing`, 8 October 2026,
+tested there on 9 October), brought into the build. The lab's other experiments are **not** part of this.
+
+- `work-experiences.tsx` presents the category it holds (`target = at`); it is put back on its first
+  category silently, with no exchange, once the photograph has gone (`data-sheet-clear`, written by the
+  page below where `A memory.` begins to rise).
+- `sheet.tsx` takes the line back at once, in the words the Work is showing, and un-writes those into
+  `A memory.`; `measure()` reads the lit headline.
+- `.env-plate-experience` stands on the ground's own presence (`--env-venice × --sh-open`), and Venice is
+  not drawn under another category while the Work is not whole.
+- **The page's line is the headline's parts, not its text.** On a phone `Experiences beyond categories`
+  is set as two lines (`.v2-make-part`); its text alone ran on one line 353px wide under a wipe that ends
+  at the title's 209px, cut at `Experiences beyond c`. Copying the parts lets the same rule break it.
+- Measured on the Xiaomi with real touch, from each of the three categories: no exchange during the exit,
+  the photograph showing stays until it goes with the ground, `A memory.` is written over it, and the
+  page's line never runs past the wipe (0px in 711–868 frames per exit).
+
+## C48 · A tap does not hold the Work's queue · **22 October 2026** · defect, confirmed by the design owner
+
+**What it was.** The queue holds while it is hovered or focused, so the clock never runs under a keyboard
+user's focus (WCAG 2.2.2). On a phone a tap focuses the word it lands on and the focus stays there:
+measured on the Xiaomi, one tap promoted `Art experiences` and then the fill stood at 0 for 25s — the
+carousel had stopped for good.
+
+**What it is.** Focus holds the queue only when it is the keyboard's (`:focus-visible`); hover still
+holds on a pointer. Measured: after a tap on `Artists` or `Selected Projects` the queue turned three times
+at a steady ~9.05s (8s and the exchange) with the focus still on the word; tabbing into the queue held the
+fill at 0.44 for 6s and tabbing out released it.

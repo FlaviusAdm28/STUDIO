@@ -1,6 +1,222 @@
-# CHAPTER ONE — CURRENT STATE · session handoff — 21 October 2026 (end of day)
+# CHAPTER ONE — CURRENT STATE · session handoff — 22 October 2026
 
-## ▶ LATER ON 21 October 2026 · the top could not be reached again on an iPhone — fixed · share image updated · read this first
+## ▶ RESUME HERE · 22 October 2026 · v3 committed locally, not pushed · read this first
+
+Self-contained. It replaces the operational state of the 21 October section below (git, servers, what is
+uncommitted); everything else below still stands as history.
+
+### Git — exactly as left
+
+- Branch `v3`, **committed locally and not pushed**: `git log --oneline origin/v3..v3` lists the commits of
+  22 October (performance, top bar, the camera's landing, C44, the queue, the Work's exit, the two-line
+  title, the keyboard hold, documentation). `origin/v3` is still `ef6852e`.
+- `master` = `origin/master` = production = `e09f09d`. `master` is an ancestor of `v3` (0 behind, 9 + the
+  commits above ahead), so integration is a fast-forward. **Nothing pushed, previewed, merged or deployed:
+  each of those waits for the design owner's approval.**
+- Integrating `v3` also ships the 9 commits that were already on `v3` and not in production (C43 Tenor
+  Sans, B1, B4, the origin's floor, II → Philosophy, the Work's scroll, the Index as three rules).
+
+### What 22 October did — all validated on the Xiaomi Mi 11 Lite (392 × 779, Chrome 155) with CDP touch
+
+| | Change | Where | Record |
+|---|---|---|---|
+| 1 | **Performance:** one follow-up frame at a time in the Work (fix 1 of 21 October; its comment's metrics corrected to the measured ones) | `src/app/sheet.tsx` | code comment |
+| 2 | **Performance:** `read()` reads the pricing frame once (`frameH`): the second `frameVh()` forced a style recalculation after the sheet's draw — 0.78–0.86s per 16s back-and-forth in the Work. A/B on the Xiaomi: that forced group gone, forced style+layout 2.85–2.89 → 1.97–2.02s, recalculations per frame 2.44 → 1.97; frame intervals overlapping, so **no fps gain is claimed** | `src/app/scroll-stage.tsx` | code comment |
+| 3 | The Work's titles clear the top bar when Chrome's bar is out (fix 2 of 21 October) | `src/app/globals.css` | code comment |
+| 4 | The camera lands on the arrival, the rules ~150px earlier, decelerating to rest at state 08 | `src/motion/sheet.ts` | C45 |
+| 5 | The light lands with the camera: true exposure at state 08; `.v2-warm` leaves across 07 | `timing.ts`, `spine.ts`, `globals.css` | C44 |
+| 6 | The queue's clock counts from state 08 | `src/app/work-experiences.tsx` | C46 |
+| 7 | The Work is left from the category showing (lab Exp. 5/6); the page's line keeps a two-line title whole | `sheet.tsx`, `work-experiences.tsx`, `globals.css` | C47 |
+| 8 | A tap does not hold the queue; keyboard focus still does | `src/app/work-experiences.tsx` | C48 |
+
+**The Xiaomi diagnosis** (no code in it): with the glass, the hero video and the iOS filter ablated, nothing
+measurable changed. Style recalculation of the whole document dominates the main thread (~26ms a frame in a
+back-and-forth, ~2.4 recalcs a frame, 119–305 elements), driven by `:root` custom-property writes; forced
+recalcs come from the second `frameVh()` (fixed, row 2) and from `opening.tsx`'s rAF reading `scrollY` every
+frame for the life of the page (~1.7s per 16s back-and-forth — **open**, the next candidate). The phone
+switches itself between 90 and 60 Hz, so every A/B has to be stratified by mode. Raw data, scripts and
+reports: `D:\STUDIO-tools\diag-2026-10-22\` (`after-frameh\`, `combo-3228\`, `queue-sync\`, `work-exit\`,
+`transition-0708\`).
+
+### Open
+
+- **Not tested:** iOS Safari (the Work's exit, the queue, the top bar, C43); desktop for the Work's exit and
+  a click on the queue; the no-scripting build; reduced motion; the owner's own finger on the Xiaomi;
+  performance at a fixed 90 Hz.
+- **Top bar (fix 2):** with the bar retracted `Art experiences` crosses the artist's head — the owner has
+  not confirmed the composition.
+- **The `scrollY` read in `opening.tsx`** (above) — diagnosed, not changed.
+- From 21 October, still open: Method → Questions (`Methodns`), clocked ink on fast reversals, Questions
+  rows after a swipe arrival, the iPhone checks (items 3–6 below).
+
+### Servers, ports and the phone (they do not survive a reboot; nothing depends on them)
+
+- `:3000` `next dev` of the working tree (PID 23100). Isolated `next start` builds, each from its own copy
+  under `D:\STUDIO-tools\tmp\`: `:3221` diagnosis reference, `:3222` frameH only, `:3223`–`:3226` the landing
+  and light steps, `:3227` queue, `:3228` the recovered combination, `:3229` the Work's exit, `:3230` exit +
+  two-line title + tap.
+- ADB: the connection reset once on 22 October and dropped every reverse. Restored: `tcp:3000`, `3228`,
+  `3229`, `3230` and the forward `tcp:9555` (CDP). Phone scripts:
+  `node --experimental-websocket <script>` with the Xiaomi unlocked.
+- The desktop CDP controller (`D:\STUDIO-tools\browser-automation\control.mjs`, `:9333`) was left running.
+
+---
+
+## ▶ 21 October 2026, night · superseded on 22 October — its two fixes are committed · kept as history
+
+Self-contained. Everything below this section still stands; nothing in it was rewritten.
+
+### Git — exactly as left
+
+- Branch `v3`, HEAD `ef6852e` = `origin/v3`. `master` = production = `e09f09d`. Nothing deployed.
+- **Uncommitted in the working tree, three files, nothing staged:**
+  - `docs/development/SESSION-HANDOFF.md` — this section, plus the earlier uncommitted subsection
+    *Validated on the iPhone — the integrated build* (in the *LATER ON 21 October* section below).
+  - `src/app/sheet.tsx` (+34 lines) — **fix 1**, the Work's follow-up frames (performance).
+  - `src/app/globals.css` (+13 lines) — **fix 2**, the Work's titles below the top bar on Android.
+- The two fixes are independent (different files, different causes); either can be committed alone.
+- :3000 serves a build of HEAD **without** either fix (it was not rebuilt, to keep it running).
+
+### Status at a glance
+
+| # | Item | Status |
+|---|---|---|
+| 1 | Work · redundant `requestAnimationFrame` chains in `sheet.tsx` | **Implemented, validated in emulation; on the physical Xiaomi no measurable gain** — the lag felt there has another, unidentified source |
+| 2 | Work · titles under the top bar on Android when Chrome's bar is out | **Implemented and validated on the Xiaomi (CDP touch) and in emulation**; not yet seen with a real finger, nor on an Android tablet |
+| 3 | Method → Questions · the rail's head overlapping itself (`Methodns`) on reversals | **Diagnosed, not implemented** |
+| 4 | Work · clocked ink lagging behind position on fast reversals (Work title over Chapter II, Philosophy over Venice) | **Diagnosed, not implemented** — part of it is in frozen zones |
+| 5 | Questions · rows hidden after a *swipe* arrival on Android until ~70px more scroll | **Observed and explained, not a defect of B1/B4, frozen behaviour** — documented only |
+| 6 | iPhone · B1, B4, INDEX → Contact → top, a bounce deeper than −12px | **Planned** — not recorded |
+
+### 1 · Work performance — `src/app/sheet.tsx` (fix 1)
+
+**Cause (measured).** `draw()` ended with `if (pending) requestAnimationFrame(() => draw(…))`: every call
+with a clock still running asked for one more frame, with no check that one was already waiting. The driver
+(`scroll-stage.tsx`, `read()`, minified `ew`/`eh`) calls `window.__sheet` = `draw` on every frame it runs,
+so each scrolled frame started a new chain living as long as the clock. Measured before the fix, Chrome
+emulation 392 × 779 touch: `draw()` **7–23 times a frame** in the Work (1 outside it), up to 24 extra
+`requestAnimationFrame` requests a frame, `getComputedStyle(.sh)` (the `--sh-wipe` reads) up to **17.4 a
+frame** (0 outside the Work). Xiaomi diagnosis run (Turbopack build of HEAD): forced style/layout 28–841ms per
+Work segment, 0 outside it.
+
+**Change.** At most one follow-up frame held at a time (`follow`, `followQueued`); it is asked for in a
+microtask so it lands after the driver's own next frame; a follow-up whose frame the driver has already drawn
+(`t === drawnAt`, same position and timestamp) only keeps the chain alive (`keepUp`); with the hand at rest
+it draws alone until nothing is pending; cancelled on unmount. Nothing else in the file changed; no timing,
+no position, no CSS.
+
+**Validated (emulation, Chrome headless 392 × 779):** `draw()` per frame 7.24 → 0.71 (slow forward), 17.61 →
+1.00 (fast entry), 23.28 → 1.00 (fast back + forward), 7.05 → 1.00 (repeated reversals), 10.24 → 1.00 (reversal
+mid-transformation); `getComputedStyle(.sh)` 0.81–17.41 → 0.06–0.40 a frame; outside the Work unchanged (1.00).
+Stopping mid-transition at y 2350 / 2600 / 2900: every ink, `--sh-wipe`, flag and line owner finishes equal to a
+slow arrival. 29 final states compared before vs after (stops and from-below / from-above at 1.5s and 4s):
+**identical**. A real-time video of the fast reversal shows the same sequence as before.
+
+**Not validated / the honest result on the phone.** Xiaomi Mi 11 Lite, Chrome 155, CDP touch (not a finger),
+two webpack builds identical but for `sheet.tsx`, alternated before / after / before / after at 37–38 °C: Work
+forward slightly better but inconsistent; **back-and-forth unchanged** (forced style/layout 2.0–3.1s in both,
+attributed to the driver's frame `eh`). The duplicated chains were real but are **not** the dominant cost on the
+device. A first comparison against :3000 (Turbopack) was invalid — different bundler, phone heating — and is not
+a result.
+
+### 2 · Work titles under the top bar — `src/app/globals.css` (fix 2)
+
+**Cause (measured on the Xiaomi).** Outside iOS the frames hang from the **bottom** (`.v2 { bottom: 0; height:
+100lvh }`, 8 October rule *The held frames and the browser's bar · Core*) and the Ledger from the **top**, so when
+Chrome's bar returns the Ledger comes down 56px and the Work's block (`.v2-make`, `top: 19%` on a phone) does
+not. Gap between the top bar's bottom and the first title glyph: **+38 to +55px** with the bar retracted, **−1 to
+−18px** with it out (`WHAT WE ACTUALLY MAKE` under `01 Work`; tightest −18 at p 8.21).
+
+**Change.** In `@supports not (-webkit-touch-callout: none)` (the bottom-hung case), `.v2-make { margin-top:
+calc(100lvh - 100svh) }`: the whole block (label, queue, title) lowered by the band the bar can take — 56px on
+the Xiaomi, 0 wherever nothing moves (desktop, emulation); iOS untouched. `sheet.tsx` measures the real title, so
+the carry of `A memory.` follows. Images, the caption and the transition from Chapter II untouched.
+
+**Validated.** Xiaomi, CDP touch, a copy with only this change (:3214): with the bar out **+38 to +55px**, with it
+retracted +94 to +111px, tightest frame while the bar moved **+38px** (was −18); horizontal positions identical to
+before at every moment of the queue's turn; screenshots in the scratchpad (below). Emulation at 320, 390, 430, 768,
+820, 1024, 1440, 1920: geometry of the block, label, slot, stand-in and `A memory.` **identical** to before, mid-
+transformation and at the landing; `margin-top` computes to 0; no overflow. `typecheck` and `lint` pass on the
+working tree; `next build --webpack` passes on the test copies. **Not done:** `npm run build` in `D:\STUDIO` (not
+run so :3000 kept serving), a real finger on the Xiaomi, an Android tablet. Accepted trade-off: with the bar
+retracted the block stands 56px lower than before (it does not move while the bar moves — the Core rule).
+
+### 3 · Method → Questions — the rail's head (diagnosed only)
+
+The "Method title" that overlaps is the **rail's head** (`.rail-title-slot` in `src/app/ledger.tsx`, exchange in
+`globals.css` ~2163–2209, `TIMING.publication.chapter` = out 660 / in 1020 / lag 270ms). The head changes chapter
+exactly when p crosses 13.0 (no hysteresis); every change re-keys the slot (`nonce`) and the **outgoing word always
+starts at opacity 1** (`@keyframes rail-out from { opacity: 1 }`). Back and forth across 13 within ~1.3s, a word
+that was half in is re-created as the outgoing one at full ink while the other comes in: a frame reads
+**`Methodns`** (Chrome 392 × 779, real-time video); on the Xiaomi the head changed 10+ times in 7 reversals with ghost
+words. The seven overheard lines overlapping each other are the composition, not a defect.
+**Proposed, not done:** start the outgoing word at the ink it actually had (from elapsed time since the last swap,
+no DOM read). Alternative (design decision): a little hysteresis on the head's switch.
+
+### 4 · Work — clocked ink behind position (diagnosed only)
+
+`sheet.tsx` / `motion/sheet.ts`: what moves follows the hand; ink runs on clocks (line rewrite 1s on `--sh-wipe`,
+thesis 0.94s, head chained 350ms, occasions chained 350ms and leaving on a 0.5s clock, the word's way back 380ms).
+On a fast reversal the clock lags the position: `Wedding experiences` un-writes over Chapter II, `We|emory.` with
+Philosophy below, Philosophy ink over Venice going forward. Everything converges by 1.5s; the end state depends
+only on position. **Zones 04 → 05 and 05 are frozen** (Philosophy over Venice belongs to them). Possible fix for
+the Work's line only: a position guard on the rewrite (the 04 → 05 pattern) — needs the owner's word.
+
+### 5 · Questions after a swipe on Android (documented, not a defect of today's work)
+
+Arriving at Questions' menu landing by a swipe hides Chrome's bar (56px); the list's hold point moves ~70px down,
+so the rows stay at 0 until ~70px more scroll, then arrive normally. By the menu the bar stays and the rows come at
+~1.5s. This is the frozen *B waits for the anchor to be held* behaviour.
+
+### Physical validations — as they stand
+
+- **iPhone (Safari 27.2):** the scroll-origin fix validated on four recorded paths (see *Validated on the iPhone*
+  in the section below; build `sh84RSRr7rFcz_WnWJbfF`, the code of `8b04dd0`, HEAD then `ef6852e`). **Not
+  recorded:** B1, B4, INDEX → Contact → top, a bounce deeper than −12px. Neither of tonight's fixes has been seen
+  on an iPhone (fix 2 does not apply to iOS by construction).
+- **Xiaomi (CDP touch, never a real finger in this session):** origin fix (5 scenarios, origin 0), B1 (0 orphan
+  frames slow and fast), B4 (menu → Questions first row 1.50–1.56s), fix 2 (above). Fix 1: no measurable gain.
+
+### Next steps, in order
+
+1. **Decide fix 1 (`sheet.tsx`).** Objective: keep or drop. It is correct and harmless (emulation, 29 identical
+   states) but does not cure the lag on the phone. Allowed: commit as is, or leave out. Test before committing:
+   `npm run typecheck`, `lint`, `build` in `D:\STUDIO`. Success: the owner's decision. Depends on nothing.
+2. **Find the real cost of the Xiaomi lag in the Work.** Objective: identify what in the driver's frame (`eh` /
+   `ew` = `read()` in `scroll-stage.tsx`, and `draw()` in `sheet.tsx`) forces style/layout on reversals.
+   Allowed: measurement only first (Long Animation Frames with script attribution, a Turbopack build to match
+   production, CDP tracing on the phone). No change until a cause is measured. Success: a named function and the
+   forced reads it makes, with numbers. Depends on 1 only for the baseline build.
+3. **Commit fix 2 (`globals.css`) after a real finger.** Objective: the owner checks on the Xiaomi with a finger
+   (bar in and out, slow and fast into the Work, stopping on the titles). Tests: rebuild :3000
+   (`npm run build`, restart `next start`), the 8-viewport geometry check, `typecheck` / `lint` / `build`.
+   Success: no title under the top bar in any state; nothing else moved. Independent of 1–2.
+4. **Method → Questions head (`ledger.tsx`, `globals.css` rail exchange).** Objective: no `Methodns` frame on
+   reversals across state 13. Allowed: the outgoing word starting at its real ink (preferred); hysteresis only on
+   the owner's word. Tests: real-time video of the back-and-forth (392 × 779), the INDEX / rail landing test at 7
+   sizes, the Xiaomi screencast, reduced motion. Success: never two words legible in the head at once; the
+   approved exchange unchanged when there is no reversal. Independent.
+5. **Global regression and physical checks.** 11-viewport validation, B1 / B4 probes, the origin bounce
+   simulation, `six`, then the iPhone recordings still missing (B1, B4, INDEX → Contact → top, a hard flick into
+   the top) through the proxy on :3030, and a real finger on the Xiaomi. Depends on 1–4.
+
+### Test tools and evidence (outside the repo)
+
+- Scripts, copied to a persistent folder: `D:\STUDIO-tools\diag-2026-10-21\scripts\` (`sheetperf.mjs`,
+  `phone-perf.mjs`, `phone-topbar.mjs`, `phone-seq.mjs`, `phone-stuck.mjs`, `phone-b14.mjs`, `overlap.mjs`,
+  `video.mjs`, `bounce.mjs`, `stuck.mjs`, `index-test.mjs`, `qfix.mjs`, `qnav3.mjs`, `validate.mjs`,
+  `tape-origin.cjs`). Phone scripts: `node --experimental-websocket <script>` with the Xiaomi unlocked, Chrome on
+  `http://localhost:3000/`, `adb reverse tcp:3000 tcp:3000` and `adb forward tcp:9555
+  localabstract:chrome_devtools_remote` (adb is `D:\STUDIO-tools\android-sdk\platform-tools\adb.exe`).
+- Evidence (contact sheets, phone captures, before/after measurements): `D:\STUDIO-tools\diag-2026-10-21\evidence\`.
+- iPhone tapes: `D:\STUDIO-tools\ios-1013\out\device\2026-10-21T17-0*-integrated-8b04dd0-ios.json` (four).
+- Test copies (each with a `node_modules` junction to `D:\STUDIO\node_modules` — remove the junction with
+  `cmd /c rmdir <path>\node_modules` before deleting a folder): `D:\STUDIO-tools\tmp\after-sheet-20261021-183847`
+  (fix 1, :3212), `D:\STUDIO-tools\tmp\before-sheet-20261021-185540` (HEAD's `sheet.tsx`, :3213),
+  `D:\STUDIO-tools\tmp\topbar-20261021-191317` (fix 2 only, :3214). Also `D:\STUDIO-fix-origin` (the origin-fix
+  copy, junction already removed; its deletion is blocked for the assistant — delete by hand).
+
+## ▶ LATER ON 21 October 2026 · the top could not be reached again on an iPhone — fixed · share image updated
 
 Self-contained; the section below (`35dd3ac` and before) still stands. One commit on `v3` after it, pushed
 to `origin/v3`; **not** merged to `master`, nothing deployed.
@@ -50,9 +266,49 @@ tag. `src/app/opengraph-image.jpg` was re-captured the way it was first made (`d
 site itself at 1200 × 630, the footage at ~7.5s, the scrollbar hidden for the capture only, JPEG 44.8KB
 (was 49.3KB) — it showed *Where moments become digital.* Nothing else in the metadata changed.
 
+### Validated on the iPhone — the integrated build, for the recorded paths
+
+The design owner's own iPhone, Safari 27.2, through the diagnostic proxy (`D:\STUDIO-tools\ios-1013\proxy.mjs`
+on :3030 in front of :3000, which adds the recorder and does not touch the build). Build
+`sh84RSRr7rFcz_WnWJbfF`, the one :3000 serves — `8b04dd0`'s code; HEAD `ef6852e` adds documentation only.
+Four original recordings, analysed read-only and left where the proxy wrote them:
+
+1. `D:\STUDIO-tools\ios-1013\out\device\2026-10-21T17-02-41-integrated-8b04dd0-ios.json`
+2. `D:\STUDIO-tools\ios-1013\out\device\2026-10-21T17-03-17-integrated-8b04dd0-ios.json`
+3. `D:\STUDIO-tools\ios-1013\out\device\2026-10-21T17-03-31-integrated-8b04dd0-ios.json`
+4. `D:\STUDIO-tools\ios-1013\out\device\2026-10-21T17-03-50-integrated-8b04dd0-ios.json`
+
+**Measured directly** (every animation frame, ~60/s: `scrollY`, `--origin`, `--junction` + `--junction-at` = p):
+
+| # | Path | `--origin` | Bounce at the top (`scrollY` < 0) | End | Result |
+|---|---|---|---|---|---|
+| 1 | press to 14 970 (Contact state reached) → fast return (~3.8s) → two more pulls at the top | 0 in all 733 frames | 7 frames, to **−12px** | y 0, p 1.000 | **passed** |
+| 2 | press to 14 970 (Contact state reached) → slow return (~21s) | 0 in all 1 828 frames | 22 frames, to **−11px** | y 0, p 1.000 | **passed** |
+| 3 | press to 3 310 → return | 0 in all 473 frames | none recorded | y 0, p 1.000 | **passed** |
+| 4 | press to 3 310 → return → a pull at the top | 0 in all 713 frames | none recorded | y 0, p 1.000 | **passed** |
+
+The priority path (1, Contact → fast return → more pulls): the top reached at 8.661s, `scrollY` −3 → −12 for
+seven frames, `--origin` 0 throughout, p from 3.095 (the input spring still catching up after the fast
+descent) to **1.000 at 8.918s**; the pulls at 9.0 and 9.4s changed nothing. Safari on this iPhone does report
+a negative `scrollY` at the top — the input that, before `8b04dd0`, pulled the origin below 0.
+
+**Inferred, not recorded:** that the presses were *Contact* (1, 2) and *Work* (3, 4) — from the touch's place
+in the quick navigation (x ≈ 246 and x ≈ 60) and the landing; and that 2 was a slow drag — the recorder logged
+only its first and last touches, so the gesture is read from the speed (~700px/s). No "✕ saw it" mark was
+set in any of them.
+
+**What this does and does not establish.** The fix holds on a physical iPhone for these four paths. It is not
+a guarantee for every path: the bounces recorded were shallow (−11, −12px), and nothing deeper was observed —
+the code floors the origin at 0 whatever the depth (static reading of `scroll-stage.tsx`), but a deep bounce
+was not measured.
+
 ### Still open
 
-- The integrated build on a physical iPhone (the copy was validated there; the code is identical).
+- ~~The integrated build on a physical iPhone (the copy was validated there; the code is identical).~~
+  Validated for the four recorded paths above; still to record on the iPhone: **INDEX → Contact → back to the
+  top**, and a deeper bounce than −12px.
+- **B1 on the iPhone** (an open answer carried to Contact) and **B4 on the iPhone** (INDEX → Questions against
+  arriving by scroll) — not recorded.
 - The 15 October checks on a physical phone: the orphan answer (B1), menu → Questions and a real fast flick
   (B4).
 - B2 and B5, untouched. The 768 × 1024 fast scroll in which no row of Questions arrives within 5s,

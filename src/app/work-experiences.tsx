@@ -505,7 +505,13 @@ export default function WorkExperiences() {
           aria-hidden={live ? undefined : true}
           onPointerEnter={() => hold(true)}
           onPointerLeave={() => hold(false)}
-          onFocus={() => hold(true)}
+          /*
+            **Focus holds the queue only when it is the keyboard's** — 22 October 2026. A tap focuses the
+            word it lands on and the focus stays there, so on a phone one press held the clock for good:
+            measured on the Xiaomi, Art promoted and then 25s with the fill at 0. `:focus-visible` is the
+            browser's own answer to *was this the keyboard*; a pointer still holds by hovering.
+          */
+          onFocus={(event) => hold(event.target.matches(':focus-visible'))}
           onBlur={() => hold(false)}
         >
           {categories.map((c, i) => {

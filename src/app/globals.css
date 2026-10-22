@@ -11988,6 +11988,19 @@ a.v2-ident-open:focus-visible {
   }
 
   /*
+    **The Work's titles stand clear of the Ledger with the bar out, too** — 21 October 2026. The frame
+    hangs from the bottom and the Ledger from the top, so when Chrome's bar returns the Ledger comes down
+    56px and the titles do not: measured on the Mi 11 Lite, `WHAT WE ACTUALLY MAKE` began 38–55px below
+    the head with the bar retracted and −1 to −18px with it out — under the head. The block is lowered by
+    the band the bar can take, `100lvh − 100svh` (56px there, 0 where nothing moves), so with the bar out
+    it stands where it stood with the bar in. One distance for the whole block; `sheet.tsx` measures the
+    real title, so the carry of `A memory.` follows it.
+  */
+  .v2-make {
+    margin-top: calc(100lvh - 100svh);
+  }
+
+  /*
     Contact's page hangs below its frame, so resting the frame at the end of the runway would lengthen the
     document by exactly that overhang (`100lvh − --rule-y − 2px`). The runway gives it back: the height
     the section had, less the overhang, is this.

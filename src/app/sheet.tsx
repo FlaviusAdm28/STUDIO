@@ -244,6 +244,38 @@ export default function Sheet() {
     let last: [number, number] = [0, 0]
     /* When the thesis was last asked to write itself. */
     let writtenAt = -1
+    /*
+      **One follow-up frame at a time, and only one draw per frame.** While a clock is running (`pending`)
+      the page asks for the next frame itself, so the ink finishes with the hand at rest. It used to ask on
+      every call, and the driver calls every frame it runs: each scrolled frame started another chain that
+      lived as long as the clock, so in the Work the page was drawn 7–23 times a frame, reading `--sh-wipe`
+      back after the driver's writes — measured 21 October 2026 in headless Chrome at 392 × 779, touch:
+      0.8 style reads of `.sh` a frame going forward slowly and up to 17.4 on a fast reversal, none outside
+      the Work; after the change at most one draw a frame and 0.06–0.40 reads. On the Xiaomi, before the
+      change, 164 and 841ms of forced style and layout in two back-and-forth runs of the same build; no
+      valid after-measurement on the phone, so this is redundant work removed, not the phone's lag cured.
+      Now: one frame is held at a time; it is asked for after the driver has asked for its own (a
+      microtask runs once the driver's frame returns),
+      so in a frame the driver draws first; and a follow-up whose frame the driver has already drawn, with
+      the same position and the same timestamp, only keeps the chain alive.
+    */
+    let follow = 0
+    let followQueued = false
+    let drawnAt = -1
+    let alive = true
+    const onFollow = (t: number) => {
+      follow = 0
+      if (t !== drawnAt) draw(last[0], last[1], t)
+      else keepUp()
+    }
+    const keepUp = () => {
+      if (!pending || follow !== 0 || followQueued) return
+      followQueued = true
+      queueMicrotask(() => {
+        followQueued = false
+        if (alive && follow === 0) follow = window.requestAnimationFrame(onFollow)
+      })
+    }
 
     const flag = (name: string, value: boolean) => {
       if (value) {
@@ -253,6 +285,7 @@ export default function Sheet() {
 
     const draw = (s: number, p: number, now: number) => {
       last = [s, p]
+      drawnAt = now
       if (G === null) return
       const g = G
       const kr = span(s, SHEET.recede)
@@ -501,7 +534,7 @@ if (memory3 && survivor !== null && g.title !== null) {
         flag('data-gone', at >= SHEET.deconAt)
       }
 
-      if (pending) window.requestAnimationFrame((t) => draw(last[0], last[1], t))
+      keepUp()
     }
 
     const relayout = () => {
@@ -539,6 +572,8 @@ if (memory3 && survivor !== null && g.title !== null) {
 
     return () => {
       cancelled = true
+      alive = false
+      if (follow !== 0) window.cancelAnimationFrame(follow)
       queue?.disconnect()
       window.removeEventListener('resize', relayout)
       if (window.__sheet === draw) delete window.__sheet

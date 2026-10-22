@@ -986,6 +986,13 @@ export default function ScrollStage() {
         the callback's first. The bar changes it between tasks, never during one.
       */
       const windowH = window.innerHeight
+      /*
+        The pricing frame, by the same rule and for the same reason: `frameVh()` reads `innerHeight`, and
+        its second call came after the sheet's draw and the origin's writes — on the Xiaomi, 22 October
+        2026, 0.78–0.86s of forced style recalculation (~119 elements each) in a 16s back-and-forth in the
+        Work. `tallVh` changes only in `price()`, never inside this callback.
+      */
+      const frameH = frameVh()
       /* Set by the method's played beats while any of them is in transit; it keeps the loop alive. */
       let playing = false
 
@@ -1091,7 +1098,7 @@ export default function ScrollStage() {
           origin = Math.max(0, hand)
           anchor(origin - inset, true)
         }
-        const distance = Math.max(0, hand - origin) / frameVh() / perBeat
+        const distance = Math.max(0, hand - origin) / frameH / perBeat
         const wanted = sheetPrice !== null ? sheetPrice.warp(distance) : distance
         /* The page is driven by the hand's own distance, in viewports; the film by `p`. */
         if (sheetPrice !== null) window.__sheet?.(distance * perBeat, wanted, clock)
@@ -1134,7 +1141,7 @@ export default function ScrollStage() {
         see the other, and it is now one number computed in one place.
       */
       const p = s
-      const vhNow = frameVh()
+      const vhNow = frameH
       /* The origin as a document position: where the film's zero stands for anything measured from layout. */
       const zero = origin === null ? null : origin - inset
       const actAt = zero === null ? Number.POSITIVE_INFINITY : (actTop - zero) / vhNow / perBeat + lift

@@ -21,3 +21,13 @@ next-env.d.ts
 
 .DS_Store
 .vscode/*
+
+# V5: photographic masters (3–12 MB each) live here and never enter the Git history.
+/media-src/
+# The repository is public: the owner's photographs (and anything derived from them) stay off GitHub until the
+# owner decides otherwise (25 Oct 2026). That covers the optimised derivatives, the research contact sheets and
+# reference stills, and any image next to a storyboard. See docs/design/v5/assets.md.
+/public/media/v5/
+/docs/design/v5/research/*.jpg
+/docs/design/v5/research/refs/
+/docs/design/v5/storyboards/img/

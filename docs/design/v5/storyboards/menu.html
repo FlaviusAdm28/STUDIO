@@ -1,0 +1,232 @@
+<title>Menu · storyboard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400&family=Schibsted+Grotesk:wght@400;500&display=swap">
+<style>
+/* Layout: controls, then the same menu over three sections, desktop and phone side by side. Single dark look (V5 palette).
+   Frame classes are m-prefixed so this page can later be merged into the main storyboard without collisions. */
+:root {
+  --charcoal: #1E1D1A; --linen: #EEE8DD; --ink: #2A2823; --muted: #B3AB9E; --rule: rgba(238,232,221,.16);
+  --voice: "Cormorant Garamond", Georgia, serif; --read: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--charcoal); color: var(--linen); font-family: var(--read); font-size: 15px; line-height: 1.55; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 48px 96px; display: grid; gap: 44px; }
+h1, h2, h3 { font-family: var(--voice); font-weight: 400; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(40px, 7vw, 72px); font-style: italic; line-height: 1; }
+h2 { font-size: clamp(24px, 3vw, 32px); }
+h3 { font-size: 22px; font-style: italic; }
+p { margin: 0; max-width: 68ch; color: var(--muted); }
+b { color: var(--linen); font-weight: 500; }
+.label { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.scene { display: grid; gap: 18px; padding-top: 26px; border-top: 1px solid var(--rule); }
+.head { display: flex; gap: 16px; align-items: baseline; flex-wrap: wrap; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) 190px minmax(0, 290px); gap: 28px; align-items: start; }
+@media (max-width: 900px) { .row { grid-template-columns: minmax(0, 1fr) 150px; } .notes { grid-column: 1 / -1; } }
+@media (max-width: 560px) { .row { grid-template-columns: minmax(0, 1fr) 112px; gap: 14px; } }
+.notes { display: grid; gap: 10px; min-width: 0; }
+.notes p { font-size: 14px; }
+figure { margin: 0; display: grid; gap: 8px; min-width: 0; }
+figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.chip { font: inherit; color: inherit; background: transparent; border: 1px solid var(--rule); border-radius: 99px; padding: 5px 12px; font-size: 13px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--linen); color: var(--charcoal); }
+.chip:focus-visible { outline: 2px solid var(--linen); outline-offset: 2px; }
+.controls { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--charcoal); border-block: 1px solid var(--rule); padding-block: 12px; display: flex; flex-wrap: wrap; gap: 12px 26px; align-items: center; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--charcoal); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.group .label { margin-right: 6px; }
+.opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+.opts > div { display: grid; gap: 8px; align-content: start; }
+@media (max-width: 760px) { .opts { grid-template-columns: 1fr; } }
+ol.q { margin: 0; padding-left: 20px; display: grid; gap: 10px; max-width: 76ch; color: var(--muted); }
+ol.q li::marker { font-family: var(--voice); font-style: italic; }
+
+/* ---------- frames ---------- */
+.mfr { position: relative; overflow: hidden; width: 100%; aspect-ratio: 16 / 10; border-radius: 4px; background: #1B1C1A; color: var(--linen); container-type: inline-size; box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 18px 40px rgba(0,0,0,.35); }
+.mfr.mph { aspect-ratio: 9 / 19.5; border-radius: 14px; }
+.mfr * { transition-timing-function: var(--ease); }
+.mL { position: absolute; inset: 0; pointer-events: none; }
+
+/* three sections to open the menu over (simplified, as in the main storyboard) */
+.mbg.work { background: #1F1C19; }
+.mbg.work .ph { position: absolute; left: 6%; top: 16%; width: 28%; height: 74%; border-radius: 50% 50% 0 0 / 24% 24% 0 0; background: center / cover; }
+.mbg.work .aur { position: absolute; left: -10%; top: -10%; width: 70%; height: 120%; background: center / 100% 100%; opacity: .5; -webkit-mask: radial-gradient(closest-side, #000 15%, transparent 100%); mask: radial-gradient(closest-side, #000 15%, transparent 100%); }
+.mbg.work .tx { position: absolute; left: 48%; top: 22%; width: 44%; display: grid; gap: 1.4cqw; }
+.mbg.work .tx .h { font-family: var(--voice); font-style: italic; font-size: 4.6cqw; }
+.mbg.work .tx div:not(.h) { font-size: 1.35cqw; border-top: 1px solid rgba(238,232,221,.16); padding-top: .8cqw; }
+.mbg.method { background: radial-gradient(60% 70% at 50% 18%, rgba(255,253,248,.75), transparent 72%), linear-gradient(180deg, #E4E0D8 0%, #D3CEC4 58%, #CFC9BE 70%, #BDB6AA 100%); }
+.mbg.method i { position: absolute; width: 11%; aspect-ratio: 9 / 19.5; border-radius: 1.2cqw; background: #111 center / cover; box-shadow: 0 .4cqw .6cqw rgba(0,0,0,.2), 0 6cqw 8cqw -3cqw rgba(20,16,12,.38); }
+.mbg.questions { background: radial-gradient(60% 70% at 28% 14%, rgba(255,250,240,.5), transparent 72%), linear-gradient(180deg, #DCD5C8 0%, #D2CABC 64%, #CCC3B4 76%, #BEB5A6 100%); color: var(--ink); }
+.mbg.questions .h { position: absolute; left: 7%; top: 16%; font-family: var(--voice); font-size: 4.6cqw; line-height: 1.02; }
+.mbg.questions .h i { font-style: italic; }
+.mbg.questions ol { position: absolute; left: 47%; right: 7%; top: 14%; margin: 0; padding: 0; list-style: none; }
+.mbg.questions li { font-family: var(--voice); font-size: 1.95cqw; padding: .9cqw 0; border-bottom: 1px solid rgba(42,40,35,.22); }
+.mph .mbg.work .ph { left: 8%; top: 12%; width: 66%; height: 38%; }
+.mph .mbg.work .tx { left: 8%; top: 59%; width: 84%; gap: 3cqw; }
+.mph .mbg.work .tx .h { font-size: 11cqw; }
+.mph .mbg.work .tx div:not(.h) { font-size: 3.9cqw; padding-top: 2cqw; }
+.mph .mbg.method i { width: 40%; border-radius: 4cqw; }
+.mph .mbg.questions .h { top: 9%; font-size: 10.4cqw; }
+.mph .mbg.questions ol { left: 7%; top: 39%; }
+.mph .mbg.questions li { font-size: 4.6cqw; padding: 2.2cqw 0; }
+
+/* the bar: where you are (left) and the way out (right), always there */
+.mbar2 { position: absolute; z-index: 6; left: 3%; right: 3%; top: 5%; display: flex; align-items: center; justify-content: space-between; font-size: max(5px, 1.2cqw); letter-spacing: .16em; text-transform: uppercase; color: var(--linen); transition: color .6s; }
+.mbar2 i { font-family: var(--voice); font-size: 1.6em; letter-spacing: 0; text-transform: none; margin-right: .4em; }
+.mbar2 .r { display: flex; align-items: center; gap: 2.4cqw; }
+.mbar2 .time { opacity: .7; letter-spacing: .08em; }
+.mbar2 .tt { border-bottom: 1px solid currentColor; padding-bottom: .2cqw; }
+.mbtn { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: .9cqw; letter-spacing: .16em; pointer-events: auto; position: relative; z-index: 8; }
+.mbtn .ic { position: relative; width: 1.8cqw; height: .9cqw; }
+.mbtn .ic::before, .mbtn .ic::after { content: ""; position: absolute; left: 0; right: 0; height: 1px; background: currentColor; transition: transform .6s; }
+.mbtn .ic::before { top: 0; } .mbtn .ic::after { bottom: 0; }
+.mfr.open .mbtn .ic::before { transform: translateY(.45cqw) rotate(45deg); }
+.mfr.open .mbtn .ic::after { transform: translateY(-.45cqw) rotate(-45deg); }
+.mbtn:focus-visible { outline: 1px solid currentColor; outline-offset: .6cqw; }
+.mfr.light .mbar2 { color: var(--ink); }
+.mfr.light.open .mbar2 { color: var(--linen); }
+.mph .mbar2 { left: 6%; right: 6%; top: 3%; font-size: 3.4cqw; }
+.mph .mbar2 .time, .mph .mbar2 .tt { display: none; }
+.mph .mbtn { gap: 2.4cqw; }
+.mph .mbtn .ic { width: 5cqw; height: 2.4cqw; }
+.mph.open .mbtn .ic::before { transform: translateY(1.2cqw) rotate(45deg); }
+.mph.open .mbtn .ic::after { transform: translateY(-1.2cqw) rotate(-45deg); }
+
+/* the menu: liquid glass growing from the button */
+.glass { position: absolute; inset: 0; z-index: 5; overflow: hidden; clip-path: circle(0% at var(--bx, 94%) var(--by, 6%)); transition: clip-path .9s cubic-bezier(.65, 0, .25, 1); }
+.mfr.open .glass { clip-path: circle(150% at var(--bx, 94%) var(--by, 6%)); }
+.mph .glass { --bx: 88%; --by: 4%; }
+/* prepared glass: the section behind, blurred once (in the site: a ready-made image), never blurred live */
+.glass .blur { position: absolute; inset: -6%; filter: blur(2.4cqw) saturate(1.25); transform: scale(1.08); }
+.glass .tint { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(30,29,26,.52), rgba(30,29,26,.68)); }
+/* the phone frame is narrow: its blur and its film must be stronger for the same glass */
+.mph .glass .blur { filter: blur(7cqw) saturate(1.2); }
+.mph .glass .tint { background: linear-gradient(180deg, rgba(30,29,26,.6), rgba(30,29,26,.74)); }
+.mfr.light .glass .tint { background: linear-gradient(180deg, rgba(30,29,26,.5), rgba(30,29,26,.66)); }
+/* the liquid: a sheen at the top, a soft lens edge, grain */
+.glass .sheen { position: absolute; inset: 0; background: linear-gradient(170deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,0) 26%), radial-gradient(60% 40% at 92% 0%, rgba(255,255,255,.14), transparent 70%);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.12), inset 0 0 6cqw rgba(255,255,255,.05); }
+.glass .gr { position: absolute; inset: 0; opacity: .1; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 .6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+/* the live version, for comparison only */
+.real .glass .blur { display: none; }
+.real .glass { -webkit-backdrop-filter: blur(22px) saturate(140%); backdrop-filter: blur(22px) saturate(140%); }
+.real .glass .tint { background: linear-gradient(180deg, rgba(30,29,26,.32), rgba(30,29,26,.5)); }
+
+.mnav { position: absolute; z-index: 2; left: 8%; top: 18%; list-style: none; margin: 0; padding: 0; display: grid; gap: .6cqw; }
+.mnav li { font-family: var(--voice); font-size: 5.2cqw; line-height: 1.05; display: flex; align-items: baseline; gap: 1.6cqw; opacity: 0; transform: translateY(18%); transition: opacity .6s, transform .7s; }
+.mnav li i { font-size: .36em; opacity: .6; width: 2.6cqw; }
+.mnav li.cur span { font-style: italic; }
+.mnav li.cur::after { content: "·"; margin-left: .2em; }
+.mfr.open .mnav li { opacity: 1; transform: none; }
+.mfr.open .mnav li:nth-child(1) { transition-delay: .35s; } .mfr.open .mnav li:nth-child(2) { transition-delay: .42s; } .mfr.open .mnav li:nth-child(3) { transition-delay: .49s; }
+.mfr.open .mnav li:nth-child(4) { transition-delay: .56s; } .mfr.open .mnav li:nth-child(5) { transition-delay: .63s; }
+.mside { position: absolute; z-index: 2; left: 62%; right: 8%; bottom: 14%; display: grid; gap: 1.2cqw; font-size: 1.15cqw; line-height: 1.7; opacity: 0; transition: opacity .7s .6s; }
+.mfr.open .mside { opacity: 1; }
+.mside .k { font-size: .9cqw; letter-spacing: .16em; text-transform: uppercase; opacity: .6; }
+.mside .go { justify-self: start; border: 1px solid rgba(238,232,221,.6); border-radius: 99px; padding: .8cqw 2cqw; letter-spacing: .16em; text-transform: uppercase; font-size: 1cqw; }
+.mside .hello { font-family: var(--voice); font-style: italic; font-size: 2cqw; }
+.mph .mnav { left: 8%; top: 14%; gap: 2cqw; }
+.mph .mnav li { font-size: 12cqw; gap: 4cqw; }
+.mph .mnav li i { width: 7cqw; }
+.mph .mside { left: 8%; right: 8%; bottom: 6%; gap: 3cqw; font-size: 3.4cqw; }
+.mph .mside .k { font-size: 2.8cqw; }
+.mph .mside .go { font-size: 3cqw; padding: 2.6cqw 6cqw; }
+.mph .mside .hello { font-size: 6cqw; }
+@media (prefers-reduced-motion: reduce) { .mfr * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:14px">
+    <span class="label">Chapter One V5 · Menu · storyboard</span>
+    <h1>Menu</h1>
+    <p>Em cima fica sempre <b>onde estás</b> (à esquerda) e <b>Menu</b> (à direita). No desktop, também a tua hora e <i>Talk to us</i>. O menu abre-se <b>a partir do botão, como uma gota de vidro que cresce</b> até cobrir o ecrã. Por baixo do vidro vê-se, desfocada, a secção onde estavas.</p>
+  </header>
+
+  <div class="controls" role="group" aria-label="Controlos">
+    <div class="group" id="bgs"><span class="label">Sobre</span></div>
+    <div class="group" id="modes"><span class="label">Vidro</span></div>
+    <button class="chip" id="nm" type="button" aria-pressed="false">Com nome · Ana</button>
+  </div>
+
+  <section class="scene" aria-labelledby="t-h">
+    <div class="head"><h2 id="t-h">Experimenta: carrega em Menu</h2></div>
+    <div class="row">
+      <figure><div class="mfr" id="d" aria-label="Menu no desktop"></div><figcaption>Desktop</figcaption></figure>
+      <figure><div class="mfr mph" id="p" aria-label="Menu no telemóvel"></div><figcaption>Telemóvel</figcaption></figure>
+      <div class="notes">
+        <p>Carrega em <b>Menu</b> nos dois quadros. Fecha-se com o mesmo botão (que vira ✕) ou com Esc. Abre-se automaticamente de vez em quando para veres a animação.</p>
+        <p>Muda o fundo em <b>Sobre</b>: o vidro mostra sempre a secção onde estavas, desfocada. Muda <b>Vidro</b> para comparar o preparado com o real.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="scene" aria-labelledby="o-h">
+    <div class="head"><h2 id="o-h">A minha opinião honesta</h2></div>
+    <div class="opts">
+      <div><h3>Vidro preparado, não desfoque ao vivo</h3><p>O vidro do site antigo era <i>backdrop-filter</i>: o browser desfoca ao vivo tudo o que está por trás, a cada frame. No Xiaomi, com vídeo e animações por baixo, isso é o que mais pesa. Saiu por isso (decisão #14).</p><p>O <b>vidro preparado</b> usa uma imagem já desfocada da secção onde estás (as mesmas auras e fundos que já existem), uma película, um brilho na aresta e grão. O olho lê vidro líquido e o telemóvel quase não trabalha. Recomendo-o. Se o real te parecer muito melhor, medimos os dois no Xiaomi antes de decidir.</p></div>
+      <div><h3>O mesmo menu no desktop</h3><p>Estava previsto um índice lateral fixo à esquerda no desktop. As composições que fizemos (Work, About, Questions) usam a largura toda, e um índice fixo ia chocar com elas. Proponho <b>a mesma barra e o mesmo menu</b> em todos os ecrãs: em cima, onde estás e Menu; no desktop, também a tua hora e <i>Talk to us</i>.</p></div>
+      <div><h3>O que tem o menu</h3><p>As cinco secções numeradas, em Cormorant grande, com a atual em itálico e um ponto. Ao lado, ou por baixo no telemóvel: <b>Talk to us</b>, os contactos e a tua hora. Com nome, abre com <i>Hello, Ana.</i></p></div>
+      <div><h3>Acessibilidade</h3><p>Um <i>dialog</i> verdadeiro: o foco fica preso no menu enquanto está aberto e volta ao botão ao fechar. Fecha com Esc. Com reduced motion abre sem a gota, só com um fade.</p></div>
+    </div>
+  </section>
+
+  <section class="scene" aria-labelledby="q-h">
+    <div class="head"><h2 id="q-h">Para fechar o menu</h2></div>
+    <ol class="q">
+      <li><b>Vidro preparado</b> (recomendado) ou <b>vidro real</b>, medido no Xiaomi?</li>
+      <li><b>A mesma barra e o mesmo menu no desktop</b>, em vez do índice lateral?</li>
+      <li><b>A gota</b> a crescer a partir do botão: gostas?</li>
+    </ol>
+  </section>
+</div>
+
+<script>
+(() => {
+  const pad = n => String(n).padStart(2, '0');
+  const now = new Date(), hm = pad(now.getHours()) + ':' + pad(now.getMinutes());
+  const BGS = {
+    work: { n: 1, label: 'Work', light: false, html: () => `<div class="aur" style="background-image:url(img/a-w002.jpg)"></div><div class="ph" style="background-image:url(img/w002.jpg)"></div><div class="tx"><div class="h">Before</div><div>Save-the-date</div><div>Wedding website</div><div>Digital invitation</div><div>RSVP</div></div>` },
+    method: { n: 2, label: 'Method', light: true, html: ph => (ph ? [[8, 36, 'w299'], [52, 30, 'gallery'], [30, 58, 'concert']] : [[8, 40, 'w299'], [27, 46, 'studio'], [46, 38, 'gallery'], [65, 44, 'concert'], [84, 40, 'w002']]).map(([x, y, im]) => `<i style="left:${x}%;top:${y}%;background-image:url(img/${im}.jpg)"></i>`).join('') },
+    questions: { n: 4, label: 'Questions', light: true, html: () => `<div class="h">What do you<br><i>actually create?</i></div><ol>${['What does it cost?', 'How long does it take?', 'How does a project work?', 'What do you need from me?', 'Is it only digital?'].map(q => `<li>${q}</li>`).join('')}</ol>` },
+  };
+  const SECTIONS = ['Work', 'Method', 'About', 'Questions', 'Contact'];
+  let BG = 'work', MODE = 'prepared', NAME = '';
+  const frames = [document.getElementById('d'), document.getElementById('p')];
+  function render(el) {
+    const ph = el.classList.contains('mph'), b = BGS[BG], bg = `<div class="mL mbg ${BG}">${b.html(ph)}</div>`;
+    const wasOpen = el.classList.contains('open');
+    el.classList.toggle('light', b.light); el.classList.toggle('real', MODE === 'real');
+    el.innerHTML = `${bg}
+      <div class="mbar2"><span><i>${pad(b.n)}</i>${b.label}</span><span class="r"><span class="time">${hm}</span><span class="tt">Talk to us</span>
+        <button class="mbtn" type="button" aria-expanded="${wasOpen}" aria-label="${wasOpen ? 'Close menu' : 'Open menu'}"><span class="ic" aria-hidden="true"></span><span class="w">${wasOpen ? 'Close' : 'Menu'}</span></button></span></div>
+      <div class="glass" role="dialog" aria-label="Menu"><div class="blur mL mbg ${BG}">${b.html(ph)}</div><div class="tint"></div><div class="sheen"></div><div class="gr"></div>
+        <ol class="mnav">${SECTIONS.map((s, i) => `<li class="${i + 1 === b.n ? 'cur' : ''}"><i>${pad(i + 1)}</i><span>${s}</span></li>`).join('')}</ol>
+        <div class="mside">${NAME ? `<div class="hello">Hello, ${NAME}.</div>` : ''}<div class="k">Talk to us</div><div class="go">Instagram →</div>
+          <div>Instagram · @chapterone.studio.pt<br>Telegram · @flavius28</div><div class="k">Your time · ${hm}</div></div></div>`;
+    el.querySelector('.mbtn').addEventListener('click', () => { stopAuto(); toggle(el); });
+  }
+  function toggle(el, force) {
+    const open = force === undefined ? !el.classList.contains('open') : force;
+    el.classList.toggle('open', open);
+    const btn = el.querySelector('.mbtn'); btn.setAttribute('aria-expanded', String(open)); btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    btn.querySelector('.w').textContent = open ? 'Close' : 'Menu';
+  }
+  addEventListener('keydown', e => { if (e.key === 'Escape') frames.forEach(f => toggle(f, false)); });
+  const rerender = () => frames.forEach(render);
+  // controls
+  const group = (id, items, get, set) => { const g = document.getElementById(id); items.forEach(([v, l]) => { const b = document.createElement('button'); b.className = 'chip'; b.type = 'button'; b.textContent = l; b.setAttribute('aria-pressed', String(get() === v));
+    b.addEventListener('click', () => { g.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', 'false')); b.setAttribute('aria-pressed', 'true'); set(v); rerender(); }); g.appendChild(b); }); };
+  group('bgs', [['work', 'Work'], ['method', 'Method'], ['questions', 'Questions']], () => BG, v => BG = v);
+  group('modes', [['prepared', 'Preparado (recomendado)'], ['real', 'Real (desfoque ao vivo)']], () => MODE, v => MODE = v);
+  const nm = document.getElementById('nm');
+  nm.addEventListener('click', () => { NAME = NAME ? '' : 'Ana'; nm.setAttribute('aria-pressed', String(!!NAME)); rerender(); });
+  rerender();
+  // open and close by itself now and then, until the visitor uses the button
+  let auto = setInterval(() => frames.forEach(f => toggle(f)), 2600);
+  function stopAuto() { clearInterval(auto); auto = null; }
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) stopAuto();
+})();
+</script>

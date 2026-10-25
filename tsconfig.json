@@ -28,7 +28,7 @@
         "./src/*"
       ],
       "@content": [
-        "./content/site.ts"
+        "./content/v5.ts"
       ],
       "@content/*": [
         "./content/*"

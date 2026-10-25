@@ -1,0 +1,146 @@
+<title>Fundo do Method</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400&family=Schibsted+Grotesk:wght@400;500&display=swap">
+<style>
+/* Layout: three backdrops side by side for the same hour, then two endings. Single dark look (V5 palette). */
+:root {
+  --charcoal: #1E1D1A; --linen: #EEE8DD; --ink: #2A2823; --muted: #B3AB9E; --rule: rgba(238,232,221,.16);
+  --voice: "Cormorant Garamond", Georgia, serif; --read: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+  /* per hour: sky (A/B), studio wall, floor, key light colour and position, ink */
+  --sky: linear-gradient(180deg, #C6CBCA 0%, #DEDBD4 42%, #EAE5DC 100%);
+  --wall: #E4E0D8; --wall2: #D3CEC4; --floor: #CFC9BE; --floor2: #BDB6AA;
+  --key: rgba(255, 253, 248, .75); --kx: 50%; --ky: 18%; --ink2: #2A2823;
+}
+[data-band="morning"] { --sky: linear-gradient(180deg, #A7B2BA 0%, #C9CBC6 42%, #E0D8C9 82%, #E8DFCF 100%); --wall: #DCDDDA; --wall2: #C4C7C6; --floor: #CFCBC2; --floor2: #B7B3AA; --key: rgba(232, 240, 248, .8); --kx: 18%; --ky: 26%; --ink2: #2A2823; }
+[data-band="day"] { }
+[data-band="evening"] { --sky: linear-gradient(180deg, #6A6170 0%, #9F8682 38%, #C2A38C 72%, #D6BFA3 100%); --wall: #CDB9A6; --wall2: #A8917E; --floor: #B29C88; --floor2: #8C7765; --key: rgba(255, 196, 140, .62); --kx: 84%; --ky: 46%; --ink2: #2A2420; }
+[data-band="night"] { --sky: linear-gradient(180deg, #121722 0%, #1E2638 45%, #353444 78%, #5E4D45 100%); --wall: #23262D; --wall2: #181A20; --floor: #24252A; --floor2: #141519; --key: rgba(255, 196, 140, .26); --kx: 62%; --ky: 34%; --ink2: #EEE8DD; }
+* { box-sizing: border-box; }
+body { background: var(--charcoal); color: var(--linen); font-family: var(--read); font-size: 15px; line-height: 1.55; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 48px 96px; display: grid; gap: 44px; }
+h1, h2 { font-family: var(--voice); font-weight: 400; margin: 0; }
+h1 { font-size: clamp(38px, 6vw, 64px); font-style: italic; line-height: 1; }
+h2 { font-size: 28px; }
+p { margin: 0; max-width: 70ch; color: var(--muted); }
+b { color: var(--linen); font-weight: 500; }
+.label { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--charcoal); padding-block: 12px; border-block: 1px solid var(--rule); }
+.chip { font: inherit; color: inherit; background: transparent; border: 1px solid var(--rule); border-radius: 99px; padding: 5px 12px; font-size: 13px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--linen); color: var(--charcoal); }
+.chip:focus-visible { outline: 2px solid var(--linen); outline-offset: 2px; }
+.cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.cols.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 860px) { .cols, .cols.two { grid-template-columns: 1fr; } }
+figure { margin: 0; display: grid; gap: 10px; min-width: 0; }
+figcaption { display: grid; gap: 4px; }
+figcaption .t { font-family: var(--voice); font-size: 22px; color: var(--linen); }
+figcaption .t i { color: var(--muted); font-size: .8em; margin-right: .3em; }
+figcaption span:last-child { font-size: 13.5px; color: var(--muted); }
+
+.fr { position: relative; aspect-ratio: 16 / 10; overflow: hidden; border-radius: 4px; container-type: inline-size; box-shadow: 0 0 0 1px rgba(0,0,0,.4), 0 16px 36px rgba(0,0,0,.35); }
+.layer { position: absolute; inset: 0; }
+.grain { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 .7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); mix-blend-mode: overlay; pointer-events: none; }
+/* A — today: a flat sky with faint grain */
+.a .bg { background: var(--sky); }
+.a .grain { opacity: .07; }
+/* B — the sky made into paper: heavier grain, a soft light pool, a vignette */
+.b .bg { background: radial-gradient(70% 60% at var(--kx) var(--ky), var(--key), transparent 70%), var(--sky); }
+.b .vig { background: radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(20,18,15,.28) 100%); }
+.b .grain { opacity: .16; }
+/* C — a studio: a paper sweep (wall curving into floor), a key light with a direction, soft contact shadows */
+.c .bg { background:
+  radial-gradient(55% 70% at var(--kx) var(--ky), var(--key), transparent 72%),
+  linear-gradient(180deg, var(--wall) 0%, var(--wall2) 58%, var(--floor) 70%, var(--floor2) 100%); }
+.c .sweep { background: radial-gradient(160% 22% at 50% 66%, rgba(255,255,255,.14), transparent 70%); }
+.c .vig { background: radial-gradient(130% 100% at var(--kx) 40%, transparent 50%, rgba(15,13,11,.38) 100%); }
+.c .grain { opacity: .13; }
+
+/* the six screens at their place (state 9) */
+.scr { position: absolute; width: 10.5%; aspect-ratio: 9 / 19.5; border-radius: 1.1cqw; background: #111 center / cover no-repeat; box-shadow: 0 .3cqw .5cqw rgba(0,0,0,.18); }
+.scr::after { content: ""; position: absolute; left: -10%; right: -10%; bottom: -9%; height: 8%; border-radius: 50%; background: radial-gradient(closest-side, rgba(20,16,12,.45), transparent); z-index: -1; }
+.a .scr::after, .b .scr::after { display: none; }
+.a .scr, .b .scr { box-shadow: 0 .4cqw 1.6cqw rgba(20,18,15,.25); }
+.c .scr { box-shadow: 0 .2cqw .4cqw rgba(0,0,0,.2), calc((50% - var(--kx)) * -.04) 1.6cqw 2.4cqw rgba(20,16,12,.18); }
+
+/* endings */
+.end .msg { position: absolute; left: 0; right: 0; top: 40%; text-align: center; font-family: var(--voice); font-size: 4.4cqw; line-height: 1.05; color: var(--ink2); }
+.end .msg i { font-style: italic; }
+.end .msg small { display: block; margin-top: .8cqw; font-size: 1.8cqw; font-style: italic; }
+.dot { position: absolute; width: 1cqw; height: 1cqw; border-radius: 50%; background: radial-gradient(circle, #fff6e8 0 30%, rgba(255,236,210,.35) 55%, transparent 72%); }
+.e2 .bg { background:
+  radial-gradient(34% 38% at 50% 46%, rgba(255,236,206,.38), transparent 75%),
+  linear-gradient(180deg, #1C1D1B 0%, #151614 60%, #1F201C 70%, #121310 100%); }
+.e2 .msg { color: #EEE8DD; }
+.e2 .ghost { position: absolute; width: 10.5%; aspect-ratio: 9 / 19.5; border-radius: 1.1cqw; background: center / cover no-repeat; opacity: .1; filter: grayscale(1); }
+.e2 .floorlight { background: radial-gradient(28% 10% at 50% 74%, rgba(255,236,206,.12), transparent 80%); }
+.e2 .grain { opacity: .12; }
+.verdict { display: grid; gap: 10px; border-top: 1px solid var(--rule); padding-top: 24px; }
+</style>
+
+<div class="wrap" id="root" data-band="day">
+  <header style="display:grid;gap:14px">
+    <span class="label">Chapter One V5 · Method · o fundo</span>
+    <h1>Fundo do Method</h1>
+    <p>Os mesmos seis ecrãs sobre três fundos, à mesma hora. Começa pelo <b>Dia</b>, que é o mais claro e o que te preocupa, e depois muda a hora.</p>
+  </header>
+  <div class="bar" role="group" aria-label="Hora de chegada">
+    <span class="label" style="margin-right:6px">Hora</span>
+    <button class="chip" data-b="morning" aria-pressed="false">Manhã</button>
+    <button class="chip" data-b="day" aria-pressed="true">Dia</button>
+    <button class="chip" data-b="evening" aria-pressed="false">Fim de tarde</button>
+    <button class="chip" data-b="night" aria-pressed="false">Noite</button>
+  </div>
+
+  <section style="display:grid;gap:16px">
+    <h2>O fundo</h2>
+    <div class="cols" id="cols"></div>
+  </section>
+
+  <section style="display:grid;gap:16px">
+    <h2>O fim (quadro 11)</h2>
+    <div class="cols two">
+      <figure><div class="fr end e1 b" aria-label="Fim com pontos de luz"><div class="layer bg"></div><div class="layer vig"></div>
+        <i class="dot" style="left:12%;top:18%"></i><i class="dot" style="left:28%;top:30%"></i><i class="dot" style="left:44%;top:12%"></i><i class="dot" style="left:62%;top:24%"></i><i class="dot" style="left:78%;top:14%"></i><i class="dot" style="left:90%;top:29%"></i>
+        <div class="msg">Made once,<br><i>for one moment.</i><small>For Ana.</small></div><div class="layer grain"></div></div>
+        <figcaption><span class="t"><i>atual</i>Pontos de luz</span><span>Os ecrãs viram pontos no céu. À noite lembram estrelas; num céu claro parecem pó.</span></figcaption></figure>
+      <figure><div class="fr end e2" aria-label="Fim com a luz do estúdio a baixar"><div class="layer bg"></div><div class="layer floorlight"></div>
+        <i class="ghost" style="left:9%;top:44%;background-image:url(img/w299.jpg)"></i><i class="ghost" style="left:26%;top:50%;background-image:url(img/studio.jpg)"></i><i class="ghost" style="left:63%;top:47%;background-image:url(img/gallery.jpg)"></i><i class="ghost" style="left:80%;top:43%;background-image:url(img/concert.jpg)"></i>
+        <div class="msg">Made once,<br><i>for one moment.</i><small>For Ana.</small></div><div class="layer grain"></div></div>
+        <figcaption><span class="t"><i>proposta</i>A luz do estúdio baixa</span><span>Como no fim de uma sessão: a sala escurece, os ecrãs ficam quase invisíveis e há um só foco sobre a frase. Fecha a cena e leva ao escuro do About.</span></figcaption></figure>
+    </div>
+  </section>
+
+  <section class="verdict">
+    <h2>A minha recomendação</h2>
+    <p><b>C, o estúdio</b>, com o fim em que <b>a luz baixa</b>. A hora de quem chega continua a mudar tudo, mas como luz e não como tinta: fria e lateral de manhã, alta ao meio-dia, rasante e quente ao fim da tarde, um candeeiro à noite. As sombras dos ecrãs no chão fazem deles objetos numa sala, e é isso que transmite estúdio.</p>
+    <p>Desempenho: no site, cada fundo é uma imagem já preparada (luz, curva, grão e vinheta numa só, ~40–60 KB por hora) e as sombras são uma imagem pequena por baixo de cada ecrã. Não há gradientes recalculados nem desfoque ao vivo. O fim é a mesma imagem a escurecer, só com opacidade.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  const root = document.getElementById('root');
+  const IM = ['w299', 'w002', 'studio', 'gallery', 'concert', 'banquet'];
+  const POS = [[13, 60, -3], [27, 66, 2], [41.5, 58, -1], [57, 61, 0], [72.5, 65, 2], [86.5, 58, -2]];
+  const OPTS = [
+    ['a', 'A', 'Céu liso (atual)', 'Só cor e um grão leve. Calmo, mas nos tons claros parece o fundo de uma app.'],
+    ['b', 'B', 'Céu em papel', 'O mesmo céu com mais grão, uma mancha de luz e uma vinheta. Ganha matéria, mas continua a ser cor de fundo.'],
+    ['c', 'C', 'Estúdio', 'O papel de fundo de um estúdio de fotografia: a parede curva até ao chão, uma luz com direção e as sombras dos ecrãs no chão.'],
+  ];
+  const cols = document.getElementById('cols');
+  OPTS.forEach(([k, n, t, d]) => {
+    const fig = document.createElement('figure');
+    fig.innerHTML = `<div class="fr ${k}" aria-label="Fundo ${n}: ${t}"><div class="layer bg"></div>${k === 'c' ? '<div class="layer sweep"></div>' : ''}${k !== 'a' ? '<div class="layer vig"></div>' : ''}
+      ${POS.map(([x, y, r], i) => `<i class="scr" style="left:${x - 5.25}%;top:${y - 26}%;transform:rotate(${r}deg);background-image:url(img/${IM[i]}.jpg)"></i>`).join('')}
+      <div class="layer grain"></div></div><figcaption><span class="t"><i>${n}</i>${t}</span><span>${d}</span></figcaption>`;
+    cols.appendChild(fig);
+  });
+  document.querySelectorAll('.bar .chip').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.bar .chip').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    root.dataset.band = b.dataset.b;
+  }));
+})();
+</script>

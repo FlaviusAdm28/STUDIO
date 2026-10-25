@@ -1,0 +1,281 @@
+<title>About · storyboard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400&family=Schibsted+Grotesk:wght@400;500&display=swap">
+<style>
+/* Layout: a motion panel, then one row per state — desktop frame, phone frame, notes. Single dark look (V5 palette). */
+:root {
+  --charcoal: #1E1D1A; --moss: #2C332D; --linen: #EEE8DD; --muted: #B3AB9E; --rule: rgba(238,232,221,.16);
+  --voice: "Cormorant Garamond", Georgia, serif; --read: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--charcoal); color: var(--linen); font-family: var(--read); font-size: 15px; line-height: 1.55; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 48px 96px; display: grid; gap: 48px; }
+h1, h2, h3 { font-family: var(--voice); font-weight: 400; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(40px, 7vw, 72px); font-style: italic; line-height: 1; }
+h2 { font-size: clamp(24px, 3vw, 32px); }
+h3 { font-size: 22px; font-style: italic; }
+p { margin: 0; max-width: 68ch; color: var(--muted); }
+b { color: var(--linen); font-weight: 500; }
+.label { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.scene { display: grid; gap: 18px; padding-top: 26px; border-top: 1px solid var(--rule); }
+.head { display: flex; gap: 16px; align-items: baseline; flex-wrap: wrap; }
+.head .n { font-family: var(--voice); font-style: italic; font-size: 28px; color: var(--muted); }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) 190px minmax(0, 290px); gap: 28px; align-items: start; }
+@media (max-width: 900px) { .row { grid-template-columns: minmax(0, 1fr) 150px; } .notes { grid-column: 1 / -1; } }
+@media (max-width: 560px) { .row { grid-template-columns: minmax(0, 1fr) 112px; gap: 14px; } }
+.notes { display: grid; gap: 10px; min-width: 0; }
+.notes p { font-size: 14px; }
+figure { margin: 0; display: grid; gap: 8px; min-width: 0; }
+figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.chip { font: inherit; color: inherit; background: transparent; border: 1px solid var(--rule); border-radius: 99px; padding: 5px 12px; font-size: 13px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--linen); color: var(--charcoal); }
+.chip:focus-visible { outline: 2px solid var(--linen); outline-offset: 2px; }
+.bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.bar .now { font-family: var(--voice); font-style: italic; font-size: 20px; }
+.controls { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--charcoal); border-block: 1px solid var(--rule); padding-block: 12px; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--charcoal); }
+
+/* ---------- frames ---------- */
+.fr { position: relative; overflow: hidden; width: 100%; aspect-ratio: 16 / 10; border-radius: 4px; background: #171816; container-type: inline-size; box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 18px 40px rgba(0,0,0,.35); }
+.fr.ph { aspect-ratio: 9 / 19.5; border-radius: 14px; }
+.fr * { transition-timing-function: var(--ease); }
+.fr.static, .fr.static * { transition: none !important; }
+.L { position: absolute; inset: 0; pointer-events: none; }
+.moss { background: #1B1C1A; opacity: 0; transition: opacity 1.6s; }
+.s2 .moss, .s3 .moss { opacity: 1; }
+/* the room takes the portrait's own atmosphere: grey-warm while it is black and white, its greens and blues when it shows colour */
+.aura { position: absolute; z-index: 1; left: -22%; top: -30%; width: 112%; height: 160%; background: center / 100% 100% no-repeat; opacity: 0; pointer-events: none;
+  -webkit-mask: radial-gradient(closest-side, #000 20%, transparent 100%); mask: radial-gradient(closest-side, #000 20%, transparent 100%); transition: opacity 2.4s; }
+.ph .aura { left: -40%; top: -24%; width: 180%; height: 112%; }
+.s2 .aura.mono, .s3 .aura.mono { opacity: .9; }
+.fr.reveal .aura.col { opacity: .95; }
+.fr.reveal .aura.mono { opacity: 0; }
+.grain { z-index: 8; opacity: .1; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 .6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+/* the light that stayed on the sentence at the end of the Method */
+.pool { background: radial-gradient(circle 30cqw at 50% 46%, rgba(255,236,206,.16), rgba(255,236,206,.05) 60%, transparent 100%); transition: opacity 1.4s; }
+.ph .pool { background: radial-gradient(circle 62cqw at 50% 44%, rgba(255,236,206,.15), rgba(255,236,206,.05) 60%, transparent 100%); }
+.s1 .pool, .s2 .pool, .s3 .pool { opacity: 0; }
+.chrome { position: absolute; left: 3%; top: 6%; z-index: 9; font-size: max(5px, 1.2cqw); letter-spacing: .16em; text-transform: uppercase; opacity: .75; }
+.chrome i { font-family: var(--voice); font-size: 1.6em; letter-spacing: 0; text-transform: none; margin-right: .4em; }
+.ph .chrome { font-size: 3.4cqw; left: 6%; top: 3%; }
+.msg { position: absolute; left: 30%; right: 30%; top: 40%; z-index: 7; text-align: center; font-family: var(--voice); font-size: 4.4cqw; line-height: 1.05; transition: opacity 1s, transform 1s; }
+.msg i { font-style: italic; }
+.msg small { display: block; margin-top: .8cqw; font-size: 1.9cqw; font-style: italic; }
+.ph .msg { left: 8%; right: 8%; font-size: 10.4cqw; }
+.ph .msg small { font-size: 4.6cqw; margin-top: 2cqw; }
+.s1 .msg, .s2 .msg, .s3 .msg { opacity: 0; transform: translateY(-8%); }
+
+/* the portrait: black and white; its colour (the same photograph) only while hovered or held */
+.pt { position: absolute; z-index: 4; left: 38%; top: 19%; width: 24%; height: 58%; clip-path: circle(0% at 50% 46%); cursor: pointer; touch-action: pan-y;
+  transition: left 1.4s, top 1.4s, width 1.4s, height 1.4s, clip-path 1.4s; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.pt i { position: absolute; inset: 0; background: center 30% / cover no-repeat; }
+.pt .col { opacity: 0; transition: opacity 1.8s cubic-bezier(.33, 0, .2, 1); }
+.pt.reveal .col { opacity: 1; }
+.pt:focus-visible { outline: 2px solid var(--linen); outline-offset: 4px; }
+.s2 .pt, .s3 .pt { left: 7%; top: 11.5%; width: 33%; height: 80%; clip-path: circle(75% at 50% 50%); }
+.ph .pt { left: 18%; top: 20%; width: 64%; height: 36%; }
+.ph.s2 .pt, .ph.s3 .pt { left: 0; top: 0; width: 100%; height: 48%; }
+/* transition A: the light opens into a circle with the portrait */
+.tA.s1 .pt { clip-path: circle(36% at 50% 46%); }
+.ph.tA.s1 .pt { clip-path: circle(36% at 50% 46%); }
+/* transition B: the portrait is already in the dark room; the light moves from the sentence onto it, then the room comes up */
+.spot { position: absolute; z-index: 6; left: -100%; top: -100%; width: 300%; height: 300%; pointer-events: none; opacity: 0;
+  background: radial-gradient(circle 15cqw at 50% 50%, transparent 0, transparent 45%, #171816 100%); transition: transform 1.8s, opacity 1.4s; }
+.ph .spot { background: radial-gradient(circle 38cqw at 50% 50%, transparent 0, transparent 45%, #171816 100%); }
+.tB.s0 .spot, .tB.s1 .spot { opacity: 1; }
+.ph.tB.s1 .spot { transform: translate(0, -8%); }
+.tB.s2 .spot, .tB.s3 .spot { opacity: 0; }
+.ph.tB.s2 .spot, .ph.tB.s3 .spot { transform: translate(0, -8%); }
+.tB.s0 .pool { opacity: 0; }
+.tB.s1 .pt { left: 33.5%; top: 11.5%; width: 33%; height: 80%; clip-path: circle(75% at 50% 50%); }
+.ph.tB.s1 .pt { left: 0; top: 0; width: 100%; height: 48%; }
+
+.cap { position: absolute; z-index: 5; left: 8%; top: 91.5%; font-size: .95cqw; letter-spacing: .12em; text-transform: uppercase; opacity: 0; transition: opacity 1s .4s; }
+.cap b { font-weight: 400; color: var(--linen); opacity: .85; }
+.ph .cap { font-size: 2.6cqw; left: 6%; top: 49%; }
+.s2 .cap, .s3 .cap { opacity: .6; }
+
+.say { position: absolute; z-index: 5; left: 46%; right: 8%; top: 31%; display: grid; gap: 1.6cqw; opacity: 0; transform: translateY(5%); transition: opacity 1.1s 1.3s, transform 1.1s 1.3s; }
+.s2 .say, .s3 .say { opacity: 1; transform: none; }
+.say .h { font-family: var(--voice); font-size: 4.6cqw; line-height: 1; }
+.say .sub { font-family: var(--voice); font-style: italic; font-size: 3.1cqw; line-height: 1.12; }
+.ph .say { left: 7%; right: 7%; top: 60%; gap: 2.6cqw; }
+/* the name: one element, always at its final place and in its final style. In the light it is the same element,
+   moved and scaled with a transform (--from, measured per frame), so 1 -> 2 is a single movement with nothing snapping */
+.name { position: absolute; z-index: 7; left: 46%; top: 17%; font-family: var(--voice); font-size: 6.4cqw; line-height: 1; white-space: nowrap; transform-origin: 0 0;
+  opacity: 0; transform: var(--from, none); transition: opacity 1.2s .5s, transform 1.5s; }
+.s1 .name { opacity: .92; }
+.s2 .name, .s3 .name { opacity: 1; transform: none; transition-delay: 0s; }
+.ph .name { left: 7%; top: 53%; font-size: 11cqw; }
+/* desktop: an editorial grid instead of floating text */
+.label2 { position: absolute; z-index: 5; left: 46%; right: 8%; top: 11.5%; display: flex; align-items: center; gap: 1.4cqw; font-size: 1cqw; letter-spacing: .18em; text-transform: uppercase; opacity: 0; transition: opacity 1s 1.3s; }
+.label2::after { content: ""; flex: 1; height: 1px; background: rgba(238,232,221,.25); }
+.s2 .label2, .s3 .label2 { opacity: .7; }
+.rule2 { position: absolute; z-index: 5; left: 46%; right: 8%; top: 58%; height: 1px; background: rgba(238,232,221,.22); transform: scaleX(0); transform-origin: left; transition: transform 1.2s .3s; }
+.s3 .rule2 { transform: none; }
+.meta { position: absolute; z-index: 5; left: 74%; right: 8%; top: 61.5%; font-size: .95cqw; letter-spacing: .12em; text-transform: uppercase; line-height: 1.9; opacity: 0; transition: opacity 1s .5s; }
+.s3 .meta { opacity: .6; }
+.ph .label2, .ph .rule2, .ph .meta { display: none; }
+.fr:not(.ph) .cap { display: none; }
+.ph .say .h { font-size: 11cqw; }
+.ph .say .sub { font-size: 6.4cqw; }
+.para { position: absolute; z-index: 5; left: 46%; right: 30%; top: 61.5%; font-size: 1.25cqw; line-height: 1.65; color: rgba(238,232,221,.82); opacity: 0; transition: opacity 1s .2s; }
+.s3 .para { opacity: 1; }
+.ph .para { left: 7%; right: 7%; top: 74%; font-size: 3.5cqw; line-height: 1.55; }
+.next { position: absolute; z-index: 5; left: 46%; top: 89.5%; font-size: 1.05cqw; letter-spacing: .16em; text-transform: uppercase; opacity: 0; transition: opacity 1s .6s; }
+.s3 .next { opacity: .7; }
+.ph .next { left: 7%; top: 95%; font-size: 3cqw; }
+
+.opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+.opts > div { display: grid; gap: 8px; align-content: start; }
+@media (max-width: 760px) { .opts { grid-template-columns: 1fr; } }
+.copy { display: grid; gap: 12px; border-left: 1px solid var(--rule); padding-left: 18px; }
+.copy .h { font-family: var(--voice); font-size: 30px; line-height: 1.1; }
+.copy .h i { font-style: italic; }
+.copy p { color: rgba(238,232,221,.82); }
+ol.q { margin: 0; padding-left: 20px; display: grid; gap: 10px; max-width: 76ch; color: var(--muted); }
+ol.q li::marker { font-family: var(--voice); font-style: italic; }
+@media (prefers-reduced-motion: reduce) { .fr * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:14px">
+    <span class="label">Chapter One V5 · 03 About · storyboard v5</span>
+    <h1>About</h1>
+    <p><b>v5:</b> a passagem do nome do estado 1 para o 2 foi corrigida e é agora um só movimento. No desktop, a composição passou a ser uma grelha editorial: etiqueta com filete, o nome grande, a frase como citação, um filete e duas colunas (o parágrafo e o crédito da fotografia).</p>
+    <p><b>v4:</b> <i>I’m Flávio.</i> aparece logo na luz, pequeno, por baixo do retrato, e é esse mesmo nome que sobe para título quando a sala se acende. O parágrafo ficou mais curto, igual em todos os ecrãs.</p>
+    <p><b>v3:</b> na B a luz fica no centro, onde estava a frase, e é aí que apareces; só depois o retrato vai para o seu lugar. O fundo passa a ter a atmosfera da tua fotografia e muda devagar quando a cor se revela. O texto foi reorganizado.</p>
+    <p>Com o teu texto, o retrato <b>a preto e branco que revela a cor ao passar o rato</b> (no telemóvel, enquanto seguras) e <b>duas transições</b> a partir do fim do Method para comparares. A A é a que já viste e não sai.</p>
+  </header>
+
+  <div class="controls bar" role="group" aria-label="Controlos">
+    <span class="label">Transição</span>
+    <button class="chip" data-t="A" type="button" aria-pressed="false">A · A luz abre-se num círculo</button>
+    <button class="chip" data-t="B" type="button" aria-pressed="true">B · A luz desloca-se até ti</button>
+  </div>
+
+  <section class="scene" aria-labelledby="m-h">
+    <div class="head"><h2 id="m-h">Em movimento</h2></div>
+    <div class="bar">
+      <button class="chip" id="prev" type="button" aria-label="Estado anterior">←</button>
+      <button class="chip" id="play" type="button" aria-pressed="false">Reproduzir</button>
+      <button class="chip" id="next" type="button" aria-label="Estado seguinte">→</button>
+      <span class="now" id="now" aria-live="polite"></span>
+    </div>
+    <div class="row">
+      <figure><div class="fr" id="m-d" role="img" aria-label="About no desktop, em movimento"></div><figcaption>Desktop · passa o rato pelo retrato</figcaption></figure>
+      <figure><div class="fr ph" id="m-p" role="img" aria-label="About no telemóvel, em movimento"></div><figcaption>Telemóvel · segura no retrato</figcaption></figure>
+      <div class="notes"><p>No site, estes estados avançam com o <b>scroll</b>, sem cena presa longa. Aqui avançam a cada 2,8 s. No último estado, <b>experimenta o retrato</b>: o rato no desktop, segurar no telemóvel. Ao largar, volta ao preto e branco.</p></div>
+    </div>
+  </section>
+
+  <div id="rows"></div>
+
+  <section class="scene" aria-labelledby="c-h">
+    <div class="head"><span class="n">·</span><h2 id="c-h">O texto, a partir das tuas palavras</h2></div>
+    <div class="copy">
+      <div class="h">I’m Flávio.<br><i>So much around us is made to look the same. Yet each of us lives, feels and creates in our own way.</i></div>
+      <p>I have always loved art and the moments that stay with us. Chapter One is made from the start for each person and each moment, because no two lives are the same.</p>
+    </div>
+    <p><b>v3:</b> a parte de que mais gostas passou a ser a frase grande, logo a seguir a <i>I’m Flávio.</i> O parágrafo fica curto: o amor pela arte e pelos momentos, e porque nasceu o Chapter One.</p>
+  </section>
+
+  <section class="scene" aria-labelledby="o-h">
+    <div class="head"><span class="n">·</span><h2 id="o-h">Respostas</h2></div>
+    <div class="opts">
+      <div><h3>"I" ou "we"?</h3><p>Recomendo <b>as duas, cada uma no seu sítio</b>. O <b>Chapter One fala em <i>we</i></b>: é a marca, e já trabalha com mais pessoas (as fotografias são do Helder Couto). O <b>About fala em <i>I</i></b>: <i>I’m Flávio</i>. É o padrão dos estúdios pequenos e honestos. Quem chega sabe que a marca é séria e que fala diretamente com quem faz o trabalho, e para casamentos e artistas isso é uma vantagem, não uma fraqueza.</p><p>Só <i>we</i> soa maior, mas quando a pessoa descobrir que és só tu sente-se enganada. Só <i>I</i> prende a marca a uma pessoa e torna mais difícil crescer.</p></div>
+      <div><h3>A imagem do espaço de trabalho como fundo</h3><p>Continuo a recomendar que não. Como fundo, teria de ficar muito apagada para o texto se ler, e então vira uma mancha castanha atrás do retrato. Seria uma segunda imagem a competir com a tua fotografia, gerada por IA ao lado de uma fotografia verdadeira, e lembra a "secretária" que já recusaste.</p><p>Se quiseres textura, o fundo musgo já tem o grão do estúdio. É matéria sem imagem.</p></div>
+      <div><h3>O retrato a preto e branco</h3><p>Feito como pediste. Fica a P&amp;B; <b>o rato revela a cor</b> no desktop e <b>segurar</b> revela no telemóvel. Ao largar volta sempre ao P&amp;B. No teclado: foco no retrato e Enter. Uma indicação discreta no crédito diz <i>Hover / Hold for colour</i>.</p><p>Aqui segurar funciona, ao contrário do Work, porque o About não fica preso e o dedo parado não se confunde com um scroll.</p></div>
+      <div><h3>A transição</h3><p><b>B · A luz desloca-se até ti</b> (nova). O retrato já está na sala escura. A luz que estava na frase desliza até ele e ilumina-o, e depois a sala acende-se para o musgo. É uma luz de estúdio a mudar de sítio, por isso continua o fim do Method e parece filmado. <b>Recomendo a B.</b></p><p><b>A</b> continua aqui para comparares.</p></div>
+    </div>
+  </section>
+
+  <section class="scene" aria-labelledby="q-h">
+    <div class="head"><span class="n">?</span><h2 id="q-h">Para fechar o About</h2></div>
+    <ol class="q">
+      <li><b>Transição A ou B?</b></li>
+      <li><b>O texto</b>: está como o dirias? Muda o que quiseres, palavra a palavra.</li>
+      <li><b><i>I</i> no About e <i>we</i> no resto do site</b>: aprovas?</li>
+    </ol>
+  </section>
+</div>
+
+<script>
+(() => {
+  const STATES = [
+    { t: 'O fim do Method', d: 'A sala escura com uma luz sobre <i>Made once, for one moment.</i> É onde o About começa.' },
+    { t: 'A luz encontra-te', d: '<b>B:</b> a frase sai e, <b>na mesma luz, no centro, apareces tu</b>, a preto e branco, com <i>I’m Flávio.</i> pequeno por baixo. No telemóvel a luz sobe até ao retrato. <b>A:</b> a luz abre-se num círculo com o teu retrato. Muda a transição em cima.' },
+    { t: 'A sala acende-se', d: 'O retrato vai para o seu lugar e <b>o nome sobe e torna-se o título</b>. A sala acende-se com <b>a atmosfera da tua fotografia</b>, ainda em cinzento quente porque o retrato está a P&amp;B. Por baixo do nome entra a frase.' },
+    { t: 'A tua história', d: 'Entra o parágrafo e depois <i>04 Questions ↓</i>. Ao passar o rato (no telemóvel, ao segurar), <b>o retrato e a sala ganham cor devagar</b>, com os verdes e azuis da tua fotografia, durante cerca de 2 segundos. Ao largar, voltam devagar ao P&amp;B.' },
+  ];
+  const N = STATES.length;
+  const SAY = '<div class="sub">So much around us is made to look the same. Yet each of us lives, feels and creates in our own way.</div>';
+  const PARA = 'I have always loved art and the moments that stay with us. Chapter One is made from the start for each person and each moment, because no two lives are the same.';
+  const frames = [];
+  let T = 'B';
+  function build(el, st, isStatic) {
+    const phone = el.classList.contains('ph');
+    el.classList.toggle('static', !!isStatic);
+    el.innerHTML = `<div class="L moss"></div><div class="aura mono" style="background-image:url(img/a-124-mono.jpg)"></div><div class="aura col" style="background-image:url(img/a-124.jpg)"></div><div class="L pool"></div>
+      <div class="chrome"><i>03</i>About</div>
+      <div class="msg">Made once,<br><i>for one moment.</i><small>For Ana.</small></div>
+      <div class="pt" tabindex="0" role="img" aria-label="Portrait of Flávio. ${phone ? 'Hold' : 'Hover'} to see it in colour."><i style="background-image:url(img/p124-mono.jpg)"></i><i class="col" style="background-image:url(img/p124.jpg)"></i></div>
+      <div class="spot"></div>
+      <div class="cap">Portrait — Helder Couto · <b>${phone ? 'Hold' : 'Hover'} for colour</b></div>
+      <div class="name">I’m Flávio.</div><div class="label2">Founder · Chapter One</div><div class="rule2"></div><div class="meta">Portrait — Helder Couto<br>Hover for colour</div><div class="say">${SAY}</div><div class="para">${PARA}</div>
+      <div class="next">04 Questions ↓</div><div class="L grain"></div>`;
+    // the colour, the same photograph, only while hovered or held; it always goes back
+    const pt = el.querySelector('.pt'), on = () => { pt.classList.add('reveal'); el.classList.add('reveal'); }, off = () => { pt.classList.remove('reveal'); el.classList.remove('reveal'); };
+    if (!phone) { pt.addEventListener('pointerenter', on); pt.addEventListener('pointerleave', off); }
+    else { pt.addEventListener('pointerdown', on); ['pointerup', 'pointercancel', 'pointerleave'].forEach(e => pt.addEventListener(e, off)); pt.addEventListener('contextmenu', e => e.preventDefault()); }
+    pt.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); (pt.classList.contains('reveal') ? off : on)(); } if (e.key === 'Escape') off(); });
+    pt.addEventListener('blur', off);
+    const f = { el, st }; frames.push(f); place(el); set(f, st); return f;
+  }
+  // where the name sits while it is in the light, relative to its final place: measured, so it is exact at any size
+  function place(el) {
+    const n = el.querySelector('.name'), fw = el.clientWidth, fh = el.clientHeight;
+    if (!fw) return;
+    const ph = el.classList.contains('ph'), s = ph ? .6 : .41;
+    const fx = (ph ? .07 : .46) * fw, fy = (ph ? .53 : .17) * fh, cy = (ph ? .46 : .70) * fh;
+    el.style.setProperty('--from', `translate(${fw / 2 - n.offsetWidth * s / 2 - fx}px, ${cy - fy}px) scale(${s})`);
+  }
+  document.fonts.ready.then(() => frames.forEach(f => place(f.el)));
+  addEventListener('resize', () => frames.forEach(f => place(f.el)));
+  function set(f, st) { f.st = st; for (let s = 0; s < N; s++) f.el.classList.toggle('s' + s, s === st); f.el.classList.toggle('tA', T === 'A'); f.el.classList.toggle('tB', T === 'B'); }
+
+  const rows = document.getElementById('rows');
+  STATES.forEach((S, k) => {
+    const sec = document.createElement('section'); sec.className = 'scene';
+    sec.innerHTML = `<div class="head"><span class="n">${k}</span><h2>${S.t}</h2></div><div class="row">
+      <figure><div class="fr" aria-label="Estado ${k} no desktop: ${S.t}"></div><figcaption>Desktop</figcaption></figure>
+      <figure><div class="fr ph" aria-label="Estado ${k} no telemóvel: ${S.t}"></div><figcaption>Telemóvel</figcaption></figure>
+      <div class="notes"><p>${S.d}</p></div></div>`;
+    rows.appendChild(sec);
+    build(sec.querySelector('.fr'), k, true); build(sec.querySelector('.fr.ph'), k, true);
+  });
+
+  const md = build(document.getElementById('m-d'), 0, false), mp = build(document.getElementById('m-p'), 0, false);
+  const nowEl = document.getElementById('now');
+  let cur = 0, timer = null;
+  const go = s => { cur = (s + N) % N; set(md, cur); set(mp, cur); nowEl.textContent = `${cur} · ${STATES[cur].t}`; };
+  const play = document.getElementById('play');
+  const setPlaying = on => { play.setAttribute('aria-pressed', String(on)); play.textContent = on ? 'Pausar' : 'Reproduzir'; clearInterval(timer); timer = on ? setInterval(() => go(cur + 1), 2800) : null; };
+  play.addEventListener('click', () => setPlaying(!timer));
+  document.getElementById('prev').addEventListener('click', () => { setPlaying(false); go(cur - 1); });
+  document.getElementById('next').addEventListener('click', () => { setPlaying(false); go(cur + 1); });
+  // hovering or holding the portrait in the motion panel pauses it, so the colour can be tried
+  [md, mp].forEach(f => f.el.querySelector('.pt').addEventListener('pointerdown', () => setPlaying(false)));
+  md.el.querySelector('.pt').addEventListener('pointerenter', () => { if (cur === 3) setPlaying(false); });
+  document.querySelectorAll('[data-t]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-t]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    T = b.dataset.t; frames.forEach(f => set(f, f.st));
+  }));
+  go(0);
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) setPlaying(true);
+})();
+</script>

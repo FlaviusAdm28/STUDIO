@@ -1,0 +1,1633 @@
+<title>Do Work ao Method</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Schibsted+Grotesk:wght@400;500&display=swap">
+<style>
+/* Layout: dark gallery page; a motion panel, then one row per state — desktop frame, phone frame, notes. Single dark look (V5 palette). */
+:root {
+  --charcoal: #1E1D1A; --moss: #2C332D; --linen: #EEE8DD; --stone: #D8D0C2; --ink: #2A2823;
+  --muted: #B3AB9E; --rule: rgba(238, 232, 221, .16);
+  --sky: linear-gradient(180deg, #121722 0%, #1E2638 45%, #353444 78%, #5E4D45 100%);
+  --sky-glow: radial-gradient(110% 55% at 50% 108%, rgba(200, 150, 110, .22), transparent 62%);
+  --sky-ink: #EEE8DD; --accent: #B89A7C;
+  /* the studio: a paper sweep lit by the visitor's hour (night by default) */
+  --wall: #23262D; --wall2: #181A20; --floor: #24252A; --floor2: #141519; --key: rgba(255, 196, 140, .26); --kx: 62%; --ky: 34%;
+  --voice: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+  --read: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  color-scheme: dark;
+}
+/* muted, studio skies: low chroma, soft steps, a little grain */
+:root[data-band="morning"] { --sky: linear-gradient(180deg, #A7B2BA 0%, #C9CBC6 42%, #E0D8C9 82%, #E8DFCF 100%); --sky-glow: radial-gradient(110% 55% at 72% 100%, rgba(240, 222, 190, .35), transparent 60%); --sky-ink: #2A2823; --accent: #66737C; --wall: #DCDDDA; --wall2: #C4C7C6; --floor: #CFCBC2; --floor2: #B7B3AA; --key: rgba(232, 240, 248, .8); --kx: 18%; --ky: 26%; }
+:root[data-band="day"] { --sky: linear-gradient(180deg, #C6CBCA 0%, #DEDBD4 42%, #EAE5DC 100%); --sky-glow: radial-gradient(90% 50% at 50% 0%, rgba(255, 255, 255, .32), transparent 65%); --sky-ink: #2A2823; --accent: #7A705F; --wall: #E4E0D8; --wall2: #D3CEC4; --floor: #CFC9BE; --floor2: #BDB6AA; --key: rgba(255, 253, 248, .75); --kx: 50%; --ky: 18%; }
+:root[data-band="evening"] { --sky: linear-gradient(180deg, #6A6170 0%, #9F8682 38%, #C2A38C 72%, #D6BFA3 100%); --sky-glow: radial-gradient(100% 50% at 40% 100%, rgba(232, 180, 130, .28), transparent 60%); --sky-ink: #2A2420; --accent: #93664B; --wall: #CDB9A6; --wall2: #A8917E; --floor: #B29C88; --floor2: #8C7765; --key: rgba(255, 196, 140, .62); --kx: 84%; --ky: 46%; }
+* { box-sizing: border-box; }
+body { background: var(--charcoal); color: var(--linen); font-family: var(--read); font-size: 15px; line-height: 1.55; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.toc { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; }
+.toc a { color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--rule); }
+.toc a:hover, .toc a:focus-visible { color: var(--linen); border-color: var(--linen); }
+code { font-size: .92em; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 48px 96px; display: grid; gap: 56px; }
+.label { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+h1, h2, h3 { font-family: var(--voice); font-weight: 400; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(40px, 7vw, 76px); line-height: 1; font-style: italic; }
+h2 { font-size: clamp(26px, 3.4vw, 36px); line-height: 1.1; }
+h3 { font-size: 24px; font-style: italic; }
+p { margin: 0; max-width: 66ch; }
+header { display: grid; gap: 18px; }
+header p, .muted { color: var(--muted); }
+strong, b { color: var(--linen); font-weight: 500; }
+a { color: var(--linen); }
+.changes { margin: 0; padding-left: 20px; display: grid; gap: 6px; color: var(--muted); max-width: 80ch; }
+
+.controls { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50; background: var(--charcoal); border-block: 1px solid var(--rule); padding-block: 14px; display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 60; background: var(--charcoal); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.group .label { margin-right: 6px; }
+button, input { font: inherit; color: inherit; }
+.chip { background: transparent; border: 1px solid var(--rule); border-radius: 999px; padding: 5px 12px; font-size: 13px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--linen); color: var(--charcoal); border-color: var(--linen); }
+.chip:focus-visible, input:focus-visible { outline: 2px solid var(--linen); outline-offset: 2px; }
+#name { background: transparent; border: 0; border-bottom: 1px solid var(--muted); padding: 4px 2px; width: 160px; font-family: var(--voice); font-size: 20px; font-style: italic; }
+#name::placeholder { color: var(--muted); }
+.toggle { display: flex; gap: 8px; align-items: center; font-size: 13px; cursor: pointer; }
+.toggle input { accent-color: var(--linen); width: 16px; height: 16px; }
+
+.scene { display: grid; gap: 20px; padding-top: 28px; border-top: 1px solid var(--rule); }
+.part { padding-top: 12px; display: grid; gap: 6px; }
+.part .label { color: var(--accent); }
+.scene-head { display: flex; gap: 18px; align-items: baseline; flex-wrap: wrap; }
+.scene-head .n { font-family: var(--voice); font-style: italic; font-size: 30px; color: var(--muted); min-width: 1.4em; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) 190px minmax(0, 290px); gap: 28px; align-items: start; }
+.notes { display: grid; gap: 12px; min-width: 0; }
+.notes p { font-size: 14px; color: var(--muted); }
+figure { margin: 0; display: grid; gap: 8px; min-width: 0; }
+figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+@media (max-width: 900px) { .row { grid-template-columns: minmax(0, 1fr) 150px; } .notes { grid-column: 1 / -1; } }
+@media (max-width: 560px) { .row { grid-template-columns: minmax(0, 1fr) 112px; gap: 14px; } }
+
+/* ---------- frames ---------- */
+.frame { position: relative; overflow: hidden; width: 100%; background: #171614; color: var(--linen); border-radius: 4px; container-type: inline-size; box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 18px 40px rgba(0,0,0,.35); }
+.frame.desk { aspect-ratio: 16 / 10; }
+.frame.phone { aspect-ratio: 9 / 19.5; border-radius: 14px; }
+.frame * { transition-timing-function: var(--ease); }
+.frame.static, .frame.static * { transition: none !important; }
+.L { position: absolute; inset: 0; opacity: 0; transition: opacity 1s; }
+.bg { background: center / cover no-repeat; }
+
+/* entrance */
+.vid { position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 3; transition: left 1.2s, top 1.2s, width 1.2s, height 1.2s, border-radius 1.2s, opacity 1s; }
+.vid .tint { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,24,40,.35), rgba(20,18,15,.55)); }
+.ent { z-index: 4; }
+.ent .top { position: absolute; left: 3%; right: 3%; top: 4%; display: flex; justify-content: space-between; font-size: max(5px, 1.3cqw); letter-spacing: .16em; text-transform: uppercase; }
+.ent .ded { position: absolute; left: 0; right: 0; top: 13%; text-align: center; font-family: var(--voice); font-style: italic; font-size: 1.9cqw; opacity: .85; }
+.ent .title { position: absolute; left: 0; right: 0; top: 30%; text-align: center; font-family: var(--voice); font-size: 7.4cqw; letter-spacing: .16em; line-height: 1; }
+.ent .sub { position: absolute; left: 0; right: 0; top: 45%; text-align: center; font-size: 1.5cqw; letter-spacing: .04em; opacity: .9; }
+.blade { position: absolute; width: 22%; height: 25%; top: 64%; clip-path: polygon(14% 0, 100% 0, 86% 100%, 0 100%); }
+.blade .bg { position: absolute; inset: 0; filter: grayscale(1); }
+.blade .bg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 30%, rgba(15,14,12,.7)); }
+.blade span { position: absolute; left: 18%; bottom: 10%; font-family: var(--voice); font-size: 2.2cqw; }
+.blade span i { font-size: .7em; opacity: .8; margin-right: .4em; }
+.blade.b1 { left: 15%; } .blade.b2 { left: 39%; } .blade.b3 { left: 63%; }
+.frame.phone .ent .top { font-size: 3.6cqw; top: 2.6%; left: 6%; right: 6%; }
+.frame.phone .ent .ded { font-size: 5.4cqw; top: 9%; }
+.frame.phone .ent .title { font-size: 13cqw; top: 22%; line-height: 1.05; }
+.frame.phone .ent .sub { font-size: 4.2cqw; top: 38%; left: 10%; right: 10%; }
+.frame.phone .blade { width: 84%; height: 11%; left: 8%; clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%); }
+.frame.phone .blade span { font-size: 6.4cqw; left: 10%; }
+.frame.phone .blade.b1 { top: 54%; } .frame.phone .blade.b2 { top: 67%; } .frame.phone .blade.b3 { top: 80%; }
+
+/* work */
+.g { transition: opacity 1.2s; }
+/* the grounds are quiet; the colour comes from the photograph's own aura */
+.g1 { background: #1F1C19; }
+.g2 { background: #211D18; }
+.g3 { background: #171B22; }
+.aura { position: absolute; left: -48%; top: -16%; width: 196%; height: 132%; background: center / 100% 100% no-repeat; opacity: .5;
+  -webkit-mask: radial-gradient(closest-side, #000 15%, transparent 100%); mask: radial-gradient(closest-side, #000 15%, transparent 100%); }
+/* every moment shows its piece working, over the whole photograph (never cropping it) */
+.dm { position: absolute; inset: 0; z-index: 4; overflow: hidden; opacity: 0; transition: opacity .7s; pointer-events: none; color: var(--linen); }
+.dm.on { opacity: 1; }
+.c1 .dm { border-radius: 50% 50% 0 0 / 24% 24% 0 0; }
+.c2 .dm { border-radius: 2px; }
+.c3 .dm { clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
+.dm .veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(15,14,12,.2), rgba(15,14,12,.66)); }
+.dm .k { font-size: 1cqw; letter-spacing: .18em; text-transform: uppercase; }
+.dm .in { position: absolute; left: 6%; right: 6%; bottom: 12%; display: grid; justify-items: center; gap: .7cqw; text-align: center; }
+.dm .big { font-family: var(--voice); font-style: italic; font-size: 3.2cqw; line-height: 1.02; transform: translateY(14%); opacity: 0; transition: transform 1.1s .2s, opacity .9s .2s; }
+.dm.on .big { transform: none; opacity: 1; }
+.dm .ln { font-family: var(--voice); font-size: 1.4cqw; }
+.dm .pimg { position: absolute; inset: 0; background: center / cover no-repeat; transition: transform 1.3s .2s; }
+.dm.on .pimg { transform: translateY(-34%); }
+.dm .pg { position: absolute; left: 0; right: 0; bottom: 0; height: 46%; background: #F2EEE7; color: var(--ink); padding: 1.6cqw 1.8cqw; display: grid; align-content: start; gap: .9cqw; transform: translateY(100%); transition: transform 1.3s .2s; }
+.dm.on .pg { transform: none; }
+.dm .pg div { display: flex; justify-content: space-between; border-top: 1px solid rgba(42,40,35,.2); padding-top: .5cqw; font-size: 1cqw; }
+.dm .pg .t { font-family: var(--voice); font-style: italic; font-size: 1.9cqw; border: 0; padding: 0; }
+.dm .grid { position: absolute; left: 9%; right: 9%; top: 16%; display: grid; grid-template-columns: repeat(3, 1fr); gap: .6cqw; }
+.dm .grid i { aspect-ratio: 3 / 4; background: center / cover no-repeat; opacity: 0; transform: translateY(12%); transition: opacity .5s, transform .6s; }
+.dm.on .grid i { opacity: 1; transform: none; }
+.dm .strip3 { position: absolute; left: 10%; top: 26%; display: flex; gap: 1cqw; width: max-content; transform: translateX(40%); opacity: 0; transition: transform 1.6s .2s, opacity .9s .2s; }
+.dm .strip3 i { width: 9cqw; aspect-ratio: 3 / 4; background: center / cover no-repeat; }
+.dm.on .strip3 { transform: none; opacity: 1; }
+.dm .zimg { position: absolute; inset: 0; background: center / cover no-repeat; transition: transform 3.4s ease-out; }
+.dm.on .zimg { transform: scale(1.28); }
+.dm .arc { position: absolute; left: 10%; right: 10%; top: 16%; display: grid; gap: 1cqw; }
+.dm .arc div { display: flex; align-items: center; gap: 1cqw; font-size: 1cqw; border-top: 1px solid rgba(238,232,221,.25); padding-top: 1cqw; opacity: 0; transform: translateX(8%); transition: opacity .5s, transform .6s; }
+.dm .arc div i { width: 3cqw; aspect-ratio: 3 / 4; background: center / cover no-repeat; flex: none; }
+.dm .arc div b { font-weight: 500; letter-spacing: .1em; font-variant-numeric: tabular-nums; }
+.dm.on .arc div { opacity: 1; transform: none; }
+.dm .card2 { position: absolute; left: 14%; right: 14%; top: 24%; background: #F4F0E8; color: var(--ink); padding: 2cqw 1.4cqw; display: grid; justify-items: center; gap: .9cqw; text-align: center; box-shadow: 0 1cqw 3cqw rgba(0,0,0,.35); transform: translateY(14%) scale(.96); opacity: 0; transition: transform 1s .2s, opacity .8s .2s; }
+.dm.on .card2 { transform: none; opacity: 1; }
+.dm .card2 .h { font-family: var(--voice); font-style: italic; font-size: 2.2cqw; line-height: 1; }
+.dm .card2 .dt { font-family: var(--voice); font-size: 1.3cqw; }
+.dm .pill { border: 1px solid currentColor; border-radius: 99px; padding: .35cqw 1.4cqw; font-size: .9cqw; letter-spacing: .12em; text-transform: uppercase; }
+.dm.on .pill { animation: pick .5s 1.6s both; }
+.frame.static .dm.on .pill { animation-duration: 0s; animation-delay: 0s; }
+@keyframes pick { to { background: var(--ink); color: var(--linen); } }
+.dm .gh { position: absolute; left: 16%; top: 9%; font-family: var(--voice); font-style: italic; font-size: 2.2cqw; }
+.dm .tl { position: absolute; left: 16%; right: 12%; top: 22%; display: grid; gap: 1.6cqw; padding-left: 1.6cqw; border-left: 1px solid rgba(238,232,221,.45); }
+.dm .tl div { position: relative; display: grid; font-size: 1.05cqw; opacity: .7; transform: translateX(6%); transition: transform .9s, opacity .9s; }
+.dm.on .tl div { transform: none; }
+.dm .tl b { font-weight: 500; letter-spacing: .1em; font-variant-numeric: tabular-nums; }
+.dm .tl div::before { content: ""; position: absolute; left: -2.05cqw; top: .35cqw; width: .8cqw; height: .8cqw; border-radius: 50%; border: 1px solid rgba(238,232,221,.6); background: #1A1D24; }
+.dm .tl div.now { opacity: 1; }
+.dm .tl div.now::before { background: var(--linen); }
+.frame:not(.static) .dm.on .tl div.now::before { animation: pulse 2s ease-in-out infinite; }
+.frame.phone .dm .k { font-size: 2.8cqw; }
+.frame.phone .dm .big { font-size: 8.4cqw; }
+.frame.phone .dm .ln { font-size: 4cqw; }
+.frame.phone .dm .pg { padding: 3cqw 4cqw; gap: 2cqw; }
+.frame.phone .dm .pg div { font-size: 3cqw; padding-top: 1.2cqw; }
+.frame.phone .dm .pg .t { font-size: 5.4cqw; }
+.frame.phone .dm .grid { gap: 1.6cqw; }
+.frame.phone .dm .grid i:nth-child(n+7) { display: none; }
+.frame.phone .dm .strip3 { gap: 2.4cqw; }
+.frame.phone .dm .strip3 i { width: 24cqw; }
+.frame.phone .dm .arc { gap: 2.4cqw; }
+.frame.phone .dm .arc div { font-size: 3cqw; gap: 2.4cqw; padding-top: 2.2cqw; }
+.frame.phone .dm .arc div i { width: 8cqw; }
+.frame.phone .dm .card2 { padding: 4cqw 3cqw; gap: 2cqw; }
+.frame.phone .dm .card2 .h { font-size: 6cqw; }
+.frame.phone .dm .card2 .dt { font-size: 3.8cqw; }
+.frame.phone .dm .pill { font-size: 2.8cqw; padding: 1cqw 3cqw; }
+.frame.phone .dm .tl { gap: 3.6cqw; padding-left: 3.6cqw; }
+.frame.phone .dm .tl div { font-size: 3cqw; }
+.frame.phone .dm .tl div::before { left: -4.6cqw; width: 2cqw; height: 2cqw; top: .8cqw; }
+.frame.phone .dm .gh { font-size: 6cqw; }
+/* the piece shown on the photograph is marked in the list */
+.tx .li .g { display: inline-block; width: .75cqw; height: .75cqw; border: 1px solid currentColor; border-radius: 50%; margin-right: .8cqw; vertical-align: .05em; transition: background-color .4s; }
+.tx .li.act { border-top-color: var(--linen); }
+.tx .li.act .g { background: var(--linen); }
+.frame.phone .tx .li .g { width: 2.2cqw; height: 2.2cqw; margin-right: 2cqw; }
+.tx .li b.nm { font-weight: 400; }
+.frame.held .mom .fill { animation: none !important; transform: scaleX(1); }
+/* only what is visible can be touched: hidden chapters never catch the pointer */
+.L { pointer-events: none; }
+.frame.try .tabs span { pointer-events: auto; cursor: pointer; }
+.frame.try[data-ch="1"] .c1 .mom span, .frame.try[data-ch="2"] .c2 .mom span, .frame.try[data-ch="3"] .c3 .mom span { pointer-events: auto; cursor: pointer; }
+.frame[data-ch="1"] .g1, .frame[data-ch="2"] .g2, .frame[data-ch="3"] .g3 { opacity: 1; }
+.work { z-index: 2; transition: opacity 1s; }
+.frame.work-on .work { opacity: 1; }
+.tabs { position: absolute; left: 44%; top: 11.5%; display: flex; gap: 3cqw; font-family: var(--voice); font-size: 1.8cqw; }
+.tabs span { opacity: .45; transition: opacity .8s; padding-bottom: .3cqw; border-bottom: 1px solid transparent; }
+.frame[data-ch="1"] .tabs .t1, .frame[data-ch="2"] .tabs .t2, .frame[data-ch="3"] .tabs .t3 { opacity: 1; border-bottom-color: currentColor; }
+.idx { position: absolute; left: 3%; top: 6%; font-size: max(5px, 1.2cqw); letter-spacing: .16em; text-transform: uppercase; opacity: .7; }
+.idx i { font-family: var(--voice); font-size: 1.6em; letter-spacing: 0; text-transform: none; margin-right: .4em; }
+.stack, .tx { opacity: 0; transform: translateY(5%); transition: opacity 1.1s, transform 1.1s; }
+.frame[data-ch="1"] .c1, .frame[data-ch="2"] .c2, .frame[data-ch="3"] .c3 { opacity: 1; transform: none; }
+.stack { position: absolute; left: 6%; top: 16%; width: 28%; height: 74%; }
+.stack .ph { position: absolute; inset: 0; background: center / cover no-repeat; opacity: 0; transition: opacity 1s, transform 1s; }
+.stack .ph.front { opacity: 1; transform: none; z-index: 3; }
+.stack .ph.b1 { transform: translate(4.5%, -2%) scale(.97); opacity: .55; z-index: 2; }
+.stack .ph.b2 { transform: translate(9%, -4%) scale(.94); opacity: .3; z-index: 1; }
+.c1 .ph { border-radius: 50% 50% 0 0 / 24% 24% 0 0; }
+.c2 .ph { border-radius: 2px; }
+.c3 .ph { clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
+.tx { position: absolute; left: 48%; top: 19%; width: 44%; display: grid; gap: 1.5cqw; }
+.mom { display: flex; gap: 2.4cqw; font-size: 1.2cqw; letter-spacing: .14em; text-transform: uppercase; }
+.mom span { position: relative; opacity: .5; padding-bottom: .5cqw; }
+.mom span.on { opacity: 1; }
+.mom span.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: rgba(238,232,221,.25); }
+.mom span.on .fill { position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--linen); transform-origin: left; transform: scaleX(.6); }
+.frame:not(.static) .mom span.on .fill { animation: fill 2.6s linear both; }
+@keyframes fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.tx .h { font-family: var(--voice); font-style: italic; font-size: 4.6cqw; line-height: 1; }
+.tx .li { font-size: 1.35cqw; border-top: 1px solid rgba(238,232,221,.16); padding-top: .8cqw; display: flex; justify-content: space-between; gap: 2cqw; }
+.tx .li span { opacity: .6; }
+.tx .foot { margin-top: 1.4cqw; font-size: 1.15cqw; opacity: .7; }
+.frame.phone .idx { font-size: 3.4cqw; left: 6%; top: 3%; }
+.frame.phone .tabs { left: 6%; top: 6.5%; font-size: 4.6cqw; gap: 4cqw; }
+.frame.phone .stack { left: 8%; top: 12%; width: 66%; height: 38%; }
+.frame.phone .tx { left: 8%; top: 59%; width: 84%; gap: 3.4cqw; }
+.frame.phone .mom { font-size: 3.4cqw; gap: 4cqw; }
+.frame.phone .tx .h { font-size: 11cqw; }
+.frame.phone .tx .li { font-size: 3.9cqw; padding-top: 2cqw; }
+.frame.phone .tx .li span, .frame.phone .tx .foot { display: none; }
+
+/* the drawing of the piece (always visible beside the photograph) */
+.sketch { position: absolute; border: 1px solid rgba(238,232,221,.75); border-radius: 12cqw; padding: 14cqw 10cqw 10cqw; display: flex; flex-direction: column; gap: 6cqw; container-type: inline-size; color: rgba(238,232,221,.8); }
+.draw { z-index: 5; left: 27.5%; top: 55%; width: 10%; height: 34.67%; background: rgba(23,22,20,.82); transition: left 1s, top 1s, width 1s, height 1s, opacity .8s; }
+.draw .cap { position: absolute; left: 0; right: 0; top: 102%; font-size: 6.4cqw; letter-spacing: .1em; text-transform: uppercase; text-align: center; white-space: nowrap; opacity: .75; }
+.draw .dc { display: contents; }
+.draw.big { left: 9%; top: 12%; width: 20%; height: 69.33%; background: rgba(23,22,20,.94); }
+.draw.big .cap { font-size: 5cqw; }
+.frame.phone .draw { left: 62%; top: 33%; width: 24%; height: 24%; }
+.frame.phone .draw .cap { font-size: 7cqw; }
+.sk-img.sun { position: relative; }
+.sk-img.sun i { position: absolute; left: 58%; top: 26%; width: 16cqw; height: 16cqw; border: 1px solid currentColor; border-radius: 50%; }
+.sk-img.sun::after { content: ""; position: absolute; left: 0; right: 0; top: 68%; height: 1px; background: currentColor; }
+.sk-row { display: flex; gap: 4cqw; }
+.sk-row i { flex: 1; height: 24cqw; border: 1px solid currentColor; opacity: .7; }
+.sk-tl { display: grid; gap: 8cqw; padding: 2cqw 0 2cqw 7cqw; margin-left: 2cqw; border-left: 1px solid currentColor; }
+.sk-tl i { display: block; height: 1px; background: currentColor; opacity: .6; position: relative; }
+.sk-tl i::before { content: ""; position: absolute; left: -9.4cqw; top: -2cqw; width: 4cqw; height: 4cqw; border-radius: 50%; border: 1px solid currentColor; background: #171614; }
+.sk-tl i.on::before { background: currentColor; }
+.tx .li.drawn { border-top-color: rgba(238,232,221,.7); }
+.frame.phone .draw.big { left: 16%; top: 10%; width: 68%; height: 68%; }
+.sk-bar { display: flex; justify-content: space-between; font-size: 8cqw; letter-spacing: .14em; }
+.sk-img { height: 34%; border: 1px solid currentColor; border-radius: 3cqw; opacity: .7; }
+.sk-t { font-family: var(--voice); font-style: italic; font-size: 13cqw; line-height: 1; }
+.sk-l { height: 1px; background: currentColor; opacity: .55; }
+.sk-l.s { width: 60%; }
+.sk-btn { margin-top: auto; align-self: center; border: 1px solid currentColor; border-radius: 99px; padding: 3cqw 9cqw; font-size: 7cqw; }
+
+/* method */
+/* the studio backdrop: wall curving into the floor, a key light from the hour's side, a vignette */
+.sky { z-index: 1; transition: opacity 1.4s;
+  background: radial-gradient(55% 70% at var(--kx) var(--ky), var(--key), transparent 72%),
+    linear-gradient(180deg, var(--wall) 0%, var(--wall2) 58%, var(--floor) 70%, var(--floor2) 100%); }
+.sky::before { content: ""; position: absolute; inset: 0; background: radial-gradient(160% 22% at 50% 66%, rgba(255,255,255,.14), transparent 70%); }
+.sky::after { content: ""; position: absolute; inset: 0; background: radial-gradient(130% 100% at var(--kx) 40%, transparent 50%, rgba(15,13,11,.38) 100%); }
+/* screens are objects in the room: a soft shadow towards the floor */
+.frame.sky-on .card:not(.ghost) .dev { box-shadow: 0 .4cqw .6cqw rgba(0,0,0,.22), 0 6cqw 8cqw -3cqw rgba(20,16,12,.38); }
+.frame.sky-on .sky { opacity: 1; }
+/* the end: the studio lights go down and one light stays on the sentence */
+.dusk { z-index: 2; transition: opacity 1.8s;
+  /* one quiet, round pool of light: sized by the frame's width so it never stretches on a tall phone */
+  background: radial-gradient(circle 30cqw at 50% 46%, rgba(255,236,206,.16), rgba(255,236,206,.05) 60%, transparent 100%), #171816; }
+.frame.phone .dusk { background: radial-gradient(circle 62cqw at 50% 44%, rgba(255,236,206,.15), rgba(255,236,206,.05) 60%, transparent 100%), #171816; }
+.frame.st11 .end, .frame.st11 .chrome { color: #EEE8DD; }
+.frame.desk .end { left: 30%; right: 30%; }
+.card.ghost { filter: grayscale(1); }
+.card.ghost .dev { box-shadow: none; }
+.frame.st11 .dusk { opacity: 1; }
+.grain { z-index: 40; opacity: .07; pointer-events: none; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 .6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.chrome { position: absolute; left: 3%; top: 6%; z-index: 30; font-size: max(5px, 1.2cqw); letter-spacing: .16em; text-transform: uppercase; color: var(--sky-ink); opacity: 0; transition: opacity 1s, color 1s; }
+.chrome i { font-family: var(--voice); font-size: 1.6em; letter-spacing: 0; text-transform: none; margin-right: .4em; }
+.frame.sky-on .chrome { opacity: .75; }
+.frame.phone .chrome { font-size: 3.4cqw; left: 6%; top: 3%; }
+.phrase { position: absolute; left: 0; right: 0; top: 9%; z-index: 20; text-align: center; color: var(--sky-ink); font-family: var(--voice); font-size: 5.6cqw; line-height: 1; opacity: 0; transform: translateY(12%); transition: opacity 1s .2s, transform 1s .2s, color 1s; }
+.phrase i { font-style: italic; }
+.mfield { position: absolute; left: 50%; top: 31%; z-index: 20; transform: translate(-50%, 8%); display: flex; gap: 1.6cqw; align-items: baseline; white-space: nowrap; color: var(--sky-ink); opacity: 0; transition: opacity 1s .45s, transform 1s .45s, color 1s; }
+.mfield .k { font-size: 1.15cqw; letter-spacing: .18em; text-transform: uppercase; opacity: .8; }
+.mfield .in { font-family: var(--voice); font-style: italic; font-size: 2.3cqw; border-bottom: 1px solid currentColor; min-width: 15cqw; padding-inline: .4cqw; }
+.mfield .in.empty { opacity: .55; }
+.frame.st7 .phrase, .frame.st8 .phrase { opacity: 1; transform: none; }
+.frame.st7 .mfield, .frame.st8 .mfield { opacity: 1; transform: translate(-50%, 0); }
+.frame.phone .phrase { font-size: 11cqw; top: 9%; }
+.frame.phone .mfield { top: 27%; gap: 3cqw; }
+.frame.phone .mfield .k { font-size: 3.6cqw; }
+.frame.phone .mfield .in { font-size: 7cqw; min-width: 34cqw; }
+
+.card { position: absolute; z-index: 10; container-type: inline-size; transition: left 1.1s, top 1.1s, width 1.1s, height 1.1s, transform 1.1s, opacity .9s; }
+.dev { position: absolute; inset: 0; border-radius: 11cqw; background: #121212; padding: 2.6cqw; box-shadow: 0 2px 3px rgba(0,0,0,.22), 0 14px 30px rgba(20,18,15,.3); transition: opacity .6s, border-radius 1.1s, padding 1.1s; }
+.scr { position: relative; width: 100%; height: 100%; border-radius: 8.6cqw; overflow: hidden; transition: border-radius 1.1s; }
+.frame.phone .dev { background: none; padding: 0; border-radius: 5cqw; box-shadow: 0 2px 3px rgba(0,0,0,.18), 0 18px 34px rgba(20,18,15,.28); }
+.frame.phone .scr { border-radius: 5cqw; }
+.frame.phone .card.full .dev, .frame.phone .card.full .scr { border-radius: 0; }
+.sheet { position: absolute; inset: 2.6cqw; border-radius: 8.6cqw; background: #E2DFD8; padding: 12cqw 9cqw 9cqw; display: flex; flex-direction: column; gap: 5cqw; color: #8F8B83; transition: transform 1s, opacity 1s, background-color 1s, border-color 1s, color 1s; border: 1px solid transparent; }
+.frame.phone .sheet { inset: 0; border-radius: 5cqw; }
+.sheet .sk-img { background: repeating-linear-gradient(45deg, #CCC8C0 0 3cqw, #D6D2CB 3cqw 6cqw); border-color: transparent; opacity: 1; }
+.sheet .sk-t { font-family: var(--read); font-style: normal; font-size: 11cqw; }
+.sheet .sk-l { background: #BDB9B1; height: 3.4cqw; border-radius: 2cqw; opacity: 1; }
+.sheet .sk-btn { align-self: flex-start; border-color: #A9A59D; }
+.card.asdraw .sheet { inset: 0; background: transparent; border-color: rgba(238,232,221,.75); color: rgba(238,232,221,.8); border-radius: 12cqw; padding: 14cqw 10cqw 10cqw; }
+.card.asdraw .sheet .sk-img { background: none; border-color: currentColor; opacity: .7; }
+.card.asdraw .sheet .sk-t { font-family: var(--voice); font-style: italic; font-size: 13cqw; }
+.card.asdraw .sheet .sk-l { background: currentColor; height: 1px; opacity: .55; }
+.card.asdraw .sheet .sk-btn { align-self: center; border-color: currentColor; }
+.card.asdraw .dev { opacity: 0; }
+.card.lift .sheet { transform: translate(10%, -36%) rotate(-10deg); opacity: .5; }
+.card.gone .sheet { transform: translate(16%, -130%) rotate(-14deg); opacity: 0; }
+.card.light .dev, .card.light .sheet { opacity: 0; }
+.card::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle, rgba(255,246,232,1) 0 30%, rgba(255,236,210,.35) 55%, transparent 72%); opacity: 0; transition: opacity 1.2s .3s; pointer-events: none; }
+.card.light::after { opacity: 1; }
+
+/* the six screens */
+.k { font-size: 6cqw; letter-spacing: .18em; text-transform: uppercase; }
+.s-wed { background: #F2EEE7; color: var(--ink); display: flex; flex-direction: column; }
+.s-wed .bg { height: 60%; position: relative; filter: grayscale(1); }
+.s-wed .nav { position: absolute; left: 0; right: 0; top: 9cqw; display: flex; justify-content: center; gap: 6cqw; color: #fff; font-size: 5cqw; letter-spacing: .14em; text-transform: uppercase; }
+.s-wed .tx2 { padding: 7cqw 8cqw; display: grid; gap: 3cqw; text-align: center; }
+.s-wed .h { font-family: var(--voice); font-style: italic; font-size: 15cqw; line-height: .95; }
+.s-wed .k { color: var(--accent); }
+.s-rsvp { background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 16%, #F2EEE7) 0%, #F2EEE7 45%); color: var(--ink); padding: 18cqw 9cqw 10cqw; display: flex; flex-direction: column; gap: 6cqw; text-align: center; }
+.s-rsvp .h { font-family: var(--voice); font-style: italic; font-size: 16cqw; line-height: .95; }
+.s-rsvp .cd { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2cqw; }
+.s-rsvp .cd div { display: grid; border-top: 1px solid rgba(42,40,35,.25); padding-top: 2cqw; }
+.s-rsvp .cd b { color: var(--ink); font-family: var(--voice); font-weight: 400; font-size: 13cqw; line-height: 1; font-variant-numeric: tabular-nums; }
+.s-rsvp .cd span { font-size: 4.4cqw; letter-spacing: .14em; text-transform: uppercase; opacity: .6; }
+.s-rsvp .yes { margin-top: auto; background: var(--ink); color: var(--linen); border-radius: 99px; padding: 4cqw; font-size: 6cqw; }
+.s-rsvp .no { border: 1px solid rgba(42,40,35,.4); border-radius: 99px; padding: 4cqw; font-size: 6cqw; }
+.s-folio { background: var(--moss); color: var(--linen); padding: 14cqw 0 10cqw; display: flex; flex-direction: column; gap: 6cqw; }
+.s-folio .top { padding-inline: 9cqw; display: flex; justify-content: space-between; }
+.s-folio .i { padding-inline: 8cqw; font-family: var(--voice); font-style: italic; font-size: 72cqw; line-height: .72; }
+.s-folio .strip { display: flex; gap: 4cqw; padding-left: 9cqw; width: max-content; }
+.s-folio .strip div { width: 54cqw; height: 72cqw; border-radius: 1cqw; }
+.live .s-folio .strip { animation: drift 7s var(--ease) infinite alternate; }
+@keyframes drift { to { transform: translateX(-58cqw); } }
+.s-expo { background: #15130F; color: var(--linen); }
+.s-expo > .bg { position: absolute; inset: 0; }
+.live .s-expo > .bg { animation: walk 9s ease-in-out infinite alternate; }
+@keyframes walk { to { transform: scale(1.14) translateY(3%); } }
+.s-expo .ov { position: absolute; inset: auto 0 0; padding: 30cqw 9cqw 10cqw; background: linear-gradient(transparent, rgba(10,9,7,.85)); display: grid; gap: 3cqw; }
+.s-expo .h { font-family: var(--voice); font-style: italic; font-size: 14cqw; line-height: 1; }
+.s-expo .dots { display: flex; gap: 3cqw; }
+.s-expo .dots i { width: 8cqw; height: 1px; background: rgba(238,232,221,.4); }
+.s-expo .dots i:first-child { background: var(--linen); }
+.s-event { color: #fff; }
+.s-event > .bg { position: absolute; inset: 0; }
+.s-event .ov { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,9,7,.15), rgba(10,9,7,.1) 40%, rgba(10,9,7,.8)); display: flex; flex-direction: column; justify-content: flex-end; padding: 10cqw 9cqw; gap: 3cqw; }
+.s-event .h { font-family: var(--voice); font-size: 22cqw; line-height: .9; }
+.s-event .btn { margin-top: 4cqw; align-self: flex-start; border: 1px solid rgba(255,255,255,.7); border-radius: 99px; padding: 3.4cqw 8cqw; font-size: 5.6cqw; }
+.s-guide { background: #1A1D24; color: var(--linen); padding: 16cqw 9cqw 9cqw; display: flex; flex-direction: column; gap: 6cqw; }
+.s-guide .h { font-family: var(--voice); font-style: italic; font-size: 15cqw; line-height: 1; }
+.s-guide ol { list-style: none; margin: 0; padding: 0 0 0 7cqw; display: grid; gap: 6cqw; position: relative; }
+.s-guide ol::before { content: ""; position: absolute; left: 1.2cqw; top: 2cqw; bottom: 2cqw; width: 1px; background: rgba(238,232,221,.25); }
+.s-guide li { display: grid; gap: .5cqw; position: relative; font-size: 6cqw; opacity: .6; }
+.s-guide li b { font-variant-numeric: tabular-nums; font-size: 5cqw; letter-spacing: .1em; }
+.s-guide li::before { content: ""; position: absolute; left: -7.6cqw; top: 1.4cqw; width: 2.6cqw; height: 2.6cqw; border-radius: 50%; background: #1A1D24; border: 1px solid rgba(238,232,221,.5); }
+.s-guide li.now { opacity: 1; }
+.s-guide li.now::before { background: var(--accent); border-color: var(--accent); }
+.live .s-guide li.now::before { animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: scale(1.7); opacity: .5; } }
+
+/* cover and the end */
+.cover { position: absolute; left: 50%; top: 48%; width: 17%; aspect-ratio: 9 / 19.5; z-index: 20; container-type: inline-size; opacity: 0; transform: translate(-50%, -50%) scale(.86); transition: opacity 1s, transform 1s; }
+.frame.st10 .cover { opacity: 1; transform: translate(-50%, -50%); }
+.frame.st11 .cover { opacity: 0; transform: translate(-50%, -50%) scale(.2); }
+.cover .scr { background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 14%, #F4F0E8), #F4F0E8 50%); color: var(--ink); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 10cqw; gap: 6cqw; }
+.cover .k { color: var(--accent); font-size: 5.4cqw; }
+.cover .h { font-family: var(--voice); font-style: italic; font-size: 17cqw; line-height: 1; }
+.cover .rule { width: 24%; height: 1px; background: currentColor; opacity: .3; }
+.cover .cdate { font-family: var(--voice); font-size: 8.6cqw; line-height: 1.3; }
+.frame.phone .cover { width: 64%; top: 46%; }
+.frame.phone .cover .dev { background: none; padding: 0; }
+.end { position: absolute; left: 8%; right: 8%; top: 40%; z-index: 20; display: grid; justify-items: center; text-align: center; gap: 2.4cqw; color: var(--sky-ink); opacity: 0; transform: translateY(6%); transition: opacity 1.2s .5s, transform 1.2s .5s, color 1s; }
+.frame.st11 .end { opacity: 1; transform: none; }
+.end .msg { font-family: var(--voice); font-size: 4.6cqw; line-height: 1.08; }
+.end .msg i { font-style: italic; }
+.end .msg .for { display: block; margin-top: .7em; font-size: .46em; font-style: italic; letter-spacing: .02em; opacity: .9; }
+.cover .h.nm { font-size: 26cqw; }
+.end .steps { font-size: 1.15cqw; letter-spacing: .14em; text-transform: uppercase; opacity: .75; }
+.end .cta { margin-top: 1.4cqw; font-size: 1.3cqw; letter-spacing: .2em; text-transform: uppercase; border-bottom: 1px solid currentColor; padding-bottom: .4cqw; }
+.frame.phone .end { top: 40%; gap: 5cqw; }
+.frame.phone .end .msg { font-size: 10.4cqw; }
+.frame.phone .end .steps { font-size: 3.4cqw; line-height: 1.7; }
+.frame.phone .end .cta { font-size: 4.2cqw; }
+
+/* motion panel controls */
+.mbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.mbar .now { font-family: var(--voice); font-style: italic; font-size: 20px; min-width: 15ch; }
+.ticks { display: flex; gap: 4px; }
+.ticks i { width: 14px; height: 2px; background: var(--rule); }
+.ticks i.on { background: var(--linen); }
+
+.skies { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.skies .sw { aspect-ratio: 3 / 4; border-radius: 4px; position: relative; overflow: hidden; }
+.skies .sw .L { opacity: 1; }
+@media (max-width: 560px) { .skies { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.opinion { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }
+.opinion > div { display: grid; gap: 10px; align-content: start; }
+.opinion p { color: var(--muted); font-size: 14.5px; }
+@media (max-width: 760px) { .opinion { grid-template-columns: 1fr; } }
+.msgs { display: grid; gap: 10px; }
+.msgs button { text-align: left; background: transparent; border: 1px solid var(--rule); border-radius: 4px; padding: 14px 16px; cursor: pointer; display: grid; gap: 4px; }
+.msgs button[aria-pressed="true"] { border-color: var(--linen); }
+.msgs .q { font-family: var(--voice); font-size: 24px; line-height: 1.15; }
+.msgs .q i { font-style: italic; }
+.msgs .w { font-size: 13px; color: var(--muted); }
+.decide ol { margin: 0; padding-left: 20px; display: grid; gap: 10px; max-width: 76ch; }
+.decide li { color: var(--muted); }
+.decide li::marker { font-family: var(--voice); font-style: italic; }
+
+@media (prefers-reduced-motion: reduce) { .frame * { transition: none !important; animation: none !important; } }
+/* ---------- About (merged from its own storyboard; classes renamed to avoid collisions) ---------- */
+/* ---------- frames ---------- */
+.afr { position: relative; overflow: hidden; width: 100%; aspect-ratio: 16 / 10; border-radius: 4px; background: #171816; container-type: inline-size; box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 18px 40px rgba(0,0,0,.35); }
+.afr.abp { aspect-ratio: 9 / 19.5; border-radius: 14px; }
+.afr * { transition-timing-function: var(--ease); }
+.afr.static, .afr.static * { transition: none !important; }
+.aL { position: absolute; inset: 0; pointer-events: none; }
+.moss { background: #1B1C1A; opacity: 0; transition: opacity 1.6s; }
+.as2 .moss, .as3 .moss { opacity: 1; }
+/* the room takes the portrait's own atmosphere: grey-warm while it is black and white, its greens and blues when it shows colour */
+.aaura { position: absolute; z-index: 1; left: -22%; top: -30%; width: 112%; height: 160%; background: center / 100% 100% no-repeat; opacity: 0; pointer-events: none;
+  -webkit-mask: radial-gradient(closest-side, #000 20%, transparent 100%); mask: radial-gradient(closest-side, #000 20%, transparent 100%); transition: opacity 2.4s; }
+.abp .aaura { left: -40%; top: -24%; width: 180%; height: 112%; }
+.as2 .aaura.mono, .as3 .aaura.mono { opacity: .9; }
+.afr.reveal .aaura.col { opacity: .95; }
+.afr.reveal .aaura.mono { opacity: 0; }
+.agrain { z-index: 8; opacity: .1; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 .6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+/* the light that stayed on the sentence at the end of the Method */
+.pool { background: radial-gradient(circle 30cqw at 50% 46%, rgba(255,236,206,.16), rgba(255,236,206,.05) 60%, transparent 100%); transition: opacity 1.4s; }
+.abp .pool { background: radial-gradient(circle 62cqw at 50% 44%, rgba(255,236,206,.15), rgba(255,236,206,.05) 60%, transparent 100%); }
+.as1 .pool, .as2 .pool, .as3 .pool { opacity: 0; }
+.achrome { position: absolute; left: 3%; top: 6%; z-index: 9; font-size: max(5px, 1.2cqw); letter-spacing: .16em; text-transform: uppercase; opacity: .75; }
+.achrome i { font-family: var(--voice); font-size: 1.6em; letter-spacing: 0; text-transform: none; margin-right: .4em; }
+.abp .achrome { font-size: 3.4cqw; left: 6%; top: 3%; }
+.amsg { position: absolute; left: 30%; right: 30%; top: 40%; z-index: 7; text-align: center; font-family: var(--voice); font-size: 4.4cqw; line-height: 1.05; transition: opacity 1s, transform 1s; }
+.amsg i { font-style: italic; }
+.amsg small { display: block; margin-top: .8cqw; font-size: 1.9cqw; font-style: italic; }
+.abp .amsg { left: 8%; right: 8%; font-size: 10.4cqw; }
+.abp .amsg small { font-size: 4.6cqw; margin-top: 2cqw; }
+.as1 .amsg, .as2 .amsg, .as3 .amsg { opacity: 0; transform: translateY(-8%); }
+
+/* the portrait: black and white; its colour (the same photograph) only while hovered or held */
+.pt { position: absolute; z-index: 4; left: 38%; top: 19%; width: 24%; height: 58%; clip-path: circle(0% at 50% 46%); cursor: pointer; touch-action: pan-y;
+  transition: left 1.4s, top 1.4s, width 1.4s, height 1.4s, clip-path 1.4s; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.pt i { position: absolute; inset: 0; background: center 30% / cover no-repeat; }
+.pt .col { opacity: 0; transition: opacity 1.8s cubic-bezier(.33, 0, .2, 1); }
+.pt.reveal .col { opacity: 1; }
+.pt:focus-visible { outline: 2px solid var(--linen); outline-offset: 4px; }
+.as2 .pt, .as3 .pt { left: 7%; top: 11.5%; width: 33%; height: 80%; clip-path: circle(75% at 50% 50%); }
+.abp .pt { left: 18%; top: 20%; width: 64%; height: 36%; }
+.abp.as2 .pt, .abp.as3 .pt { left: 0; top: 0; width: 100%; height: 48%; }
+/* transition A: the light opens into a circle with the portrait */
+.tA.as1 .pt { clip-path: circle(36% at 50% 46%); }
+.abp.tA.as1 .pt { clip-path: circle(36% at 50% 46%); }
+/* transition B: the portrait is already in the dark room; the light moves from the sentence onto it, then the room comes up */
+.spot { position: absolute; z-index: 6; left: -100%; top: -100%; width: 300%; height: 300%; pointer-events: none; opacity: 0;
+  background: radial-gradient(circle 15cqw at 50% 50%, transparent 0, transparent 45%, #171816 100%); transition: transform 1.8s, opacity 1.4s; }
+.abp .spot { background: radial-gradient(circle 38cqw at 50% 50%, transparent 0, transparent 45%, #171816 100%); }
+.tB.as0 .spot, .tB.as1 .spot { opacity: 1; }
+.abp.tB.as1 .spot { transform: translate(0, -8%); }
+.tB.as2 .spot, .tB.as3 .spot { opacity: 0; }
+.abp.tB.as2 .spot, .abp.tB.as3 .spot { transform: translate(0, -8%); }
+.tB.as0 .pool { opacity: 0; }
+.tB.as1 .pt { left: 33.5%; top: 11.5%; width: 33%; height: 80%; clip-path: circle(75% at 50% 50%); }
+.abp.tB.as1 .pt { left: 0; top: 0; width: 100%; height: 48%; }
+
+.cap { position: absolute; z-index: 5; left: 8%; top: 91.5%; font-size: .95cqw; letter-spacing: .12em; text-transform: uppercase; opacity: 0; transition: opacity 1s .4s; }
+.cap b { font-weight: 400; color: var(--linen); opacity: .85; }
+.abp .cap { font-size: 2.6cqw; left: 6%; top: 49%; }
+.as2 .cap, .as3 .cap { opacity: .6; }
+
+.say { position: absolute; z-index: 5; left: 46%; right: 8%; top: 31%; display: grid; gap: 1.6cqw; opacity: 0; transform: translateY(5%); transition: opacity 1.1s 1.3s, transform 1.1s 1.3s; }
+.as2 .say, .as3 .say { opacity: 1; transform: none; }
+.say .h { font-family: var(--voice); font-size: 4.6cqw; line-height: 1; }
+.say .sub { font-family: var(--voice); font-style: italic; font-size: 3.1cqw; line-height: 1.12; }
+.abp .say { left: 7%; right: 7%; top: 60%; gap: 2.6cqw; }
+/* the name: one element, always at its final place and in its final style. In the light it is the same element,
+   moved and scaled with a transform (--from, measured per frame), so 1 -> 2 is a single movement with nothing snapping */
+.name { position: absolute; z-index: 7; left: 46%; top: 17%; font-family: var(--voice); font-size: 6.4cqw; line-height: 1; white-space: nowrap; transform-origin: 0 0;
+  opacity: 0; transform: var(--from, none); transition: opacity 1.2s .5s, transform 1.5s; }
+.as1 .name { opacity: .92; }
+.as2 .name, .as3 .name { opacity: 1; transform: none; transition-delay: 0s; }
+.abp .name { left: 7%; top: 53%; font-size: 11cqw; }
+/* desktop: an editorial grid instead of floating text */
+.label2 { position: absolute; z-index: 5; left: 46%; right: 8%; top: 11.5%; display: flex; align-items: center; gap: 1.4cqw; font-size: 1cqw; letter-spacing: .18em; text-transform: uppercase; opacity: 0; transition: opacity 1s 1.3s; }
+.label2::after { content: ""; flex: 1; height: 1px; background: rgba(238,232,221,.25); }
+.as2 .label2, .as3 .label2 { opacity: .7; }
+.rule2 { position: absolute; z-index: 5; left: 46%; right: 8%; top: 58%; height: 1px; background: rgba(238,232,221,.22); transform: scaleX(0); transform-origin: left; transition: transform 1.2s .3s; }
+.as3 .rule2 { transform: none; }
+.meta { position: absolute; z-index: 5; left: 74%; right: 8%; top: 61.5%; font-size: .95cqw; letter-spacing: .12em; text-transform: uppercase; line-height: 1.9; opacity: 0; transition: opacity 1s .5s; }
+.as3 .meta { opacity: .6; }
+.abp .label2, .abp .rule2, .abp .meta { display: none; }
+.afr:not(.abp) .cap { display: none; }
+.abp .say .h { font-size: 11cqw; }
+.abp .say .sub { font-size: 6.4cqw; }
+.para { position: absolute; z-index: 5; left: 46%; right: 30%; top: 61.5%; font-size: 1.25cqw; line-height: 1.65; color: rgba(238,232,221,.82); opacity: 0; transition: opacity 1s .2s; }
+.as3 .para { opacity: 1; }
+.abp .para { left: 7%; right: 7%; top: 74%; font-size: 3.5cqw; line-height: 1.55; }
+.next { position: absolute; z-index: 5; left: 46%; top: 89.5%; font-size: 1.05cqw; letter-spacing: .16em; text-transform: uppercase; opacity: 0; transition: opacity 1s .6s; }
+.as3 .next { opacity: .7; }
+.abp .next { left: 7%; top: 95%; font-size: 3cqw; }
+
+/* ---------- Questions (merged from its own storyboard) ---------- */
+/* ---------- frames ---------- */
+.qfr { position: relative; overflow: hidden; width: 100%; aspect-ratio: 16 / 10; border-radius: 4px; background: #1B1C1A; color: var(--linen); container-type: inline-size; box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 18px 40px rgba(0,0,0,.35); }
+.qfr.qph { aspect-ratio: 9 / 19.5; border-radius: 14px; }
+.qfr * { transition-timing-function: var(--ease); }
+.qfr.static, .qfr.static * { transition: none !important; }
+.qL { position: absolute; inset: 0; pointer-events: none; }
+/* where the About left the room: dark, with the portrait's atmosphere */
+.qprev { background: radial-gradient(60% 70% at 24% 50%, rgba(170,162,150,.18), transparent 70%), #1B1C1A; transition: opacity 1.4s; }
+.qprev .ppt { position: absolute; left: 7%; top: 11.5%; width: 33%; height: 80%; background: center 30% / cover no-repeat; filter: grayscale(1); }
+.qprev .pt2 { position: absolute; left: 46%; top: 17%; font-family: var(--voice); font-size: 6.4cqw; line-height: 1; }
+.qph .qprev .ppt { left: 0; top: 0; width: 100%; height: 48%; }
+.qph .qprev .pt2 { left: 7%; top: 53%; font-size: 11cqw; }
+/* the studio lights come on: the same paper sweep as the Method, at full daylight, flat enough to read on */
+.qpaper { background: radial-gradient(60% 70% at 28% 14%, rgba(255,250,240,.5), transparent 72%),
+    radial-gradient(160% 22% at 50% 82%, rgba(255,255,255,.12), transparent 70%),
+    radial-gradient(130% 100% at 30% 40%, transparent 55%, rgba(60,50,40,.2) 100%),
+    linear-gradient(180deg, #DCD5C8 0%, #D2CABC 64%, #CCC3B4 76%, #BEB5A6 100%);
+  transform: translateY(100%); transition: transform 1.6s; }
+.qs1 .qpaper, .qs2 .qpaper, .qs3 .qpaper, .qs4 .qpaper { transform: none; }
+.qs1 .qprev, .qs2 .qprev, .qs3 .qprev, .qs4 .qprev { opacity: 0; transition-delay: .6s; }
+.qgrain { z-index: 9; opacity: .09; mix-blend-mode: multiply; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 .6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.qchrome { position: absolute; left: 3%; top: 6%; z-index: 8; font-size: max(5px, 1.2cqw); letter-spacing: .16em; text-transform: uppercase; color: var(--linen); opacity: .75; transition: color 1s .6s; }
+.qchrome i { font-family: var(--voice); font-size: 1.6em; letter-spacing: 0; text-transform: none; margin-right: .4em; }
+.qs1 .qchrome, .qs2 .qchrome, .qs3 .qchrome, .qs4 .qchrome { color: var(--ink); }
+.qph .qchrome { font-size: 3.4cqw; left: 6%; top: 3%; }
+
+/* the anchor: one question answered in full, set like a title page */
+.qanchor { position: absolute; z-index: 5; left: 7%; top: 16%; width: 32%; color: var(--ink); display: grid; gap: 1.6cqw; opacity: 0; transform: translateY(5%); transition: opacity 1.1s .8s, transform 1.1s .8s; }
+.qs1 .qanchor, .qs2 .qanchor, .qs3 .qanchor, .qs4 .qanchor { opacity: 1; transform: none; }
+.qanchor .k { font-size: 1cqw; letter-spacing: .18em; text-transform: uppercase; opacity: .7; display: flex; align-items: center; gap: 1.2cqw; }
+.qanchor .k::after { content: ""; flex: 1; height: 1px; background: rgba(42,40,35,.3); }
+.qanchor .h { font-family: var(--voice); font-size: 4.6cqw; line-height: 1.02; }
+.qanchor .h i { font-style: italic; }
+.qanchor p { color: rgba(42,40,35,.85); font-size: 1.25cqw; line-height: 1.6; max-width: none; }
+.qanchor .chs { display: grid; gap: .5cqw; margin-top: .6cqw; }
+.qanchor .chs a { color: var(--ink); text-decoration: none; font-family: var(--voice); font-size: 1.9cqw; display: flex; justify-content: space-between; border-top: 1px solid rgba(42,40,35,.2); padding-top: .5cqw; }
+.qanchor .chs a i { font-size: .75em; opacity: .6; margin-right: .5em; }
+.qph .qanchor { left: 7%; right: 7%; width: auto; top: 9%; gap: 3cqw; }
+.qph .qanchor .k { font-size: 3cqw; gap: 3cqw; }
+.qph .qanchor .h { font-size: 10.4cqw; }
+.qph .qanchor p { font-size: 3.5cqw; }
+/* phone: the three chapters as one line of type, not a table: no rules, the small italic numerals do the separating */
+.qph .qanchor .chs { display: flex; flex-wrap: nowrap; justify-content: flex-start; gap: 0; margin-top: 2.4cqw; }
+.qph .qanchor .chs a { font-size: 5.2cqw; border: 0; padding: 0; justify-content: flex-start; white-space: nowrap; }
+.qph .qanchor .chs a + a::before { content: ""; align-self: center; width: 1px; height: 3.8cqw; margin: 0 4cqw; background: rgba(42,40,35,.35); }
+.qph .qanchor .chs a i { display: none; } /* the numerals stay on desktop; on a phone the names need the room */
+.qph .qanchor .chs a span:last-child { display: none; }
+
+/* the six questions: a numbered index; one answer opens at a time */
+.qlist { position: absolute; z-index: 5; left: 47%; right: 7%; top: 14%; color: var(--ink); display: grid; }
+.qrow { border-top: 1px solid rgba(42,40,35,.22); opacity: 0; transform: translateY(14%); transition: opacity .7s, transform .7s; }
+.qrow:first-child { border-top: 0; }
+.qrow:last-child { border-bottom: 1px solid rgba(42,40,35,.22); }
+.qs2 .qrow, .qs3 .qrow, .qs4 .qrow { opacity: 1; transform: none; }
+.qrow button { all: unset; box-sizing: border-box; width: 100%; display: grid; grid-template-columns: 3cqw 1fr 2cqw; align-items: baseline; padding: .9cqw 0; cursor: pointer; pointer-events: auto; }
+.qrow button:focus-visible { outline: 1px solid var(--ink); outline-offset: .3cqw; }
+.qrow .num { font-family: var(--voice); font-style: italic; font-size: 1.4cqw; opacity: .55; }
+.qrow .qq { font-family: var(--voice); font-size: 1.95cqw; line-height: 1.15; }
+.qrow .pm { justify-self: end; width: 1.1cqw; height: 1.1cqw; position: relative; transition: transform .6s; }
+.qrow .pm::before, .qrow .pm::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: currentColor; }
+.qrow .pm::after { transform: rotate(90deg); }
+.qrow.open .pm { transform: rotate(45deg); }
+/* the answer unfolds: grid rows 0fr -> 1fr, plus a short fade */
+.qans { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .7s; }
+.qrow.open .qans { grid-template-rows: 1fr; }
+.qans > div { overflow: hidden; padding-left: 3cqw; }
+.qans p { color: rgba(42,40,35,.85); font-size: 1.15cqw; line-height: 1.6; max-width: 46cqw; margin-bottom: 1.4cqw; opacity: 0; transition: opacity .6s .15s; }
+.qrow.open .qans p { opacity: 1; }
+.qans .chs { display: flex; gap: 1.6cqw; margin: -.4cqw 0 1.4cqw; font-size: 1cqw; letter-spacing: .12em; text-transform: uppercase; opacity: 0; transition: opacity .6s .25s; }
+.qrow.open .qans .chs { opacity: 1; }
+.qans .chs span { border-bottom: 1px solid currentColor; padding-bottom: .2cqw; }
+.qnext { position: absolute; z-index: 5; left: 47%; top: 93.5%; color: var(--ink); font-size: 1.05cqw; letter-spacing: .16em; text-transform: uppercase; opacity: 0; transition: opacity 1s .6s; }
+.qs2 .qnext, .qs3 .qnext, .qs4 .qnext { opacity: .7; }
+.qph .qlist { left: 7%; right: 7%; top: 39%; }
+.qph .qrow button { grid-template-columns: 7cqw 1fr 5cqw; padding: 2.2cqw 0; }
+.qph .qrow .num { font-size: 3.2cqw; }
+.qph .qrow .qq { font-size: 4.6cqw; }
+.qph .qrow .pm { width: 3cqw; height: 3cqw; }
+.qph .qans > div { padding-left: 7cqw; }
+.qph .qans p { font-size: 3.4cqw; max-width: none; margin-bottom: 3cqw; }
+.qph .qans .chs { font-size: 2.8cqw; gap: 3cqw; margin-bottom: 3cqw; }
+.qph .qnext { display: none; } /* on a phone the list simply scrolls on into the Contact */
+.qans .lk { border-bottom: 1px solid currentColor; }
+@media (prefers-reduced-motion: reduce) { .qfr * { transition: none !important; } }
+/* ---------- Contact (merged from its own storyboard) ---------- */
+/* ---------- frames ---------- */
+.cfr { position: relative; overflow: hidden; width: 100%; aspect-ratio: 16 / 10; border-radius: 4px; background: #1B1C1A; color: var(--linen); container-type: inline-size; box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 18px 40px rgba(0,0,0,.35); }
+.cfr.cph { aspect-ratio: 9 / 19.5; border-radius: 14px; }
+.cfr * { transition-timing-function: var(--ease); }
+.cfr.static, .cfr.static * { transition: none !important; }
+.cL { position: absolute; inset: 0; pointer-events: none; }
+/* where the Questions left the room: the stone studio in daylight */
+.cstone { background: radial-gradient(60% 70% at 28% 14%, rgba(255,250,240,.5), transparent 72%), linear-gradient(180deg, #DCD5C8 0%, #D2CABC 64%, #CCC3B4 76%, #BEB5A6 100%); transition: opacity 1.8s; }
+.cs1 .cstone, .cs2 .cstone, .cs3 .cstone { opacity: 0; }
+/* the day ends in the studio: the light goes down to charcoal, one warm light stays low */
+.cnight { background: radial-gradient(circle 34cqw at 50% 58%, rgba(255,232,200,.07), transparent 100%), #1B1C1A; }
+.cph .cnight { background: radial-gradient(circle 70cqw at 50% 50%, rgba(255,232,200,.07), transparent 100%), #1B1C1A; }
+.cvid { background: center / cover no-repeat; transform: scale(1.04); animation: cdrift 18s ease-in-out infinite alternate; }
+@keyframes cdrift { to { transform: scale(1.1) translateX(-1.5%); } }
+.cveil { background: radial-gradient(70% 60% at 50% 45%, rgba(27,28,26,.72), rgba(27,28,26,.9) 100%); }
+.cfr.static .cvid { animation: none; }
+.cgrain { z-index: 9; opacity: .1; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 .6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.cchrome { position: absolute; left: 3%; top: 6%; z-index: 8; font-size: max(5px, 1.2cqw); letter-spacing: .16em; text-transform: uppercase; color: var(--ink); opacity: .75; transition: color 1.2s .6s; }
+.cchrome i { font-family: var(--voice); font-size: 1.6em; letter-spacing: 0; text-transform: none; margin-right: .4em; }
+.cs1 .cchrome, .cs2 .cchrome, .cs3 .cchrome { color: var(--linen); }
+.cph .cchrome { font-size: 3.4cqw; left: 6%; top: 3%; }
+.cqprev { position: absolute; z-index: 4; inset: 0; color: var(--ink); transition: opacity 1s; }
+.cs1 .cqprev, .cs2 .cqprev, .cs3 .cqprev { opacity: 0; }
+.cqprev .an { position: absolute; left: 7%; top: 16%; width: 32%; display: grid; gap: 1.6cqw; }
+.cqprev .an .h { font-family: var(--voice); font-size: 4.6cqw; line-height: 1.02; }
+.cqprev .an .h i { font-style: italic; }
+.cqprev .an p { color: rgba(42,40,35,.85); font-size: 1.25cqw; line-height: 1.6; max-width: none; margin: 0; }
+.cqprev .an .chs { display: grid; gap: .5cqw; }
+.cqprev .an .chs > span { font-family: var(--voice); font-size: 1.9cqw; display: flex; justify-content: space-between; border-top: 1px solid rgba(42,40,35,.2); padding-top: .5cqw; }
+.cqprev .an .chs i { font-size: .75em; opacity: .6; margin-right: .5em; }
+.cqprev ol { position: absolute; left: 47%; right: 7%; top: 14%; list-style: none; margin: 0; padding: 0; }
+.cqprev li { display: grid; grid-template-columns: 3cqw 1fr 2cqw; align-items: baseline; padding: .9cqw 0; border-top: 1px solid rgba(42,40,35,.22); font-family: var(--voice); font-size: 1.95cqw; }
+.cqprev li:first-child { border-top: 0; }
+.cqprev li:last-child { border-bottom: 1px solid rgba(42,40,35,.22); }
+.cqprev li em { font-size: .7em; opacity: .55; }
+.cqprev li b { justify-self: end; font-weight: 400; }
+.cqprev b { color: inherit; }
+.cqprev li { line-height: 1.15; }
+.cchrome .c { display: none; }
+.cs1 .cchrome .q, .cs2 .cchrome .q, .cs3 .cchrome .q { display: none; }
+.cs1 .cchrome .c, .cs2 .cchrome .c, .cs3 .cchrome .c { display: inline; }
+.cph .cqprev .an { left: 7%; right: 7%; width: auto; top: 9%; gap: 3cqw; }
+.cph .cqprev .an .h { font-size: 10.4cqw; }
+.cph .cqprev .an p { font-size: 3.5cqw; }
+.cph .cqprev .an .chs { display: flex; gap: 0; }
+.cph .cqprev .an .chs > span { font-size: 5.2cqw; border: 0; padding: 0; }
+.cph .cqprev .an .chs > span + span::before { content: ""; align-self: center; width: 1px; height: 3.8cqw; margin: 0 4cqw; background: rgba(42,40,35,.35); }
+.cph .cqprev .an .chs i, .cph .cqprev .an .chs b { display: none; }
+.cph .cqprev ol { left: 7%; right: 7%; top: 39%; }
+.cph .cqprev li { grid-template-columns: 7cqw 1fr 5cqw; padding: 2.2cqw 0; font-size: 4.6cqw; }
+
+/* the question: large, alone, held for a moment */
+.cq { position: absolute; z-index: 5; left: 10%; right: 10%; top: 18%; text-align: center; font-family: var(--voice); font-size: 5.6cqw; line-height: 1.05; opacity: 0; transform: translateY(6%); transition: opacity 1.4s .5s, transform 1.4s .5s, top 1.2s, font-size 1.2s; }
+.cq i { font-style: italic; }
+.cs1 .cq, .cs2 .cq, .cs3 .cq { opacity: 1; transform: none; }
+.cs3 .cq { top: 9%; font-size: 4.4cqw; }
+.cph .cq { left: 7%; right: 7%; top: 26%; font-size: 11.6cqw; }
+.cph.cs3 .cq { top: 10%; }
+/* the visitor's own time, then the one action */
+.cnow { position: absolute; z-index: 5; left: 15%; right: 15%; top: 53%; text-align: center; display: grid; justify-items: center; gap: 2.2cqw; opacity: 0; transform: translateY(8%); transition: opacity 1.1s, transform 1.1s, top 1.2s; }
+.cs2 .cnow, .cs3 .cnow { opacity: 1; transform: none; }
+.cs3 .cnow { top: 37%; }
+.cnow .t { font-size: 1.35cqw; line-height: 1.6; color: rgba(238,232,221,.8); }
+.cnow .t b { font-weight: 500; color: var(--linen); }
+.ccta { display: inline-flex; align-items: center; gap: 1.2cqw; border: 1px solid rgba(238,232,221,.55); border-radius: 99px; padding: 1.1cqw 2.6cqw; font-size: 1.15cqw; letter-spacing: .18em; text-transform: uppercase; color: var(--linen); text-decoration: none; pointer-events: auto; transition: background-color .5s, color .5s; }
+.ccta:hover, .ccta:focus-visible { background: var(--linen); color: var(--ink); outline: none; }
+.chandle { font-family: var(--voice); font-style: italic; font-size: 1.6cqw; opacity: .75; user-select: text; }
+.cph .cnow { left: 7%; right: 7%; top: 56%; gap: 5cqw; }
+.cph.cs3 .cnow { top: 34%; }
+.cph .cnow .t { font-size: 3.6cqw; }
+.cph .ccta { font-size: 3.2cqw; padding: 3cqw 7cqw; gap: 3cqw; }
+.cph .chandle { font-size: 4.6cqw; }
+/* the colophon: the site's last page */
+.cfoot { position: absolute; z-index: 5; left: 7%; right: 7%; bottom: 7%; display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 3cqw; padding-top: 1.6cqw; border-top: 1px solid rgba(238,232,221,.18); font-size: 1cqw; line-height: 1.9; color: rgba(238,232,221,.72); opacity: 0; transition: opacity 1s .3s; }
+.cs3 .cfoot { opacity: 1; }
+.cfoot .sig { font-family: var(--voice); font-style: italic; font-size: 2.2cqw; line-height: 1.2; color: var(--linen); }
+.cfoot .sig small { display: block; font-family: var(--read); font-style: normal; font-size: 1cqw; letter-spacing: .12em; text-transform: uppercase; color: rgba(238,232,221,.6); margin-top: 1cqw; }
+.cfoot ul { list-style: none; margin: 0; padding: 0; }
+.cfoot .k { letter-spacing: .16em; text-transform: uppercase; font-size: .9cqw; opacity: .6; margin-bottom: .4cqw; }
+.cfoot .top { color: var(--linen); margin-top: .6em; }
+.cfoot .tbd { color: #C9B79C; opacity: .8; }
+.cph .cfoot { grid-template-columns: 1fr 1fr; bottom: 4%; gap: 4cqw; font-size: 3.1cqw; padding-top: 4cqw; }
+.cph .cfoot .sig { grid-column: 1 / -1; font-size: 6.2cqw; }
+.cph .cfoot .sig small { font-size: 2.8cqw; margin-top: 2cqw; }
+.cph .cfoot .k { font-size: 2.6cqw; }
+@media (prefers-reduced-motion: reduce) { .cfr * { transition: none !important; } }
+/* ---------- Menu (merged from its own storyboard) ---------- */
+/* ---------- frames ---------- */
+.mfr { position: relative; overflow: hidden; width: 100%; aspect-ratio: 16 / 10; border-radius: 4px; background: #1B1C1A; color: var(--linen); container-type: inline-size; box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 18px 40px rgba(0,0,0,.35); }
+.mfr.mph { aspect-ratio: 9 / 19.5; border-radius: 14px; }
+.mfr * { transition-timing-function: var(--ease); }
+.mL { position: absolute; inset: 0; pointer-events: none; }
+
+/* three sections to open the menu over (simplified, as in the main storyboard) */
+.mbg.m-work { background: #1F1C19; }
+.mbg.m-work .mphoto { position: absolute; left: 6%; top: 16%; width: 28%; height: 74%; border-radius: 50% 50% 0 0 / 24% 24% 0 0; background: center / cover; }
+.mbg.m-work .aur { position: absolute; left: -10%; top: -10%; width: 70%; height: 120%; background: center / 100% 100%; opacity: .5; -webkit-mask: radial-gradient(closest-side, #000 15%, transparent 100%); mask: radial-gradient(closest-side, #000 15%, transparent 100%); }
+.mbg.m-work .mtx { position: absolute; left: 48%; top: 22%; width: 44%; display: grid; gap: 1.4cqw; }
+.mbg.m-work .mtx .h { font-family: var(--voice); font-style: italic; font-size: 4.6cqw; }
+.mbg.m-work .mtx div:not(.h) { font-size: 1.35cqw; border-top: 1px solid rgba(238,232,221,.16); padding-top: .8cqw; }
+.mbg.m-method { background: radial-gradient(60% 70% at 50% 18%, rgba(255,253,248,.75), transparent 72%), linear-gradient(180deg, #E4E0D8 0%, #D3CEC4 58%, #CFC9BE 70%, #BDB6AA 100%); }
+.mbg.m-method i { position: absolute; width: 11%; aspect-ratio: 9 / 19.5; border-radius: 1.2cqw; background: #111 center / cover; box-shadow: 0 .4cqw .6cqw rgba(0,0,0,.2), 0 6cqw 8cqw -3cqw rgba(20,16,12,.38); }
+.mbg.m-questions { background: radial-gradient(60% 70% at 28% 14%, rgba(255,250,240,.5), transparent 72%), linear-gradient(180deg, #DCD5C8 0%, #D2CABC 64%, #CCC3B4 76%, #BEB5A6 100%); color: var(--ink); }
+.mbg.m-questions .h { position: absolute; left: 7%; top: 16%; font-family: var(--voice); font-size: 4.6cqw; line-height: 1.02; }
+.mbg.m-questions .h i { font-style: italic; }
+.mbg.m-questions ol { position: absolute; left: 47%; right: 7%; top: 14%; margin: 0; padding: 0; list-style: none; }
+.mbg.m-questions li { font-family: var(--voice); font-size: 1.95cqw; padding: .9cqw 0; border-bottom: 1px solid rgba(42,40,35,.22); }
+.mph .mbg.m-work .mphoto { left: 8%; top: 12%; width: 66%; height: 38%; }
+.mph .mbg.m-work .mtx { left: 8%; top: 59%; width: 84%; gap: 3cqw; }
+.mph .mbg.m-work .mtx .h { font-size: 11cqw; }
+.mph .mbg.m-work .mtx div:not(.h) { font-size: 3.9cqw; padding-top: 2cqw; }
+.mph .mbg.m-method i { width: 40%; border-radius: 4cqw; }
+.mph .mbg.m-questions .h { top: 9%; font-size: 10.4cqw; }
+.mph .mbg.m-questions ol { left: 7%; top: 39%; }
+.mph .mbg.m-questions li { font-size: 4.6cqw; padding: 2.2cqw 0; }
+
+/* the bar: where you are (left) and the way out (right), always there */
+.mbar2 { position: absolute; z-index: 6; left: 3%; right: 3%; top: 5%; display: flex; align-items: center; justify-content: space-between; font-size: max(5px, 1.2cqw); letter-spacing: .16em; text-transform: uppercase; color: var(--linen); transition: color .6s; }
+.mbar2 i { font-family: var(--voice); font-size: 1.6em; letter-spacing: 0; text-transform: none; margin-right: .4em; }
+.mbar2 .r { display: flex; align-items: center; gap: 2.4cqw; }
+.mbar2 .time { opacity: .7; letter-spacing: .08em; }
+.mbar2 .tt { border-bottom: 1px solid currentColor; padding-bottom: .2cqw; }
+.mbtn { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: .9cqw; letter-spacing: .16em; pointer-events: auto; position: relative; z-index: 8; }
+.mbtn .ic { position: relative; width: 1.8cqw; height: .9cqw; }
+.mbtn .ic::before, .mbtn .ic::after { content: ""; position: absolute; left: 0; right: 0; height: 1px; background: currentColor; transition: transform .6s; }
+.mbtn .ic::before { top: 0; } .mbtn .ic::after { bottom: 0; }
+.mfr.open .mbtn .ic::before { transform: translateY(.45cqw) rotate(45deg); }
+.mfr.open .mbtn .ic::after { transform: translateY(-.45cqw) rotate(-45deg); }
+.mbtn:focus-visible { outline: 1px solid currentColor; outline-offset: .6cqw; }
+.mfr.light .mbar2 { color: var(--ink); }
+.mfr.light.open .mbar2 { color: var(--linen); }
+.mph .mbar2 { left: 6%; right: 6%; top: 3%; font-size: 3.4cqw; }
+.mph .mbar2 .time, .mph .mbar2 .tt { display: none; }
+.mph .mbtn { gap: 2.4cqw; }
+.mph .mbtn .ic { width: 5cqw; height: 2.4cqw; }
+.mph.open .mbtn .ic::before { transform: translateY(1.2cqw) rotate(45deg); }
+.mph.open .mbtn .ic::after { transform: translateY(-1.2cqw) rotate(-45deg); }
+
+/* the menu: liquid glass growing from the button */
+.glass { position: absolute; inset: 0; z-index: 5; overflow: hidden; clip-path: circle(0% at var(--bx, 94%) var(--by, 6%)); transition: clip-path .9s cubic-bezier(.65, 0, .25, 1); }
+.mfr.open .glass { clip-path: circle(150% at var(--bx, 94%) var(--by, 6%)); }
+.mph .glass { --bx: 88%; --by: 4%; }
+/* prepared glass: the section behind, blurred once (in the site: a ready-made image), never blurred live */
+.glass .blur { position: absolute; inset: -6%; filter: blur(2.4cqw) saturate(1.25); transform: scale(1.08); }
+.glass .tint { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(30,29,26,.52), rgba(30,29,26,.68)); }
+/* the phone frame is narrow: its blur and its film must be stronger for the same glass */
+.mph .glass .blur { filter: blur(7cqw) saturate(1.2); }
+.mph .glass .tint { background: linear-gradient(180deg, rgba(30,29,26,.6), rgba(30,29,26,.74)); }
+.mfr.light .glass .tint { background: linear-gradient(180deg, rgba(30,29,26,.5), rgba(30,29,26,.66)); }
+/* the liquid: a sheen at the top, a soft lens edge, grain */
+.glass .sheen { position: absolute; inset: 0; background: linear-gradient(170deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,0) 26%), radial-gradient(60% 40% at 92% 0%, rgba(255,255,255,.14), transparent 70%);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.12), inset 0 0 6cqw rgba(255,255,255,.05); }
+.glass .gr { position: absolute; inset: 0; opacity: .1; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 .6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+/* the live version, for comparison only */
+.real .glass .blur { display: none; }
+.real .glass { -webkit-backdrop-filter: blur(22px) saturate(140%); backdrop-filter: blur(22px) saturate(140%); }
+.real .glass .tint { background: linear-gradient(180deg, rgba(30,29,26,.32), rgba(30,29,26,.5)); }
+
+.mnav { position: absolute; z-index: 2; left: 8%; top: 18%; list-style: none; margin: 0; padding: 0; display: grid; gap: .6cqw; }
+.mnav li { font-family: var(--voice); font-size: 5.2cqw; line-height: 1.05; display: flex; align-items: baseline; gap: 1.6cqw; opacity: 0; transform: translateY(18%); transition: opacity .6s, transform .7s; }
+.mnav li i { font-size: .36em; opacity: .6; width: 2.6cqw; }
+.mnav li.cur span { font-style: italic; }
+.mnav li.cur::after { content: "·"; margin-left: .2em; }
+.mfr.open .mnav li { opacity: 1; transform: none; }
+.mfr.open .mnav li:nth-child(1) { transition-delay: .35s; } .mfr.open .mnav li:nth-child(2) { transition-delay: .42s; } .mfr.open .mnav li:nth-child(3) { transition-delay: .49s; }
+.mfr.open .mnav li:nth-child(4) { transition-delay: .56s; } .mfr.open .mnav li:nth-child(5) { transition-delay: .63s; }
+.mside { position: absolute; z-index: 2; left: 62%; right: 8%; bottom: 14%; display: grid; gap: 1.2cqw; font-size: 1.15cqw; line-height: 1.7; opacity: 0; transition: opacity .7s .6s; }
+.mfr.open .mside { opacity: 1; }
+.mside .k { font-size: .9cqw; letter-spacing: .16em; text-transform: uppercase; opacity: .6; }
+.mside .go { justify-self: start; border: 1px solid rgba(238,232,221,.6); border-radius: 99px; padding: .8cqw 2cqw; letter-spacing: .16em; text-transform: uppercase; font-size: 1cqw; }
+.mside .hello { font-family: var(--voice); font-style: italic; font-size: 2cqw; }
+.mph .mnav { left: 8%; top: 14%; gap: 2cqw; }
+.mph .mnav li { font-size: 12cqw; gap: 4cqw; }
+.mph .mnav li i { width: 7cqw; }
+.mph .mside { left: 8%; right: 8%; bottom: 6%; gap: 3cqw; font-size: 3.4cqw; }
+.mph .mside .k { font-size: 2.8cqw; }
+.mph .mside .go { font-size: 3cqw; padding: 2.6cqw 6cqw; }
+.mph .mside .hello { font-size: 6cqw; }
+@media (prefers-reduced-motion: reduce) { .mfr * { transition: none !important; } }
+/* ---------- Entrance: "Through the letters" (README #6, #22; interactions.md §1) ---------- */
+.efr { position: relative; overflow: hidden; width: 100%; aspect-ratio: 16 / 10; border-radius: 4px; background: #161513; color: var(--linen); container-type: inline-size; box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 18px 40px rgba(0,0,0,.35); }
+.efr.eph { aspect-ratio: 9 / 19.5; border-radius: 14px; }
+.efr * { transition-timing-function: var(--ease); }
+.efr.static, .efr.static * { transition: none !important; }
+/* the film, always there and fixed; it eases in a little as the camera arrives (a dolly) */
+.evid { position: absolute; inset: 0; background: center / cover no-repeat; transform: scale(1.14); transition: transform 2.2s cubic-bezier(.3, 0, .2, 1); }
+.evid::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,24,40,.35), rgba(20,18,15,.55)); opacity: 0; transition: opacity 1s .4s; }
+.es2 .evid, .es3 .evid { transform: none; }
+.es3 .evid::after { opacity: 1; }
+/* the veil: charcoal with CHAPTER ONE cut out (in the site: the same SVG mask over the playing video) */
+.eveil { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; transform-origin: var(--ox, 74%) var(--oy, 52%); transition: transform 1.9s cubic-bezier(.75, 0, .2, 1), opacity .8s; }
+.eveil text { font-family: var(--voice); font-weight: 600; letter-spacing: .04em; }
+.eveil .cut { opacity: 0; transition: opacity 1.1s; }
+.es1 .eveil .cut, .es2 .eveil .cut { opacity: 1; }
+.es2 .eveil { transform: scale(60); }
+.es3 .eveil { transform: scale(60); opacity: 0; }
+/* the dedication sits just above the title, not at the top of the screen */
+.eded { position: absolute; z-index: 3; left: 0; right: 0; top: 34%; text-align: center; font-family: var(--voice); font-style: italic; font-size: 1.9cqw; color: var(--linen); opacity: 0; transition: opacity .8s; }
+.es0 .eded, .es1 .eded { opacity: .85; }
+.eph .eded { top: 38%; font-size: 5.4cqw; }
+.efinal { position: absolute; inset: 0; z-index: 3; opacity: 0; transition: opacity 1s .5s; }
+.es3 .efinal { opacity: 1; }
+.efinal .t { position: absolute; left: 0; right: 0; top: 30%; text-align: center; font-family: var(--voice); font-size: 7.4cqw; letter-spacing: .16em; line-height: 1; }
+.efinal .s { position: absolute; left: 0; right: 0; top: 45%; text-align: center; font-size: 1.5cqw; opacity: .9; }
+.efinal .b { position: absolute; left: 0; right: 0; top: 70%; text-align: center; font-size: 1.1cqw; letter-spacing: .16em; text-transform: uppercase; opacity: .7; }
+.efinal .top { position: absolute; left: 3%; right: 3%; top: 4%; display: flex; justify-content: space-between; font-size: max(5px, 1.3cqw); letter-spacing: .16em; text-transform: uppercase; }
+.eph .efinal .t { top: 22%; font-size: 13cqw; }
+.eph .efinal .s { top: 38%; left: 10%; right: 10%; font-size: 4.2cqw; }
+.eph .efinal .b { top: 62%; font-size: 3.2cqw; }
+.eph .efinal .top { left: 6%; right: 6%; top: 2.6%; font-size: 3.6cqw; }
+/* ---------- the bar, on every frame (README #56) ---------- */
+.frame::after, .afr::after, .qfr::after, .cfr::after { content: attr(data-time) "\2003\2003TALK TO US\2003\2003\2261\2002MENU"; position: absolute; z-index: 60; right: 3%; top: var(--bar-top, 5.6%); line-height: var(--bar-lh, normal);
+  font-family: var(--read); font-size: max(5px, 1.2cqw); letter-spacing: .16em; color: #EEE8DD; mix-blend-mode: difference; pointer-events: none; white-space: nowrap; }
+.frame.phone::after, .afr.abp::after, .qfr.qph::after, .cfr.cph::after { content: "\2261\2002MENU"; right: 6%; top: var(--bar-top, 2.6%); font-size: 3.4cqw; }
+.frame.st1::after { display: none; }
+.efr::after { content: none; } /* the entrance's final state draws its own bar */
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="label">Chapter One V5 · storyboard principal · aprovado a 25 de outubro de 2026</span>
+    <h1>Chapter One · a página inteira</h1>
+    <p>O percurso completo do site V5, <strong>da entrada ao fim</strong>, numa só animação contínua: cada passagem leva um elemento da cena anterior para a seguinte. Tudo o que aqui está foi aprovado (README #19–#56, em <code>docs/design/v5/</code>). Usa os controlos em baixo: a hora de chegada, um nome em <i>Make it yours</i>, se já cá esteve e o capítulo escolhido na entrada. <strong>Todos os quadros mudam</strong>, como mudariam no site.</p>
+    <nav class="toc" aria-label="Partes">
+      <a href="#p-ent">Entrada</a><a href="#motion-h">Em movimento · 1–11</a><a href="#try-h">O Work a funcionar</a><a href="#st3">01 Work</a><a href="#st7">02 Method</a><a href="#ab-h">03 About</a><a href="#q-h2">04 Questions</a><a href="#c-h2">05 Contact</a><a href="#mn-h">Menu</a><a href="#skies-h">As luzes</a>
+    </nav>
+  </header>
+
+  <div class="controls" role="group" aria-label="Simular o visitante">
+    <div class="group" id="times"><span class="label">Chega às</span></div>
+    <div class="group"><label class="label" for="name">Make it yours</label><input id="name" type="text" maxlength="18" placeholder="Your name" autocomplete="off" spellcheck="false"></div>
+    <label class="toggle"><input id="returning" type="checkbox"><span>Já cá esteve</span></label>
+    <div class="group" id="choice"><span class="label">Na entrada</span></div>
+    <button class="chip" id="try-name" type="button" aria-pressed="false">Com nome · Ana</button>
+  </div>
+
+  <div class="part" id="p-ent"><span class="label">Entrada · "Através das letras"</span></div>
+  <section class="scene" aria-labelledby="e-h">
+    <div class="scene-head"><span class="n">↳</span><h2 id="e-h">A entrada em movimento</h2></div>
+    <div class="mbar">
+      <button class="chip" id="e-prev" type="button" aria-label="Estado anterior da entrada">←</button>
+      <button class="chip" id="e-play" type="button" aria-pressed="false">Reproduzir</button>
+      <button class="chip" id="e-next" type="button" aria-label="Estado seguinte da entrada">→</button>
+      <span class="now" id="e-now" aria-live="polite"></span>
+    </div>
+    <div class="row">
+      <figure><div class="efr" id="e-m-d" aria-label="A entrada no desktop, em movimento"></div><figcaption>Desktop</figcaption></figure>
+      <figure><div class="efr eph" id="e-m-p" aria-label="A entrada no telemóvel, em movimento"></div><figcaption>Telemóvel</figcaption></figure>
+      <div class="notes"><p>A entrada corre sozinha à chegada (cerca de 2,6 s) e <b>nunca bloqueia</b>: qualquer gesto (scroll, toque, tecla) salta para o estado final. Com reduced motion, poupança de dados ou sem vídeo, começa logo no final, com a imagem parada. Corre uma vez por visita. Aprovado (README #5–#7, #22).</p></div>
+    </div>
+  </section>
+  <div id="e-rows"></div>
+
+  <section class="scene" aria-labelledby="motion-h">
+    <div class="scene-head"><h2 id="motion-h">Em movimento</h2></div>
+    <div class="mbar">
+      <button class="chip" id="prev" type="button" aria-label="Quadro anterior">←</button>
+      <button class="chip" id="play" type="button" aria-pressed="false">Reproduzir</button>
+      <button class="chip" id="next" type="button" aria-label="Quadro seguinte">→</button>
+      <span class="now" id="now" aria-live="polite"></span>
+      <div class="ticks" id="ticks" aria-hidden="true"></div>
+    </div>
+    <div class="row">
+      <figure><div class="frame desk" id="m-desk" role="img" aria-label="Animação no desktop"></div><figcaption>Desktop</figcaption></figure>
+      <figure><div class="frame phone" id="m-phone" role="img" aria-label="Animação no telemóvel"></div><figcaption>Telemóvel</figcaption></figure>
+      <div class="notes">
+        <p>No site, <b>o scroll faz avançar</b> estes estados (o palco do Work e a cena do Method ficam presos enquanto duram). Há duas coisas que não são scroll: no Work, <b>o tempo muda o momento</b> (a linha que enche) e cada momento mostra a sua peça; no Method, o nome escreve-se no campo <i>Make it yours</i>.</p>
+        <p>Aqui avança sozinho a cada 2,6 s. Usa ← → para ver um quadro de cada vez.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="scene" aria-labelledby="try-h">
+    <div class="scene-head"><span class="n">↳</span><h2 id="try-h">O Work a funcionar</h2></div>
+    <div class="row">
+      <figure><div class="frame desk" id="try-desk" aria-label="O Work a funcionar, no desktop"></div><figcaption>Desktop</figcaption></figure>
+      <figure><div class="frame phone" id="try-phone" aria-label="O Work a funcionar, no telemóvel"></div><figcaption>Telemóvel</figcaption></figure>
+      <div class="notes">
+        <p><b>Uma regra só:</b> o scroll muda o capítulo, o tempo muda o momento, e <b>cada momento mostra uma peça a funcionar</b> sobre a fotografia inteira. Nove ao todo, uma por momento.</p>
+        <p>Não há hover, botão nem nada para descobrir. A pessoa só tem de olhar. Para ficar num momento, toca no nome dele. Os separadores aqui fazem de scroll.</p>
+        <p>Weddings: <i>Wedding website · Live photo gallery · One year on</i>. Artists: <i>Portfolio · Digital exhibition · Archive of works</i>. Experiences: <i>Invitation &amp; RSVP · On-site guide · Thank-you page</i>.</p>
+      </div>
+    </div>
+  </section>
+
+  <div id="scenes"></div>
+  <div class="part"><span class="label">Method → About</span></div>
+  <section class="scene" aria-labelledby="ab-h">
+    <div class="scene-head"><span class="n">↳</span><h2 id="ab-h">About em movimento</h2></div>
+    <div class="mbar">
+      <button class="chip" id="ab-prev" type="button" aria-label="Estado anterior do About">←</button>
+      <button class="chip" id="ab-play" type="button" aria-pressed="false">Reproduzir</button>
+      <button class="chip" id="ab-next" type="button" aria-label="Estado seguinte do About">→</button>
+      <span class="now" id="ab-now" aria-live="polite"></span>
+    </div>
+    <div class="row">
+      <figure><div class="afr" id="ab-m-d" role="img" aria-label="About no desktop, em movimento"></div><figcaption>Desktop · passa o rato pelo retrato</figcaption></figure>
+      <figure><div class="afr abp" id="ab-m-p" role="img" aria-label="About no telemóvel, em movimento"></div><figcaption>Telemóvel · segura no retrato</figcaption></figure>
+      <div class="notes"><p>Começa no fim do Method (11). A luz fica no centro, o retrato aparece nela com <i>I’m Flávio.</i>, o nome sobe a título e a sala acende-se com a atmosfera da fotografia. Aprovado (README #52).</p></div>
+    </div>
+  </section>
+  <div id="ab-rows"></div>
+  <div class="part"><span class="label">About → Questions</span></div>
+  <section class="scene" aria-labelledby="q-h2">
+    <div class="scene-head"><span class="n">↳</span><h2 id="q-h2">Questions em movimento</h2></div>
+    <div class="mbar">
+      <button class="chip" id="q-prev" type="button" aria-label="Estado anterior das Questions">←</button>
+      <button class="chip" id="q-play" type="button" aria-pressed="false">Reproduzir</button>
+      <button class="chip" id="q-next" type="button" aria-label="Estado seguinte das Questions">→</button>
+      <span class="now" id="q-now" aria-live="polite"></span>
+    </div>
+    <div class="row">
+      <figure><div class="qfr" id="q-m-d" aria-label="Questions no desktop, em movimento"></div><figcaption>Desktop · clica numa pergunta</figcaption></figure>
+      <figure><div class="qfr qph" id="q-m-p" aria-label="Questions no telemóvel, em movimento"></div><figcaption>Telemóvel · toca numa pergunta</figcaption></figure>
+      <div class="notes"><p>As luzes do estúdio acendem-se: a pedra da marca, para ler. A pergunta-âncora à esquerda e oito perguntas que se abrem uma a uma. Aprovado (README #53).</p></div>
+    </div>
+  </section>
+  <div id="q-rows"></div>
+  <div class="part"><span class="label">Questions → Contact</span></div>
+  <section class="scene" aria-labelledby="c-h2">
+    <div class="scene-head"><span class="n">↳</span><h2 id="c-h2">Contact em movimento</h2></div>
+    <div class="mbar">
+      <button class="chip" id="c-prev" type="button" aria-label="Estado anterior do Contact">←</button>
+      <button class="chip" id="c-play" type="button" aria-pressed="false">Reproduzir</button>
+      <button class="chip" id="c-next" type="button" aria-label="Estado seguinte do Contact">→</button>
+      <span class="now" id="c-now" aria-live="polite"></span>
+    </div>
+    <div class="row">
+      <figure><div class="cfr" id="c-m-d" aria-label="Contact no desktop, em movimento"></div><figcaption>Desktop</figcaption></figure>
+      <figure><div class="cfr cph" id="c-m-p" aria-label="Contact no telemóvel, em movimento"></div><figcaption>Telemóvel</figcaption></figure>
+      <div class="notes"><p>A luz baixa e o vídeo da entrada volta, muito escuro. A pergunta, a hora de quem visita, <b>Talk to us</b> (Instagram) e o colofão com <i>Built around you.</i>, o índice e os contactos. Aprovado (README #54, #55).</p></div>
+    </div>
+  </section>
+  <div id="c-rows"></div>
+  <div class="part"><span class="label">Navegação · em todas as secções</span></div>
+  <section class="scene" aria-labelledby="mn-h">
+    <div class="scene-head"><span class="n">≡</span><h2 id="mn-h">O menu</h2></div>
+    <div class="mbar"><div class="group" id="mn-bgs"><span class="label">Sobre</span></div><div class="group" id="mn-modes"><span class="label">Vidro</span></div></div>
+    <div class="row">
+      <figure><div class="mfr" id="mn-d" aria-label="Menu no desktop"></div><figcaption>Desktop · carrega em Menu</figcaption></figure>
+      <figure><div class="mfr mph" id="mn-p" aria-label="Menu no telemóvel"></div><figcaption>Telemóvel · carrega em Menu</figcaption></figure>
+      <div class="notes"><p>A barra está sempre visível (onde estás · Menu; no desktop também a hora e <i>Talk to us</i>). O menu abre-se a partir do botão como uma gota de <b>vidro preparado</b> e mostra, desfocada, a secção onde estavas. Com nome, abre com <i>Hello, Ana.</i> Aprovado (README #56).</p></div>
+    </div>
+  </section>
+
+  <div class="msgs" id="msgs" hidden></div>
+
+  <section class="scene" aria-labelledby="skies-h">
+    <div class="scene-head"><span class="n">·</span><h2 id="skies-h">As quatro luzes do estúdio</h2></div>
+    <p class="muted">A hora de quem chega dá a luz do Method (e a tinta do vídeo na entrada): manhã 05:00–10:59 · dia 11:00–16:59 · fim de tarde 17:00–20:59 · noite 21:00–04:59.</p>
+    <div class="skies" id="skies"></div>
+  </section>
+
+</div>
+
+<script>
+(() => {
+  const ones = ['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty'];
+  const ords = ['first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth','eleventh','twelfth','thirteenth','fourteenth','fifteenth','sixteenth','seventeenth','eighteenth','nineteenth','twentieth'];
+  const num = n => n <= 20 ? ones[n] : n < 30 ? 'twenty-' + ones[n - 20] : 'thirty';
+  const ord = n => n <= 20 ? ords[n - 1] : n < 30 ? 'twenty-' + ords[n - 21] : n === 30 ? 'thirtieth' : 'thirty-first';
+  const esc = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const pad = n => String(n).padStart(2, '0');
+  const band = h => h >= 5 && h < 11 ? 'morning' : h >= 11 && h < 17 ? 'day' : h >= 17 && h < 21 ? 'evening' : 'night';
+  function timeWords(h, m) {
+    const cur = h % 12 || 12, next = (h + 1) % 12 || 12;
+    if (m === 0) return ones[cur] + " o'clock";
+    if (m === 15) return 'a quarter past ' + ones[cur];
+    if (m === 30) return 'half past ' + ones[cur];
+    if (m === 45) return 'a quarter to ' + ones[next];
+    return m < 30 ? num(m) + ' past ' + ones[cur] : num(60 - m) + ' to ' + ones[next];
+  }
+  const I = n => `img/${n}.jpg`;
+
+  const now = new Date();
+  const presets = [
+    { id: 'now', h: now.getHours(), m: now.getMinutes() },
+    { id: 'morning', label: 'Manhã · 08:40', h: 8, m: 40 },
+    { id: 'day', label: 'Dia · 13:05', h: 13, m: 5 },
+    { id: 'evening', label: 'Fim de tarde · 18:30', h: 18, m: 30 },
+    { id: 'night', label: 'Noite · 21:14', h: 21, m: 14 },
+  ];
+  const MSGS = [
+    { q: 'Every moment happens once.<br><i>What we make for it should too.</i>', w: 'A que recomendo: diz a razão (o momento é único) e a consequência (o trabalho também).' },
+    { q: 'Made once,<br><i>for one moment.</i>', w: '<b>A escolhida.</b> Com nome, assina por baixo: <i>For Ana.</i>' },
+    { q: 'No two moments are alike.<br><i>Nothing we make is either.</i>', w: 'A mais próxima de <i>No templates. No copies.</i>, sem a repetir.' },
+  ];
+  const state = { h: presets[0].h, m: presets[0].m, name: '', returning: false, msg: 1, choice: 0 };
+  const ctx = () => {
+    const name = esc(state.name.trim());
+    const weekday = now.toLocaleDateString('en-GB', { weekday: 'long' });
+    return { weekday, month: now.toLocaleDateString('en-GB', { month: 'long' }), day: now.getDate(), name, h: state.h, m: state.m,
+      hhmm: pad(state.h) + ':' + pad(state.m), words: timeWords(state.h, state.m), initial: esc((state.name.trim() || weekday)[0].toUpperCase()) };
+  };
+
+  // ----- the Work: three chapters, three moments; every moment shows one piece working (Artists and Experiences are drafts) -----
+  const CH = [
+    { key: 'w', imgs: ['w002', 'w154', 'w343'], moments: [
+      { t: 'Before', pieces: ['Save-the-date', 'Wedding website', 'Digital invitation', 'RSVP'], feat: 1 },
+      { t: 'On the day', pieces: ['Seating plan', 'Day-of page', 'Live photo gallery'], feat: 2 },
+      { t: 'After', pieces: ['Private memory gallery', 'Thank-you page', 'One year on'], feat: 2 }] },
+    { key: 'a', imgs: ['studio', 'gallery', 'folio'], moments: [
+      { t: 'Always', pieces: ['Portfolio', 'Online gallery'], feat: 0 },
+      { t: 'For a moment', pieces: ['Digital exhibition', 'Release page'], feat: 0 },
+      { t: 'For the record', pieces: ['Press kit', 'Archive of works'], feat: 1 }] },
+    { key: 'e', imgs: ['invite', 'concert', 'banquet'], moments: [
+      { t: 'Before', pieces: ['Invitation & RSVP', 'Event website', 'Teaser page'], feat: 0 },
+      { t: 'During', pieces: ['On-site guide', 'Digital programme', 'Live gallery'], feat: 0 },
+      { t: 'After', pieces: ['Memory archive', 'Shared gallery', 'Thank-you page'], feat: 2 }] },
+  ];
+  const tiles = (imgs, n) => Array.from({ length: n }, (_, i) => `<i style="background-image:url(${I(imgs[i % imgs.length])});transition-delay:${(.3 + i * .18).toFixed(2)}s"></i>`).join('');
+  // what each moment's piece does, shown over the whole photograph with the visitor's own date
+  const DEMOS = {
+    w0: c => `<div class="pimg" style="background-image:url(${I('w002')})"></div><div class="pg"><div class="t">${c.name ? c.name + ' \u2014 ' : ''}Our day</div>
+      <div><span>The story</span><span>→</span></div><div><span>${c.weekday}, ${c.day} ${c.month.slice(0, 3)}</span><span>${c.hhmm}</span></div><div><span>Travel &amp; stay</span><span>→</span></div><div><span>RSVP</span><span>→</span></div></div>`,
+    w1: c => `<div class="veil" style="background:rgba(15,14,12,.72)"></div><div class="grid">${tiles(['w154', 'w299', 'w002', 'w343'], 9)}</div><div class="in"><div class="k">Live photo gallery</div><div class="ln">9 photographs shared by the guests</div></div>`,
+    w2: c => `<div class="veil"></div><div class="in"><div class="k">One year on</div><div class="big">${c.day} ${c.month} ${now.getFullYear() + 1}</div><div class="ln">${c.name ? c.name + ', your' : 'Your'} day, a year later.</div></div>`,
+    a0: c => `<div class="veil" style="background:rgba(15,14,12,.6)"></div><div class="in" style="top:12%;bottom:auto"><div class="k">${c.name ? 'Works by ' + c.name : 'Selected works'}</div></div><div class="strip3">${tiles(['studio', 'folio', 'gallery'], 3)}</div>`,
+    a1: c => `<div class="zimg" style="background-image:url(${I('gallery')})"></div><div class="veil"></div><div class="in"><div class="k">Room I</div><div class="big">Open since ${c.hhmm}</div></div>`,
+    a2: c => `<div class="veil" style="background:rgba(15,14,12,.74)"></div><div class="arc">${['studio', 'gallery', 'folio', 'studio'].map((im, i) => `<div style="transition-delay:${(.3 + i * .2).toFixed(1)}s"><i style="background-image:url(${I(im)})"></i><b>No. ${String(i + 1).padStart(3, '0')}</b><span>${['Untitled', 'Amber room', 'Light study', 'Untitled II'][i]}, ${now.getFullYear() - i}</span></div>`).join('')}</div><div class="in"><div class="k">Archive of works</div></div>`,
+    e0: c => `<div class="veil"></div><div class="card2"><div class="k" style="color:var(--accent)">${c.name ? 'Dear ' + c.name : 'An invitation'}</div><div class="h">You are invited</div><div class="dt">${c.weekday}, the ${ord(c.day)} of ${c.month}</div><div class="pill">Accept</div></div>`,
+    e1: c => `<div class="veil" style="background:rgba(15,16,22,.64)"></div><div class="gh">${c.name ? c.name + ', tonight' : 'Tonight'}</div><div class="tl">${[-2, -1, 0, 1].map(d => `<div class="${d === 0 ? 'now' : ''}"><b>${d === 0 ? c.hhmm : pad((c.h + d + 24) % 24) + ':00'}</b>${['Arrivals', 'Dinner in the courtyard', c.name ? c.name + ' arrives' : 'You arrive', 'Music on the terrace'][d + 2]}</div>`).join('')}</div>`,
+    e2: c => `<div class="veil"></div><div class="in"><div class="big">Thank you for coming${c.name ? ', ' + c.name : ''}.</div><div class="k">The photographs are here →</div></div>`,
+  };
+  function renderTx(ci, m, phone, demo, fill) {
+    const mo = CH[ci].moments[m];
+    return `<div class="mom">${CH[ci].moments.map((x, j) => `<span data-j="${j}" class="${j === m ? 'on' : ''}">${x.t}${j === m ? `<i class="fill" style="animation-duration:${fill}s"></i>` : ''}</span>`).join('')}</div>
+      <div class="h">${mo.t}</div>
+      ${mo.pieces.map((p, j) => `<div class="li${j === mo.feat ? ' feat' + (demo ? ' act' : '') : ''}"><b class="nm">${j === mo.feat ? '<i class="g"></i>' : ''}${p}</b>${j === mo.feat ? '<span>on the photograph</span>' : ''}</div>`).join('')}
+      ${phone ? '' : '<div class="foot">Every project is proposed for its occasion.</div>'}`;
+  }
+  // chapter ci at moment m; demo = that moment's piece working over the photograph
+  function setMoment(f, ci, m, demo, fill = 2.6) {
+    const stack = f.el.querySelector('.stack.c' + (ci + 1));
+    stack.querySelectorAll('.ph').forEach((ph, j) => { ph.className = 'ph ' + (j === m ? 'front' : j === (m + 1) % 3 ? 'b1' : 'b2'); });
+    stack.querySelector('.aura').style.backgroundImage = `url(${I('a-' + CH[ci].imgs[m])})`;
+    stack.querySelectorAll('.dm').forEach((d, j) => d.classList.toggle('on', !!demo && j === m));
+    const tx = f.el.querySelector('.tx.c' + (ci + 1));
+    if (tx.dataset.m !== String(m)) { tx.innerHTML = renderTx(ci, m, f.kind === 'phone', demo, fill); tx.dataset.m = String(m); }
+    else tx.querySelectorAll('.li.feat').forEach(li => li.classList.toggle('act', !!demo));
+  }
+  const LAYOUTS = [
+    c => `<div class="lf"></div><div class="nav"><span>Our day</span><span>Story</span><span>RSVP</span></div>
+      <div class="tt"><div class="h">${c.name ? c.name + ',<br>' : ''}${c.weekday}, ${c.day} ${c.month}</div><div class="ln"></div><div class="d">At ${c.hhmm}</div></div><div class="bt">RSVP</div><div class="cp">Wedding website</div>`,
+    c => `<div class="lf"></div><div class="nav"><span>${c.name || 'Portfolio'}</span><span>≡</span></div>
+      <div class="tt"><div class="h">${c.name ? 'Works by ' + c.name : 'Selected works'}</div><div class="ln"></div><div class="d">Series · ${now.getFullYear()}</div></div><div class="bt">View works</div><div class="cp">Portfolio</div>`,
+    c => `<div class="lf"></div><div class="nav"><span>Tonight</span><span>Map</span></div>
+      <div class="tt"><div class="h">${c.name ? c.name + ', you' : 'You'} are here</div><div class="ln"></div><div class="d">Doors ${c.hhmm}</div></div><div class="bt">Programme</div><div class="cp">On-site guide</div>`,
+  ];
+  const sketch = `<div class="sk-bar"><span>LOGO</span><span>≡</span></div><div class="sk-img"></div><div class="sk-t">Your title</div><div class="sk-l"></div><div class="sk-l s"></div><div class="sk-btn">Button</div>`;
+
+  // ----- the Method's six screens -----
+  const screens = [
+    c => `<div class="scr s-wed"><div class="bg" style="background-image:url(${I('w299')})"><div class="nav"><span>Our day</span><span>Story</span><span>RSVP</span></div></div>
+      <div class="tx2">${c.name ? `<div class="h">${c.name}</div><div style="font-family:var(--voice);font-size:9cqw">the ${ord(c.day)} of ${c.month}</div>` : `<div class="h">The ${ord(c.day)}<br>of ${c.month}</div>`}<div class="k">${c.weekday} · ${c.hhmm}</div></div></div>`,
+    c => `<div class="scr s-rsvp"><div class="k">RSVP</div><div class="h">${c.name ? c.name + ',<br>will you join us?' : 'Will you<br>join us?'}</div>
+      <div class="cd" data-cd><div><b>07</b><span>days</span></div><div><b>00</b><span>hrs</span></div><div><b>00</b><span>min</span></div><div><b>00</b><span>sec</span></div></div>
+      <div style="font-family:var(--voice);font-size:8cqw">${c.weekday}, at ${c.words}</div><div class="yes">Joyfully accept</div><div class="no">Sadly decline</div></div>`,
+    c => `<div class="scr s-folio"><div class="top k"><span>${c.name || 'Portfolio'}</span><span>≡</span></div><div class="i">${c.initial}</div>
+      <div class="strip"><div class="bg" style="background-image:url(${I('studio')})"></div><div class="bg" style="background-image:url(${I('folio')})"></div><div class="bg" style="background-image:url(${I('gallery')})"></div></div>
+      <div class="k" style="padding-inline:9cqw;opacity:.7">${c.name ? 'Works' : 'Selected works'} · ${now.getFullYear()}</div></div>`,
+    c => `<div class="scr s-expo"><div class="bg" style="background-image:url(${I('gallery')})"></div>
+      <div class="ov"><div class="k">Room I</div><div class="h">${c.name ? c.name + ' —<br>' : ''}Open since ${c.hhmm}</div><div class="dots"><i></i><i></i><i></i></div></div></div>`,
+    c => `<div class="scr s-event"><div class="bg" style="background-image:url(${I('concert')})"></div>
+      <div class="ov"><div class="k">${c.weekday} ${c.day} ${c.month.slice(0, 3)}</div><div class="h">Doors<br>${c.hhmm}</div><div class="k" style="opacity:.8">${c.name ? 'An evening for ' + c.name : 'An evening of music'}</div><div class="btn">Get the guide</div></div></div>`,
+    c => { const at = d => pad((c.h + d + 24) % 24) + ':00';
+      return `<div class="scr s-guide"><div class="k" style="opacity:.6">Tonight</div><div class="h">${c.name ? c.name + ', you are here' : 'You are here'}</div><ol>
+      <li><b>${at(-2)}</b>Arrivals</li><li><b>${at(-1)}</b>Dinner in the courtyard</li><li class="now"><b>${c.hhmm}</b>${c.name ? c.name + ' arrives' : 'You arrive'}</li><li><b>${at(1)}</b>Music on the terrace</li></ol></div>`; },
+  ];
+
+  // ----- states -----
+  const STATES = [
+    { part: 'Entrada → Work', t: 'A entrada, no fim', d: 'O estado final da entrada: o vídeo em ecrã inteiro (depois de entrar pelo O), <b>CHAPTER ONE</b> centrado, o subtítulo, as três lâminas e a navegação.', s: 'Já aprovado. Está aqui só para se ver de onde parte o Work.' },
+    { part: '', t: 'O vídeo torna-se o palco', d: 'Ao descer, <b>a moldura do vídeo encolhe até à moldura em arco do palco</b> e dissolve-se na primeira fotografia de Weddings. Entretanto, o texto do Work aparece ao lado.', s: '<b>Com scroll, aterra-se sempre em Weddings.</b> Um clique numa lâmina (Artists ou Experiences) leva diretamente a esse capítulo, e essa escolha volta no Method.' },
+    { part: 'Work', t: 'I · Weddings', d: 'O palco fica preso. As fotografias do capítulo estão em camadas, com uma luz suave da cor da própria fotografia. <b>O tempo muda o momento</b>: a linha por baixo do momento enche-se e passa ao seguinte. Tocar num momento fixa-o.', s: 'A regra é uma só: <b>o scroll muda o capítulo, o tempo muda o momento, e cada momento mostra uma peça a funcionar.</b> Não há nada escondido para descobrir.' },
+    { part: '', t: 'O momento mostra a sua peça', d: 'Depois de a fotografia aparecer, <b>a peça principal do momento mostra-se sozinha</b> por cima dela. Em <i>Before</i> é o <i>Wedding website</i>: a fotografia sobe como uma página e aparecem as secções do site. Na lista, a peça mostrada está marcada com um círculo.', s: 'Uma peça por momento, nove ao todo. As outras ficam escritas na lista. <b>A fotografia nunca é cortada.</b>' },
+    { part: '', t: 'II · Artists', d: 'Ao descer, muda o capítulo: a luz e as fotografias passam a ser as de Artists, e os momentos a <i>Always · For a moment · For the record</i>. Cada momento mostra a sua peça: portfolio, exposição digital, arquivo de obras.', s: 'Os separadores em cima mostram sempre onde se está, e um toque salta de capítulo.' },
+    { part: '', t: 'III · Experiences', d: 'O último capítulo, no momento <i>During</i>: <b>o <i>On-site guide</i> mostra-se sobre a fotografia</b>, com o programa da noite e a hora de quem visita.', s: 'É esta a ponte: o guia é o último ecrã do Work e o primeiro a multiplicar-se.' },
+    { part: 'Work → Method', t: 'O ecrã multiplica-se', d: 'O guia solta-se da fotografia e <b>multiplica-se em ecrãs-template iguais</b>, enquanto <b>se acende o estúdio</b>: o papel de fundo, com a luz da hora de quem chega a vir do seu lado. Escreve-se <i>No templates. No copies.</i> e, logo por baixo, <b>Make it yours</b> (opcional).', s: '<b>Quem escreve o nome vê-o aparecer igual em todos os templates</b>, no lugar de <i>Your title</i>: pôr um nome num template continua a ser um template. É isso que a transformação desfaz. Experimenta o botão <b>Com nome · Ana</b> em cima.' },
+    { part: 'Method', t: 'A transformação', d: 'A cada passo de scroll, uma folha-template levanta-se e sai. Por baixo está <b>uma experiência web viva composta à volta do nome</b>: <i>Ana, will you join us?</i>, <i>Ana — Open since 21:14</i>, <i>Ana, you are here</i>. Sem nome, compõe-se com a data e a hora.', s: 'Desktop: duas a duas. Telemóvel: um baralho de três cartões sem moldura.' },
+    { part: '', t: 'Todas diferentes', d: 'Seis experiências, nenhuma igual. <b>O ecrã em destaque é do capítulo escolhido na entrada</b>: Weddings dá o site do casamento, Artists a exposição, Experiences o guia. Quem só fez scroll fica com Weddings. <b>No telemóvel, esse ecrã abre-se até ocupar o ecrã inteiro.</b>', s: 'Experimenta <b>Na entrada</b> em cima. Só o ecrã em destaque mexe por dentro, para respeitar o limite de camadas no Xiaomi.' },
+    { part: '', t: 'A tua primeira página', d: 'Os ecrãs juntam-se na <b>capa do capítulo de quem visita</b>. <b>Com nome, o nome é o título da capa</b>: <i>Chapter One · for</i>, <b>Ana</b>, <i>a first chapter, begun on…</i> Sem nome: <i>Your first chapter</i>.', s: 'Quem volta vê <i>second chapter</i>.' },
+    { part: '', t: 'A luz baixa', d: '<b>A luz do estúdio baixa</b>, como no fim de uma sessão. No desktop, os ecrãs da capa afastam-se para os lados e ficam, discretos, a deixar o centro para as palavras; no telemóvel saem. Uma luz calma fica sobre a frase: <i>Made once, for one moment.</i> <b>Com nome, assina por baixo: <i>For Ana.</i></b> Depois, os quatro passos numa linha pequena e <b>Talk to us, Ana</b>.', s: 'O estúdio escurecido leva diretamente ao escuro do About.' },
+  ];
+  const N = STATES.length;
+
+  // ----- positions: [centre x %, centre y %, width % of frame width, rotation] -----
+  const RATIO = { desk: (16 / 10) * (19.5 / 9), phone: 1 };
+  const DOT = { desk: 16 / 10, phone: 9 / 19.5 };
+  const DRAW = { desk: [20, 53, 21, 0], phone: [41, 31, 38, 0] };
+  const T = { desk: [14, 28.4, 42.8, 57.2, 71.6, 86].map(x => [x, 69, 11, 0]), phone: [[50, 64, 46, -3], [50, 65, 46, 0], [50, 66, 46, 3]] };
+  const U = { desk: [[13, 60, 11.5, -3], [27, 67, 10, 2], [41.5, 59, 11, -1], [57, 62, 13, 0], [72.5, 66, 11, 2], [86.5, 59, 10.5, -2]], phone: [[26, 40, 34, -6], [52, 58, 36, 2], [74, 80, 34, 4]] };
+  const LIGHTS = { desk: [[12, 18], [27, 30], [43, 13], [61, 24], [77, 15], [90, 29]], phone: [[20, 15], [76, 22], [56, 9]] };
+  const SIDES = [[8, 46, 7.5, -4], [17, 62, 8, 2], [25, 42, 6.5, -2], [75, 60, 6.5, 2], [83, 42, 8, -2], [92, 58, 7.5, 3]];
+  const FOCUS = { desk: [0, 3, 5], phone: [0, 1, 2] };
+  const IDS = { desk: [0, 1, 2, 3, 4, 5], phone: [0, 3, 5] };
+  const gathered = (kind, i) => { const [x, y, w, r] = U[kind][i]; const W = kind === 'phone' ? Math.min(w, 34) : w; return [50 + (x - 50) * .45, 46 + (y - 46) * .45, W * .55, r]; };
+
+  function cardLayout(kind, st, i) {
+    const n = IDS[kind].length;
+    if (st <= 6) return { pos: DRAW[kind], o: 0, z: n - i, mode: 'asdraw' };
+    if (st === 7) return { pos: T[kind][i], o: 1, z: n - i, mode: 'on', delay: i * 80 };
+    if (st === 8) {
+      if (kind === 'phone') return i === 0 ? { pos: [22, 50, 26, -6], o: 1, z: 9, mode: 'gone' } : i === 1 ? { pos: T.phone[1], o: 1, z: 8, mode: 'lift' } : { pos: T.phone[2], o: 1, z: 1, mode: 'on' };
+      return i < 2 ? { pos: U.desk[i], o: 1, z: 9, mode: 'gone' } : i < 4 ? { pos: T.desk[i], o: 1, z: 8, mode: 'lift' } : { pos: T.desk[i], o: 1, z: n - i, mode: 'on' };
+    }
+    if (st === 9) {
+      const fc = FOCUS[kind][state.choice];
+      if (kind === 'phone' && i === fc) return { pos: [50, 57, 100, 0], o: 1, z: 9, mode: 'gone', live: true, full: true }; // starts below the bar
+      const [x, y, w, r] = U[kind][i];
+      return { pos: i === fc ? [x, y, w * 1.18, 0] : [x, y, w, r], o: i === fc ? 1 : .7, z: i === fc ? 9 : i + 1, mode: 'gone', live: i === fc };
+    }
+    if (st === 10) return { pos: gathered(kind, i), o: .16, z: i + 1, mode: 'gone' };
+    // desktop: the screens of the cover move out to the sides and stay, quietly, so the centre is left to the words;
+    // the phone has no room for them, so they leave
+    if (kind === 'phone') { const [x, y, w] = U.phone[i]; return { pos: [x, y - 4, Math.min(w, 34), 0], o: 0, z: i + 1, mode: 'gone', ghost: true }; }
+    return { pos: SIDES[i], o: .6, z: 10 + i, mode: 'gone' }; // above the darkened room
+  }
+
+  const frames = [];
+  function build(el, kind, st, isStatic) {
+    el.classList.toggle('static', !!isStatic);
+    const phone = kind === 'phone';
+    const stacks = CH.map((c, k) => `<div class="stack c${k + 1}"><div class="aura"></div>
+      ${c.imgs.map(im => `<div class="ph" style="background-image:url(${I(im)})"></div>`).join('')}
+      ${[0, 1, 2].map(j => `<div class="dm" data-key="${c.key}${j}"></div>`).join('')}</div>`).join('');
+    const txs = CH.map((c, k) => `<div class="tx c${k + 1}"></div>`).join('');
+    el.innerHTML = `
+      <div class="L g g1"></div><div class="L g g2"></div><div class="L g g3"></div>
+      <div class="L sky"></div><div class="L dusk"></div>
+      <div class="L work"><div class="idx"><i>01</i>Work</div><div class="tabs"><span class="t1">I Weddings</span><span class="t2">II Artists</span><span class="t3">III Experiences</span></div>${stacks}${txs}</div>
+      <div class="vid bg" style="background-image:url(${I(phone ? 'poster-tall' : 'poster-wide')})"><div class="tint"></div></div>
+      <div class="L ent"><div class="top"><span>Chapter One</span><span>${phone ? '≡ Menu' : 'Talk to us\u2003\u2003≡ Menu'}</span></div><div class="ded"></div>
+        <div class="title">CHAPTER${phone ? '<br>' : ' '}ONE</div><div class="sub">Digital experiences built for moments worth remembering.</div>
+        <div class="blade b1"><div class="bg" style="background-image:url(${I('w002')})"></div><span><i>I</i>Weddings</span></div>
+        <div class="blade b2"><div class="bg" style="background-image:url(${I('studio')})"></div><span><i>II</i>Artists</span></div>
+        <div class="blade b3"><div class="bg" style="background-image:url(${I('concert')})"></div><span><i>III</i>Experiences</span></div></div>
+      <div class="chrome"><i>02</i>Method</div>
+      <div class="phrase">No templates.<br><i>No copies.</i></div>
+      <div class="mfield"><span class="k">Make it yours</span><span class="in"></span></div>
+      ${IDS[kind].map(id => `<div class="card" data-id="${id}"><div class="dev"><div class="pc" style="height:100%"></div></div><div class="sheet">${sketch}</div></div>`).join('')}
+      <div class="cover"><div class="dev"><div class="scr"></div></div></div>
+      <div class="end"><div class="msg"></div><div class="steps">Conversation · Creative direction · Development with your feedback · Launch &amp; aftercare</div><div class="cta"></div></div>
+      <div class="L grain" style="opacity:.11"></div>`;
+    const f = { el, kind, cards: [...el.querySelectorAll('.card')], vid: el.querySelector('.vid') };
+    frames.push(f); setState(f, st); return f;
+  }
+
+  const VID = { desk: { full: [0, 0, 100, 100], stage: [6, 16, 28, 74] }, phone: { full: [0, 0, 100, 100], stage: [8, 12, 66, 38] } };
+  function setState(f, st) {
+    const el = f.el, kind = f.kind; f.st = st;
+    for (let s = 1; s <= N; s++) el.classList.toggle('st' + s, s === st);
+    el.dataset.ch = st <= 1 ? '0' : st <= 4 ? '1' : st === 5 ? '2' : st === 6 ? '3' : '0';
+    el.classList.toggle('work-on', st >= 2 && st <= 6);
+    el.classList.toggle('sky-on', st >= 7);
+    el.querySelector('.ent').style.opacity = st === 1 ? 1 : 0;
+    // the video's frame shrinks into the stage's arch, then dissolves into the photograph
+    const [vx, vy, vw, vh] = st === 1 ? VID[kind].full : VID[kind].stage;
+    Object.assign(f.vid.style, { left: vx + '%', top: vy + '%', width: vw + '%', height: vh + '%', borderRadius: st === 1 ? '0' : '50% 50% 0 0 / 24% 24% 0 0', opacity: st === 1 ? 1 : st === 2 ? .5 : 0 });
+    // each moment shows its piece working over the photograph; at the end of the Work the guide is the bridge
+    const ci = st <= 4 ? 0 : st === 5 ? 1 : 2, demo = st === 4 || st === 6;
+    CH.forEach((_, k) => setMoment(f, k, k === 2 ? 1 : 0, k === ci && demo));
+    const ratio = RATIO[kind];
+    f.cards.forEach((card, i) => {
+      const L = cardLayout(kind, st, i), [x, y, w, r] = L.pos, h = L.dot ? w * DOT[kind] : w * ratio;
+      Object.assign(card.style, { left: (x - w / 2) + '%', top: (y - h / 2) + '%', width: w + '%', height: h + '%', transform: `rotate(${r}deg)`, opacity: L.o, zIndex: L.z, transitionDelay: (L.delay || 0) + 'ms' });
+      ['asdraw', 'lift', 'gone', 'light'].forEach(m => card.classList.toggle(m, L.mode === m));
+      card.classList.toggle('live', !!L.live);
+      card.classList.toggle('full', !!L.full);
+      card.classList.toggle('ghost', !!L.ghost);
+    });
+  }
+
+  function paint() {
+    const c = ctx();
+    document.documentElement.dataset.band = band(state.h);
+    const msg = MSGS[state.msg].q + (c.name ? `<span class="for">For ${c.name}.</span>` : '');
+    const nth = state.returning ? 'second' : 'first';
+    const cover = c.name
+      ? `<div class="k">Chapter One · for</div><div class="h nm">${c.name}</div><div class="rule"></div><div class="cdate">a ${nth} chapter,<br>begun on ${c.weekday},<br>the ${ord(c.day)} of ${c.month},<br>at ${c.words}</div>`
+      : `<div class="k">Chapter One</div><div class="h">Your ${nth} chapter</div><div class="rule"></div><div class="cdate">begun on ${c.weekday},<br>the ${ord(c.day)} of ${c.month},<br>at ${c.words}</div>`;
+    const ded = `${state.returning ? 'Welcome back · ' : ''}${c.weekday}, ${c.day} ${c.month} · ${c.hhmm}`;
+    for (const f of frames) {
+      f.cards.forEach(card => { card.querySelector('.pc').innerHTML = screens[+card.dataset.id](c); });
+      f.el.querySelector('.cover .scr').innerHTML = cover;
+      f.el.querySelectorAll('.card .sheet .sk-t').forEach(x => { x.textContent = state.name.trim() || 'Your title'; });
+      const inp = f.el.querySelector('.mfield .in'); inp.textContent = state.name.trim() || 'Your name'; inp.classList.toggle('empty', !state.name.trim());
+      f.el.querySelector('.end .msg').innerHTML = msg;
+      f.el.querySelector('.end .cta').textContent = 'Talk to us' + (state.name.trim() ? ', ' + state.name.trim() : '');
+      f.el.querySelector('.ent .ded').textContent = ded;
+      f.el.querySelectorAll('.dm').forEach(d => { d.innerHTML = DEMOS[d.dataset.key](c); });
+    }
+    tickCountdown();
+  }
+  const target = new Date(now.getTime() + 7 * 864e5);
+  function tickCountdown() {
+    const s = Math.max(0, Math.floor((target - Date.now()) / 1000));
+    const v = [Math.floor(s / 86400), Math.floor(s % 86400 / 3600), Math.floor(s % 3600 / 60), s % 60].map(pad);
+    document.querySelectorAll('[data-cd]').forEach(cd => cd.querySelectorAll('b').forEach((b, i) => { b.textContent = v[i]; }));
+  }
+  setInterval(tickCountdown, 1000);
+
+  // static rows
+  const host = document.getElementById('scenes');
+  STATES.forEach((S, k) => {
+    const st = k + 1;
+    if (S.part) { const p = document.createElement('div'); p.className = 'part'; p.innerHTML = `<span class="label">${S.part}</span>`; host.appendChild(p); }
+    const sec = document.createElement('section');
+    sec.className = 'scene'; sec.setAttribute('aria-labelledby', 'st' + st);
+    sec.innerHTML = `<div class="scene-head"><span class="n">${st}</span><h2 id="st${st}">${S.t}</h2></div>
+      <div class="row"><figure><div class="frame desk" role="img" aria-label="Quadro ${st} no desktop: ${S.t}"></div><figcaption>Desktop</figcaption></figure>
+      <figure><div class="frame phone" role="img" aria-label="Quadro ${st} no telemóvel: ${S.t}"></div><figcaption>Telemóvel</figcaption></figure>
+      <div class="notes"><p>${S.d}</p>${S.s ? `<p>${S.s}</p>` : ''}</div></div>`;
+    host.appendChild(sec);
+    build(sec.querySelector('.desk'), 'desk', st, true);
+    build(sec.querySelector('.phone'), 'phone', st, true);
+  });
+
+  // "try it": the Work as it will run. Scroll changes the chapter (here, the tabs), time changes the moment,
+  // and each moment shows its piece working. Tapping a moment holds it.
+  function runTry(f) {
+    const el = f.el; el.classList.add('try');
+    const PHOTO = 1.6, DEMO = 3.6;
+    let ci = 0, m = 0, phase = 0, t;
+    const show = () => { el.dataset.ch = String(ci + 1); setMoment(f, ci, m, phase === 1, PHOTO + DEMO); };
+    const schedule = () => { clearTimeout(t); if (!el.classList.contains('held')) t = setTimeout(tick, (phase === 0 ? PHOTO : DEMO) * 1000); };
+    function tick() { if (phase === 0) phase = 1; else { phase = 0; m = (m + 1) % 3; if (m === 0) ci = (ci + 1) % 3; } show(); schedule(); }
+    el.querySelectorAll('.tabs span').forEach((s, k) => s.addEventListener('click', () => { el.classList.remove('held'); ci = k; m = 0; phase = 0; show(); schedule(); }));
+    el.addEventListener('click', e => { const s = e.target.closest('.mom span'); if (!s) return; el.classList.add('held'); m = +s.dataset.j; phase = 1; show(); clearTimeout(t); });
+    show(); schedule();
+  }
+  runTry(build(document.getElementById('try-desk'), 'desk', 3, false));
+  runTry(build(document.getElementById('try-phone'), 'phone', 3, false));
+
+  // motion panel
+  const mDesk = build(document.getElementById('m-desk'), 'desk', 1, false);
+  const mPhone = build(document.getElementById('m-phone'), 'phone', 1, false);
+  const ticks = document.getElementById('ticks'); ticks.innerHTML = '<i></i>'.repeat(N);
+  const nowEl = document.getElementById('now');
+  let cur = 1, timer = null;
+  function go(st) {
+    cur = (st - 1 + N) % N + 1;
+    [mDesk, mPhone].forEach(f => {
+      // restart the moment's fill each time a Work state is shown
+      f.el.querySelectorAll('.fill').forEach(x => { x.style.animation = 'none'; void x.offsetWidth; x.style.animation = ''; });
+      setState(f, cur);
+    });
+    nowEl.textContent = `${cur} · ${STATES[cur - 1].t}`;
+    [...ticks.children].forEach((t, i) => t.classList.toggle('on', i < cur));
+  }
+  const playBtn = document.getElementById('play');
+  function setPlaying(on) { playBtn.setAttribute('aria-pressed', String(on)); playBtn.textContent = on ? 'Pausar' : 'Reproduzir'; clearInterval(timer); timer = on ? setInterval(() => go(cur + 1), 2600) : null; }
+  playBtn.addEventListener('click', () => setPlaying(!timer));
+  document.getElementById('prev').addEventListener('click', () => { setPlaying(false); go(cur - 1); });
+  document.getElementById('next').addEventListener('click', () => { setPlaying(false); go(cur + 1); });
+  go(1);
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) setPlaying(true);
+
+  // closing-message options
+  const msgsEl = document.getElementById('msgs');
+  MSGS.forEach((m, i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-pressed', String(i === state.msg));
+    b.innerHTML = `<span class="q">${m.q}</span><span class="w">${'ABC'[i]} · ${m.w}</span>`;
+    b.addEventListener('click', () => { msgsEl.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', 'false')); b.setAttribute('aria-pressed', 'true'); state.msg = i; paint(); });
+    msgsEl.appendChild(b);
+  });
+
+  // the four skies
+  const skiesEl = document.getElementById('skies');
+  const root = document.documentElement;
+  [['morning', 'Manhã', '05:00–10:59'], ['day', 'Dia', '11:00–16:59'], ['evening', 'Fim de tarde', '17:00–20:59'], ['night', 'Noite', '21:00–04:59']].forEach(([b, t, r]) => {
+    root.dataset.band = b;
+    const cs = getComputedStyle(root);
+    const fig = document.createElement('figure');
+    fig.innerHTML = `<div class="sw" style="${['--wall', '--wall2', '--floor', '--floor2', '--key', '--kx', '--ky'].map(v => v + ':' + cs.getPropertyValue(v)).join(';')}"><div class="L sky"></div><div class="L grain" style="opacity:.07"></div></div><figcaption>${t} · ${r}</figcaption>`;
+    skiesEl.appendChild(fig);
+  });
+
+  // controls
+  const timesEl = document.getElementById('times');
+  presets.forEach((p, i) => {
+    const b = document.createElement('button'); b.className = 'chip'; b.type = 'button';
+    b.textContent = p.id === 'now' ? `Agora · ${pad(p.h)}:${pad(p.m)}` : p.label;
+    b.setAttribute('aria-pressed', String(i === 0));
+    b.addEventListener('click', () => { timesEl.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', 'false')); b.setAttribute('aria-pressed', 'true'); state.h = p.h; state.m = p.m; paint(); });
+    timesEl.appendChild(b);
+  });
+  const choiceEl = document.getElementById('choice');
+  ['Fez scroll → Weddings', 'Clicou Artists', 'Clicou Experiences'].forEach((label, i) => {
+    const b = document.createElement('button'); b.className = 'chip'; b.type = 'button'; b.textContent = label;
+    b.setAttribute('aria-pressed', String(i === 0));
+    b.addEventListener('click', () => { choiceEl.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', 'false')); b.setAttribute('aria-pressed', 'true');
+      state.choice = i; frames.forEach(f => { if (f.st >= 7) setState(f, f.st); }); });
+    choiceEl.appendChild(b);
+  });
+  const tryName = document.getElementById('try-name'), nameIn = document.getElementById('name');
+  tryName.addEventListener('click', () => { const on = !state.name.trim(); nameIn.value = on ? 'Ana' : ''; state.name = nameIn.value; tryName.setAttribute('aria-pressed', String(on)); paint(); });
+  let deb;
+  document.getElementById('name').addEventListener('input', e => { clearTimeout(deb); deb = setTimeout(() => { state.name = e.target.value.slice(0, 18); paint(); }, 150); });
+  document.getElementById('returning').addEventListener('change', e => { state.returning = e.target.checked; paint(); });
+  paint();
+})();
+</script>
+<script>
+(() => {
+  const STATES = [
+    { t: 'O fim do Method', d: 'A sala escura com uma luz sobre <i>Made once, for one moment.</i> É onde o About começa.' },
+    { t: 'A luz encontra-te', d: '<b>B:</b> a frase sai e, <b>na mesma luz, no centro, apareces tu</b>, a preto e branco, com <i>I’m Flávio.</i> pequeno por baixo. No telemóvel a luz sobe até ao retrato. <b>A:</b> a luz abre-se num círculo com o teu retrato. Muda a transição em cima.' },
+    { t: 'A sala acende-se', d: 'O retrato vai para o seu lugar e <b>o nome sobe e torna-se o título</b>. A sala acende-se com <b>a atmosfera da tua fotografia</b>, ainda em cinzento quente porque o retrato está a P&amp;B. Por baixo do nome entra a frase.' },
+    { t: 'A tua história', d: 'Entra o parágrafo e depois <i>04 Questions ↓</i>. Ao passar o rato (no telemóvel, ao segurar), <b>o retrato e a sala ganham cor devagar</b>, com os verdes e azuis da tua fotografia, durante cerca de 2 segundos. Ao largar, voltam devagar ao P&amp;B.' },
+  ];
+  const N = STATES.length;
+  const SAY = '<div class="sub">So much around us is made to look the same. Yet each of us lives, feels and creates in our own way.</div>';
+  const PARA = 'I have always loved art and the moments that stay with us. Chapter One is made from the start for each person and each moment, because no two lives are the same.';
+  const frames = [];
+  let T = 'B';
+  function build(el, st, isStatic) {
+    const phone = el.classList.contains('abp');
+    el.classList.toggle('static', !!isStatic);
+    el.innerHTML = `<div class="aL moss"></div><div class="aaura mono" style="background-image:url(img/a-124-mono.jpg)"></div><div class="aaura col" style="background-image:url(img/a-124.jpg)"></div><div class="aL pool"></div>
+      <div class="achrome"><i>03</i>About</div>
+      <div class="amsg">Made once,<br><i>for one moment.</i><small>For Ana.</small></div>
+      <div class="pt" tabindex="0" role="img" aria-label="Portrait of Flávio. ${phone ? 'Hold' : 'Hover'} to see it in colour."><i style="background-image:url(img/p124-mono.jpg)"></i><i class="col" style="background-image:url(img/p124.jpg)"></i></div>
+      <div class="spot"></div>
+      <div class="cap">Portrait — Helder Couto · <b>${phone ? 'Hold' : 'Hover'} for colour</b></div>
+      <div class="name">I’m Flávio.</div><div class="label2">Founder · Chapter One</div><div class="rule2"></div><div class="meta">Portrait — Helder Couto<br>Hover for colour</div><div class="say">${SAY}</div><div class="para">${PARA}</div>
+      <div class="next">04 Questions ↓</div><div class="aL agrain"></div>`;
+    // the colour, the same photograph, only while hovered or held; it always goes back
+    const pt = el.querySelector('.pt'), on = () => { pt.classList.add('reveal'); el.classList.add('reveal'); }, off = () => { pt.classList.remove('reveal'); el.classList.remove('reveal'); };
+    if (!phone) { pt.addEventListener('pointerenter', on); pt.addEventListener('pointerleave', off); }
+    else { pt.addEventListener('pointerdown', on); ['pointerup', 'pointercancel', 'pointerleave'].forEach(e => pt.addEventListener(e, off)); pt.addEventListener('contextmenu', e => e.preventDefault()); }
+    pt.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); (pt.classList.contains('reveal') ? off : on)(); } if (e.key === 'Escape') off(); });
+    pt.addEventListener('blur', off);
+    const f = { el, st }; frames.push(f); place(el); set(f, st); return f;
+  }
+  // where the name sits while it is in the light, relative to its final place: measured, so it is exact at any size
+  function place(el) {
+    const n = el.querySelector('.name'), fw = el.clientWidth, fh = el.clientHeight;
+    if (!fw) return;
+    const ph = el.classList.contains('abp'), s = ph ? .6 : .41;
+    const fx = (ph ? .07 : .46) * fw, fy = (ph ? .53 : .17) * fh, cy = (ph ? .46 : .70) * fh;
+    el.style.setProperty('--from', `translate(${fw / 2 - n.offsetWidth * s / 2 - fx}px, ${cy - fy}px) scale(${s})`);
+  }
+  document.fonts.ready.then(() => frames.forEach(f => place(f.el)));
+  addEventListener('resize', () => frames.forEach(f => place(f.el)));
+  function set(f, st) { f.st = st; for (let s = 0; s < N; s++) f.el.classList.toggle('as' + s, s === st); f.el.classList.toggle('tA', T === 'A'); f.el.classList.toggle('tB', T === 'B'); }
+
+  const rows = document.getElementById('ab-rows');
+  STATES.forEach((S, k) => {
+    if (!k) return; // state 0 is the Method's own end, already shown as 11
+    const sec = document.createElement('section'); sec.className = 'scene';
+    sec.innerHTML = `<div class="scene-head"><span class="n">${11 + k}</span><h2>${S.t}</h2></div><div class="row">
+      <figure><div class="afr" aria-label="Estado ${k} no desktop: ${S.t}"></div><figcaption>Desktop</figcaption></figure>
+      <figure><div class="afr abp" aria-label="Estado ${k} no telemóvel: ${S.t}"></div><figcaption>Telemóvel</figcaption></figure>
+      <div class="notes"><p>${S.d}</p></div></div>`;
+    rows.appendChild(sec);
+    build(sec.querySelector('.afr'), k, true); build(sec.querySelector('.afr.abp'), k, true);
+  });
+
+  const md = build(document.getElementById('ab-m-d'), 0, false), mp = build(document.getElementById('ab-m-p'), 0, false);
+  const nowEl = document.getElementById('ab-now');
+  let cur = 0, timer = null;
+  const go = s => { cur = (s + N) % N; set(md, cur); set(mp, cur); nowEl.textContent = `${cur} · ${STATES[cur].t}`; };
+  const play = document.getElementById('ab-play');
+  const setPlaying = on => { play.setAttribute('aria-pressed', String(on)); play.textContent = on ? 'Pausar' : 'Reproduzir'; clearInterval(timer); timer = on ? setInterval(() => go(cur + 1), 2800) : null; };
+  play.addEventListener('click', () => setPlaying(!timer));
+  document.getElementById('ab-prev').addEventListener('click', () => { setPlaying(false); go(cur - 1); });
+  document.getElementById('ab-next').addEventListener('click', () => { setPlaying(false); go(cur + 1); });
+  // hovering or holding the portrait in the motion panel pauses it, so the colour can be tried
+  [md, mp].forEach(f => f.el.querySelector('.pt').addEventListener('pointerdown', () => setPlaying(false)));
+  md.el.querySelector('.pt').addEventListener('pointerenter', () => { if (cur === 3) setPlaying(false); });
+  document.querySelectorAll('[data-t]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-t]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    T = b.dataset.t; frames.forEach(f => set(f, f.st));
+  }));
+  go(0);
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) setPlaying(true);
+})();
+</script>
+<script>
+(() => {
+  // the approved copy (content/v5.ts, carried verbatim from V4)
+  const ANCHOR = { q: 'What do you actually create?', a: 'We design and build digital experiences for weddings, artists and unique occasions, tailored to each project.' };
+  // draft answers (25 Oct), written from the owner's own points; "Can you work with my existing team?" keeps its approved V4 answer
+  const ROWS = [
+    ['What does it cost?', 'There is no price list, because nothing here is made twice. A single piece, such as a save-the-date or an RSVP page, starts from €50. Larger experiences, like a complete wedding website, are quoted after a first conversation, around what you need.'],
+    ['How long does it take?', 'It depends on what we make together. A single piece usually needs about two weeks; a complete wedding website, around two months. If your date is close, talk to us and we will tell you honestly what is possible.'],
+    ['How does a project work?', 'Four steps: Conversation, Creative direction, Development with your feedback, and Launch &amp; aftercare. We talk first, agree on a direction together, build it with you, and stay with you once it is live.'],
+    ['What do you need from me?', 'A first meeting, where we shape the project and sketch the first idea together. Then your feedback along the way: we show you the work as it grows, with regular check-ins whenever they help.'],
+    ['Do you work in English and outside Portugal?', 'Yes. We are based in Portugal and work in Portuguese and English, with people anywhere in the world.'],
+    ['Is it only digital?', 'Yes, we make digital experiences. If you would like printed pieces alongside them, we can recommend partners, and some custom graphic work can be arranged.'],
+    ['What about the domain and hosting?', 'It depends on the project. The domain is not included in the price. Maintenance is included for the first year, and we can also set everything up wherever you prefer.'],
+    ['Can you work with my existing team?', 'Absolutely. We can collaborate with your planner, photographer, venue or creative team to make sure everything works together.'],
+  ];
+  const STATES = [
+    { t: 'O fim do About', d: 'O retrato, o nome e a sala escura com a atmosfera da fotografia.', open: -1 },
+    { t: 'As luzes acendem-se', d: 'Ao descer, <b>o papel do estúdio sobe</b>, em plena luz do dia, e o About fica para trás. Chega a pergunta-âncora: <i>What do you actually create?</i> com a resposta.', open: -1 },
+    { t: 'As perguntas', d: 'As oito perguntas entram uma a uma, numeradas pela ordem em que um cliente as faz. No desktop, por baixo da âncora, os três capítulos levam de volta ao Work.', open: -1 },
+    { t: 'Uma resposta', d: 'Um toque numa pergunta <b>desdobra a resposta</b> e o + roda para ×. Abrir outra fecha esta.', open: 0 },
+    { t: 'Uma resposta prática', d: '<i>What about the domain and hosting?</i>: o que está incluído e o que não está, dito com clareza.', open: 6 },
+  ];
+  const N = STATES.length;
+  const frames = [];
+  function build(el, st, isStatic) {
+    const ph = el.classList.contains('qph');
+    el.classList.toggle('static', !!isStatic);
+    el.innerHTML = `<div class="qL qprev"><div class="ppt" style="background-image:url(img/p124-mono.jpg)"></div><div class="pt2">I’m Flávio.</div></div>
+      <div class="qL qpaper"></div>
+      <div class="qchrome"><i>04</i>Questions</div>
+      <div class="qanchor"><div class="h">What do you<br><i>actually create?</i></div><p>${ANCHOR.a}</p>
+        <div class="chs"><a href="#"><span><i>I</i>Weddings</span><span>→</span></a><a href="#"><span><i>II</i>Artists</span><span>→</span></a><a href="#"><span><i>III</i>Experiences</span><span>→</span></a></div></div>
+      <div class="qlist">${ROWS.map(([q, a, links], i) => `<div class="qrow" style="transition-delay:${(.15 + i * .1).toFixed(2)}s">
+        <button type="button" aria-expanded="false"><span class="num">${String(i + 1).padStart(2, '0')}</span><span class="qq">${q}</span><span class="pm" aria-hidden="true"></span></button>
+        <div class="qans"><div>${[].concat(a).map(x => `<p>${x}</p>`).join('')}</div></div></div>`).join('')}</div>
+      <div class="qnext">05 Contact ↓</div><div class="qL qgrain"></div>`;
+    // one answer open at a time
+    el.querySelectorAll('.qrow button').forEach((b, i) => b.addEventListener('click', () => { if (typeof onUser === 'function') onUser(); openRow(el, el.querySelectorAll('.qrow')[i].classList.contains('open') ? -1 : i); }));
+    const f = { el, st }; frames.push(f); set(f, st); return f;
+  }
+  let onUser = null;
+  function openRow(el, i) { el.querySelectorAll('.qrow').forEach((r, j) => { r.classList.toggle('open', j === i); r.querySelector('button').setAttribute('aria-expanded', String(j === i)); }); }
+  function set(f, st) { f.st = st; for (let s = 0; s < N; s++) f.el.classList.toggle('qs' + s, s === st); openRow(f.el, STATES[st].open); }
+
+  const rows = document.getElementById('q-rows');
+  STATES.forEach((S, k) => {
+    if (!k) return; // state 0 is the About's own end, already shown as 14
+    const sec = document.createElement('section'); sec.className = 'scene';
+    sec.innerHTML = `<div class="scene-head"><span class="n">${14 + k}</span><h2>${S.t}</h2></div><div class="row">
+      <figure><div class="qfr" aria-label="Estado ${k} no desktop: ${S.t}"></div><figcaption>Desktop</figcaption></figure>
+      <figure><div class="qfr qph" aria-label="Estado ${k} no telemóvel: ${S.t}"></div><figcaption>Telemóvel</figcaption></figure>
+      <div class="notes"><p>${S.d}</p></div></div>`;
+    rows.appendChild(sec);
+    build(sec.querySelector('.qfr'), k, true); build(sec.querySelector('.qfr.qph'), k, true);
+  });
+  const md = build(document.getElementById('q-m-d'), 0, false), mp = build(document.getElementById('q-m-p'), 0, false);
+  const nowEl = document.getElementById('q-now');
+  let cur = 0, timer = null;
+  const go = s => { cur = (s + N) % N; set(md, cur); set(mp, cur); nowEl.textContent = `${cur} · ${STATES[cur].t}`; };
+  const play = document.getElementById('q-play');
+  const setPlaying = on => { play.setAttribute('aria-pressed', String(on)); play.textContent = on ? 'Pausar' : 'Reproduzir'; clearInterval(timer); timer = on ? setInterval(() => go(cur + 1), 2800) : null; };
+  onUser = () => setPlaying(false);
+  play.addEventListener('click', () => setPlaying(!timer));
+  document.getElementById('q-prev').addEventListener('click', () => { setPlaying(false); go(cur - 1); });
+  document.getElementById('q-next').addEventListener('click', () => { setPlaying(false); go(cur + 1); });
+  go(0);
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) setPlaying(true);
+})();
+</script>
+<script>
+(() => {
+  const pad = n => String(n).padStart(2, '0');
+  const now = new Date(), arrived = new Date(now.getTime() - 17 * 60000);
+  const hm = d => pad(d.getHours()) + ':' + pad(d.getMinutes());
+  let NAME = '';
+  const STATES = [
+    { t: 'O fim das Questions', d: 'O estúdio em plena luz, com a pergunta-âncora.' },
+    { t: 'A luz baixa', d: 'Ao descer, <b>a luz do estúdio baixa</b> até ao carvão e fica uma luz quente e baixa. Aparece a pergunta aprovada, grande e sozinha, presa um instante: <i>Is there something that deserves its own experience?</i>' },
+    { t: 'A tua hora, e uma ação', d: 'Por baixo, a hora de quem visita (rascunho) e <b>Talk to us</b>, que leva ao Instagram, com o endereço em texto. Com nome: <i>Talk to us, Ana</i>.' },
+    { t: 'A última página', d: 'A pergunta sobe e entra o <b>colofão</b>: a assinatura <i>No templates. No copies.</i>, o índice, o Instagram, os créditos e <i>Back to the first page ↑</i>.' },
+  ];
+  const N = STATES.length;
+  const frames = [];
+  function inner(el) {
+    const ph = el.classList.contains('cph');
+    return `<div class="cL cvid" style="background-image:url(img/${ph ? 'poster-tall' : 'poster-wide'}.jpg)"></div><div class="cL cveil"></div><div class="cL cstone"></div>
+      <div class="cchrome"><span class="q"><i>04</i>Questions</span><span class="c"><i>05</i>Contact</span></div>
+      <div class="cqprev"><div class="an"><div class="h">What do you<br><i>actually create?</i></div><p>We design and build digital experiences for weddings, artists and unique occasions, tailored to each project.</p>
+        <div class="chs"><span><span><i>I</i>Weddings</span><b>→</b></span><span><span><i>II</i>Artists</span><b>→</b></span><span><span><i>III</i>Experiences</span><b>→</b></span></div></div>
+        <ol>${['What does it cost?', 'How long does it take?', 'How does a project work?', 'What do you need from me?', 'Do you work in English and outside Portugal?', 'Is it only digital?', 'What about the domain and hosting?', 'Can you work with my existing team?'].map((q, i) => `<li><em>${pad(i + 1)}</em><span>${q}</span><b>+</b></li>`).join('')}</ol></div>
+      <div class="cq">Is there something<br>that deserves<br><i>its own experience?</i></div>
+      <div class="cnow"><div class="t">You arrived at <b>${hm(arrived)}</b>. It’s <b>${hm(now)}</b> now —${ph ? '<br>' : ' '}a good moment to tell us about it.</div>
+        <a class="ccta" href="https://www.instagram.com/chapterone.studio.pt/" target="_blank" rel="noopener">Talk to us${NAME ? ', ' + NAME : ''} <span aria-hidden="true">→</span></a>
+        <div class="chandle">@chapterone.studio.pt</div></div>
+      <div class="cfoot"><div class="sig">Built around${ph ? ' ' : '<br>'}${NAME || 'you'}.<small>Chapter One · ${now.getFullYear()}</small></div>
+        <ul><li class="k">Index</li><li>01 Work</li><li>02 Method</li><li>03 About</li><li>04 Questions</li><li>05 Contact</li></ul>
+        <ul><li class="k">Talk to us</li><li>Instagram · @chapterone.studio.pt</li><li>Telegram · @flavius28</li></ul></div>
+      <div class="cL cgrain"></div>`;
+  }
+  function build(el, st, isStatic) { el.classList.toggle('static', !!isStatic); el.innerHTML = inner(el); const f = { el, st }; frames.push(f); set(f, st); return f; }
+  function set(f, st) { f.st = st; for (let s = 0; s < N; s++) f.el.classList.toggle('cs' + s, s === st); }
+  const rows = document.getElementById('c-rows');
+  STATES.forEach((S, k) => {
+    if (!k) return; // state 0 is the Questions' own end, already shown as 18
+    const sec = document.createElement('section'); sec.className = 'scene';
+    sec.innerHTML = `<div class="scene-head"><span class="n">${18 + k}</span><h2>${S.t}</h2></div><div class="row">
+      <figure><div class="cfr" aria-label="Estado ${k} no desktop: ${S.t}"></div><figcaption>Desktop</figcaption></figure>
+      <figure><div class="cfr cph" aria-label="Estado ${k} no telemóvel: ${S.t}"></div><figcaption>Telemóvel</figcaption></figure>
+      <div class="notes"><p>${S.d}</p></div></div>`;
+    rows.appendChild(sec);
+    build(sec.querySelector('.cfr'), k, true); build(sec.querySelector('.cfr.cph'), k, true);
+  });
+  const md = build(document.getElementById('c-m-d'), 0, false), mp = build(document.getElementById('c-m-p'), 0, false);
+  const nowEl = document.getElementById('c-now');
+  let cur = 0, timer = null;
+  const go = s => { cur = (s + N) % N; set(md, cur); set(mp, cur); nowEl.textContent = `${cur} · ${STATES[cur].t}`; };
+  const play = document.getElementById('c-play');
+  const setPlaying = on => { play.setAttribute('aria-pressed', String(on)); play.textContent = on ? 'Pausar' : 'Reproduzir'; clearInterval(timer); timer = on ? setInterval(() => go(cur + 1), 2800) : null; };
+  play.addEventListener('click', () => setPlaying(!timer));
+  document.getElementById('c-prev').addEventListener('click', () => { setPlaying(false); go(cur - 1); });
+  document.getElementById('c-next').addEventListener('click', () => { setPlaying(false); go(cur + 1); });
+  const nameIn = document.getElementById('name');
+  const sync = () => { NAME = nameIn.value.trim(); frames.forEach(f => { f.el.innerHTML = inner(f.el); set(f, f.st); }); };
+  nameIn.addEventListener('input', sync);
+  document.getElementById('try-name').addEventListener('click', () => setTimeout(sync, 0));
+  go(0);
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) setPlaying(true);
+})();
+</script>
+<script>
+(() => {
+  const pad = n => String(n).padStart(2, '0');
+  const now = new Date(), hm = pad(now.getHours()) + ':' + pad(now.getMinutes());
+  const BGS = {
+    work: { n: 1, label: 'Work', light: false, html: () => `<div class="aur" style="background-image:url(img/a-w002.jpg)"></div><div class="mphoto" style="background-image:url(img/w002.jpg)"></div><div class="mtx"><div class="h">Before</div><div>Save-the-date</div><div>Wedding website</div><div>Digital invitation</div><div>RSVP</div></div>` },
+    method: { n: 2, label: 'Method', light: true, html: ph => (ph ? [[8, 36, 'w299'], [52, 30, 'gallery'], [30, 58, 'concert']] : [[8, 40, 'w299'], [27, 46, 'studio'], [46, 38, 'gallery'], [65, 44, 'concert'], [84, 40, 'w002']]).map(([x, y, im]) => `<i style="left:${x}%;top:${y}%;background-image:url(img/${im}.jpg)"></i>`).join('') },
+    questions: { n: 4, label: 'Questions', light: true, html: () => `<div class="h">What do you<br><i>actually create?</i></div><ol>${['What does it cost?', 'How long does it take?', 'How does a project work?', 'What do you need from me?', 'Is it only digital?'].map(q => `<li>${q}</li>`).join('')}</ol>` },
+  };
+  const SECTIONS = ['Work', 'Method', 'About', 'Questions', 'Contact'];
+  let BG = 'work', MODE = 'prepared', NAME = '';
+  const frames = [document.getElementById('mn-d'), document.getElementById('mn-p')];
+  function render(el) {
+    const ph = el.classList.contains('mph'), b = BGS[BG], bg = `<div class="mL mbg m-${BG}">${b.html(ph)}</div>`;
+    const wasOpen = el.classList.contains('open');
+    el.classList.toggle('light', b.light); el.classList.toggle('real', MODE === 'real');
+    el.innerHTML = `${bg}
+      <div class="mbar2"><span><i>${pad(b.n)}</i>${b.label}</span><span class="r"><span class="time">${hm}</span><span class="tt">Talk to us</span>
+        <button class="mbtn" type="button" aria-expanded="${wasOpen}" aria-label="${wasOpen ? 'Close menu' : 'Open menu'}"><span class="ic" aria-hidden="true"></span><span class="w">${wasOpen ? 'Close' : 'Menu'}</span></button></span></div>
+      <div class="glass" role="dialog" aria-label="Menu"><div class="blur mL mbg m-${BG}">${b.html(ph)}</div><div class="tint"></div><div class="sheen"></div><div class="gr"></div>
+        <ol class="mnav">${SECTIONS.map((s, i) => `<li class="${i + 1 === b.n ? 'cur' : ''}"><i>${pad(i + 1)}</i><span>${s}</span></li>`).join('')}</ol>
+        <div class="mside">${NAME ? `<div class="hello">Hello, ${NAME}.</div>` : ''}<div class="k">Talk to us</div><div class="go">Instagram →</div>
+          <div>Instagram · @chapterone.studio.pt<br>Telegram · @flavius28</div><div class="k">Your time · ${hm}</div></div></div>`;
+    el.querySelector('.mbtn').addEventListener('click', () => { stopAuto(); toggle(el); });
+  }
+  function toggle(el, force) {
+    const open = force === undefined ? !el.classList.contains('open') : force;
+    el.classList.toggle('open', open);
+    const btn = el.querySelector('.mbtn'); btn.setAttribute('aria-expanded', String(open)); btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    btn.querySelector('.w').textContent = open ? 'Close' : 'Menu';
+  }
+  addEventListener('keydown', e => { if (e.key === 'Escape') frames.forEach(f => toggle(f, false)); });
+  const rerender = () => frames.forEach(render);
+  // controls
+  const group = (id, items, get, set) => { const g = document.getElementById(id); items.forEach(([v, l]) => { const b = document.createElement('button'); b.className = 'chip'; b.type = 'button'; b.textContent = l; b.setAttribute('aria-pressed', String(get() === v));
+    b.addEventListener('click', () => { g.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', 'false')); b.setAttribute('aria-pressed', 'true'); set(v); rerender(); }); g.appendChild(b); }); };
+  group('mn-bgs', [['work', 'Work'], ['method', 'Method'], ['questions', 'Questions']], () => BG, v => BG = v);
+  group('mn-modes', [['prepared', 'Preparado (recomendado)'], ['real', 'Real (desfoque ao vivo)']], () => MODE, v => MODE = v);
+  const nameIn = document.getElementById('name');
+  const sync = () => { NAME = nameIn.value.trim(); rerender(); };
+  nameIn.addEventListener('input', sync);
+  document.getElementById('try-name').addEventListener('click', () => setTimeout(sync, 0));
+  rerender();
+  // open and close by itself now and then, until the visitor uses the button
+  let auto = setInterval(() => frames.forEach(f => toggle(f)), 2600);
+  function stopAuto() { clearInterval(auto); auto = null; }
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) stopAuto();
+})();
+</script>
+<script>
+// the entrance, "Through the letters": dark with the visitor's time; CHAPTER ONE with the film inside the letters;
+// the camera enters through the O; the film, the title and the blades (the main storyboard's state 1)
+(() => {
+  const pad = n => String(n).padStart(2, '0');
+  const now = new Date();
+  const ded = `${now.toLocaleDateString('en-GB', { weekday: 'long' })}, ${now.getDate()} ${now.toLocaleDateString('en-GB', { month: 'long' })} · ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const STATES = [
+    { t: 'Tudo escuro, a tua hora', d: 'O ecrã abre em carvão. Aparece só a <b>dedicatória</b>: o dia e a hora de quem chega, no relógio dela. Quem volta vê <i>Welcome back</i> antes.' },
+    { t: 'CHAPTER ONE, com o vídeo nas letras', d: '<b>CHAPTER ONE</b> enorme, e <b>o vídeo vê-se por dentro das letras</b>: um véu escuro com o título recortado (máscara SVG) por cima do vídeo a tocar. A hora fica logo acima do título.' },
+    { t: 'A câmara entra pelo O', d: '<b>O vídeo fica parado e é o véu que avança</b>: o véu escuro com as letras recortadas cresce a partir do traço do O (a letra é a janela) até a janela cobrir o ecrã, enquanto a imagem avança um pouco, como uma câmara a entrar. Só <i>transform</i> no véu e na imagem; medido primeiro no Xiaomi (plano B: o véu rasterizado).' },
+    { t: 'O vídeo, o título e as lâminas', d: 'O vídeo em ecrã inteiro com a tinta da hora; o título <b>reaparece centrado e mais pequeno</b>, com o subtítulo; entram as três lâminas e a barra. É o <b>estado 1</b> em baixo.' },
+  ];
+  const N = STATES.length, frames = [];
+  function build(el, st, isStatic) {
+    const ph = el.classList.contains('eph'), poster = `img/${ph ? 'poster-tall' : 'poster-wide'}.jpg`;
+    el.classList.toggle('static', !!isStatic);
+    const id = 'v' + Math.random().toString(36).slice(2, 8), W = ph ? 900 : 1600, H = ph ? 1950 : 1000;
+    const words = ph ? `<tspan x="${W / 2}" y="${H * .5}">CHAPTER</tspan><tspan x="${W / 2}" y="${H * .5 + 180}">ONE</tspan>` : `<tspan x="${W / 2}" y="${H * .56}">CHAPTER ONE</tspan>`;
+    el.innerHTML = `<div class="evid" style="background-image:url(${poster})"></div>
+      <svg class="eveil" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+        <defs><mask id="${id}"><rect width="${W}" height="${H}" fill="#fff"/><text class="cut" text-anchor="middle" font-size="${ph ? 160 : 176}">${words}</text></mask></defs>
+        <rect width="${W}" height="${H}" fill="#161513" mask="url(#${id})"/>
+        <text class="probe" text-anchor="middle" font-size="${ph ? 160 : 176}" fill="none">${words}</text></svg>
+      <div class="eded">${ded}</div>
+      <div class="efinal"><div class="top"><span>Chapter One</span><span>${ph ? '≡ Menu' : 'Talk to us\u2003\u2003≡ Menu'}</span></div><div class="t">CHAPTER${ph ? '<br>' : ' '}ONE</div>
+        <div class="s">Digital experiences built for moments worth remembering.</div><div class="b">I Weddings · II Artists · III Experiences</div></div>`;
+    const f = { el, st }; frames.push(f); origin(el); set(f, st); return f;
+  }
+  // the camera enters through the O: the zoom's origin is the O's left stroke (the window), read from the SVG
+  function origin(el) {
+    const probe = el.querySelector('.probe'), svg = el.querySelector('.eveil');
+    if (!probe || !probe.getNumberOfChars()) return;
+    const ph = el.classList.contains('eph'), at = ph ? 7 : 8;   // the O of ONE
+    const b = probe.getExtentOfChar(at), vb = svg.viewBox.baseVal;
+    el.style.setProperty('--ox', ((b.x + b.width * .1) / vb.width * 100).toFixed(2) + '%');
+    el.style.setProperty('--oy', ((b.y + b.height * .55) / vb.height * 100).toFixed(2) + '%');
+  }
+  function set(f, st) { f.st = st; for (let s = 0; s < N; s++) f.el.classList.toggle('es' + s, s === st); }
+  const rows = document.getElementById('e-rows');
+  STATES.forEach((S, k) => {
+    const sec = document.createElement('section'); sec.className = 'scene';
+    sec.innerHTML = `<div class="scene-head"><span class="n">E${k + 1}</span><h2>${S.t}</h2></div><div class="row">
+      <figure><div class="efr" aria-label="Entrada ${k + 1} no desktop: ${S.t}"></div><figcaption>Desktop</figcaption></figure>
+      <figure><div class="efr eph" aria-label="Entrada ${k + 1} no telemóvel: ${S.t}"></div><figcaption>Telemóvel</figcaption></figure>
+      <div class="notes"><p>${S.d}</p></div></div>`;
+    rows.appendChild(sec);
+    build(sec.querySelector('.efr'), k, true); build(sec.querySelector('.efr.eph'), k, true);
+  });
+  const md = build(document.getElementById('e-m-d'), 0, false), mp = build(document.getElementById('e-m-p'), 0, false);
+  document.fonts.ready.then(() => frames.forEach(f => origin(f.el)));
+  addEventListener('resize', () => frames.forEach(f => origin(f.el)));
+  const nowEl = document.getElementById('e-now');
+  let cur = 0, timer = null;
+  const go = s => { cur = (s + N) % N; set(md, cur); set(mp, cur); nowEl.textContent = `E${cur + 1} · ${STATES[cur].t}`; };
+  const play = document.getElementById('e-play');
+  const setPlaying = on => { play.setAttribute('aria-pressed', String(on)); play.textContent = on ? 'Pausar' : 'Reproduzir'; clearInterval(timer); timer = on ? setInterval(() => go(cur + 1), 2400) : null; };
+  play.addEventListener('click', () => setPlaying(!timer));
+  document.getElementById('e-prev').addEventListener('click', () => { setPlaying(false); go(cur - 1); });
+  document.getElementById('e-next').addEventListener('click', () => { setPlaying(false); go(cur + 1); });
+  go(0);
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) setPlaying(true);
+})();
+</script>
+<script>
+// every frame gets the visitor's time for its bar (an attribute, so it survives the frames re-rendering)
+(() => { const d = new Date(), hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  const all = () => document.querySelectorAll('.frame, .afr, .qfr, .cfr, .efr').forEach(f => { f.dataset.time = hm; });
+  all(); setTimeout(all, 500);
+  // the bar sits on the section label's line: find the label that is showing and copy its text line's box
+  const LABELS = '.idx, .chrome, .achrome, .qchrome, .cchrome';
+  const align = f => {
+    const fr = f.getBoundingClientRect(); if (!fr.width) return;
+    const label = [...f.querySelectorAll(LABELS)].find(l => l.checkVisibility ? l.checkVisibility({ opacityProperty: true }) : true) || f.querySelector(LABELS);
+    if (!label) return;
+    const w = document.createTreeWalker(label, NodeFilter.SHOW_TEXT); let n, last = null; while ((n = w.nextNode())) if (n.textContent.trim()) last = n;
+    if (!last) return;
+    const r = document.createRange(); r.selectNodeContents(last); const b = r.getBoundingClientRect();
+    f.style.setProperty('--bar-top', (b.top - fr.top) + 'px'); f.style.setProperty('--bar-lh', b.height + 'px');
+  };
+  const alignAll = () => document.querySelectorAll('.frame, .afr, .qfr, .cfr').forEach(align);
+  document.fonts.ready.then(alignAll); addEventListener('resize', alignAll); setInterval(alignAll, 700); })();
+</script>

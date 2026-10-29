@@ -39,9 +39,9 @@ header { display: grid; gap: 18px; }
 header p, .muted { color: var(--muted); }
 strong, b { color: var(--linen); font-weight: 500; }
 a { color: var(--linen); }
-.changes { margin: 0; padding-left: 20px; display: grid; gap: 6px; color: var(--muted); max-width: 80ch; }
 
-.controls { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50; background: var(--charcoal); border-block: 1px solid var(--rule); padding-block: 14px; display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; }
+/* above every frame layer (the frames' bar is z-index 60), or the bar shows through the controls on scroll */
+.controls { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 100; background: var(--charcoal); border-block: 1px solid var(--rule); padding-block: 14px; display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 60; background: var(--charcoal); }
 .group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .group .label { margin-right: 6px; }
@@ -66,6 +66,16 @@ figure { margin: 0; display: grid; gap: 8px; min-width: 0; }
 figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 @media (max-width: 900px) { .row { grid-template-columns: minmax(0, 1fr) 150px; } .notes { grid-column: 1 / -1; } }
 @media (max-width: 560px) { .row { grid-template-columns: minmax(0, 1fr) 112px; gap: 14px; } }
+/* the controls: one row on desktop; on a phone they fold into one button (open, they took ~38% of a 390 px screen) */
+.ctl-body { display: contents; }
+.ctl-toggle { display: none; }
+@media (max-width: 560px) {
+  .controls { padding-block: 10px; }
+  .ctl-toggle { display: inline-flex; }
+  .ctl-body { display: none; }
+  .controls.open .ctl-body { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; width: 100%; }
+  .controls.open .ctl-toggle { background: var(--linen); color: var(--charcoal); }
+}
 
 /* ---------- frames ---------- */
 .frame { position: relative; overflow: hidden; width: 100%; background: #171614; color: var(--linen); border-radius: 4px; container-type: inline-size; box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 18px 40px rgba(0,0,0,.35); }
@@ -181,17 +191,30 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
 .tx .li.act .g { background: var(--linen); }
 .frame.phone .tx .li .g { width: 2.2cqw; height: 2.2cqw; margin-right: 2cqw; }
 .tx .li b.nm { font-weight: 400; }
-.frame.held .mom .fill { animation: none !important; transform: scaleX(1); }
+.frame.held .mom .wf { animation: none !important; }
 /* only what is visible can be touched: hidden chapters never catch the pointer */
 .L { pointer-events: none; }
-.frame.try .tabs span { pointer-events: auto; cursor: pointer; }
-.frame.try[data-ch="1"] .c1 .mom span, .frame.try[data-ch="2"] .c2 .mom span, .frame.try[data-ch="3"] .c3 .mom span { pointer-events: auto; cursor: pointer; }
+.frame.try[data-ch="1"] .c1 .hnav button, .frame.try[data-ch="2"] .c2 .hnav button, .frame.try[data-ch="3"] .c3 .hnav button { pointer-events: auto; }
+.frame.try[data-ch="1"] .c1 .mom > span, .frame.try[data-ch="2"] .c2 .mom > span, .frame.try[data-ch="3"] .c3 .mom > span { pointer-events: auto; cursor: pointer; }
 .frame[data-ch="1"] .g1, .frame[data-ch="2"] .g2, .frame[data-ch="3"] .g3 { opacity: 1; }
 .work { z-index: 2; transition: opacity 1s; }
 .frame.work-on .work { opacity: 1; }
-.tabs { position: absolute; left: 44%; top: 11.5%; display: flex; gap: 3cqw; font-family: var(--voice); font-size: 1.8cqw; }
-.tabs span { opacity: .45; transition: opacity .8s; padding-bottom: .3cqw; border-bottom: 1px solid transparent; }
-.frame[data-ch="1"] .tabs .t1, .frame[data-ch="2"] .tabs .t2, .frame[data-ch="3"] .tabs .t3 { opacity: 1; border-bottom-color: currentColor; }
+/* README #62: no chapter tabs under the site's bar; the title of the text is the navigation */
+.hnav { display: flex; flex-wrap: wrap; align-items: baseline; gap: .2em 2cqw; font-style: normal; }
+.hnav .ch { all: unset; cursor: pointer; font-family: var(--voice); font-size: 1.7cqw; opacity: .5; transform-origin: 0 100%; }
+.hnav .ch[aria-current="true"] { font-size: 4.6cqw; font-style: italic; opacity: 1; margin-right: .6cqw; }
+.hnav .num { font-style: normal; }
+.hnav .ch:focus-visible { outline: 1px solid var(--linen); outline-offset: .4cqw; }
+/* phone: the current chapter large at the left; at its right the next one (larger, the only one to tap, a 44px
+   target) below the other one (smaller, a label) */
+.frame.phone .hnav { display: grid; grid-template-columns: auto 1fr; column-gap: 3cqw; row-gap: .6cqw; align-items: end; }
+.frame.phone .hnav .ch[aria-current="true"] { grid-row: 1 / span 2; font-size: 9cqw; white-space: nowrap; }
+.frame.phone .hnav .ch:not([aria-current="true"]) { grid-column: 2; justify-self: end; font-size: 4.1cqw; line-height: 1.2; opacity: .5; white-space: nowrap; }
+.frame.phone .hnav .ch.next { font-size: 5.4cqw; opacity: .85; padding: 2.6cqw 0 2.6cqw 4cqw; margin: -2.6cqw 0 -2.6cqw -4cqw; }
+.frame.phone .hnav span.ch { cursor: default; }
+/* the running Work: the chapter passage is drawn by script (FLIP), so the text block changes at once */
+.frame.try .tx, .frame.pass .tx { transition: none; }
+/* README #61: the current chapter is lit and in italic, like the current section in the menu; no underline */
 .idx { position: absolute; left: 3%; top: 6%; font-size: max(5px, 1.2cqw); letter-spacing: .16em; text-transform: uppercase; opacity: .7; }
 .idx i { font-family: var(--voice); font-size: 1.6em; letter-spacing: 0; text-transform: none; margin-right: .4em; }
 .stack, .tx { opacity: 0; transform: translateY(5%); transition: opacity 1.1s, transform 1.1s; }
@@ -206,45 +229,40 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
 .c3 .ph { clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
 .tx { position: absolute; left: 48%; top: 19%; width: 44%; display: grid; gap: 1.5cqw; }
 .mom { display: flex; gap: 2.4cqw; font-size: 1.2cqw; letter-spacing: .14em; text-transform: uppercase; }
-.mom span { position: relative; opacity: .5; padding-bottom: .5cqw; }
+.mom > span { position: relative; opacity: .5; padding-bottom: .5cqw; white-space: nowrap; } /* README #63: a moment never breaks */
 .mom span.on { opacity: 1; }
-.mom span.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: rgba(238,232,221,.25); }
-.mom span.on .fill { position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--linen); transform-origin: left; transform: scaleX(.6); }
-.frame:not(.static) .mom span.on .fill { animation: fill 2.6s linear both; }
-@keyframes fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+/* README #61: the moment's word fills with the tone of the chapter's photographs over its time, then the next one
+   starts. A coloured copy of the word over the dim one, opened with clip-path (no line under the moments) */
+.tx.c1 { --wf: #DDBF95; } .tx.c2 { --wf: #D8AE74; } .tx.c3 { --wf: #A9BCDD; }
+.mom span.on .w { opacity: .38; }
+.mom .wf { position: absolute; left: 0; top: 0; color: var(--wf); clip-path: inset(0 0 0 0); }
+.frame:not(.static) .mom .wf { animation: wfill 2.6s linear both; }
+@keyframes wfill { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 .tx .h { font-family: var(--voice); font-style: italic; font-size: 4.6cqw; line-height: 1; }
-.tx .li { font-size: 1.35cqw; border-top: 1px solid rgba(238,232,221,.16); padding-top: .8cqw; display: flex; justify-content: space-between; gap: 2cqw; }
-.tx .li span { opacity: .6; }
+.tx .li { font-size: 1.35cqw; border-top: 1px solid rgba(238,232,221,.16); padding-top: .8cqw; display: grid; gap: .35cqw; }
+.tx .li .top { display: flex; justify-content: space-between; gap: 2cqw; }
+.tx .li .top span { opacity: .6; }
+/* README #60: every piece has its line (desktop); on a phone one line at a time, under the chosen name */
+.tx .ln { font-family: var(--voice); font-size: 1.45cqw; line-height: 1.25; color: rgba(238,232,221,.66); max-width: 40cqw; }
+.tx .li.feat .ln { color: rgba(238,232,221,.86); }
+.tx .pick { all: unset; cursor: pointer; display: flex; justify-content: space-between; gap: 2cqw; width: 100%; }
+.tx .pick:focus-visible { outline: 1px solid var(--linen); outline-offset: .6cqw; }
+.tx .pick .ar { opacity: .45; font-style: normal; }
+/* in the running Work the Method's layers are only transparent: they must not catch a tap meant for the Work */
+.frame.try .end, .frame.try .cover, .frame.try .phrase, .frame.try .mfield, .frame.try .card, .frame.try .chrome, .frame.try .vid, .frame.try .ent { pointer-events: none; }
+.frame.try[data-ch="1"] .c1 .pick, .frame.try[data-ch="2"] .c2 .pick, .frame.try[data-ch="3"] .c3 .pick { pointer-events: auto; }
 .tx .foot { margin-top: 1.4cqw; font-size: 1.15cqw; opacity: .7; }
 .frame.phone .idx { font-size: 3.4cqw; left: 6%; top: 3%; }
-.frame.phone .tabs { left: 6%; top: 6.5%; font-size: 4.6cqw; gap: 4cqw; }
-.frame.phone .stack { left: 8%; top: 12%; width: 66%; height: 38%; }
-.frame.phone .tx { left: 8%; top: 59%; width: 84%; gap: 3.4cqw; }
-.frame.phone .mom { font-size: 3.4cqw; gap: 4cqw; }
-.frame.phone .tx .h { font-size: 11cqw; }
-.frame.phone .tx .li { font-size: 3.9cqw; padding-top: 2cqw; }
-.frame.phone .tx .li span, .frame.phone .tx .foot { display: none; }
 
-/* the drawing of the piece (always visible beside the photograph) */
-.sketch { position: absolute; border: 1px solid rgba(238,232,221,.75); border-radius: 12cqw; padding: 14cqw 10cqw 10cqw; display: flex; flex-direction: column; gap: 6cqw; container-type: inline-size; color: rgba(238,232,221,.8); }
-.draw { z-index: 5; left: 27.5%; top: 55%; width: 10%; height: 34.67%; background: rgba(23,22,20,.82); transition: left 1s, top 1s, width 1s, height 1s, opacity .8s; }
-.draw .cap { position: absolute; left: 0; right: 0; top: 102%; font-size: 6.4cqw; letter-spacing: .1em; text-transform: uppercase; text-align: center; white-space: nowrap; opacity: .75; }
-.draw .dc { display: contents; }
-.draw.big { left: 9%; top: 12%; width: 20%; height: 69.33%; background: rgba(23,22,20,.94); }
-.draw.big .cap { font-size: 5cqw; }
-.frame.phone .draw { left: 62%; top: 33%; width: 24%; height: 24%; }
-.frame.phone .draw .cap { font-size: 7cqw; }
-.sk-img.sun { position: relative; }
-.sk-img.sun i { position: absolute; left: 58%; top: 26%; width: 16cqw; height: 16cqw; border: 1px solid currentColor; border-radius: 50%; }
-.sk-img.sun::after { content: ""; position: absolute; left: 0; right: 0; top: 68%; height: 1px; background: currentColor; }
-.sk-row { display: flex; gap: 4cqw; }
-.sk-row i { flex: 1; height: 24cqw; border: 1px solid currentColor; opacity: .7; }
-.sk-tl { display: grid; gap: 8cqw; padding: 2cqw 0 2cqw 7cqw; margin-left: 2cqw; border-left: 1px solid currentColor; }
-.sk-tl i { display: block; height: 1px; background: currentColor; opacity: .6; position: relative; }
-.sk-tl i::before { content: ""; position: absolute; left: -9.4cqw; top: -2cqw; width: 4cqw; height: 4cqw; border-radius: 50%; border: 1px solid currentColor; background: #171614; }
-.sk-tl i.on::before { background: currentColor; }
-.tx .li.drawn { border-top-color: rgba(238,232,221,.7); }
-.frame.phone .draw.big { left: 16%; top: 10%; width: 68%; height: 68%; }
+.frame.phone .stack { left: 8%; top: 12%; width: 66%; height: 38%; }
+.frame.phone .tx { left: 8%; top: 54%; width: 84%; gap: 3cqw; }
+.frame.phone .mom { font-size: 3.45cqw; gap: 4cqw; } /* 13.5px on a 390px phone, measured */
+.frame.phone .tx .h { font-size: 10cqw; }
+.frame.phone .tx .li { font-size: 3.9cqw; padding-top: 2cqw; }
+.frame.phone .tx .li .top span, .frame.phone .tx .foot { display: none; }
+.frame.phone .tx .li { gap: 1cqw; }
+.frame.phone .tx .ln { font-size: 4.3cqw; max-width: none; }
+
 .sk-bar { display: flex; justify-content: space-between; font-size: 8cqw; letter-spacing: .14em; }
 .sk-img { height: 34%; border: 1px solid currentColor; border-radius: 3cqw; opacity: .7; }
 .sk-t { font-family: var(--voice); font-style: italic; font-size: 13cqw; line-height: 1; }
@@ -393,24 +411,29 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
 .ticks { display: flex; gap: 4px; }
 .ticks i { width: 14px; height: 2px; background: var(--rule); }
 .ticks i.on { background: var(--linen); }
+/* the whole-site player: one frame per section, stacked; only the current one shows */
+.stage { position: relative; width: 100%; aspect-ratio: 16 / 10; }
+.stage.ph { aspect-ratio: 9 / 19.5; }
+.stage > * { position: absolute !important; inset: 0; width: 100% !important; height: 100% !important; aspect-ratio: auto !important; visibility: hidden; }
+.stage > .on { visibility: visible; }
+.ticks { flex-wrap: wrap; gap: 3px; }
+.ticks i { width: 9px; }
+.ticks i.cut { margin-left: 7px; }  /* a gap where a new section begins */
 
 .skies { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
 .skies .sw { aspect-ratio: 3 / 4; border-radius: 4px; position: relative; overflow: hidden; }
 .skies .sw .L { opacity: 1; }
 @media (max-width: 560px) { .skies { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.opinion { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }
-.opinion > div { display: grid; gap: 10px; align-content: start; }
-.opinion p { color: var(--muted); font-size: 14.5px; }
-@media (max-width: 760px) { .opinion { grid-template-columns: 1fr; } }
-.msgs { display: grid; gap: 10px; }
-.msgs button { text-align: left; background: transparent; border: 1px solid var(--rule); border-radius: 4px; padding: 14px 16px; cursor: pointer; display: grid; gap: 4px; }
-.msgs button[aria-pressed="true"] { border-color: var(--linen); }
-.msgs .q { font-family: var(--voice); font-size: 24px; line-height: 1.15; }
-.msgs .q i { font-style: italic; }
-.msgs .w { font-size: 13px; color: var(--muted); }
-.decide ol { margin: 0; padding-left: 20px; display: grid; gap: 10px; max-width: 76ch; }
-.decide li { color: var(--muted); }
-.decide li::marker { font-family: var(--voice); font-style: italic; }
+/* the approved line of every piece (26 Oct): a reference list, not yet placed in the frames */
+.lines { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; }
+@media (max-width: 900px) { .lines { grid-template-columns: 1fr; gap: 28px; } }
+.lines > div { display: grid; align-content: start; gap: 8px; min-width: 0; }
+.lines .mo { margin-top: 14px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+.lines dl { margin: 0; display: grid; gap: 4px; }
+.lines dt { margin-top: 10px; font-size: 13px; letter-spacing: .04em; color: var(--muted); }
+.lines dt.feat { color: var(--linen); }
+.lines dt.feat::before { content: "● "; font-size: .8em; }
+.lines dd { margin: 0; font-family: var(--voice); font-size: 19px; line-height: 1.3; color: var(--linen); }
 
 @media (prefers-reduced-motion: reduce) { .frame * { transition: none !important; animation: none !important; } }
 /* ---------- About (merged from its own storyboard; classes renamed to avoid collisions) ---------- */
@@ -531,6 +554,8 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
 .qchrome i { font-family: var(--voice); font-size: 1.6em; letter-spacing: 0; text-transform: none; margin-right: .4em; }
 .qs1 .qchrome, .qs2 .qchrome, .qs3 .qchrome, .qs4 .qchrome { color: var(--ink); }
 .qph .qchrome { font-size: 3.4cqw; left: 6%; top: 3%; }
+.qchrome .a, .qs0 .qchrome .q { display: none; }
+.qs0 .qchrome .a { display: inline; }
 
 /* the anchor: one question answered in full, set like a title page */
 .qanchor { position: absolute; z-index: 5; left: 7%; top: 16%; width: 32%; color: var(--ink); display: grid; gap: 1.6cqw; opacity: 0; transform: translateY(5%); transition: opacity 1.1s .8s, transform 1.1s .8s; }
@@ -629,6 +654,12 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
 .cqprev li b { justify-self: end; font-weight: 400; }
 .cqprev b { color: inherit; }
 .cqprev li { line-height: 1.15; }
+/* the Questions' own plus (.qrow .pm) and 05 Contact ↓ (.qnext), so state 0 is the Questions' last frame */
+.cqprev li .pm { width: 1.1cqw; height: 1.1cqw; position: relative; }
+.cqprev li .pm::before, .cqprev li .pm::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: currentColor; }
+.cqprev li .pm::after { transform: rotate(90deg); }
+.cnext { position: absolute; left: 47%; top: 93.5%; font-size: 1.05cqw; letter-spacing: .16em; text-transform: uppercase; opacity: .7; }
+.cph .cnext { display: none; }
 .cchrome .c { display: none; }
 .cs1 .cchrome .q, .cs2 .cchrome .q, .cs3 .cchrome .q { display: none; }
 .cs1 .cchrome .c, .cs2 .cchrome .c, .cs3 .cchrome .c { display: inline; }
@@ -641,6 +672,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
 .cph .cqprev .an .chs i, .cph .cqprev .an .chs b { display: none; }
 .cph .cqprev ol { left: 7%; right: 7%; top: 39%; }
 .cph .cqprev li { grid-template-columns: 7cqw 1fr 5cqw; padding: 2.2cqw 0; font-size: 4.6cqw; }
+.cph .cqprev li .pm { width: 3cqw; height: 3cqw; }
 
 /* the question: large, alone, held for a moment */
 .cq { position: absolute; z-index: 5; left: 10%; right: 10%; top: 18%; text-align: center; font-family: var(--voice); font-size: 5.6cqw; line-height: 1.05; opacity: 0; transform: translateY(6%); transition: opacity 1.4s .5s, transform 1.4s .5s, top 1.2s, font-size 1.2s; }
@@ -714,14 +746,15 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
 .mbar2 .time { opacity: .7; letter-spacing: .08em; }
 .mbar2 .tt { border-bottom: 1px solid currentColor; padding-bottom: .2cqw; }
 .mbtn { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: .9cqw; letter-spacing: .16em; pointer-events: auto; position: relative; z-index: 8; }
-.mbtn .ic { position: relative; width: 1.8cqw; height: .9cqw; }
+.mbtn .ic { position: relative; width: 1.8cqw; height: .9cqw; background: linear-gradient(currentColor, currentColor) right center / 70% 1px no-repeat; transition: background-size .4s; }
+.mfr.open .mbtn .ic { background-size: 0% 1px; }
+.mph .mbtn .w { display: none; }
 .mbtn .ic::before, .mbtn .ic::after { content: ""; position: absolute; left: 0; right: 0; height: 1px; background: currentColor; transition: transform .6s; }
-.mbtn .ic::before { top: 0; } .mbtn .ic::after { bottom: 0; }
+.mbtn .ic::before { top: 0; } .mbtn .ic::after { bottom: 0; left: auto; width: 85%; transition: transform .6s, width .6s; }
+.mfr.open .mbtn .ic::after { width: 100%; }
 .mfr.open .mbtn .ic::before { transform: translateY(.45cqw) rotate(45deg); }
 .mfr.open .mbtn .ic::after { transform: translateY(-.45cqw) rotate(-45deg); }
 .mbtn:focus-visible { outline: 1px solid currentColor; outline-offset: .6cqw; }
-.mfr.light .mbar2 { color: var(--ink); }
-.mfr.light.open .mbar2 { color: var(--linen); }
 .mph .mbar2 { left: 6%; right: 6%; top: 3%; font-size: 3.4cqw; }
 .mph .mbar2 .time, .mph .mbar2 .tt { display: none; }
 .mph .mbtn { gap: 2.4cqw; }
@@ -729,33 +762,30 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
 .mph.open .mbtn .ic::before { transform: translateY(1.2cqw) rotate(45deg); }
 .mph.open .mbtn .ic::after { transform: translateY(-1.2cqw) rotate(-45deg); }
 
-/* the menu: liquid glass growing from the button */
-.glass { position: absolute; inset: 0; z-index: 5; overflow: hidden; clip-path: circle(0% at var(--bx, 94%) var(--by, 6%)); transition: clip-path .9s cubic-bezier(.65, 0, .25, 1); }
-.mfr.open .glass { clip-path: circle(150% at var(--bx, 94%) var(--by, 6%)); }
-.mph .glass { --bx: 88%; --by: 4%; }
-/* prepared glass: the section behind, blurred once (in the site: a ready-made image), never blurred live */
-.glass .blur { position: absolute; inset: -6%; filter: blur(2.4cqw) saturate(1.25); transform: scale(1.08); }
-.glass .tint { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(30,29,26,.52), rgba(30,29,26,.68)); }
-/* the phone frame is narrow: its blur and its film must be stronger for the same glass */
-.mph .glass .blur { filter: blur(7cqw) saturate(1.2); }
-.mph .glass .tint { background: linear-gradient(180deg, rgba(30,29,26,.6), rgba(30,29,26,.74)); }
-.mfr.light .glass .tint { background: linear-gradient(180deg, rgba(30,29,26,.5), rgba(30,29,26,.66)); }
-/* the liquid: a sheen at the top, a soft lens edge, grain */
-.glass .sheen { position: absolute; inset: 0; background: linear-gradient(170deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,0) 26%), radial-gradient(60% 40% at 92% 0%, rgba(255,255,255,.14), transparent 70%);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.12), inset 0 0 6cqw rgba(255,255,255,.05); }
-.glass .gr { position: absolute; inset: 0; opacity: .1; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 .6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
-/* the live version, for comparison only */
-.real .glass .blur { display: none; }
-.real .glass { -webkit-backdrop-filter: blur(22px) saturate(140%); backdrop-filter: blur(22px) saturate(140%); }
-.real .glass .tint { background: linear-gradient(180deg, rgba(30,29,26,.32), rgba(30,29,26,.5)); }
+/* the menu (README #69, approved 28/10): full screen, live glass — the page itself blurred (backdrop-filter), the dark
+   film, a sheen and a rim of light. It grows as a drop born in the rounded right end of the right island (on the phone
+   that island is the button's circle), by transform: scale — not clip-path, which flickered in Chrome Android with
+   backdrop-filter (recorded on the Xiaomi, 28/10). Blur: 8 px on the phone x 1.4 for the menu; the desktop x 1.6. */
+.glass { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+.mfr.open .glass { pointer-events: auto; }
+.glass .drop { position: absolute; left: calc(var(--dx, 94%) - var(--R, 1200px)); top: calc(var(--dy, 6%) - var(--R, 1200px)); width: calc(2 * var(--R, 1200px)); height: calc(2 * var(--R, 1200px));
+  border-radius: 50%; overflow: hidden; transform: scale(var(--s0, .02)); visibility: hidden; transition: transform .9s cubic-bezier(.65, 0, .25, 1), visibility 0s .9s;
+  -webkit-backdrop-filter: blur(1.24cqw) saturate(1.6) brightness(1.02); backdrop-filter: blur(1.24cqw) saturate(1.6) brightness(1.02); }
+.mph .glass .drop { -webkit-backdrop-filter: blur(2.87cqw) saturate(1.6) brightness(1.02); backdrop-filter: blur(2.87cqw) saturate(1.6) brightness(1.02); }
+.mfr.open .glass .drop { transform: none; visibility: visible; transition: transform .9s cubic-bezier(.65, 0, .25, 1), visibility 0s; }
+/* dark glass, always linen ink; over a light ground the film is denser instead of the glass turning light */
+.glass .tint { position: absolute; inset: 0; background: rgba(20,19,17,.3); }
+.mfr.light .glass .tint { background: rgba(20,19,17,.62); }
+.glass .sheen { position: absolute; inset: 0; border-radius: 50%; background: linear-gradient(160deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,0) 30%); box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
 
 .mnav { position: absolute; z-index: 2; left: 8%; top: 18%; list-style: none; margin: 0; padding: 0; display: grid; gap: .6cqw; }
 .mnav li { font-family: var(--voice); font-size: 5.2cqw; line-height: 1.05; display: flex; align-items: baseline; gap: 1.6cqw; opacity: 0; transform: translateY(18%); transition: opacity .6s, transform .7s; }
-.mnav li i { font-size: .36em; opacity: .6; width: 2.6cqw; }
+.mnav li i { font-size: .42em; opacity: .75; width: 3.4cqw; font-style: italic; }
+.mnav li, .mnav li i { text-shadow: 0 1px 2px rgba(0,0,0,.35), 0 .3cqw 2.4cqw rgba(0,0,0,.4); }
 .mnav li.cur span { font-style: italic; }
 .mnav li.cur::after { content: "·"; margin-left: .2em; }
 .mfr.open .mnav li { opacity: 1; transform: none; }
-.mfr.open .mnav li:nth-child(1) { transition-delay: .35s; } .mfr.open .mnav li:nth-child(2) { transition-delay: .42s; } .mfr.open .mnav li:nth-child(3) { transition-delay: .49s; }
+.mfr.open .mnav li:nth-child(1) { transition-delay: .35s; } /* the words wait for the drop */ .mfr.open .mnav li:nth-child(2) { transition-delay: .42s; } .mfr.open .mnav li:nth-child(3) { transition-delay: .49s; }
 .mfr.open .mnav li:nth-child(4) { transition-delay: .56s; } .mfr.open .mnav li:nth-child(5) { transition-delay: .63s; }
 .mside { position: absolute; z-index: 2; left: 62%; right: 8%; bottom: 14%; display: grid; gap: 1.2cqw; font-size: 1.15cqw; line-height: 1.7; opacity: 0; transition: opacity .7s .6s; }
 .mfr.open .mside { opacity: 1; }
@@ -764,7 +794,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
 .mside .hello { font-family: var(--voice); font-style: italic; font-size: 2cqw; }
 .mph .mnav { left: 8%; top: 14%; gap: 2cqw; }
 .mph .mnav li { font-size: 12cqw; gap: 4cqw; }
-.mph .mnav li i { width: 7cqw; }
+.mph .mnav li i { width: 9cqw; }
 .mph .mside { left: 8%; right: 8%; bottom: 6%; gap: 3cqw; font-size: 3.4cqw; }
 .mph .mside .k { font-size: 2.8cqw; }
 .mph .mside .go { font-size: 3cqw; padding: 2.6cqw 6cqw; }
@@ -785,46 +815,181 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
 .eveil text { font-family: var(--voice); font-weight: 600; letter-spacing: .04em; }
 .eveil .cut { opacity: 0; transition: opacity 1.1s; }
 .es1 .eveil .cut, .es2 .eveil .cut { opacity: 1; }
-.es2 .eveil { transform: scale(60); }
-.es3 .eveil { transform: scale(60); opacity: 0; }
+/* measured 27/10: the O's stroke is ~22 px wide at 176 px and sits ~1070 px from the frame's left edge (of 1600),
+   so the window covers the desktop frame only from ~x100; at x60 it left the left 40% dark */
+.es2 .eveil { transform: scale(120); }
+.es3 .eveil { transform: scale(120); opacity: 0; }
 /* the dedication sits just above the title, not at the top of the screen */
 .eded { position: absolute; z-index: 3; left: 0; right: 0; top: 34%; text-align: center; font-family: var(--voice); font-style: italic; font-size: 1.9cqw; color: var(--linen); opacity: 0; transition: opacity .8s; }
 .es0 .eded, .es1 .eded { opacity: .85; }
 .eph .eded { top: 38%; font-size: 5.4cqw; }
+/* E4 = state 1: the dedication stays, at the top over the title (README #64); it moves while hidden (in E3), so only opacity animates */
+.es3 .eded { top: 13%; opacity: .85; transition: opacity 1s .5s; }
+.eph.es3 .eded { top: 9%; }
 .efinal { position: absolute; inset: 0; z-index: 3; opacity: 0; transition: opacity 1s .5s; }
 .es3 .efinal { opacity: 1; }
 .efinal .t { position: absolute; left: 0; right: 0; top: 30%; text-align: center; font-family: var(--voice); font-size: 7.4cqw; letter-spacing: .16em; line-height: 1; }
 .efinal .s { position: absolute; left: 0; right: 0; top: 45%; text-align: center; font-size: 1.5cqw; opacity: .9; }
-.efinal .b { position: absolute; left: 0; right: 0; top: 70%; text-align: center; font-size: 1.1cqw; letter-spacing: .16em; text-transform: uppercase; opacity: .7; }
 .efinal .top { position: absolute; left: 3%; right: 3%; top: 4%; display: flex; justify-content: space-between; font-size: max(5px, 1.3cqw); letter-spacing: .16em; text-transform: uppercase; }
 .eph .efinal .t { top: 22%; font-size: 13cqw; }
 .eph .efinal .s { top: 38%; left: 10%; right: 10%; font-size: 4.2cqw; }
-.eph .efinal .b { top: 62%; font-size: 3.2cqw; }
+/* E4 is state 1: the same three blades with their photographs (the phone's, as in .frame.phone) */
+.eph .blade { width: 84%; height: 11%; left: 8%; clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%); }
+.eph .blade span { font-size: 6.4cqw; left: 10%; }
+.eph .blade.b1 { top: 54%; } .eph .blade.b2 { top: 67%; } .eph .blade.b3 { top: 80%; }
 .eph .efinal .top { left: 6%; right: 6%; top: 2.6%; font-size: 3.6cqw; }
+/* ---------- passages that start on the previous section's final frame (README #65, proposal) ---------- */
+.mirror { position: absolute !important; inset: 0; pointer-events: none; width: 100% !important; height: 100% !important; aspect-ratio: auto !important; border-radius: 0 !important; box-shadow: none !important; margin: 0; }
+.mirror::after { content: none !important; }
+.mirror .leave { position: absolute; inset: 0; z-index: 15; }
+/* 11 -> 12: the Method leaves in order, bottom first; the phrase last; then the room hands over to the About's light */
+.afr .from-method { z-index: 8; transition: opacity .8s .9s; }   /* the room and its light linger while the portrait opens */
+.afr .from-method .end .cta { transition: opacity .45s, transform .6s; }
+.afr .from-method .end .steps { transition: opacity .55s .1s, transform .7s .1s; }
+.afr .from-method .leave { transition: opacity .9s .1s, transform 1.2s .1s; }
+.afr .from-method .end .msg { transition: opacity .7s .35s, transform .9s .35s; }
+.afr .from-method .chrome { transition: opacity .5s; }
+.afr:not(.as0) .from-method { opacity: 0; }
+.afr:not(.as0) .from-method .end .cta { opacity: 0; transform: translateY(60%); }
+.afr:not(.as0) .from-method .end .steps { opacity: 0; transform: translateY(40%); }
+.afr:not(.as0) .from-method .leave { opacity: 0; transform: scale(1.06); }
+.afr:not(.as0) .from-method .end .msg { opacity: 0; transform: translateY(-6%); }
+.afr:not(.as0) .from-method .chrome { opacity: 0; }
+.afr.mirrored .amsg { display: none; }                 /* the copy carries the phrase */
+.afr.mirrored.as0 .achrome { opacity: 0; }             /* still the Method: its own label shows (02 Method) */
+.afr.mirrored .achrome { transition: opacity .6s .6s; }
+.afr.mirrored.as1 .pt { transition-delay: .8s; }       /* the portrait opens as the phrase finishes leaving */
+.afr.mirrored.as1 .name { transition: opacity 1s 1.3s, transform 1.5s; }
+/* 14 -> 15: the studio paper rises like a card over the About, which lifts more slowly beneath it and darkens */
+.qprev .from-about { z-index: 1; }
+.qprev .from-about .achrome { display: none; }         /* the panel's own label says 03 About */
+.qprev:has(.from-about) .ppt, .qprev:has(.from-about) .pt2 { display: none; }
+.qprev .from-about .next { transition: opacity .3s; }
+.qs1 .qprev .from-about .next, .qs2 .qprev .from-about .next, .qs3 .qprev .from-about .next, .qs4 .qprev .from-about .next { opacity: 0; }
+.qfr .qprev { transition: opacity 1.2s .5s, transform 1.8s; }
+.qs1 .qprev, .qs2 .qprev, .qs3 .qprev, .qs4 .qprev { transform: translateY(-12%); }
+.qpaper { box-shadow: 0 -1.6cqw 4cqw rgba(0,0,0,.4); } /* the paper's top edge reads as a card rising */
+.qfr:has(.from-about).qs1 .qanchor { transition-delay: 1.3s; } /* the anchor waits for the card to arrive (1.6 s) */
 /* ---------- the bar, on every frame (README #56) ---------- */
 .frame::after, .afr::after, .qfr::after, .cfr::after { content: attr(data-time) "\2003\2003TALK TO US\2003\2003\2261\2002MENU"; position: absolute; z-index: 60; right: 3%; top: var(--bar-top, 5.6%); line-height: var(--bar-lh, normal);
   font-family: var(--read); font-size: max(5px, 1.2cqw); letter-spacing: .16em; color: #EEE8DD; mix-blend-mode: difference; pointer-events: none; white-space: nowrap; }
 .frame.phone::after, .afr.abp::after, .qfr.qph::after, .cfr.cph::after { content: "\2261\2002MENU"; right: 6%; top: var(--bar-top, 2.6%); font-size: 3.4cqw; }
 .frame.st1::after { display: none; }
 .efr::after { content: none; } /* the entrance's final state draws its own bar */
+/* ---------- README #67: the bar carries the name — "Chapter One | 03 About" — on every screen ---------- */
+.idx::before, .chrome::before, .achrome::before, .qchrome::before, .cchrome::before, .mbar2 > span:first-child::before {
+  content: "Chapter One"; font-family: var(--voice); font-weight: 500; font-size: 1.55em; letter-spacing: .01em; text-transform: none;
+  padding-right: .7em; margin-right: .7em; border-right: 1px solid color-mix(in srgb, currentColor 35%, transparent); }
+.cchrome .c::before, .cchrome .q::before, .qchrome .a::before, .qchrome .q::before { content: none; }
+.frame.phone .idx::before, .frame.phone .chrome::before, .abp .achrome::before, .qph .qchrome::before, .cph .cchrome::before, .mph .mbar2 > span:first-child::before { font-size: 1.42em; padding-right: .55em; margin-right: .55em; }
+/* the labels used to be dimmed as a whole; the name keeps the full ink, the section stays quieter */
+.idx, .achrome, .qchrome, .cchrome { opacity: 1; }
+.idx i, .achrome i, .qchrome i, .cchrome i { opacity: .75; }
+/* at the top (E4 = state 1) there is no section yet: the name alone, in the same face */
+.ent .top > span:first-child, .efinal .top > span:first-child { font-family: var(--voice); font-weight: 500; font-size: 1.45em; letter-spacing: .01em; text-transform: none; }
+/* the phone's menu button: three rules of different lengths (100 / 70 / 85 %), no word — as on the original site */
+.frame.phone::after, .afr.abp::after, .qfr.qph::after, .cfr.cph::after { content: ""; width: 6.4cqw; height: 2.5cqw; top: calc(var(--bar-top, 2.6%) + 1.2cqw);
+  background: linear-gradient(#EEE8DD, #EEE8DD) right top / 100% 1px no-repeat, linear-gradient(#EEE8DD, #EEE8DD) right center / 70% 1px no-repeat, linear-gradient(#EEE8DD, #EEE8DD) right bottom / 85% 1px no-repeat; }
+.ic3 { display: inline-block; width: 1.8em; height: .7em; vertical-align: .05em; background: linear-gradient(currentColor, currentColor) right top / 100% 1px no-repeat, linear-gradient(currentColor, currentColor) right center / 70% 1px no-repeat, linear-gradient(currentColor, currentColor) right bottom / 85% 1px no-repeat; }
+
+/* ---------- README #69 (28/10): the bar is two islands of dark glass — the name and the section on one, the right side
+   (desktop: time, Talk to us, Menu; phone: the button, in a circle) on the other; the middle stays open. iOS-style live
+   glass (backdrop-filter: blur 8 px on the phone, x 1.6 on the desktop; saturate 1.6), a rim of light, and in the site a
+   lens at each island's rim (an SVG displacement — not drawn in these frames). The ink is always linen; in the site the
+   darkness of the glass follows the brightness really behind each island (0.06 over charcoal up to ~0.7 over paper);
+   these frames follow it roughly: light over the dark grounds, denser only where the ground under the bar is light
+   (owner 28/10: one middle value made the bar far too dark — under it there is only the top of its own section).
+   Both islands sit the same distance from the screen's edges, at the same height. */
+.frame, .afr, .qfr, .cfr, .mfr, .efr { --ib: .89cqw; }
+.frame.phone, .afr.abp, .qfr.qph, .cfr.cph, .mfr.mph, .efr.eph { --ib: 2.05cqw; }
+.idx, .chrome, .achrome, .qchrome, .cchrome, .mbar2 > span:first-child, .mbar2 .r, .ent .top > span, .efinal .top > span,
+.frame::after, .afr::after, .qfr::after, .cfr::after {
+  padding: .85em 1.3em; margin: -.85em -1.3em; border-radius: 99px; color: var(--linen) !important; mix-blend-mode: normal;
+  background: linear-gradient(115deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,.03) 30%, rgba(255,255,255,0) 70%, rgba(255,255,255,.08) 100%), rgba(22,21,19,var(--isl, .14));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.45), inset 0 -1px 0 rgba(255,255,255,.14), 0 .6cqw 2cqw rgba(0,0,0,.18);
+  -webkit-backdrop-filter: blur(var(--ib)) saturate(1.6) brightness(1.04) contrast(1.04); backdrop-filter: blur(var(--ib)) saturate(1.6) brightness(1.04) contrast(1.04); }
+.mbar2 > span:first-child, .mbar2 .r, .ent .top > span, .efinal .top > span { margin: 0; }
+.mbar2 { left: 2%; right: 2%; } .mph .mbar2 { left: 3%; right: 3%; }
+.mph .mbar2 .r { width: 14.3cqw; height: 14.3cqw; padding: 0; justify-content: center; border-radius: 50%; box-sizing: border-box; }
+.idx i, .achrome i, .qchrome i, .cchrome i { opacity: .8; }
+.mbar2 .tt { border-bottom: 0; padding-bottom: 0; }
+/* the phone's button: the three rules inside a circle of the same glass */
+/* measured 28/10: the left island is 14.3 cqw tall in the phone frames; the circle matches it (icon 6.4 x 2.5 cqw) */
+.frame.phone::after, .afr.abp::after, .qfr.qph::after, .cfr.cph::after { padding: 5.9cqw 3.95cqw; margin: -5.9cqw -3.95cqw; border-radius: 50%;
+  background: linear-gradient(#EEE8DD, #EEE8DD) right top / 100% 1px no-repeat, linear-gradient(#EEE8DD, #EEE8DD) right center / 70% 1px no-repeat, linear-gradient(#EEE8DD, #EEE8DD) right bottom / 85% 1px no-repeat,
+    linear-gradient(115deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,.03) 30%, rgba(255,255,255,0) 70%, rgba(255,255,255,.08) 100%), rgba(22,21,19,var(--isl, .14));
+  background-origin: content-box, content-box, content-box, padding-box, padding-box; background-clip: content-box, content-box, content-box, padding-box, padding-box; } /* the colour is clipped like the last layer: padding-box, or the tint fills only the icon (28/10) */
+/* measured 28/10 in the frames: the right island matches the left one — the same height (desktop 5.0 cqw, phone 14.3), the
+   same centre and the same distance to the frame's edge */
+.frame::after, .afr::after, .qfr::after, .cfr::after { padding: calc(.85em + .7cqw) 1.3em; margin: calc(-.85em - .7cqw) -1.3em; }
+.frame.phone::after, .afr.abp::after, .qfr.qph::after, .cfr.cph::after { margin: 0; top: 3.65cqw; right: 1.6cqw; padding: 5.9cqw 3.95cqw; }
+
+/* the frames' darkness, by the ground really under the bar (the same places where the design used dark ink) */
+:root { --sky-tint: .14; }
+:root[data-band="morning"], :root[data-band="day"], :root[data-band="evening"] { --sky-tint: .48; }
+.chrome, .frame.sky-on::after { --isl: var(--sky-tint); }
+.frame.st11 .chrome, .frame.st11::after { --isl: .14; }
+.qs1 .qchrome, .qs2 .qchrome, .qs3 .qchrome, .qs4 .qchrome, .qfr.qs1::after, .qfr.qs2::after, .qfr.qs3::after, .qfr.qs4::after { --isl: .48; }
+.cs0 .cchrome, .cfr.cs0::after { --isl: .48; }
+.mfr.light .mbar2 > span:first-child, .mfr.light .mbar2 .r { --isl: .48; }
+.mfr.light.open .mbar2 > span:first-child, .mfr.light.open .mbar2 .r { --isl: .14; }
+/* E4 / state 1: the two islands keep the same height and centre their words (the name is set larger) */
+.ent .top, .efinal .top { align-items: center; }
+.ent .top > span, .efinal .top > span { display: inline-flex; align-items: center; align-self: stretch; }
+/* the phone's dedication moves below the islands (they are taller than the old bare words) */
+.frame.phone .ent .ded { top: 10%; }
+.eph.es3 .eded { top: 10%; }
+/* E4 uses exactly the bar of the sections (measured 28/10 in the frames, in cqw): the islands kept their own sizes
+   and jumped when E4 passed into state 2 — desktop 1.4 from the edge, 2.7 from the top, 5.0 tall; phone 1.6 / 3.6 /
+   14.3, the button a 14.3 circle */
+.ent .top, .efinal .top { left: 0; right: 0; top: 0; height: 0; display: block; font-size: 1.2cqw; }
+.ent .top > span, .efinal .top > span { position: absolute; top: 2.7cqw; height: 5cqw; margin: 0; padding: 0 1.56cqw; display: inline-flex; align-items: center; box-sizing: border-box; white-space: nowrap; }
+.ent .top > span:first-child, .efinal .top > span:first-child { left: 1.4cqw; font-size: 1.86cqw; }
+.ent .top > span:last-child, .efinal .top > span:last-child { right: 1.5cqw; }
+.frame.phone .ent .top, .eph .efinal .top { font-size: 3.4cqw; left: 0; right: 0; top: 0; }
+.frame.phone .ent .top > span, .eph .efinal .top > span { top: 3.6cqw; height: 14.3cqw; padding: 0 4.42cqw; }
+.frame.phone .ent .top > span:first-child, .eph .efinal .top > span:first-child { left: 1.6cqw; font-size: 4.83cqw; }
+.frame.phone .ent .top > span:last-child, .eph .efinal .top > span:last-child { right: 1.6cqw; width: 14.3cqw; padding: 0; justify-content: center; border-radius: 50%; }
+.ent .top > span:first-child, .efinal .top > span:first-child { visibility: hidden; } /* README #70: no name island at the top — the title is the name; it arrives with the Work, as the title leaves */
+.frame.phone .ent .top .ic3, .eph .efinal .top .ic3 { width: 6.4cqw; height: 2.5cqw; vertical-align: 0; } /* the same three rules as on every other screen */
+
+/* README #71 (A2, 28/10): the islands are discreet — only the blur and the tint, a hairline of light, no sheen and no
+   shadow; the tint never above .50, and over a light ground the words carry a close dark halo of their own. (The frames
+   keep the #69 sizes; the A2 sizes — 44 / 48 px, edges on the page's margins — are in glass-test-1027/composicao.html.) */
+.idx, .chrome, .achrome, .qchrome, .cchrome, .mbar2 > span:first-child, .mbar2 .r, .ent .top > span, .efinal .top > span,
+.frame::after, .afr::after, .qfr::after, .cfr::after { box-shadow: inset 0 0 0 .5px rgba(255,255,255,.16); }
+.idx, .chrome, .achrome, .qchrome, .cchrome, .mbar2 > span:first-child, .mbar2 .r, .ent .top > span, .efinal .top > span,
+.frame:not(.phone)::after, .afr:not(.abp)::after, .qfr:not(.qph)::after, .cfr:not(.cph)::after { background: rgba(22,21,19,var(--isl, .14)); }
+.frame.phone::after, .afr.abp::after, .qfr.qph::after, .cfr.cph::after {
+  background: linear-gradient(#EEE8DD, #EEE8DD) right top / 100% 1px no-repeat, linear-gradient(#EEE8DD, #EEE8DD) right center / 70% 1px no-repeat, linear-gradient(#EEE8DD, #EEE8DD) right bottom / 85% 1px no-repeat, rgba(22,21,19,var(--isl, .14));
+  background-origin: content-box, content-box, content-box, padding-box; background-clip: content-box, content-box, content-box, padding-box; }
+:root[data-band="morning"] .chrome, :root[data-band="day"] .chrome, :root[data-band="evening"] .chrome,
+.qs1 .qchrome, .qs2 .qchrome, .qs3 .qchrome, .qs4 .qchrome, .cs0 .cchrome, .mfr.light:not(.open) .mbar2 > span:first-child, .mfr.light:not(.open) .mbar2 .r {
+  text-shadow: 0 0 1px rgba(20,19,17,.55), 0 1px 3px rgba(20,19,17,.5), 0 0 12px rgba(20,19,17,.5); }
+/* the phone About (states 13–14 and the About panel): the bar sits over the light sky of the portrait */
+.frame.phone.st13 .idx, .frame.phone.st13 .chrome, .frame.phone.st14 .idx, .frame.phone.st14 .chrome, .frame.phone.st13::after, .frame.phone.st14::after,
+.afr.abp .achrome, .afr.abp::after { --isl: .48; text-shadow: 0 0 1px rgba(20,19,17,.55), 0 1px 3px rgba(20,19,17,.5), 0 0 12px rgba(20,19,17,.5); }
 </style>
 
 <div class="wrap">
   <header>
-    <span class="label">Chapter One V5 · storyboard principal · aprovado a 25 de outubro de 2026</span>
+    <span class="label">Chapter One V5 · storyboard principal · aprovado a 25 de outubro de 2026 · Work revisto a 26 (linhas das peças, sem sublinhados, o título é a navegação)</span>
     <h1>Chapter One · a página inteira</h1>
     <p>O percurso completo do site V5, <strong>da entrada ao fim</strong>, numa só animação contínua: cada passagem leva um elemento da cena anterior para a seguinte. Tudo o que aqui está foi aprovado (README #19–#56, em <code>docs/design/v5/</code>). Usa os controlos em baixo: a hora de chegada, um nome em <i>Make it yours</i>, se já cá esteve e o capítulo escolhido na entrada. <strong>Todos os quadros mudam</strong>, como mudariam no site.</p>
     <nav class="toc" aria-label="Partes">
-      <a href="#p-ent">Entrada</a><a href="#motion-h">Em movimento · 1–11</a><a href="#try-h">O Work a funcionar</a><a href="#st3">01 Work</a><a href="#st7">02 Method</a><a href="#ab-h">03 About</a><a href="#q-h2">04 Questions</a><a href="#c-h2">05 Contact</a><a href="#mn-h">Menu</a><a href="#skies-h">As luzes</a>
+      <a href="#p-ent">Entrada</a><a href="#motion-h">Em movimento · 1–11</a><a href="#try-h">O Work a funcionar</a><a href="#lines-h">As linhas das peças</a><a href="#st3">01 Work</a><a href="#st7">02 Method</a><a href="#ab-h">03 About</a><a href="#q-h2">04 Questions</a><a href="#c-h2">05 Contact</a><a href="#mn-h">Menu</a><a href="#skies-h">As luzes</a>
     </nav>
   </header>
 
   <div class="controls" role="group" aria-label="Simular o visitante">
+    <button class="chip ctl-toggle" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="ctl-body">Controlos</button>
+    <div class="ctl-body" id="ctl-body">
     <div class="group" id="times"><span class="label">Chega às</span></div>
     <div class="group"><label class="label" for="name">Make it yours</label><input id="name" type="text" maxlength="18" placeholder="Your name" autocomplete="off" spellcheck="false"></div>
     <label class="toggle"><input id="returning" type="checkbox"><span>Já cá esteve</span></label>
     <div class="group" id="choice"><span class="label">Na entrada</span></div>
     <button class="chip" id="try-name" type="button" aria-pressed="false">Com nome · Ana</button>
+    </div>
   </div>
 
   <div class="part" id="p-ent"><span class="label">Entrada · "Através das letras"</span></div>
@@ -845,7 +1010,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
   <div id="e-rows"></div>
 
   <section class="scene" aria-labelledby="motion-h">
-    <div class="scene-head"><h2 id="motion-h">Em movimento</h2></div>
+    <div class="scene-head"><h2 id="motion-h">O site inteiro, em movimento</h2></div>
     <div class="mbar">
       <button class="chip" id="prev" type="button" aria-label="Quadro anterior">←</button>
       <button class="chip" id="play" type="button" aria-pressed="false">Reproduzir</button>
@@ -857,8 +1022,8 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
       <figure><div class="frame desk" id="m-desk" role="img" aria-label="Animação no desktop"></div><figcaption>Desktop</figcaption></figure>
       <figure><div class="frame phone" id="m-phone" role="img" aria-label="Animação no telemóvel"></div><figcaption>Telemóvel</figcaption></figure>
       <div class="notes">
-        <p>No site, <b>o scroll faz avançar</b> estes estados (o palco do Work e a cena do Method ficam presos enquanto duram). Há duas coisas que não são scroll: no Work, <b>o tempo muda o momento</b> (a linha que enche) e cada momento mostra a sua peça; no Method, o nome escreve-se no campo <i>Make it yours</i>.</p>
-        <p>Aqui avança sozinho a cada 2,6 s. Usa ← → para ver um quadro de cada vez.</p>
+        <p><b>Do primeiro ecrã ao colofão</b>: Entrada → Work → Method → About → Questions → Contact, com as passagens entre as secções. No site, <b>o scroll faz avançar</b> estes estados (o palco do Work e a cena do Method ficam presos enquanto duram); a entrada corre sozinha à chegada. Há duas coisas que não são scroll: no Work, <b>o tempo muda o momento</b>; no Method, o nome escreve-se no campo <i>Make it yours</i>.</p>
+        <p>Aqui avança sozinho (cerca de 70 s, depois recomeça). Usa ← → para ver um quadro de cada vez; os traços mostram as secções.</p>
       </div>
     </div>
   </section>
@@ -870,8 +1035,55 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
       <figure><div class="frame phone" id="try-phone" aria-label="O Work a funcionar, no telemóvel"></div><figcaption>Telemóvel</figcaption></figure>
       <div class="notes">
         <p><b>Uma regra só:</b> o scroll muda o capítulo, o tempo muda o momento, e <b>cada momento mostra uma peça a funcionar</b> sobre a fotografia inteira. Nove ao todo, uma por momento.</p>
-        <p>Não há hover, botão nem nada para descobrir. A pessoa só tem de olhar. Para ficar num momento, toca no nome dele. Os separadores aqui fazem de scroll.</p>
+        <p>Não há hover, botão nem nada para descobrir. A pessoa só tem de olhar. Para ficar num momento, toca no nome dele. Aqui os capítulos no título fazem de scroll.</p>
         <p>Weddings: <i>Wedding website · Live photo gallery · One year on</i>. Artists: <i>Portfolio · Digital exhibition · Archive of works</i>. Experiences: <i>Invitation &amp; RSVP · On-site guide · Thank-you page</i>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="scene" aria-labelledby="lines-h">
+    <div class="scene-head"><span class="n">↳</span><h2 id="lines-h">As linhas de cada peça</h2></div>
+    <p class="muted">As 25 peças do Work, cada uma explicada numa linha. <b>Aprovadas pelo owner a 26 de outubro de 2026</b>, uma a uma. A peça marcada com ● é a que o momento mostra sobre a fotografia. <b>Já estão nos quadros do Work</b> (README #60): no desktop todas, no telemóvel uma de cada vez, e a peça mostrada sempre em primeiro. Ver a versão D em <a href="https://claude.ai/artifact/1SyUrVinmfSgGASdZzG16E">A linha de cada peça</a>.</p>
+    <div class="lines">
+      <div><h3>I · Weddings</h3>
+        <p class="mo">Before</p><dl>
+          <dt>Save-the-date</dt><dd>Your date, announced in your own way, before anything else is decided.</dd>
+          <dt class="feat">Wedding website</dt><dd>One complete site for your wedding: your story, the day and how to get there, the tables, the menu, and a live gallery that stays open after the day.</dd>
+          <dt>Digital invitation</dt><dd>The invitation itself, written and shaped for the two of you, made to be opened on a phone: the words, the date, the place and the way there.</dd>
+          <dt>RSVP</dt><dd>Your guests reply in a minute: who is coming, what they would like to eat, and anything you should know.</dd></dl>
+        <p class="mo">On the day</p><dl>
+          <dt>Seating plan</dt><dd>The tables, laid out as they are in the room, so everyone finds their place on their phone, as they arrive.</dd>
+          <dt>Day-of page</dt><dd>The day, hour by hour: when the ceremony begins, when dinner is served, and where everyone should be.</dd>
+          <dt class="feat">Live photo gallery</dt><dd>Your guests add their photos as the day unfolds, and everyone sees them appear, together, in one place.</dd></dl>
+        <p class="mo">After</p><dl>
+          <dt>Private memory gallery</dt><dd>Your photographer’s and your guests’ photos, kept together in a private place, and only you choose who sees them.</dd>
+          <dt>Thank-you page</dt><dd>The last page of the day: a thank-you your guests will want to keep.</dd>
+          <dt class="feat">One year on</dt><dd>A year later, the day comes back: a page that opens on your anniversary, with the moments you chose to keep.</dd></dl>
+      </div>
+      <div><h3>II · Artists</h3>
+        <p class="mo">Always</p><dl>
+          <dt class="feat">Portfolio</dt><dd>Your work, shown the way you see it: an artist’s site built around your pieces, not around a template.</dd>
+          <dt>Online gallery</dt><dd>A gallery that never closes, where each piece can be seen up close and at its own pace.</dd></dl>
+        <p class="mo">For a moment</p><dl>
+          <dt class="feat">Digital exhibition</dt><dd>Your exhibition, opened to anyone, anywhere, for as long as it runs.</dd>
+          <dt>Release page</dt><dd>Your new work, announced with the same care you put into making it.</dd></dl>
+        <p class="mo">On record</p><dl>
+          <dt>Press kit</dt><dd>The page you send before anyone asks: who you are, what you make, and how to reach you.</dd>
+          <dt class="feat">Archive of works</dt><dd>Every work you have made, numbered and dated, in an archive that grows with you.</dd></dl>
+      </div>
+      <div><h3>III · Experiences</h3>
+        <p class="mo">Before</p><dl>
+          <dt class="feat">Invitation &amp; RSVP</dt><dd>The invitation and the reply in one gesture: your guests open it, read it, and accept.</dd>
+          <dt>Event website</dt><dd>Your event, given its own address and its own look, from the first announcement to the day itself.</dd>
+          <dt>Teaser page</dt><dd>A first glimpse, before anything is revealed: enough to make people curious, not enough to say it all.</dd></dl>
+        <p class="mo">During</p><dl>
+          <dt class="feat">On-site guide</dt><dd>What is happening now, what comes next and where to find it, open on every guest’s phone while they are there.</dd>
+          <dt>Digital programme</dt><dd>Everything you would hand out on paper, made to be read on a phone and kept afterwards.</dd>
+          <dt>Live gallery</dt><dd>The event as it happens, in photos from everyone in the room, gathered while it is still going on.</dd></dl>
+        <p class="mo">After</p><dl>
+          <dt>Memory archive</dt><dd>A record of the occasion, for the people who were there and for those who will ask about it.</dd>
+          <dt>Shared gallery</dt><dd>One link for every guest, with the official photos and their own, side by side.</dd>
+          <dt class="feat">Thank-you page</dt><dd>A thank-you to everyone who came, with a moment from the event and a word on what comes next.</dd></dl>
       </div>
     </div>
   </section>
@@ -889,7 +1101,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
     <div class="row">
       <figure><div class="afr" id="ab-m-d" role="img" aria-label="About no desktop, em movimento"></div><figcaption>Desktop · passa o rato pelo retrato</figcaption></figure>
       <figure><div class="afr abp" id="ab-m-p" role="img" aria-label="About no telemóvel, em movimento"></div><figcaption>Telemóvel · segura no retrato</figcaption></figure>
-      <div class="notes"><p>Começa no fim do Method (11). A luz fica no centro, o retrato aparece nela com <i>I’m Flávio.</i>, o nome sobe a título e a sala acende-se com a atmosfera da fotografia. Aprovado (README #52).</p></div>
+      <div class="notes"><p>Começa <b>no quadro 11 tal como está</b> (nada sai antes do scroll). <b>A saída (proposta, README #65):</b> cai primeiro o <i>Talk to us</i>, depois os passos; os ecrãs afastam-se e apagam-se; a frase sobe e apaga-se por último, e a luz fica enquanto o retrato se abre nela, com <i>I’m Flávio.</i> a seguir (~2 s). Depois, como aprovado: o nome sobe a título e a sala acende-se com a atmosfera da fotografia (README #52).</p></div>
     </div>
   </section>
   <div id="ab-rows"></div>
@@ -905,7 +1117,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
     <div class="row">
       <figure><div class="qfr" id="q-m-d" aria-label="Questions no desktop, em movimento"></div><figcaption>Desktop · clica numa pergunta</figcaption></figure>
       <figure><div class="qfr qph" id="q-m-p" aria-label="Questions no telemóvel, em movimento"></div><figcaption>Telemóvel · toca numa pergunta</figcaption></figure>
-      <div class="notes"><p>As luzes do estúdio acendem-se: a pedra da marca, para ler. A pergunta-âncora à esquerda e oito perguntas que se abrem uma a uma. Aprovado (README #53).</p></div>
+      <div class="notes"><p>Começa <b>no quadro 14 tal como está</b>, com tudo. <b>A passagem (proposta, README #65):</b> o <i>04 Questions ↓</i> apaga-se; o papel do estúdio sobe como um cartão, com uma sombra no bordo; o About sobe mais devagar por baixo dele e escurece; só com o cartão no lugar chega a pergunta-âncora (~3 s). Depois, como aprovado: a pedra da marca, para ler, e oito perguntas que se abrem uma a uma (README #53).</p></div>
     </div>
   </section>
   <div id="q-rows"></div>
@@ -928,15 +1140,13 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
   <div class="part"><span class="label">Navegação · em todas as secções</span></div>
   <section class="scene" aria-labelledby="mn-h">
     <div class="scene-head"><span class="n">≡</span><h2 id="mn-h">O menu</h2></div>
-    <div class="mbar"><div class="group" id="mn-bgs"><span class="label">Sobre</span></div><div class="group" id="mn-modes"><span class="label">Vidro</span></div></div>
+    <div class="mbar"><div class="group" id="mn-bgs"><span class="label">Sobre</span></div></div>
     <div class="row">
       <figure><div class="mfr" id="mn-d" aria-label="Menu no desktop"></div><figcaption>Desktop · carrega em Menu</figcaption></figure>
       <figure><div class="mfr mph" id="mn-p" aria-label="Menu no telemóvel"></div><figcaption>Telemóvel · carrega em Menu</figcaption></figure>
-      <div class="notes"><p>A barra está sempre visível (onde estás · Menu; no desktop também a hora e <i>Talk to us</i>). O menu abre-se a partir do botão como uma gota de <b>vidro preparado</b> e mostra, desfocada, a secção onde estavas. Com nome, abre com <i>Hello, Ana.</i> Aprovado (README #56).</p></div>
+      <div class="notes"><p><b>Aprovado a 28/10 (README #69–#71).</b> A barra são <b>duas ilhas de vidro escuro, sempre lá e discretas</b> (só desfoque e escuro, um fio de luz, sem brilho nem sombra — #71): à esquerda o nome e a secção (<i>Chapter One | 01 Work</i>; clicar no nome mostra a entrada outra vez; no topo não há ilha do nome, #70), à direita no desktop a hora, <i>Talk to us</i> e <i>Menu</i>, no telemóvel só o botão de <b>três traços</b> num círculo. <b>Vidro ao vivo estilo iOS</b>: desfoque 8 no telemóvel, ×1,6 no desktop, <b>lente</b> na borda de cada ilha (no site); tinta sempre linho; o escuro adapta-se ao que está por trás das palavras, no máximo .50. No site as ilhas são mais pequenas e alinhadas com as margens (referência: <code>glass-test-1027/composicao.html</code>). O <b>menu ocupa o ecrã</b> e <b>nasce como uma gota da ponta direita da ilha do menu</b>; as palavras entram quando a gota as cobre. Carrega em <i>Menu</i>.</p></div>
     </div>
   </section>
-
-  <div class="msgs" id="msgs" hidden></div>
 
   <section class="scene" aria-labelledby="skies-h">
     <div class="scene-head"><span class="n">·</span><h2 id="skies-h">As quatro luzes do estúdio</h2></div>
@@ -973,12 +1183,9 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
     { id: 'evening', label: 'Fim de tarde · 18:30', h: 18, m: 30 },
     { id: 'night', label: 'Noite · 21:14', h: 21, m: 14 },
   ];
-  const MSGS = [
-    { q: 'Every moment happens once.<br><i>What we make for it should too.</i>', w: 'A que recomendo: diz a razão (o momento é único) e a consequência (o trabalho também).' },
-    { q: 'Made once,<br><i>for one moment.</i>', w: '<b>A escolhida.</b> Com nome, assina por baixo: <i>For Ana.</i>' },
-    { q: 'No two moments are alike.<br><i>Nothing we make is either.</i>', w: 'A mais próxima de <i>No templates. No copies.</i>, sem a repetir.' },
-  ];
-  const state = { h: presets[0].h, m: presets[0].m, name: '', returning: false, msg: 1, choice: 0 };
+  // the end of the Method (README #39)
+  const END = 'Made once,<br><i>for one moment.</i>';
+  const state = { h: presets[0].h, m: presets[0].m, name: '', returning: false, choice: 0 };
   const ctx = () => {
     const name = esc(state.name.trim());
     const weekday = now.toLocaleDateString('en-GB', { weekday: 'long' });
@@ -987,19 +1194,46 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
   };
 
   // ----- the Work: three chapters, three moments; every moment shows one piece working (Artists and Experiences are drafts) -----
+  // the approved line of every piece (docs/design/v5/storyboard.md). README #60: the piece shown on the photograph
+  // goes first (feat 0); the others keep their order
   const CH = [
-    { key: 'w', imgs: ['w002', 'w154', 'w343'], moments: [
-      { t: 'Before', pieces: ['Save-the-date', 'Wedding website', 'Digital invitation', 'RSVP'], feat: 1 },
-      { t: 'On the day', pieces: ['Seating plan', 'Day-of page', 'Live photo gallery'], feat: 2 },
-      { t: 'After', pieces: ['Private memory gallery', 'Thank-you page', 'One year on'], feat: 2 }] },
-    { key: 'a', imgs: ['studio', 'gallery', 'folio'], moments: [
-      { t: 'Always', pieces: ['Portfolio', 'Online gallery'], feat: 0 },
-      { t: 'For a moment', pieces: ['Digital exhibition', 'Release page'], feat: 0 },
-      { t: 'For the record', pieces: ['Press kit', 'Archive of works'], feat: 1 }] },
-    { key: 'e', imgs: ['invite', 'concert', 'banquet'], moments: [
-      { t: 'Before', pieces: ['Invitation & RSVP', 'Event website', 'Teaser page'], feat: 0 },
-      { t: 'During', pieces: ['On-site guide', 'Digital programme', 'Live gallery'], feat: 0 },
-      { t: 'After', pieces: ['Memory archive', 'Shared gallery', 'Thank-you page'], feat: 2 }] },
+    { key: 'w', num: 'I', name: 'Weddings', imgs: ['w002', 'w154', 'w343'], moments: [
+      { t: 'Before', feat: 0, pieces: [
+        ['Wedding website', 'One complete site for your wedding: your story, the day and how to get there, the tables, the menu, and a live gallery that stays open after the day.'],
+        ['Save-the-date', 'Your date, announced in your own way, before anything else is decided.'],
+        ['Digital invitation', 'The invitation itself, written and shaped for the two of you, made to be opened on a phone: the words, the date, the place and the way there.'],
+        ['RSVP', 'Your guests reply in a minute: who is coming, what they would like to eat, and anything you should know.']] },
+      { t: 'On the day', feat: 0, pieces: [
+        ['Live photo gallery', 'Your guests add their photos as the day unfolds, and everyone sees them appear, together, in one place.'],
+        ['Seating plan', 'The tables, laid out as they are in the room, so everyone finds their place on their phone, as they arrive.'],
+        ['Day-of page', 'The day, hour by hour: when the ceremony begins, when dinner is served, and where everyone should be.']] },
+      { t: 'After', feat: 0, pieces: [
+        ['One year on', 'A year later, the day comes back: a page that opens on your anniversary, with the moments you chose to keep.'],
+        ['Private memory gallery', 'Your photographer’s and your guests’ photos, kept together in a private place, and only you choose who sees them.'],
+        ['Thank-you page', 'The last page of the day: a thank-you your guests will want to keep.']] }] },
+    { key: 'a', num: 'II', name: 'Artists', imgs: ['studio', 'gallery', 'folio'], moments: [
+      { t: 'Always', feat: 0, pieces: [
+        ['Portfolio', 'Your work, shown the way you see it: an artist’s site built around your pieces, not around a template.'],
+        ['Online gallery', 'A gallery that never closes, where each piece can be seen up close and at its own pace.']] },
+      { t: 'For a moment', feat: 0, pieces: [
+        ['Digital exhibition', 'Your exhibition, opened to anyone, anywhere, for as long as it runs.'],
+        ['Release page', 'Your new work, announced with the same care you put into making it.']] },
+      { t: 'On record', feat: 0, pieces: [
+        ['Archive of works', 'Every work you have made, numbered and dated, in an archive that grows with you.'],
+        ['Press kit', 'The page you send before anyone asks: who you are, what you make, and how to reach you.']] }] },
+    { key: 'e', num: 'III', name: 'Experiences', imgs: ['invite', 'concert', 'banquet'], moments: [
+      { t: 'Before', feat: 0, pieces: [
+        ['Invitation &amp; RSVP', 'The invitation and the reply in one gesture: your guests open it, read it, and accept.'],
+        ['Event website', 'Your event, given its own address and its own look, from the first announcement to the day itself.'],
+        ['Teaser page', 'A first glimpse, before anything is revealed: enough to make people curious, not enough to say it all.']] },
+      { t: 'During', feat: 0, pieces: [
+        ['On-site guide', 'What is happening now, what comes next and where to find it, open on every guest’s phone while they are there.'],
+        ['Digital programme', 'Everything you would hand out on paper, made to be read on a phone and kept afterwards.'],
+        ['Live gallery', 'The event as it happens, in photos from everyone in the room, gathered while it is still going on.']] },
+      { t: 'After', feat: 0, pieces: [
+        ['Thank-you page', 'A thank-you to everyone who came, with a moment from the event and a word on what comes next.'],
+        ['Memory archive', 'A record of the occasion, for the people who were there and for those who will ask about it.'],
+        ['Shared gallery', 'One link for every guest, with the official photos and their own, side by side.']] }] },
   ];
   const tiles = (imgs, n) => Array.from({ length: n }, (_, i) => `<i style="background-image:url(${I(imgs[i % imgs.length])});transition-delay:${(.3 + i * .18).toFixed(2)}s"></i>`).join('');
   // what each moment's piece does, shown over the whole photograph with the visitor's own date
@@ -1015,31 +1249,38 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
     e1: c => `<div class="veil" style="background:rgba(15,16,22,.64)"></div><div class="gh">${c.name ? c.name + ', tonight' : 'Tonight'}</div><div class="tl">${[-2, -1, 0, 1].map(d => `<div class="${d === 0 ? 'now' : ''}"><b>${d === 0 ? c.hhmm : pad((c.h + d + 24) % 24) + ':00'}</b>${['Arrivals', 'Dinner in the courtyard', c.name ? c.name + ' arrives' : 'You arrive', 'Music on the terrace'][d + 2]}</div>`).join('')}</div>`,
     e2: c => `<div class="veil"></div><div class="in"><div class="big">Thank you for coming${c.name ? ', ' + c.name : ''}.</div><div class="k">The photographs are here →</div></div>`,
   };
-  function renderTx(ci, m, phone, demo, fill) {
+  // sel: the piece whose line is open on a phone (the shown piece at first)
+  function renderTx(ci, m, phone, demo, fill, sel = 0) {
     const mo = CH[ci].moments[m];
-    return `<div class="mom">${CH[ci].moments.map((x, j) => `<span data-j="${j}" class="${j === m ? 'on' : ''}">${x.t}${j === m ? `<i class="fill" style="animation-duration:${fill}s"></i>` : ''}</span>`).join('')}</div>
-      <div class="h">${mo.t}</div>
-      ${mo.pieces.map((p, j) => `<div class="li${j === mo.feat ? ' feat' + (demo ? ' act' : '') : ''}"><b class="nm">${j === mo.feat ? '<i class="g"></i>' : ''}${p}</b>${j === mo.feat ? '<span>on the photograph</span>' : ''}</div>`).join('')}
+    const mark = j => j === mo.feat ? '<i class="g"></i>' : '';
+    const cls = j => `li${j === mo.feat ? ' feat' + (demo ? ' act' : '') : ''}`;
+    const list = phone
+      ? mo.pieces.map(([p, line], j) => `<div class="${cls(j)}"><button class="pick" type="button" data-p="${j}" aria-expanded="${j === sel}">
+          <b class="nm">${mark(j)}${p}</b><i class="ar" aria-hidden="true">${j === sel ? '' : '+'}</i></button>${j === sel ? `<div class="ln">${line}</div>` : ''}</div>`).join('')
+      : mo.pieces.map(([p, line], j) => `<div class="${cls(j)}"><div class="top"><b class="nm">${mark(j)}${p}</b>${j === mo.feat ? '<span>on the photograph</span>' : ''}</div><div class="ln">${line}</div></div>`).join('');
+    // README #62: the current chapter first; on a phone the next one (I → II → III → I) is the only other button
+    const next = (ci + 1) % 3;
+    const order = phone ? [ci, ...[0, 1, 2].filter(k => k !== ci && k !== next), next] : [ci, ...[0, 1, 2].filter(k => k !== ci)];
+    const chapter = k => `<span class="num">${CH[k].num}</span> ${CH[k].name}`;
+    const nav = `<nav class="h hnav" aria-label="Chapters">${order.map(k => phone && k !== ci && k !== next
+      ? `<span class="ch" data-k="${k}">${chapter(k)}</span>`
+      : `<button type="button" class="ch${phone && k === next ? ' next' : ''}" data-k="${k}" aria-current="${k === ci}">${chapter(k)}</button>`).join('')}</nav>`;
+    return `${nav}
+      <div class="mom">${CH[ci].moments.map((x, j) => `<span data-j="${j}" class="${j === m ? 'on' : ''}"><span class="w">${x.t}</span>${j === m ? `<span class="wf" aria-hidden="true" style="animation-duration:${fill}s">${x.t}</span>` : ''}</span>`).join('')}</div>
+      ${list}
       ${phone ? '' : '<div class="foot">Every project is proposed for its occasion.</div>'}`;
   }
   // chapter ci at moment m; demo = that moment's piece working over the photograph
-  function setMoment(f, ci, m, demo, fill = 2.6) {
+  function setMoment(f, ci, m, demo, fill = 4, sel = 0) { // 4 s: the one rhythm of the moments (README #73)
     const stack = f.el.querySelector('.stack.c' + (ci + 1));
     stack.querySelectorAll('.ph').forEach((ph, j) => { ph.className = 'ph ' + (j === m ? 'front' : j === (m + 1) % 3 ? 'b1' : 'b2'); });
     stack.querySelector('.aura').style.backgroundImage = `url(${I('a-' + CH[ci].imgs[m])})`;
     stack.querySelectorAll('.dm').forEach((d, j) => d.classList.toggle('on', !!demo && j === m));
     const tx = f.el.querySelector('.tx.c' + (ci + 1));
-    if (tx.dataset.m !== String(m)) { tx.innerHTML = renderTx(ci, m, f.kind === 'phone', demo, fill); tx.dataset.m = String(m); }
+    const key = m + '-' + sel;
+    if (tx.dataset.m !== key) { tx.innerHTML = renderTx(ci, m, f.kind === 'phone', demo, fill, sel); tx.dataset.m = key; }
     else tx.querySelectorAll('.li.feat').forEach(li => li.classList.toggle('act', !!demo));
   }
-  const LAYOUTS = [
-    c => `<div class="lf"></div><div class="nav"><span>Our day</span><span>Story</span><span>RSVP</span></div>
-      <div class="tt"><div class="h">${c.name ? c.name + ',<br>' : ''}${c.weekday}, ${c.day} ${c.month}</div><div class="ln"></div><div class="d">At ${c.hhmm}</div></div><div class="bt">RSVP</div><div class="cp">Wedding website</div>`,
-    c => `<div class="lf"></div><div class="nav"><span>${c.name || 'Portfolio'}</span><span>≡</span></div>
-      <div class="tt"><div class="h">${c.name ? 'Works by ' + c.name : 'Selected works'}</div><div class="ln"></div><div class="d">Series · ${now.getFullYear()}</div></div><div class="bt">View works</div><div class="cp">Portfolio</div>`,
-    c => `<div class="lf"></div><div class="nav"><span>Tonight</span><span>Map</span></div>
-      <div class="tt"><div class="h">${c.name ? c.name + ', you' : 'You'} are here</div><div class="ln"></div><div class="d">Doors ${c.hhmm}</div></div><div class="bt">Programme</div><div class="cp">On-site guide</div>`,
-  ];
   const sketch = `<div class="sk-bar"><span>LOGO</span><span>≡</span></div><div class="sk-img"></div><div class="sk-t">Your title</div><div class="sk-l"></div><div class="sk-l s"></div><div class="sk-btn">Button</div>`;
 
   // ----- the Method's six screens -----
@@ -1065,9 +1306,9 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
   const STATES = [
     { part: 'Entrada → Work', t: 'A entrada, no fim', d: 'O estado final da entrada: o vídeo em ecrã inteiro (depois de entrar pelo O), <b>CHAPTER ONE</b> centrado, o subtítulo, as três lâminas e a navegação.', s: 'Já aprovado. Está aqui só para se ver de onde parte o Work.' },
     { part: '', t: 'O vídeo torna-se o palco', d: 'Ao descer, <b>a moldura do vídeo encolhe até à moldura em arco do palco</b> e dissolve-se na primeira fotografia de Weddings. Entretanto, o texto do Work aparece ao lado.', s: '<b>Com scroll, aterra-se sempre em Weddings.</b> Um clique numa lâmina (Artists ou Experiences) leva diretamente a esse capítulo, e essa escolha volta no Method.' },
-    { part: 'Work', t: 'I · Weddings', d: 'O palco fica preso. As fotografias do capítulo estão em camadas, com uma luz suave da cor da própria fotografia. <b>O tempo muda o momento</b>: a linha por baixo do momento enche-se e passa ao seguinte. Tocar num momento fixa-o.', s: 'A regra é uma só: <b>o scroll muda o capítulo, o tempo muda o momento, e cada momento mostra uma peça a funcionar.</b> Não há nada escondido para descobrir.' },
-    { part: '', t: 'O momento mostra a sua peça', d: 'Depois de a fotografia aparecer, <b>a peça principal do momento mostra-se sozinha</b> por cima dela. Em <i>Before</i> é o <i>Wedding website</i>: a fotografia sobe como uma página e aparecem as secções do site. Na lista, a peça mostrada está marcada com um círculo.', s: 'Uma peça por momento, nove ao todo. As outras ficam escritas na lista. <b>A fotografia nunca é cortada.</b>' },
-    { part: '', t: 'II · Artists', d: 'Ao descer, muda o capítulo: a luz e as fotografias passam a ser as de Artists, e os momentos a <i>Always · For a moment · For the record</i>. Cada momento mostra a sua peça: portfolio, exposição digital, arquivo de obras.', s: 'Os separadores em cima mostram sempre onde se está, e um toque salta de capítulo.' },
+    { part: 'Work', t: 'I · Weddings', d: 'O palco fica preso. As fotografias do capítulo estão em camadas, com uma luz suave da cor da própria fotografia. <b>O tempo muda o momento</b>: a palavra do momento enche-se com o tom das fotografias do capítulo e, cheia, passa à seguinte; depois do último volta ao primeiro. Tocar num momento fixa-o. <b>O título é a navegação</b> (README #62): o capítulo atual grande, sempre à esquerda, e os outros a seguir, pequenos; no telemóvel, à direita do título, o seguinte maior e o único a tocar. Não há separadores debaixo da barra.', s: 'A regra é uma só: <b>o scroll muda o capítulo, o tempo muda o momento, e cada momento mostra uma peça a funcionar.</b> Não há nada escondido para descobrir.' },
+    { part: '', t: 'O momento mostra a sua peça', d: 'Depois de a fotografia aparecer, <b>a peça principal do momento mostra-se sozinha</b> por cima dela. Em <i>Before</i> é o <i>Wedding website</i>: a fotografia sobe como uma página e aparecem as secções do site. Na lista, a peça mostrada é <b>a primeira</b>, marcada com um círculo, e cada peça tem a sua linha; no telemóvel, uma linha de cada vez, debaixo do nome escolhido (README #60).', s: 'Uma peça por momento, nove ao todo. As outras ficam escritas na lista. <b>A fotografia nunca é cortada.</b>' },
+    { part: '', t: 'II · Artists', d: 'Ao descer, muda o capítulo: a luz e as fotografias passam a ser as de Artists, e os momentos a <i>Always · For a moment · On record</i>. Cada momento mostra a sua peça: portfolio, exposição digital, arquivo de obras.', s: 'O título mostra sempre onde se está. Ao mudar de capítulo, <b>o que chega cresce e desliza para a esquerda</b>; os outros apagam-se e voltam aos seus lugares, e o texto novo entra devagar. A passagem está em aberto (README aberta #28).' },
     { part: '', t: 'III · Experiences', d: 'O último capítulo, no momento <i>During</i>: <b>o <i>On-site guide</i> mostra-se sobre a fotografia</b>, com o programa da noite e a hora de quem visita.', s: 'É esta a ponte: o guia é o último ecrã do Work e o primeiro a multiplicar-se.' },
     { part: 'Work → Method', t: 'O ecrã multiplica-se', d: 'O guia solta-se da fotografia e <b>multiplica-se em ecrãs-template iguais</b>, enquanto <b>se acende o estúdio</b>: o papel de fundo, com a luz da hora de quem chega a vir do seu lado. Escreve-se <i>No templates. No copies.</i> e, logo por baixo, <b>Make it yours</b> (opcional).', s: '<b>Quem escreve o nome vê-o aparecer igual em todos os templates</b>, no lugar de <i>Your title</i>: pôr um nome num template continua a ser um template. É isso que a transformação desfaz. Experimenta o botão <b>Com nome · Ana</b> em cima.' },
     { part: 'Method', t: 'A transformação', d: 'A cada passo de scroll, uma folha-template levanta-se e sai. Por baixo está <b>uma experiência web viva composta à volta do nome</b>: <i>Ana, will you join us?</i>, <i>Ana — Open since 21:14</i>, <i>Ana, you are here</i>. Sem nome, compõe-se com a data e a hora.', s: 'Desktop: duas a duas. Telemóvel: um baralho de três cartões sem moldura.' },
@@ -1121,9 +1362,9 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
     el.innerHTML = `
       <div class="L g g1"></div><div class="L g g2"></div><div class="L g g3"></div>
       <div class="L sky"></div><div class="L dusk"></div>
-      <div class="L work"><div class="idx"><i>01</i>Work</div><div class="tabs"><span class="t1">I Weddings</span><span class="t2">II Artists</span><span class="t3">III Experiences</span></div>${stacks}${txs}</div>
+      <div class="L work"><div class="idx"><i>01</i>Work</div>${stacks}${txs}</div>
       <div class="vid bg" style="background-image:url(${I(phone ? 'poster-tall' : 'poster-wide')})"><div class="tint"></div></div>
-      <div class="L ent"><div class="top"><span>Chapter One</span><span>${phone ? '≡ Menu' : 'Talk to us\u2003\u2003≡ Menu'}</span></div><div class="ded"></div>
+      <div class="L ent"><div class="top"><span>Chapter One</span><span>${phone ? '<i class="ic3" aria-label="Menu"></i>' : 'Talk to us\u2003\u2003≡ Menu'}</span></div><div class="ded"></div>
         <div class="title">CHAPTER${phone ? '<br>' : ' '}ONE</div><div class="sub">Digital experiences built for moments worth remembering.</div>
         <div class="blade b1"><div class="bg" style="background-image:url(${I('w002')})"></div><span><i>I</i>Weddings</span></div>
         <div class="blade b2"><div class="bg" style="background-image:url(${I('studio')})"></div><span><i>II</i>Artists</span></div>
@@ -1167,7 +1408,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
   function paint() {
     const c = ctx();
     document.documentElement.dataset.band = band(state.h);
-    const msg = MSGS[state.msg].q + (c.name ? `<span class="for">For ${c.name}.</span>` : '');
+    const msg = END + (c.name ? `<span class="for">For ${c.name}.</span>` : '');
     const nth = state.returning ? 'second' : 'first';
     const cover = c.name
       ? `<div class="k">Chapter One · for</div><div class="h nm">${c.name}</div><div class="rule"></div><div class="cdate">a ${nth} chapter,<br>begun on ${c.weekday},<br>the ${ord(c.day)} of ${c.month},<br>at ${c.words}</div>`
@@ -1209,54 +1450,71 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
     build(sec.querySelector('.phone'), 'phone', st, true);
   });
 
-  // "try it": the Work as it will run. Scroll changes the chapter (here, the tabs), time changes the moment,
+  // "try it": the Work as it will run. Scroll changes the chapter (here, the chapters in the title), time changes the moment,
   // and each moment shows its piece working. Tapping a moment holds it.
   function runTry(f) {
     const el = f.el; el.classList.add('try');
-    const PHOTO = 1.6, DEMO = 3.6;
-    let ci = 0, m = 0, phase = 0, t;
-    const show = () => { el.dataset.ch = String(ci + 1); setMoment(f, ci, m, phase === 1, PHOTO + DEMO); };
+    // one time only (owner 28/10, README #73): the word fills in 4 s and, full, the next moment begins — the photograph
+    // and the piece working share those 4 s (1.2 + 2.8, the old 1.6 : 3.6 proportion)
+    const PHOTO = 1.2, DEMO = 2.8;
+    let ci = 0, m = 0, phase = 0, sel = 0, t;
+    const show = () => { el.dataset.ch = String(ci + 1); setMoment(f, ci, m, phase === 1, PHOTO + DEMO, sel); };
     const schedule = () => { clearTimeout(t); if (!el.classList.contains('held')) t = setTimeout(tick, (phase === 0 ? PHOTO : DEMO) * 1000); };
-    function tick() { if (phase === 0) phase = 1; else { phase = 0; m = (m + 1) % 3; if (m === 0) ci = (ci + 1) % 3; } show(); schedule(); }
-    el.querySelectorAll('.tabs span').forEach((s, k) => s.addEventListener('click', () => { el.classList.remove('held'); ci = k; m = 0; phase = 0; show(); schedule(); }));
-    el.addEventListener('click', e => { const s = e.target.closest('.mom span'); if (!s) return; el.classList.add('held'); m = +s.dataset.j; phase = 1; show(); clearTimeout(t); });
+    // after the last moment, back to the first: only scroll (here, the chapters in the title) changes the chapter (README #61)
+    function tick() { if (phase === 0) phase = 1; else { phase = 0; sel = 0; m = (m + 1) % 3; } show(); schedule(); }
+    el.addEventListener('click', e => {
+      const c = e.target.closest('.hnav button');
+      if (c && +c.dataset.k !== ci) {
+        // the passage: the chapter that arrives grows and glides to the left; the others dim where they are and come
+        // back, small, in their places; then the moments and the pieces come in (transform and opacity only)
+        const was = {}; el.querySelectorAll(`.tx.c${ci + 1} .hnav .ch`).forEach(b => { was[b.dataset.k] = { r: b.getBoundingClientRect(), fs: parseFloat(getComputedStyle(b).fontSize), o: +getComputedStyle(b).opacity }; });
+        const old = el.querySelector(`.tx.c${ci + 1}`);
+        el.classList.remove('held'); ci = +c.dataset.k; m = 0; sel = 0; phase = 0; show(); schedule();
+        if (!matchMedia('(prefers-reduced-motion: reduce)').matches) passage(old, el.querySelector(`.tx.c${ci + 1}`), was);
+        el.querySelector(`.tx.c${ci + 1} .hnav button[aria-current="true"]`)?.focus();
+        return;
+      }
+      const p = e.target.closest('.pick'); if (p) { sel = +p.dataset.p; show(); return; }
+      const s = e.target.closest('.mom > span'); if (!s) return; el.classList.add('held'); m = +s.dataset.j; sel = 0; phase = 1; show(); clearTimeout(t); });
     show(); schedule();
+  }
+  const EASE = 'cubic-bezier(0.65, 0, 0.25, 1)';
+  function passage(old, tx, was) {
+    // the text that leaves dims in place (its chapters at once: the new title is already moving)
+    old.querySelector('.hnav').style.visibility = 'hidden';
+    old.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'none' }], { duration: 650, easing: 'ease-out' });
+    setTimeout(() => { old.querySelector('.hnav').style.visibility = ''; }, 700);
+    tx.querySelectorAll('.hnav .ch').forEach(b => {
+      const a = was[b.dataset.k]; if (!a) return;
+      const r = b.getBoundingClientRect(), fs = parseFloat(getComputedStyle(b).fontSize), o = +getComputedStyle(b).opacity;
+      const from = `translate(${a.r.left - r.left}px, ${a.r.bottom - r.bottom}px) scale(${a.fs / fs})`;
+      if (b.getAttribute('aria-current') === 'true') b.animate([{ transform: from, opacity: a.o }, { transform: 'none', opacity: o }], { duration: 1200, easing: EASE, fill: 'backwards' });
+      else b.animate([{ transform: from, opacity: a.o, offset: 0 }, { transform: from + ' translateY(-8%)', opacity: 0, offset: .3 },
+        { transform: 'translateY(8%)', opacity: 0, offset: .62 }, { transform: 'none', opacity: o, offset: 1 }], { duration: 1300, easing: 'ease-in-out', fill: 'backwards' });
+    });
+    tx.querySelectorAll('.mom, .li, .foot').forEach((x, i) => x.animate([{ opacity: 0 }, { opacity: 1 }],
+      { duration: 1000, delay: 420 + i * 70, easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)', fill: 'backwards' }));
   }
   runTry(build(document.getElementById('try-desk'), 'desk', 3, false));
   runTry(build(document.getElementById('try-phone'), 'phone', 3, false));
 
-  // motion panel
+  // the whole-site player (end of the page) drives these two frames through states 1–11
   const mDesk = build(document.getElementById('m-desk'), 'desk', 1, false);
   const mPhone = build(document.getElementById('m-phone'), 'phone', 1, false);
-  const ticks = document.getElementById('ticks'); ticks.innerHTML = '<i></i>'.repeat(N);
-  const nowEl = document.getElementById('now');
-  let cur = 1, timer = null;
-  function go(st) {
-    cur = (st - 1 + N) % N + 1;
+  [mDesk, mPhone].forEach(f => f.el.classList.add('pass'));
+  function show(st) {
     [mDesk, mPhone].forEach(f => {
       // restart the moment's fill each time a Work state is shown
-      f.el.querySelectorAll('.fill').forEach(x => { x.style.animation = 'none'; void x.offsetWidth; x.style.animation = ''; });
-      setState(f, cur);
+      f.el.querySelectorAll('.wf').forEach(x => { x.style.animation = 'none'; void x.offsetWidth; x.style.animation = ''; });
+      // between chapters (4 → 5 → 6) the same passage as in the running Work
+      const from = f.el.dataset.ch, was = {};
+      if (+from) f.el.querySelectorAll(`.tx.c${from} .hnav .ch`).forEach(b => { was[b.dataset.k] = { r: b.getBoundingClientRect(), fs: parseFloat(getComputedStyle(b).fontSize), o: +getComputedStyle(b).opacity }; });
+      setState(f, st);
+      const to = f.el.dataset.ch;
+      if (+from && +to && from !== to && !matchMedia('(prefers-reduced-motion: reduce)').matches) passage(f.el.querySelector(`.tx.c${from}`), f.el.querySelector(`.tx.c${to}`), was);
     });
-    nowEl.textContent = `${cur} · ${STATES[cur - 1].t}`;
-    [...ticks.children].forEach((t, i) => t.classList.toggle('on', i < cur));
   }
-  const playBtn = document.getElementById('play');
-  function setPlaying(on) { playBtn.setAttribute('aria-pressed', String(on)); playBtn.textContent = on ? 'Pausar' : 'Reproduzir'; clearInterval(timer); timer = on ? setInterval(() => go(cur + 1), 2600) : null; }
-  playBtn.addEventListener('click', () => setPlaying(!timer));
-  document.getElementById('prev').addEventListener('click', () => { setPlaying(false); go(cur - 1); });
-  document.getElementById('next').addEventListener('click', () => { setPlaying(false); go(cur + 1); });
-  go(1);
-  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) setPlaying(true);
-
-  // closing-message options
-  const msgsEl = document.getElementById('msgs');
-  MSGS.forEach((m, i) => {
-    const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-pressed', String(i === state.msg));
-    b.innerHTML = `<span class="q">${m.q}</span><span class="w">${'ABC'[i]} · ${m.w}</span>`;
-    b.addEventListener('click', () => { msgsEl.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', 'false')); b.setAttribute('aria-pressed', 'true'); state.msg = i; paint(); });
-    msgsEl.appendChild(b);
-  });
+  (window.SB ||= {}).main = { show, STATES };
 
   // the four skies
   const skiesEl = document.getElementById('skies');
@@ -1296,8 +1554,42 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
 </script>
 <script>
 (() => {
+  const box = document.querySelector('.controls'), btn = document.getElementById('ctl-toggle');
+  const open = on => { box.classList.toggle('open', on); btn.setAttribute('aria-expanded', String(on)); };
+  btn.addEventListener('click', () => open(!box.classList.contains('open')));
+  box.addEventListener('click', e => { if (e.target.closest('.ctl-body .chip')) setTimeout(() => open(false), 250); });
+  document.addEventListener('pointerdown', e => { if (!box.contains(e.target)) open(false); });
+  addEventListener('keydown', e => { if (e.key === 'Escape' && box.classList.contains('open')) { open(false); btn.focus(); } });
+})();
+</script>
+<script>
+// a passage starts on the previous section's final frame, exactly as approved: a live copy of that static frame
+// (it follows the name and the hour), inert, so the leaving choreography plays on the real thing (README #65)
+window.mirrorFrame = (selector, host, cls) => {
+  const src = document.querySelector(selector); if (!src) return null;
+  let copy = null;
+  const frame = host.closest('.afr, .qfr');
+  const make = () => {
+    if (copy && frame && !frame.matches('.as0, .qs0')) return; // never swap the copy while it is leaving
+    const next = src.cloneNode(true);
+    next.classList.remove('static'); next.classList.add('mirror', cls);
+    next.removeAttribute('aria-label'); next.setAttribute('aria-hidden', 'true'); next.inert = true;
+    next.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
+    // the screens leave as one layer (README: at most 6 animated layers): group them
+    const cards = next.querySelectorAll(':scope > .card');
+    if (cards.length) { const g = document.createElement('div'); g.className = 'leave'; cards[0].before(g); cards.forEach(c => g.appendChild(c)); }
+    if (copy) copy.replaceWith(next); else host.appendChild(next);
+    copy = next;
+  };
+  make();
+  let t; new MutationObserver(() => { clearTimeout(t); t = setTimeout(make, 120); }).observe(src, { subtree: true, childList: true, characterData: true }); // not style: the bar's alignment rewrites it every 700 ms and would restart the passage
+  return copy;
+};
+</script>
+<script>
+(() => {
   const STATES = [
-    { t: 'O fim do Method', d: 'A sala escura com uma luz sobre <i>Made once, for one moment.</i> É onde o About começa.' },
+    { t: 'O fim do Method', d: 'O quadro 11 tal como está aprovado: <i>Made once, for one moment.</i>, os quatro passos, <i>Talk to us</i> e, no desktop, os ecrãs da capa dos lados. <b>A saída (proposta, README #65):</b> primeiro cai o <i>Talk to us</i>, depois os passos; os ecrãs afastam-se mais um pouco e apagam-se; a frase sobe e apaga-se por último, e na mesma luz aparece o retrato.' },
     { t: 'A luz encontra-te', d: '<b>B:</b> a frase sai e, <b>na mesma luz, no centro, apareces tu</b>, a preto e branco, com <i>I’m Flávio.</i> pequeno por baixo. No telemóvel a luz sobe até ao retrato. <b>A:</b> a luz abre-se num círculo com o teu retrato. Muda a transição em cima.' },
     { t: 'A sala acende-se', d: 'O retrato vai para o seu lugar e <b>o nome sobe e torna-se o título</b>. A sala acende-se com <b>a atmosfera da tua fotografia</b>, ainda em cinzento quente porque o retrato está a P&amp;B. Por baixo do nome entra a frase.' },
     { t: 'A tua história', d: 'Entra o parágrafo e depois <i>04 Questions ↓</i>. Ao passar o rato (no telemóvel, ao segurar), <b>o retrato e a sala ganham cor devagar</b>, com os verdes e azuis da tua fotografia, durante cerca de 2 segundos. Ao largar, voltam devagar ao P&amp;B.' },
@@ -1312,7 +1604,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
     el.classList.toggle('static', !!isStatic);
     el.innerHTML = `<div class="aL moss"></div><div class="aaura mono" style="background-image:url(img/a-124-mono.jpg)"></div><div class="aaura col" style="background-image:url(img/a-124.jpg)"></div><div class="aL pool"></div>
       <div class="achrome"><i>03</i>About</div>
-      <div class="amsg">Made once,<br><i>for one moment.</i><small>For Ana.</small></div>
+      <div class="amsg">Made once,<br><i>for one moment.</i><small></small></div>
       <div class="pt" tabindex="0" role="img" aria-label="Portrait of Flávio. ${phone ? 'Hold' : 'Hover'} to see it in colour."><i style="background-image:url(img/p124-mono.jpg)"></i><i class="col" style="background-image:url(img/p124.jpg)"></i></div>
       <div class="spot"></div>
       <div class="cap">Portrait — Helder Couto · <b>${phone ? 'Hold' : 'Hover'} for colour</b></div>
@@ -1337,6 +1629,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
   document.fonts.ready.then(() => frames.forEach(f => place(f.el)));
   addEventListener('resize', () => frames.forEach(f => place(f.el)));
   function set(f, st) { f.st = st; for (let s = 0; s < N; s++) f.el.classList.toggle('as' + s, s === st); f.el.classList.toggle('tA', T === 'A'); f.el.classList.toggle('tB', T === 'B'); }
+  (window.SB ||= {}).about = { build, set, STATES };
 
   const rows = document.getElementById('ab-rows');
   STATES.forEach((S, k) => {
@@ -1351,6 +1644,8 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
   });
 
   const md = build(document.getElementById('ab-m-d'), 0, false), mp = build(document.getElementById('ab-m-p'), 0, false);
+  mirrorFrame('.frame.desk.static.st11', md.el, 'from-method'); mirrorFrame('.frame.phone.static.st11', mp.el, 'from-method');
+  [md, mp].forEach(f => f.el.classList.add('mirrored'));
   const nowEl = document.getElementById('ab-now');
   let cur = 0, timer = null;
   const go = s => { cur = (s + N) % N; set(md, cur); set(mp, cur); nowEl.textContent = `${cur} · ${STATES[cur].t}`; };
@@ -1359,6 +1654,12 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
   play.addEventListener('click', () => setPlaying(!timer));
   document.getElementById('ab-prev').addEventListener('click', () => { setPlaying(false); go(cur - 1); });
   document.getElementById('ab-next').addEventListener('click', () => { setPlaying(false); go(cur + 1); });
+  // the Method's signature follows the name field, as in the Method (11): For Ana. only when there is a name
+  const nameIn = document.getElementById('name');
+  const sign = () => { const v = nameIn.value.trim(); document.querySelectorAll('.amsg small').forEach(e => { e.textContent = v ? `For ${v}.` : ''; }); };
+  nameIn.addEventListener('input', sign);
+  document.getElementById('try-name').addEventListener('click', () => setTimeout(sign, 0));
+  sign();
   // hovering or holding the portrait in the motion panel pauses it, so the colour can be tried
   [md, mp].forEach(f => f.el.querySelector('.pt').addEventListener('pointerdown', () => setPlaying(false)));
   md.el.querySelector('.pt').addEventListener('pointerenter', () => { if (cur === 3) setPlaying(false); });
@@ -1386,7 +1687,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
     ['Can you work with my existing team?', 'Absolutely. We can collaborate with your planner, photographer, venue or creative team to make sure everything works together.'],
   ];
   const STATES = [
-    { t: 'O fim do About', d: 'O retrato, o nome e a sala escura com a atmosfera da fotografia.', open: -1 },
+    { t: 'O fim do About', d: 'O quadro 14 tal como está aprovado: o retrato, o nome, a frase, o parágrafo e <i>04 Questions ↓</i>. <b>A passagem (proposta, README #65):</b> o <i>04 Questions ↓</i> apaga-se e o papel do estúdio sobe como um cartão; o About sobe mais devagar por baixo dele e escurece, e só depois chega a pergunta-âncora.', open: -1 },
     { t: 'As luzes acendem-se', d: 'Ao descer, <b>o papel do estúdio sobe</b>, em plena luz do dia, e o About fica para trás. Chega a pergunta-âncora: <i>What do you actually create?</i> com a resposta.', open: -1 },
     { t: 'As perguntas', d: 'As oito perguntas entram uma a uma, numeradas pela ordem em que um cliente as faz. No desktop, por baixo da âncora, os três capítulos levam de volta ao Work.', open: -1 },
     { t: 'Uma resposta', d: 'Um toque numa pergunta <b>desdobra a resposta</b> e o + roda para ×. Abrir outra fecha esta.', open: 0 },
@@ -1399,7 +1700,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
     el.classList.toggle('static', !!isStatic);
     el.innerHTML = `<div class="qL qprev"><div class="ppt" style="background-image:url(img/p124-mono.jpg)"></div><div class="pt2">I’m Flávio.</div></div>
       <div class="qL qpaper"></div>
-      <div class="qchrome"><i>04</i>Questions</div>
+      <div class="qchrome"><span class="a"><i>03</i>About</span><span class="q"><i>04</i>Questions</span></div>
       <div class="qanchor"><div class="h">What do you<br><i>actually create?</i></div><p>${ANCHOR.a}</p>
         <div class="chs"><a href="#"><span><i>I</i>Weddings</span><span>→</span></a><a href="#"><span><i>II</i>Artists</span><span>→</span></a><a href="#"><span><i>III</i>Experiences</span><span>→</span></a></div></div>
       <div class="qlist">${ROWS.map(([q, a, links], i) => `<div class="qrow" style="transition-delay:${(.15 + i * .1).toFixed(2)}s">
@@ -1413,6 +1714,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
   let onUser = null;
   function openRow(el, i) { el.querySelectorAll('.qrow').forEach((r, j) => { r.classList.toggle('open', j === i); r.querySelector('button').setAttribute('aria-expanded', String(j === i)); }); }
   function set(f, st) { f.st = st; for (let s = 0; s < N; s++) f.el.classList.toggle('qs' + s, s === st); openRow(f.el, STATES[st].open); }
+  (window.SB ||= {}).questions = { build, set, STATES };
 
   const rows = document.getElementById('q-rows');
   STATES.forEach((S, k) => {
@@ -1426,6 +1728,8 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
     build(sec.querySelector('.qfr'), k, true); build(sec.querySelector('.qfr.qph'), k, true);
   });
   const md = build(document.getElementById('q-m-d'), 0, false), mp = build(document.getElementById('q-m-p'), 0, false);
+  mirrorFrame('#ab-rows .afr.static.as3:not(.abp)', md.el.querySelector('.qprev'), 'from-about');
+  mirrorFrame('#ab-rows .afr.abp.static.as3', mp.el.querySelector('.qprev'), 'from-about');
   const nowEl = document.getElementById('q-now');
   let cur = 0, timer = null;
   const go = s => { cur = (s + N) % N; set(md, cur); set(mp, cur); nowEl.textContent = `${cur} · ${STATES[cur].t}`; };
@@ -1448,8 +1752,8 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
   const STATES = [
     { t: 'O fim das Questions', d: 'O estúdio em plena luz, com a pergunta-âncora.' },
     { t: 'A luz baixa', d: 'Ao descer, <b>a luz do estúdio baixa</b> até ao carvão e fica uma luz quente e baixa. Aparece a pergunta aprovada, grande e sozinha, presa um instante: <i>Is there something that deserves its own experience?</i>' },
-    { t: 'A tua hora, e uma ação', d: 'Por baixo, a hora de quem visita (rascunho) e <b>Talk to us</b>, que leva ao Instagram, com o endereço em texto. Com nome: <i>Talk to us, Ana</i>.' },
-    { t: 'A última página', d: 'A pergunta sobe e entra o <b>colofão</b>: a assinatura <i>No templates. No copies.</i>, o índice, o Instagram, os créditos e <i>Back to the first page ↑</i>.' },
+    { t: 'A tua hora, e uma ação', d: 'Por baixo, a linha da hora de quem visita (aprovada, README #55) e <b>Talk to us</b>, que leva ao Instagram, com o endereço em texto. Com nome: <i>Talk to us, Ana</i>.' },
+    { t: 'A última página', d: 'A pergunta sobe e entra o <b>colofão</b>: a assinatura <i>Built around you.</i> (com nome, <i>Built around Ana.</i>), <i>Chapter One · 2026</i>, o índice e os contactos (Instagram, Telegram). Sem <i>Back to the first page</i>: o índice basta (README #54, #55).' },
   ];
   const N = STATES.length;
   const frames = [];
@@ -1459,7 +1763,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
       <div class="cchrome"><span class="q"><i>04</i>Questions</span><span class="c"><i>05</i>Contact</span></div>
       <div class="cqprev"><div class="an"><div class="h">What do you<br><i>actually create?</i></div><p>We design and build digital experiences for weddings, artists and unique occasions, tailored to each project.</p>
         <div class="chs"><span><span><i>I</i>Weddings</span><b>→</b></span><span><span><i>II</i>Artists</span><b>→</b></span><span><span><i>III</i>Experiences</span><b>→</b></span></div></div>
-        <ol>${['What does it cost?', 'How long does it take?', 'How does a project work?', 'What do you need from me?', 'Do you work in English and outside Portugal?', 'Is it only digital?', 'What about the domain and hosting?', 'Can you work with my existing team?'].map((q, i) => `<li><em>${pad(i + 1)}</em><span>${q}</span><b>+</b></li>`).join('')}</ol></div>
+        <ol>${['What does it cost?', 'How long does it take?', 'How does a project work?', 'What do you need from me?', 'Do you work in English and outside Portugal?', 'Is it only digital?', 'What about the domain and hosting?', 'Can you work with my existing team?'].map((q, i) => `<li><em>${pad(i + 1)}</em><span>${q}</span><b class="pm"></b></li>`).join('')}</ol><div class="cnext">05 Contact ↓</div></div>
       <div class="cq">Is there something<br>that deserves<br><i>its own experience?</i></div>
       <div class="cnow"><div class="t">You arrived at <b>${hm(arrived)}</b>. It’s <b>${hm(now)}</b> now —${ph ? '<br>' : ' '}a good moment to tell us about it.</div>
         <a class="ccta" href="https://www.instagram.com/chapterone.studio.pt/" target="_blank" rel="noopener">Talk to us${NAME ? ', ' + NAME : ''} <span aria-hidden="true">→</span></a>
@@ -1471,6 +1775,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
   }
   function build(el, st, isStatic) { el.classList.toggle('static', !!isStatic); el.innerHTML = inner(el); const f = { el, st }; frames.push(f); set(f, st); return f; }
   function set(f, st) { f.st = st; for (let s = 0; s < N; s++) f.el.classList.toggle('cs' + s, s === st); }
+  (window.SB ||= {}).contact = { build, set, STATES };
   const rows = document.getElementById('c-rows');
   STATES.forEach((S, k) => {
     if (!k) return; // state 0 is the Questions' own end, already shown as 18
@@ -1504,21 +1809,21 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
   const pad = n => String(n).padStart(2, '0');
   const now = new Date(), hm = pad(now.getHours()) + ':' + pad(now.getMinutes());
   const BGS = {
-    work: { n: 1, label: 'Work', light: false, html: () => `<div class="aur" style="background-image:url(img/a-w002.jpg)"></div><div class="mphoto" style="background-image:url(img/w002.jpg)"></div><div class="mtx"><div class="h">Before</div><div>Save-the-date</div><div>Wedding website</div><div>Digital invitation</div><div>RSVP</div></div>` },
+    work: { n: 1, label: 'Work', light: false, html: () => `<div class="aur" style="background-image:url(img/a-w002.jpg)"></div><div class="mphoto" style="background-image:url(img/w002.jpg)"></div><div class="mtx"><div class="h">I Weddings</div><div>Wedding website</div><div>Save-the-date</div><div>Digital invitation</div><div>RSVP</div></div>` },
     method: { n: 2, label: 'Method', light: true, html: ph => (ph ? [[8, 36, 'w299'], [52, 30, 'gallery'], [30, 58, 'concert']] : [[8, 40, 'w299'], [27, 46, 'studio'], [46, 38, 'gallery'], [65, 44, 'concert'], [84, 40, 'w002']]).map(([x, y, im]) => `<i style="left:${x}%;top:${y}%;background-image:url(img/${im}.jpg)"></i>`).join('') },
     questions: { n: 4, label: 'Questions', light: true, html: () => `<div class="h">What do you<br><i>actually create?</i></div><ol>${['What does it cost?', 'How long does it take?', 'How does a project work?', 'What do you need from me?', 'Is it only digital?'].map(q => `<li>${q}</li>`).join('')}</ol>` },
   };
   const SECTIONS = ['Work', 'Method', 'About', 'Questions', 'Contact'];
-  let BG = 'work', MODE = 'prepared', NAME = '';
+  let BG = 'work', NAME = '';
   const frames = [document.getElementById('mn-d'), document.getElementById('mn-p')];
   function render(el) {
     const ph = el.classList.contains('mph'), b = BGS[BG], bg = `<div class="mL mbg m-${BG}">${b.html(ph)}</div>`;
     const wasOpen = el.classList.contains('open');
-    el.classList.toggle('light', b.light); el.classList.toggle('real', MODE === 'real');
+    el.classList.toggle('light', b.light);
     el.innerHTML = `${bg}
       <div class="mbar2"><span><i>${pad(b.n)}</i>${b.label}</span><span class="r"><span class="time">${hm}</span><span class="tt">Talk to us</span>
         <button class="mbtn" type="button" aria-expanded="${wasOpen}" aria-label="${wasOpen ? 'Close menu' : 'Open menu'}"><span class="ic" aria-hidden="true"></span><span class="w">${wasOpen ? 'Close' : 'Menu'}</span></button></span></div>
-      <div class="glass" role="dialog" aria-label="Menu"><div class="blur mL mbg m-${BG}">${b.html(ph)}</div><div class="tint"></div><div class="sheen"></div><div class="gr"></div>
+      <div class="glass" role="dialog" aria-label="Menu"><div class="drop"><div class="tint"></div><div class="sheen"></div></div>
         <ol class="mnav">${SECTIONS.map((s, i) => `<li class="${i + 1 === b.n ? 'cur' : ''}"><i>${pad(i + 1)}</i><span>${s}</span></li>`).join('')}</ol>
         <div class="mside">${NAME ? `<div class="hello">Hello, ${NAME}.</div>` : ''}<div class="k">Talk to us</div><div class="go">Instagram →</div>
           <div>Instagram · @chapterone.studio.pt<br>Telegram · @flavius28</div><div class="k">Your time · ${hm}</div></div></div>`;
@@ -1526,6 +1831,10 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
   }
   function toggle(el, force) {
     const open = force === undefined ? !el.classList.contains('open') : force;
+    // the drop is born in the rounded right end of the right island, already as large as that end (README #69)
+    if (open) { const f = el.getBoundingClientRect(), r = el.querySelector('.mbar2 .r').getBoundingClientRect(), R = Math.hypot(f.width, f.height);
+      el.style.setProperty('--dx', r.right - r.height / 2 - f.left + 'px'); el.style.setProperty('--dy', r.top + r.height / 2 - f.top + 'px');
+      el.style.setProperty('--R', R + 'px'); el.style.setProperty('--s0', (r.height / 2 / R).toFixed(4)); }
     el.classList.toggle('open', open);
     const btn = el.querySelector('.mbtn'); btn.setAttribute('aria-expanded', String(open)); btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
     btn.querySelector('.w').textContent = open ? 'Close' : 'Menu';
@@ -1536,7 +1845,6 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
   const group = (id, items, get, set) => { const g = document.getElementById(id); items.forEach(([v, l]) => { const b = document.createElement('button'); b.className = 'chip'; b.type = 'button'; b.textContent = l; b.setAttribute('aria-pressed', String(get() === v));
     b.addEventListener('click', () => { g.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', 'false')); b.setAttribute('aria-pressed', 'true'); set(v); rerender(); }); g.appendChild(b); }); };
   group('mn-bgs', [['work', 'Work'], ['method', 'Method'], ['questions', 'Questions']], () => BG, v => BG = v);
-  group('mn-modes', [['prepared', 'Preparado (recomendado)'], ['real', 'Real (desfoque ao vivo)']], () => MODE, v => MODE = v);
   const nameIn = document.getElementById('name');
   const sync = () => { NAME = nameIn.value.trim(); rerender(); };
   nameIn.addEventListener('input', sync);
@@ -1559,7 +1867,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
     { t: 'Tudo escuro, a tua hora', d: 'O ecrã abre em carvão. Aparece só a <b>dedicatória</b>: o dia e a hora de quem chega, no relógio dela. Quem volta vê <i>Welcome back</i> antes.' },
     { t: 'CHAPTER ONE, com o vídeo nas letras', d: '<b>CHAPTER ONE</b> enorme, e <b>o vídeo vê-se por dentro das letras</b>: um véu escuro com o título recortado (máscara SVG) por cima do vídeo a tocar. A hora fica logo acima do título.' },
     { t: 'A câmara entra pelo O', d: '<b>O vídeo fica parado e é o véu que avança</b>: o véu escuro com as letras recortadas cresce a partir do traço do O (a letra é a janela) até a janela cobrir o ecrã, enquanto a imagem avança um pouco, como uma câmara a entrar. Só <i>transform</i> no véu e na imagem; medido primeiro no Xiaomi (plano B: o véu rasterizado).' },
-    { t: 'O vídeo, o título e as lâminas', d: 'O vídeo em ecrã inteiro com a tinta da hora; o título <b>reaparece centrado e mais pequeno</b>, com o subtítulo; entram as três lâminas e a barra. É o <b>estado 1</b> em baixo.' },
+    { t: 'O vídeo, o título e as lâminas', d: 'O vídeo em ecrã inteiro com a tinta da hora; <b>a dedicatória fica, no topo</b>; o título <b>reaparece centrado e mais pequeno</b>, com o subtítulo; entram as três lâminas e a barra. É o <b>estado 1</b> em baixo.' },
   ];
   const N = STATES.length, frames = [];
   function build(el, st, isStatic) {
@@ -1573,8 +1881,11 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
         <rect width="${W}" height="${H}" fill="#161513" mask="url(#${id})"/>
         <text class="probe" text-anchor="middle" font-size="${ph ? 160 : 176}" fill="none">${words}</text></svg>
       <div class="eded">${ded}</div>
-      <div class="efinal"><div class="top"><span>Chapter One</span><span>${ph ? '≡ Menu' : 'Talk to us\u2003\u2003≡ Menu'}</span></div><div class="t">CHAPTER${ph ? '<br>' : ' '}ONE</div>
-        <div class="s">Digital experiences built for moments worth remembering.</div><div class="b">I Weddings · II Artists · III Experiences</div></div>`;
+      <div class="efinal"><div class="top"><span>Chapter One</span><span>${ph ? '<i class="ic3" aria-label="Menu"></i>' : 'Talk to us\u2003\u2003≡ Menu'}</span></div><div class="t">CHAPTER${ph ? '<br>' : ' '}ONE</div>
+        <div class="s">Digital experiences built for moments worth remembering.</div>
+        <div class="blade b1"><div class="bg" style="background-image:url(img/w002.jpg)"></div><span><i>I</i>Weddings</span></div>
+        <div class="blade b2"><div class="bg" style="background-image:url(img/studio.jpg)"></div><span><i>II</i>Artists</span></div>
+        <div class="blade b3"><div class="bg" style="background-image:url(img/concert.jpg)"></div><span><i>III</i>Experiences</span></div></div>`;
     const f = { el, st }; frames.push(f); origin(el); set(f, st); return f;
   }
   // the camera enters through the O: the zoom's origin is the O's left stroke (the window), read from the SVG
@@ -1583,10 +1894,11 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
     if (!probe || !probe.getNumberOfChars()) return;
     const ph = el.classList.contains('eph'), at = ph ? 7 : 8;   // the O of ONE
     const b = probe.getExtentOfChar(at), vb = svg.viewBox.baseVal;
-    el.style.setProperty('--ox', ((b.x + b.width * .1) / vb.width * 100).toFixed(2) + '%');
+    el.style.setProperty('--ox', ((b.x + b.width * .125) / vb.width * 100).toFixed(2) + '%');   // the middle of the stroke (measured: .05–.2 of the extent)
     el.style.setProperty('--oy', ((b.y + b.height * .55) / vb.height * 100).toFixed(2) + '%');
   }
   function set(f, st) { f.st = st; for (let s = 0; s < N; s++) f.el.classList.toggle('es' + s, s === st); }
+  (window.SB ||= {}).entrance = { build, set, STATES };
   const rows = document.getElementById('e-rows');
   STATES.forEach((S, k) => {
     const sec = document.createElement('section'); sec.className = 'scene';
@@ -1613,6 +1925,72 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
 })();
 </script>
 <script>
+// the whole site, in motion: one frame per section stacked in the same place; at each seam the next section's
+// frame starts on a picture identical to the last one (E4 = 1; the About and the Questions start on a live copy of
+// 11 and 14), so switching frames is invisible and only the passage itself is seen
+(() => {
+  const SB = window.SB, reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const stage = (frameEl, ph) => {
+    const st = document.createElement('div'); st.className = 'stage' + (ph ? ' ph' : '');
+    frameEl.before(st); st.appendChild(frameEl); return st;
+  };
+  const make = (host, cls) => { const el = document.createElement('div'); el.className = cls; el.setAttribute('aria-hidden', 'true'); host.appendChild(el); return el; };
+  const mk = ph => {
+    const host = stage(document.getElementById(ph ? 'm-phone' : 'm-desk'), ph);
+    const F = { main: { el: document.getElementById(ph ? 'm-phone' : 'm-desk') } };
+    F.entrance = SB.entrance.build(make(host, ph ? 'efr eph' : 'efr'), 0, false);
+    F.about = SB.about.build(make(host, ph ? 'afr abp' : 'afr'), 0, false);
+    F.questions = SB.questions.build(make(host, ph ? 'qfr qph' : 'qfr'), 0, false);
+    F.contact = SB.contact.build(make(host, ph ? 'cfr cph' : 'cfr'), 0, false);
+    mirrorFrame(ph ? '.frame.phone.static.st11' : '.frame.desk.static.st11', F.about.el, 'from-method'); F.about.el.classList.add('mirrored');
+    mirrorFrame(ph ? '#ab-rows .afr.abp.static.as3' : '#ab-rows .afr.static.as3:not(.abp)', F.questions.el.querySelector('.qprev'), 'from-about');
+    return F;
+  };
+  const D = mk(false), P = mk(true), both = [D, P];
+  // [section, state, how long it stays (ms), label]; the passages that take longer stay longer
+  const E = SB.entrance.STATES, M = SB.main.STATES, A = SB.about.STATES, Q = SB.questions.STATES, C = SB.contact.STATES;
+  const STEPS = [
+    ...E.map((x, k) => ['entrance', k, k === 2 ? 3000 : 2400, `E${k + 1} · ${x.t}`]),
+    ...M.slice(1).map((x, k) => ['main', k + 2, 2600, `${k + 2} · ${x.t}`]),
+    ...A.slice(1).map((x, k) => ['about', k + 1, k ? 2800 : 3400, `${12 + k} · ${x.t}`]),
+    ...Q.slice(1).map((x, k) => ['questions', k + 1, k ? 2800 : 3600, `${15 + k} · ${x.t}`]),
+    ['questions', 2, 1600, '18 · a resposta fecha-se'],
+    ...C.slice(1).map((x, k) => ['contact', k + 1, 3000, `${19 + k} · ${x.t}`]),
+  ];
+  // where each section starts: the picture it shares with the end of the previous one
+  const ENTRY = { entrance: 0, main: 1, about: 0, questions: 0, contact: 0 };
+  const setSec = (F, sec, st) => sec === 'main' ? null : SB[sec].set(F[sec], st);
+  const showOnly = (F, sec) => Object.entries(F).forEach(([k, f]) => f.el.classList.toggle('on', k === sec));
+  const ticks = document.getElementById('ticks'), nowEl = document.getElementById('now');
+  ticks.innerHTML = STEPS.map((x, i) => `<i class="${i && STEPS[i - 1][0] !== x[0] ? 'cut' : ''}"></i>`).join('');
+  let cur = -1, timer = null;
+  function go(i, step = false) {
+    i = (i + STEPS.length) % STEPS.length;
+    const [sec, st] = STEPS[i], prev = cur >= 0 ? STEPS[cur][0] : null, forward = step && cur >= 0 && i === (cur + 1) % STEPS.length;
+    if (sec !== prev) {
+      // a new section: put it on its entry picture while hidden, show it, then play its first state
+      if (sec === 'main') SB.main.show(forward ? ENTRY.main : st); else both.forEach(F => setSec(F, sec, forward && !reduce ? ENTRY[sec] : st));
+      both.forEach(F => showOnly(F, sec));
+      if (forward && !reduce) requestAnimationFrame(() => requestAnimationFrame(() => sec === 'main' ? SB.main.show(st) : both.forEach(F => setSec(F, sec, st))));
+      else if (sec === 'main') SB.main.show(st);
+      // the sections left behind go back to their entry picture, ready for the next loop
+      if (sec === 'entrance') { SB.main.show(1); ['about', 'questions', 'contact'].forEach(k => both.forEach(F => setSec(F, k, ENTRY[k]))); }
+    } else if (sec === 'main') SB.main.show(st); else both.forEach(F => setSec(F, sec, st));
+    cur = i;
+    nowEl.textContent = STEPS[i][3];
+    [...ticks.children].forEach((t, k) => t.classList.toggle('on', k <= i));
+    if (timer) { clearTimeout(timer); timer = setTimeout(() => go(cur + 1, true), STEPS[cur][2]); }
+  }
+  const playBtn = document.getElementById('play');
+  function setPlaying(on) { playBtn.setAttribute('aria-pressed', String(on)); playBtn.textContent = on ? 'Pausar' : 'Reproduzir'; clearTimeout(timer); timer = on ? setTimeout(() => go(cur + 1, true), STEPS[cur][2]) : null; }
+  playBtn.addEventListener('click', () => setPlaying(!timer));
+  document.getElementById('prev').addEventListener('click', () => { setPlaying(false); go(cur - 1); });
+  document.getElementById('next').addEventListener('click', () => { setPlaying(false); go(cur + 1, true); });
+  go(0);
+  if (!reduce) setPlaying(true);
+})();
+</script>
+<script>
 // every frame gets the visitor's time for its bar (an attribute, so it survives the frames re-rendering)
 (() => { const d = new Date(), hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
   const all = () => document.querySelectorAll('.frame, .afr, .qfr, .cfr, .efr').forEach(f => { f.dataset.time = hm; });
@@ -1623,7 +2001,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
     const fr = f.getBoundingClientRect(); if (!fr.width) return;
     const label = [...f.querySelectorAll(LABELS)].find(l => l.checkVisibility ? l.checkVisibility({ opacityProperty: true }) : true) || f.querySelector(LABELS);
     if (!label) return;
-    const w = document.createTreeWalker(label, NodeFilter.SHOW_TEXT); let n, last = null; while ((n = w.nextNode())) if (n.textContent.trim()) last = n;
+    const w = document.createTreeWalker(label, NodeFilter.SHOW_TEXT); let n, last = null; while ((n = w.nextNode())) if (n.textContent.trim() && n.parentElement.getClientRects().length) last = n;
     if (!last) return;
     const r = document.createRange(); r.selectNodeContents(last); const b = r.getBoundingClientRect();
     f.style.setProperty('--bar-top', (b.top - fr.top) + 'px'); f.style.setProperty('--bar-lh', b.height + 'px');

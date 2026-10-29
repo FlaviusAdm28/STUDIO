@@ -1,0 +1,524 @@
+<title>A barra com o nome</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Schibsted+Grotesk:wght@400;500&display=swap">
+<style>
+/* Layout: the main storyboard's dark gallery page; one row per variant (desktop, phone, notes), then each bar at real size at 390 px, then the click. Single dark look (V5 palette). */
+:root {
+  --charcoal: #1E1D1A; --linen: #EEE8DD; --muted: #B3AB9E; --accent: #B89A7C; --ink: #2A2823; --rule: rgba(238, 232, 221, .16);
+  --paper: #D8D0C2;
+  --voice: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+  --read: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--charcoal); color: var(--linen); font-family: var(--read); font-size: 15px; line-height: 1.55; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 60; background: var(--charcoal); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 48px 96px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 56px; }
+.label { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+h1, h2 { font-family: var(--voice); font-weight: 400; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(40px, 7vw, 76px); line-height: 1; font-style: italic; }
+h2 { font-size: clamp(26px, 3.4vw, 36px); line-height: 1.1; }
+p { margin: 0; max-width: 66ch; }
+header { display: grid; gap: 18px; }
+header p, .muted { color: var(--muted); }
+strong, b { color: var(--linen); font-weight: 500; }
+button { font: inherit; color: inherit; }
+
+.controls { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50; background: var(--charcoal); border-block: 1px solid var(--rule); padding-block: 14px; display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+.chip { background: transparent; border: 1px solid var(--rule); border-radius: 999px; padding: 5px 12px; font-size: 13px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--linen); color: var(--charcoal); border-color: var(--linen); }
+.chip:focus-visible { outline: 2px solid var(--linen); outline-offset: 2px; }
+
+.scene { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; padding-top: 28px; border-top: 1px solid var(--rule); }
+.scene-head { display: flex; gap: 18px; align-items: baseline; flex-wrap: wrap; }
+.scene-head .n { font-family: var(--voice); font-style: italic; font-size: 30px; color: var(--muted); min-width: 1.4em; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) 190px minmax(0, 290px); gap: 28px; align-items: start; }
+.notes { display: grid; gap: 12px; min-width: 0; }
+.notes p { font-size: 14px; color: var(--muted); }
+figure { margin: 0; display: grid; gap: 8px; min-width: 0; }
+figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+@media (max-width: 900px) { .row { grid-template-columns: minmax(0, 1fr) 150px; } .notes { grid-column: 1 / -1; } }
+@media (max-width: 560px) { .row { grid-template-columns: minmax(0, 1fr) 112px; gap: 14px; } }
+
+/* ---------- the frames: one section behind the bar ---------- */
+.fr { position: relative; overflow: hidden; width: 100%; max-width: 100%; aspect-ratio: 16 / 10; border-radius: 4px; background: #171614; color: var(--linen); container-type: inline-size; box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 18px 40px rgba(0,0,0,.35); }
+.fr.ph { aspect-ratio: 9 / 19.5; border-radius: 14px; }
+.bg { position: absolute; inset: 0; }
+.bg .img { position: absolute; background: center / cover no-repeat; filter: grayscale(1); }
+.bg .t { position: absolute; font-family: var(--voice); line-height: 1.05; }
+.bg .t i { font-style: italic; }
+.bg .lines { position: absolute; display: grid; gap: 1.4cqw; }
+.bg .lines span { height: 1px; background: currentColor; opacity: .25; }
+/* Work */
+.s-work .bg { background: radial-gradient(60% 80% at 22% 55%, rgba(180,170,150,.16), transparent 70%), #1C1B18; }
+.s-work .img { left: 6%; top: 16%; width: 28%; height: 74%; border-radius: 50% 50% 0 0 / 22% 22% 0 0; background-image: url(img/w002.jpg); }
+.s-work .t { left: 47%; top: 22%; font-size: 4.4cqw; }
+.s-work .lines { left: 47%; right: 8%; top: 40%; }
+.ph.s-work .img { left: 8%; top: 9%; width: 84%; height: 36%; }
+.ph.s-work .t { left: 8%; top: 50%; font-size: 10cqw; }
+.ph.s-work .lines { left: 8%; right: 8%; top: 60%; gap: 5cqw; }
+/* About */
+.s-about .bg { background: radial-gradient(60% 70% at 24% 50%, rgba(170,162,150,.18), transparent 70%), #1B1C1A; }
+.s-about .img { left: 7%; top: 14%; width: 30%; height: 78%; background-image: url(img/p124-mono.jpg); background-position: center 30%; }
+.s-about .t { left: 46%; top: 20%; font-size: 6cqw; }
+.s-about .lines { left: 46%; right: 8%; top: 46%; }
+.ph.s-about .img { left: 0; top: 0; width: 100%; height: 46%; }
+.ph.s-about .t { left: 7%; top: 52%; font-size: 11cqw; }
+.ph.s-about .lines { left: 7%; right: 7%; top: 63%; gap: 5cqw; }
+/* Questions: the paper in daylight, ink on top */
+.s-questions { color: var(--ink); }
+.s-questions .bg { background: radial-gradient(60% 70% at 28% 14%, rgba(255,250,240,.5), transparent 72%), linear-gradient(180deg, #DCD5C8 0%, #D2CABC 64%, #CCC3B4 76%, #BEB5A6 100%); }
+.s-questions .t { left: 7%; top: 18%; font-size: 4.6cqw; }
+.s-questions .lines { left: 47%; right: 7%; top: 18%; gap: 2.6cqw; }
+.ph.s-questions .t { left: 7%; top: 10%; font-size: 10.4cqw; }
+.ph.s-questions .lines { left: 7%; right: 7%; top: 34%; gap: 6cqw; }
+/* Contact */
+.s-contact .bg { background: #141311; }
+.s-contact .img { inset: 0; background-image: url(img/poster-wide.jpg); filter: grayscale(.2) brightness(.32); }
+.ph.s-contact .img { background-image: url(img/poster-tall.jpg); }
+.s-contact .t { left: 10%; right: 10%; top: 20%; text-align: center; font-size: 5cqw; }
+.ph.s-contact .t { top: 24%; font-size: 10.6cqw; left: 7%; right: 7%; }
+.s-contact .lines { display: none; }
+
+/* ---------- the bar ---------- */
+.bar { position: absolute; z-index: 9; left: 3%; right: 3%; top: 5.2%; display: flex; justify-content: space-between; align-items: baseline; gap: 2cqw; font-size: max(5px, 1.2cqw); letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+.ph .bar { left: 6%; right: 6%; top: 2.6%; font-size: 3.4cqw; }
+.bar .left { display: flex; align-items: baseline; min-width: 0; }
+.bar .right { display: flex; gap: 2.4em; }
+.ph .bar .right .opt { display: none; }
+.home { all: unset; cursor: pointer; }
+.home:focus-visible { outline: 1px solid currentColor; outline-offset: 3px; }
+.sec i { font-family: var(--voice); font-size: 1.6em; letter-spacing: 0; text-transform: none; margin-right: .4em; }
+.sec { opacity: .75; }
+/* A · the name in the display face, a thin rule, the section */
+.vA .home { font-family: var(--voice); font-size: 1.55em; letter-spacing: .01em; text-transform: none; font-weight: 500; }
+.vA .sep { align-self: center; width: 1px; height: 1.3em; background: currentColor; opacity: .35; margin: 0 1.1em; }
+.ph.vA .home { font-size: 1.42em; }
+.ph.vA .sep { margin: 0 .85em; }
+/* B · the name as on the entrance's own bar (E4): small capitals in the reading face, a dot, the section */
+.vB .home { font-weight: 500; }
+.vB .sep::before { content: "·"; margin: 0 .9em; opacity: .5; }
+/* C · stacked: the name above, the section under it, smaller */
+.vC .left { flex-direction: column; align-items: flex-start; gap: .25em; }
+.vC .home { font-family: var(--voice); font-size: 1.55em; letter-spacing: .01em; text-transform: none; font-weight: 500; line-height: 1; }
+.vC .sep { display: none; }
+.vC .sec { font-size: .82em; }
+.vC .sec i { font-size: 1.45em; }
+
+/* ---------- the bar's ground: always there, so the bar reads over any photograph ---------- */
+.glass { position: absolute; z-index: 8; left: 0; right: 0; top: 0; height: 11.5%; overflow: hidden; pointer-events: none; display: none; }
+.ph .glass { height: 6.8%; }
+.g1 .glass, .g2 .glass, .g3 .glass { display: block; }
+.glass .copy, .glass .grain { display: none; }
+/* 1 · a veil: a soft shade that fades out downwards, no edge */
+.g1 .glass { height: 17%; background: linear-gradient(180deg, rgba(20,19,17,.78), rgba(20,19,17,.42) 55%, rgba(20,19,17,0)); }
+.ph.g1 .glass { height: 10%; }
+.s-questions.g1 .glass { background: linear-gradient(180deg, rgba(222,215,202,.9), rgba(222,215,202,.5) 55%, rgba(222,215,202,0)); }
+/* 2 · prepared glass, as the menu (README #56): the section behind, pre-blurred (here a CSS stand-in for the
+   derivative npm run images would make), a film, a sheen on the lower edge and grain; no backdrop-filter */
+.g2 .glass .copy, .g2 .glass .grain { display: block; }
+.g2 .glass .copy { position: absolute; left: 0; top: 0; width: 100%; height: calc(100cqw * 10 / 16); filter: blur(1.6cqw) saturate(1.15); transform: scale(1.08); transform-origin: 50% 0; }
+.ph.g2 .glass .copy { height: calc(100cqw * 19.5 / 9); filter: blur(4.5cqw) saturate(1.15); }
+.g2 .glass::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, rgba(255,250,240,.07), rgba(255,250,240,0) 60%), rgba(26,25,22,.46); }
+.s-questions.g2 .glass::before { background: linear-gradient(180deg, rgba(255,255,255,.3), rgba(255,255,255,0) 60%), rgba(232,226,215,.5); }
+.g2 .glass::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; z-index: 2; background: linear-gradient(90deg, rgba(255,250,240,0), rgba(255,250,240,.28) 30%, rgba(255,250,240,.12) 70%, rgba(255,250,240,0)); }
+.s-questions.g2 .glass::after { background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.7) 30%, rgba(255,255,255,.3) 70%, rgba(255,255,255,0)); }
+.g2 .glass .grain { position: absolute; inset: 0; z-index: 2; opacity: .12; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+/* 3 · live glass (backdrop-filter): for comparison only; the rules forbid it until it is measured on the Xiaomi */
+.g3 .glass { -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2); background: rgba(26,25,22,.34); box-shadow: inset 0 -1px rgba(255,250,240,.16); }
+.s-questions.g3 .glass { background: rgba(232,226,215,.42); box-shadow: inset 0 -1px rgba(255,255,255,.5); }
+.ph.g3 .glass { -webkit-backdrop-filter: blur(10px) saturate(1.2); backdrop-filter: blur(10px) saturate(1.2); }
+/* ---------- the prepared glass with the page moving under it ---------- */
+.sd { --H: calc(100cqw * 10 / 16); }
+.sd.ph { --H: calc(100cqw * 19.5 / 9); }
+.sd .page { position: absolute; left: 0; top: 0; width: 100%; display: flex; flex-direction: column; animation: pagescroll 9s var(--ease) infinite; }
+.sd .blk { position: relative; height: var(--H); flex: none; }
+.sd .glass .page { filter: blur(1.6cqw) saturate(1.15); }
+.sd.ph .glass .page { filter: blur(4.5cqw) saturate(1.15); }
+.sd .glass::before { animation: filmswap 9s var(--ease) infinite; }
+.sd .bar { animation: inkswap 9s var(--ease) infinite; }
+.sd .secs { position: relative; display: inline-block; }
+.sd .sec.q { position: absolute; left: 0; top: 0; }
+.sd .sec.a { animation: showA 9s infinite; }
+.sd .sec.q { animation: showQ 9s infinite; }
+.sd.paused .page, .sd.paused .glass::before, .sd.paused .bar, .sd.paused .sec { animation-play-state: paused; }
+@keyframes pagescroll { 0%, 16% { transform: none; } 46%, 66% { transform: translateY(calc(var(--H) * -1)); } 96%, 100% { transform: none; } }
+@keyframes filmswap { 0%, 30% { background-color: rgba(26,25,22,.46); } 36%, 72% { background-color: rgba(232,226,215,.55); } 78%, 100% { background-color: rgba(26,25,22,.46); } }
+@keyframes inkswap { 0%, 30% { color: var(--linen); } 36%, 72% { color: var(--ink); } 78%, 100% { color: var(--linen); } }
+@keyframes showA { 0%, 33% { opacity: .75; } 34%, 75% { opacity: 0; } 76%, 100% { opacity: .75; } }
+@keyframes showQ { 0%, 33% { opacity: 0; } 34%, 75% { opacity: .75; } 76%, 100% { opacity: 0; } }
+.sd .glass::before { background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,0) 60%); }
+
+/* without an edge: the glass fades into the page downwards, no dividing line */
+.soft .glass { height: 15%; -webkit-mask: linear-gradient(180deg, #000 50%, transparent); mask: linear-gradient(180deg, #000 50%, transparent); box-shadow: none; }
+.ph.soft .glass { height: 9.5%; }
+.soft .glass::after { display: none; }
+.sd .glass::before { content: ""; position: absolute; inset: 0; z-index: 1; }
+.sd:not(.g2) .glass .page { display: none; }
+.sd.g3 .glass::before { animation-name: filmswap3; }
+.sd.g3 .glass { background: transparent; }   /* the moving film carries the tint: dark over the About, light over the paper */
+@keyframes filmswap3 { 0%, 30% { background-color: rgba(26,25,22,.2); } 36%, 72% { background-color: rgba(232,226,215,.3); } 78%, 100% { background-color: rgba(26,25,22,.2); } }
+/* ---------- the menu button: the drawn icon ---------- */
+.mb { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: .8em; letter-spacing: .16em; position: relative; }
+.mb::before { content: ""; position: absolute; inset: -1.2em -1em; }   /* the touch area is larger than the drawing */
+.mb:focus-visible { outline: 1px solid currentColor; outline-offset: .5em; }
+.mb .ic { position: relative; display: inline-block; width: 1.7em; height: .72em; }
+.mb .ic i { position: absolute; right: 0; height: 1px; width: 100%; background: currentColor; transform-origin: 50% 50%; transition: transform .6s var(--ease), width .6s var(--ease), opacity .4s; }
+.mb .ic i:nth-child(1) { top: 0; }
+.mb .ic i:nth-child(2) { top: calc(50% - .5px); }
+.mb .ic i:nth-child(3) { bottom: 0; }
+/* B1 · two rules and the word (README #56) */
+.ib1 .mb .ic i:nth-child(2) { display: none; }
+.ib1 .mb .ic { height: .55em; width: 1.4em; }
+/* B2, B3 · three rules of different lengths, as on the original site's phone (100 / 70 / 85 %) */
+.ib2 .mb .ic, .ib3 .mb .ic { height: .62em; width: 1.6em; }
+.ib2 .mb .ic i:nth-child(2), .ib3 .mb .ic i:nth-child(2) { width: 70%; }
+.ib2 .mb .ic i:nth-child(3), .ib3 .mb .ic i:nth-child(3) { width: 85%; }
+.ib2 .mb .w { display: none; }
+.ib2.ph .mb .ic { width: 1.9em; height: .74em; }   /* alone on the phone, the drawing can be a little larger */
+/* open: the outer two meet in the centre and cross; the middle one is taken in */
+.open .mb .ic i:nth-child(1) { width: 100%; transform: translateY(calc(var(--mid, .31em) - .5px)) rotate(45deg) scaleX(.82); }
+.open .mb .ic i:nth-child(2) { opacity: 0; transform: scaleX(.2); }
+.open .mb .ic i:nth-child(3) { width: 100%; transform: translateY(calc(var(--mid, .31em) * -1 + .5px)) rotate(-45deg) scaleX(.82); }
+.ib1 { --mid: .275em; } .ib2, .ib3 { --mid: .31em; } .ib2.ph { --mid: .37em; }
+
+/* ---------- the menu: prepared glass over the section ---------- */
+.mf .bar { z-index: 14; transition: color .5s; }
+.mf.open .bar { color: var(--linen); }
+.mf.open .bar .sep, .mf.open .bar .sec { opacity: 0; transition: opacity .3s; }
+.mf.open > .glass { opacity: 0; }
+.mn { position: absolute; inset: 0; z-index: 12; overflow: hidden; color: var(--linen); pointer-events: none; transition: clip-path .9s cubic-bezier(.65, 0, .25, 1); }
+.mf.open .mn { pointer-events: auto; }
+.mn .blur { position: absolute; inset: -6%; filter: blur(2.4cqw) saturate(1.2); transform: scale(1.08); }
+.ph .mn .blur { filter: blur(7cqw) saturate(1.2); }
+.mn .tint { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(30,29,26,.54), rgba(30,29,26,.7)); }
+.ph .mn .tint { background: linear-gradient(180deg, rgba(30,29,26,.6), rgba(30,29,26,.76)); }
+.mn .sheen { position: absolute; inset: 0; background: linear-gradient(170deg, rgba(255,255,255,.14) 0%, rgba(255,255,255,0) 26%), radial-gradient(60% 40% at 92% 0%, rgba(255,255,255,.12), transparent 70%); box-shadow: inset 0 0 0 1px rgba(255,255,255,.1); }
+.mn .gr { position: absolute; inset: 0; opacity: .1; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.mn nav { position: absolute; z-index: 2; left: 8%; top: 20%; }
+.mn ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .6cqw; }
+.mn li { font-family: var(--voice); font-size: 5.2cqw; line-height: 1.05; display: flex; align-items: baseline; gap: 1.6cqw; opacity: 0; transform: translateY(18%); transition: opacity .5s, transform .6s; }
+.mn li i { font-size: .36em; opacity: .6; width: 2.6cqw; font-style: normal; }
+.mn li.cur span { font-style: italic; }
+.mn li.cur::after { content: "·"; margin-left: .2em; }
+.mf.open .mn li { opacity: 1; transform: none; }
+.mf.open .mn li:nth-child(1) { transition-delay: .35s; } .mf.open .mn li:nth-child(2) { transition-delay: .42s; } .mf.open .mn li:nth-child(3) { transition-delay: .49s; }
+.mf.open .mn li:nth-child(4) { transition-delay: .56s; } .mf.open .mn li:nth-child(5) { transition-delay: .63s; }
+.mn .side { position: absolute; z-index: 2; left: 62%; right: 8%; bottom: 14%; display: grid; gap: 1.2cqw; font-size: 1.15cqw; line-height: 1.7; opacity: 0; transition: opacity .6s .6s; }
+.mf.open .mn .side { opacity: 1; }
+.mn .side .k { font-size: .9cqw; letter-spacing: .16em; text-transform: uppercase; opacity: .6; }
+.mn .side .go { justify-self: start; border: 1px solid rgba(238,232,221,.6); border-radius: 99px; padding: .8cqw 2cqw; letter-spacing: .16em; text-transform: uppercase; font-size: 1cqw; }
+.ph .mn nav { top: 14%; }
+.ph .mn ol { gap: 2cqw; }
+.ph .mn li { font-size: 12cqw; gap: 4cqw; }
+.ph .mn li i { width: 7cqw; }
+.ph .mn .side { left: 8%; right: 8%; bottom: 6%; gap: 3cqw; font-size: 3.4cqw; }
+.ph .mn .side .k { font-size: 2.8cqw; }
+.ph .mn .side .go { font-size: 3cqw; padding: 2.4cqw 5cqw; }
+/* O1 · a drop from the button (README #56) */
+.o1 .mn { clip-path: circle(0% at var(--bx) var(--by)); }
+.o1.open .mn { clip-path: circle(150% at var(--bx) var(--by)); }
+.mf { --bx: 95%; --by: 6%; }
+.mf.ph { --bx: 90%; --by: 3.6%; }
+/* O2 · a curtain of glass coming down from the bar, the whole screen */
+.o2 .mn { clip-path: inset(0 0 100% 0); }
+.o2.open .mn { clip-path: inset(0 0 0 0); }
+.o2 .mn li { transform: translateY(-30%); }
+/* O3 · desktop: a glass panel from the right, the page still there on the left; phone: the whole screen from the right */
+.o3 .mn { clip-path: inset(0 0 0 100%); }
+.o3.open .mn { clip-path: inset(0 0 0 54%); }
+.o3.ph.open .mn { clip-path: inset(0 0 0 0); }
+.o3:not(.ph) .mn nav { left: 60%; top: 18%; }
+.o3:not(.ph) .mn li { font-size: 4.2cqw; }
+.o3:not(.ph) .mn .side { left: 60%; right: 6%; bottom: 10%; }
+.o3:not(.ph) .mn .sheen { box-shadow: inset 1px 0 rgba(255,255,255,.22); }
+.o3 .mn li { transform: translateX(14%); }
+.mf.open .mn li { transform: none; }
+@media (prefers-reduced-motion: reduce) { .sd .page, .sd .glass::before, .sd .bar, .sd .sec { animation: none !important; } .mn, .mn * { transition: none !important; } }
+/* ---------- at real size: the phone's bar is 390 px wide ---------- */
+.real { display: grid; gap: 14px; }
+.strip { width: 100%; overflow: hidden; border-radius: 10px; box-shadow: 0 0 0 1px var(--rule); }
+.strip .fr { aspect-ratio: auto; height: 76px; border-radius: 0; box-shadow: none; }
+.strip .fr .bar { top: 18px; }
+.strip .bg .img, .strip .bg .t, .strip .bg .lines { display: none; } /* only the ground behind the bar */
+.strips { display: flex; flex-wrap: wrap; gap: 14px; }
+.strips figure { width: 390px; max-width: 100%; min-width: 0; }
+.strips { min-width: 0; }
+.strip .fr { max-width: none; }
+
+/* ---------- the click: a short entrance over the frame ---------- */
+.intro { position: absolute; inset: 0; z-index: 8; pointer-events: none; opacity: 0; background: #161513; transition: opacity .5s; }
+.fr.playing .intro, .fr.at-top .intro { opacity: 1; pointer-events: auto; cursor: pointer; }
+.intro .film { position: absolute; inset: 0; background: center / cover no-repeat url(img/poster-wide.jpg); opacity: 0; transform: scale(1.14); transition: opacity .9s, transform 2.2s cubic-bezier(.3,0,.2,1); }
+.ph .intro .film { background-image: url(img/poster-tall.jpg); }
+.intro .film::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,24,40,.35), rgba(20,18,15,.55)); }
+.intro .ded { position: absolute; left: 0; right: 0; top: 36%; text-align: center; font-family: var(--voice); font-style: italic; font-size: 1.9cqw; opacity: 0; transition: opacity .6s, top 1s; color: var(--linen); }
+.ph .intro .ded { font-size: 5.4cqw; top: 38%; }
+.intro .ttl { position: absolute; left: 0; right: 0; top: 30%; text-align: center; font-family: var(--voice); font-size: 7.4cqw; letter-spacing: .16em; line-height: 1; opacity: 0; transition: opacity .9s, transform .9s; transform: scale(1.4); color: var(--linen); }
+.ph .intro .ttl { top: 22%; font-size: 13cqw; line-height: 1.05; }
+.intro .sub { position: absolute; left: 10%; right: 10%; top: 45%; text-align: center; font-size: 1.5cqw; opacity: 0; transition: opacity .9s .3s; color: var(--linen); }
+.ph .intro .sub { top: 38%; font-size: 4.2cqw; }
+.intro .bl { position: absolute; top: 64%; width: 22%; height: 25%; clip-path: polygon(14% 0, 100% 0, 86% 100%, 0 100%); background: center / cover no-repeat; filter: grayscale(1); opacity: 0; transform: translateY(12%); transition: opacity .7s, transform .7s; }
+.intro .bl span { position: absolute; left: 18%; bottom: 10%; font-family: var(--voice); font-size: 2.2cqw; color: var(--linen); filter: none; }
+.intro .b1 { left: 15%; } .intro .b2 { left: 39%; transition-delay: .12s; } .intro .b3 { left: 63%; transition-delay: .24s; }
+.ph .intro .bl { width: 84%; height: 11%; left: 8%; clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%); }
+.ph .intro .bl span { font-size: 6.4cqw; left: 10%; }
+.ph .intro .b1 { top: 54%; } .ph .intro .b2 { top: 67%; } .ph .intro .b3 { top: 80%; }
+.i1 .intro .ded, .i2 .intro .ded { opacity: .85; }
+.i2 .intro .ttl { opacity: .9; transform: scale(1.15); }
+.i3 .intro .film, .at-top .intro .film { opacity: 1; transform: none; }
+.at-top .intro .ded { opacity: .85; top: 13%; }
+.ph.at-top .intro .ded { top: 9%; }
+.at-top .intro .ttl { opacity: 1; transform: none; }
+.at-top .intro .sub { opacity: .9; }
+.at-top .intro .bl { opacity: 1; transform: none; }
+/* at the top the bar shows the name only: there is no section yet */
+.fr.playing .bar, .fr.at-top .bar { color: var(--linen); }
+.fr.playing .bar { opacity: 0; }                       /* the bar comes with the end of the entrance (E4) */
+.bar { transition: opacity .6s; }
+.i1 .intro .ded, .i2 .intro .ded { top: 20%; }
+.ph.i1 .intro .ded, .ph.i2 .intro .ded { top: 15%; }
+.fr.playing .bar .sep, .fr.playing .bar .sec, .fr.at-top .bar .sep, .fr.at-top .bar .sec { visibility: hidden; }
+.again { justify-self: start; }
+@media (prefers-reduced-motion: reduce) { .fr * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="label">Chapter One V5 · storyboard de uma decisão · 27 de outubro de 2026 · revê a README #56</span>
+    <h1>O nome na barra</h1>
+    <p>Hoje, depois da entrada, a barra mostra só a secção (<i>03 About</i>) e o nome do estúdio desaparece. Aqui o nome fica sempre à esquerda, ao lado da secção, e <b>clicar nele leva ao topo e mostra a entrada outra vez</b>. Três maneiras de os pôr lado a lado. O nome é escrito em letra (sem logo: a marca gráfica ainda está em aberto, <i>open-decisions</i> #9).</p>
+    <div style="border:1px solid var(--rule);border-radius:10px;padding:16px 18px;display:grid;gap:8px;max-width:76ch">
+      <span class="label">Estado a 27 de outubro, fim do dia</span>
+      <p><b>Decidido (README #67) e já no storyboard principal:</b> variante <b>A</b> (<i>Chapter One | 03 About</i>) em desktop e telemóvel; clicar no nome mostra a entrada outra vez; botão do menu no telemóvel com <b>três traços sem palavra</b> que viram X, no desktop com a palavra <i>Menu</i>; abertura <b>a gota</b>; números do menu maiores.</p>
+      <p><b>Em aberto, para amanhã (fica só aqui e no teste do Xiaomi):</b> o vidro da barra e do menu. Preferência do owner: <b>vidro ao vivo estilo iOS, desfoque 8, com lente</b> (o iOS refinado sem lente e os desfoques 6/10 continuam em teste). Problema por resolver: <b>a barra não se adapta bem a todas as situações</b> (fotografias claras, passagens, papel). Os fundos 1–3 desta página são as versões anteriores, para comparar.</p>
+    </div>
+    <p>Muda a secção em cima para ver cada barra sobre fundos escuros e sobre o papel claro das Questions. Mais abaixo, cada barra no tamanho real de um telemóvel de 390 px.</p>
+  </header>
+
+  <div class="controls" role="group" aria-label="Secção por trás da barra">
+    <span class="label">Secção</span>
+    <button class="chip" type="button" data-s="work" aria-pressed="false">01 Work</button>
+    <button class="chip" type="button" data-s="about" aria-pressed="true">03 About</button>
+    <button class="chip" type="button" data-s="questions" aria-pressed="false">04 Questions</button>
+    <button class="chip" type="button" data-s="contact" aria-pressed="false">05 Contact</button>
+  </div>
+
+  <div id="variants"></div>
+
+  <section class="scene real" aria-labelledby="real-h">
+    <div class="scene-head"><span class="n">↳</span><h2 id="real-h">No telemóvel, em tamanho real</h2></div>
+    <p class="muted">Cada barra com 390 px de largura e a letra no tamanho em que fica no telemóvel, com a secção mais longa (<i>04 Questions</i>). É aqui que se vê se cabe e se lê.</p>
+    <div class="strips" id="strips"></div>
+  </section>
+
+  <div id="grounds"></div>
+
+  <section class="scene" aria-labelledby="sd-h">
+    <div class="scene-head"><span class="n">2</span><h2 id="sd-h">O vidro, com a página a passar</h2></div>
+    <div class="row">
+      <figure><div class="fr sd" id="sd-d" role="img" aria-label="A página a passar por baixo da barra no desktop"></div><figcaption>Desktop</figcaption></figure>
+      <figure><div class="fr ph sd" id="sd-p" role="img" aria-label="A página a passar por baixo da barra no telemóvel"></div><figcaption>Telemóvel</figcaption></figure>
+      <div class="notes">
+        <p>A página sobe do About para as Questions e volta. <b>Por baixo da barra passa a mesma página, já desfocada</b>, a acompanhar o scroll; a película passa de escura a clara quando chega o papel, e a barra muda de cor com ela.</p>
+        <p>Muda o fundo nos botões em baixo (aplica-se também à barra dos quadros do menu; o menu aberto é sempre de vidro preparado, como escolhido na README #56). No vidro preparado, o site usa uma imagem já desfocada que só se move com <code>transform</code>; aqui o desfoque é feito pelo browser, só para se ver o efeito. O vidro ao vivo é mesmo ao vivo, como seria no site.</p>
+        <div class="group" role="group" aria-label="Fundo da barra" style="display:flex;flex-wrap:wrap;gap:6px">
+          <button class="chip" type="button" data-sg="2" aria-pressed="false">2 · preparado, com aresta</button>
+          <button class="chip" type="button" data-sg="2s" aria-pressed="true">2 · preparado, sem aresta</button>
+          <button class="chip" type="button" data-sg="3" aria-pressed="false">3 · ao vivo, com aresta</button>
+          <button class="chip" type="button" data-sg="3s" aria-pressed="false">3 · ao vivo, sem aresta</button>
+        </div>
+        <button class="chip again" id="sd-play" type="button" aria-pressed="true">Pausar</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="scene" aria-labelledby="mb-h">
+    <div class="scene-head"><span class="n">↳</span><h2 id="mb-h">O botão do menu</h2></div>
+    <p class="muted">Escolhido (README #67): <b>no telemóvel, três traços de comprimentos diferentes, sem palavra</b> (100, 70 e 85 %, como no site original), que viram X ao abrir; <b>no desktop fica a palavra <i>Menu</i></b>, aqui com os mesmos três traços ao lado. Carrega no botão dos quadros em baixo para o ver.</p>
+    <div class="notes">
+      <p>Sem palavra, o botão diz <i>Menu</i> aos leitores de ecrã (<code>aria-label</code>) e mantém 44 px de toque, maior do que o desenho. Se no desktop preferires os dois traços de agora com a palavra, troca-se só o desenho.</p>
+    </div>
+  </section>
+
+  <div id="opens"></div>
+
+  <section class="scene" aria-labelledby="click-h">
+    <div class="scene-head"><span class="n">↳</span><h2 id="click-h">O clique no nome</h2></div>
+    <div class="row">
+      <figure><div class="fr" id="c-d"></div><figcaption>Desktop · carrega em <i>Chapter One</i></figcaption></figure>
+      <figure><div class="fr ph" id="c-p"></div><figcaption>Telemóvel · toca no nome</figcaption></figure>
+      <div class="notes">
+        <p>Aqui com a variante A. O clique sobe ao topo e a entrada corre outra vez: a hora, CHAPTER ONE com o vídeo, e o fim da entrada (E4) com as lâminas. <b>Qualquer gesto salta para o fim.</b> No topo a barra mostra só o nome, porque ainda não há secção.</p>
+        <p>Com reduced motion ou sem JavaScript, o nome é só uma ligação para o topo, já no E4.</p>
+        <button class="chip again" id="again" type="button">Voltar à secção</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const SECS = { work: ['01', 'Work', 'I <i>Weddings</i>'], about: ['03', 'About', 'I’m Flávio.'], questions: ['04', 'Questions', 'What do you<br><i>actually create?</i>'], contact: ['05', 'Contact', 'Is there something<br>that deserves<br><i>its own experience?</i>'] };
+  const VARIANTS = [
+    ['A', 'O nome em Cormorant, um filete, a secção', 'O nome na letra do título, um pouco maior, separado da secção por um filete fino. <b>O nome lê-se como a marca e a secção como a localização.</b> É a mais clara das três. No telemóvel o nome fica um pouco mais pequeno e o filete mais junto: com <i>04 Questions</i>, sobram 35 px até ao <i>Menu</i>.'],
+    ['B', 'O nome como na barra da entrada', 'O nome em maiúsculas pequenas, igual ao <i>CHAPTER ONE</i> que já está na barra do fim da entrada (E4), um ponto e a secção. <b>É a mais discreta e a mais coerente com o E4</b>, mas o nome e a secção ficam com o mesmo peso. No telemóvel, com <i>04 Questions</i>, sobram só 12 px até ao <i>Menu</i>.'],
+    ['C', 'O nome por cima da secção', 'O nome em Cormorant em cima e a secção por baixo, mais pequena. <b>Cabe melhor no telemóvel</b>, porque cada linha é curta, mas a barra fica mais alta e a secção desce da linha do <i>Menu</i>.'],
+  ];
+  let SEC = 'about';
+  const pad = n => String(n).padStart(2, '0');
+  const now = new Date(), hm = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const ded = `${now.toLocaleDateString('en-GB', { weekday: 'long' })}, ${now.getDate()} ${now.toLocaleDateString('en-GB', { month: 'long' })} · ${hm}`;
+  const bar = sec => `<div class="bar"><div class="left"><button class="home" type="button" aria-label="Chapter One, back to the start">Chapter One</button><span class="sep" aria-hidden="true"></span><span class="sec"><i>${SECS[sec][0]}</i>${SECS[sec][1]}</span></div>
+    <div class="right"><span class="opt">${hm}</span><span class="opt">Talk to us</span><span>≡ Menu</span></div></div>`;
+  const paint = (el, v, sec, g = 0) => {
+    el.className = el.className.replace(/\b(v[ABC]|s-\w+|g\d|soft)\b/g, '').replace(/\s+/g, ' ').trim() + ` v${v} s-${sec} g${String(g).replace('s', ' soft')}`;
+    const bg = `<div class="bg"><div class="img"></div><div class="t">${SECS[sec][2]}</div><div class="lines"><span></span><span></span><span></span><span></span></div></div>`;
+    el.innerHTML = `${bg}<div class="glass" aria-hidden="true"><div class="copy">${bg}</div><i class="grain"></i></div>${bar(sec)}`;
+  };
+  const frames = [];
+  const rows = document.getElementById('variants');
+  VARIANTS.forEach(([v, t, d]) => {
+    const s = document.createElement('section'); s.className = 'scene';
+    s.innerHTML = `<div class="scene-head"><span class="n">${v}</span><h2>${t}</h2></div><div class="row">
+      <figure><div class="fr" role="img" aria-label="Variante ${v} no desktop"></div><figcaption>Desktop</figcaption></figure>
+      <figure><div class="fr ph" role="img" aria-label="Variante ${v} no telemóvel"></div><figcaption>Telemóvel</figcaption></figure>
+      <div class="notes"><p>${d}</p></div></div>`;
+    rows.appendChild(s);
+    s.querySelectorAll('.fr').forEach(el => frames.push([el, v, null]));
+  });
+  const strips = document.getElementById('strips');
+  VARIANTS.forEach(([v]) => ['about', 'questions'].forEach(sec => {
+    const f = document.createElement('figure');
+    f.innerHTML = `<div class="strip"><div class="fr ph" role="img" aria-label="Variante ${v} a 390 px sobre ${sec}"></div></div><figcaption>${v} · sobre ${SECS[sec][1]}</figcaption>`;
+    strips.appendChild(f); frames.push([f.querySelector('.fr'), v, sec]);
+  }));
+  // the bar's ground: three options, shown with variant A
+  const GROUNDS = [
+    ['1', 'Um véu', 'Uma sombra suave por baixo da barra, que se desvanece para baixo, sem aresta (no papel das Questions, uma sombra de papel). <b>É a mais leve: uma camada parada, sem desfoque.</b> Não parece vidro. Risco de performance: nenhum.'],
+    ['2', 'Vidro preparado, com aresta', 'O mesmo vidro do menu: a secção por trás já desfocada numa imagem preparada, uma película, um brilho no bordo de baixo e grão. <b>Tem uma linha que separa a barra da página.</b> Risco: baixo — a imagem desfocada acompanha o scroll só com <code>transform</code>; uma camada a mais, a medir no Xiaomi.'],
+    ['2s', 'Vidro preparado, sem aresta', 'O mesmo vidro, mas <b>sem linha: desvanece-se para baixo</b> e a página entra nele aos poucos. Mais suave, menos divisória. Risco: o mesmo do 2, mais uma máscara em gradiente (barata).'],
+    ['3', 'Vidro ao vivo, com aresta', 'Desfoque ao vivo do que passa por baixo (<code>backdrop-filter</code>): <b>o liquid glass verdadeiro e o mais simples de fazer</b>. Risco: médio a alto no Xiaomi — o browser volta a desfocar a faixa a cada frame de scroll; pode baixar os frames por segundo. Veredito no telemóvel.'],
+    ['3s', 'Vidro ao vivo, sem aresta', 'O vidro ao vivo a desvanecer-se para baixo, sem linha. Risco: o do 3, mais a máscara; a faixa desfocada fica mais alta, por isso um pouco mais cara.'],
+  ];
+  const grows = document.getElementById('grounds');
+  grows.innerHTML = `<section class="scene" aria-labelledby="g-h"><div class="scene-head"><span class="n">↳</span><h2 id="g-h">O fundo da barra</h2></div>
+    <p class="muted">A barra está sempre presente, e no telemóvel o retrato do About fica mesmo por baixo dela: sem fundo, o texto claro perde-se no céu da fotografia. Aqui estão cinco fundos, sempre visíveis, todos com a variante A: com e sem a linha que divide a barra da página. Muda a secção em cima: o About e as Questions são os casos difíceis.</p></section>`;
+  GROUNDS.forEach(([g, t, d], k) => {
+    const s = document.createElement('section'); s.className = 'scene';
+    s.innerHTML = `<div class="scene-head"><span class="n">${g}</span><h2>${t}</h2></div><div class="row">
+      <figure><div class="fr" role="img" aria-label="Fundo ${g} no desktop"></div><figcaption>Desktop</figcaption></figure>
+      <figure><div class="fr ph" role="img" aria-label="Fundo ${g} no telemóvel"></div><figcaption>Telemóvel</figcaption></figure>
+      <div class="notes"><p>${d}</p></div></div>`;
+    grows.appendChild(s);
+    s.querySelectorAll('.fr').forEach(el => frames.push([el, 'A', null, g]));
+  });
+  const render = () => frames.forEach(([el, v, sec, g]) => paint(el, v, sec || SEC, g || 0));
+  render();
+  document.querySelectorAll('[data-s]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-s]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    SEC = b.dataset.s; render(); setupClick();
+  }));
+
+  // the click: the frame goes to the top and the entrance plays (E1 → E2 → E3 → E4); any click skips to E4
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const intro = ph => `<div class="intro"><div class="film"></div><div class="ded">${ded}</div><div class="ttl">CHAPTER${ph ? '<br>' : ' '}ONE</div>
+    <div class="sub">Digital experiences built for moments worth remembering.</div>
+    <div class="bl b1" style="background-image:url(img/w002.jpg)"><span><i>I</i> Weddings</span></div><div class="bl b2" style="background-image:url(img/studio.jpg)"><span><i>II</i> Artists</span></div><div class="bl b3" style="background-image:url(img/concert.jpg)"><span><i>III</i> Experiences</span></div></div>`;
+  const timers = [];
+  const clearAll = () => { timers.forEach(clearTimeout); timers.length = 0; };
+  const cframes = [document.getElementById('c-d'), document.getElementById('c-p')];
+  const setStep = (el, k) => { ['i1', 'i2', 'i3', 'playing', 'at-top'].forEach(c => el.classList.remove(c)); if (k === 4) el.classList.add('at-top'); else if (k) el.classList.add('playing', 'i' + k); };
+  const finish = () => { clearAll(); cframes.forEach(el => setStep(el, 4)); };
+  function play() {
+    clearAll();
+    if (reduce) return finish();
+    cframes.forEach(el => setStep(el, 1));
+    timers.push(setTimeout(() => cframes.forEach(el => setStep(el, 2)), 900));
+    timers.push(setTimeout(() => cframes.forEach(el => setStep(el, 3)), 2000));
+    timers.push(setTimeout(finish, 2700));
+  }
+  function setupClick() {
+    cframes.forEach(el => {
+      paint(el, 'A', SEC); el.insertAdjacentHTML('beforeend', intro(el.classList.contains('ph')));
+      el.querySelector('.home').addEventListener('click', e => { e.stopPropagation(); play(); });
+      el.querySelector('.intro').addEventListener('click', () => { if (el.classList.contains('playing')) finish(); });
+    });
+  }
+  setupClick();
+  document.getElementById('again').addEventListener('click', () => { clearAll(); cframes.forEach(el => setStep(el, 0)); });
+})();
+</script>
+<script>
+// the prepared glass with the page moving under it; the menu button; three ways of opening the menu
+(() => {
+  const pad = n => String(n).padStart(2, '0');
+  const now = new Date(), hm = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const SECS = { work: ['01', 'Work', 'I <i>Weddings</i>'], about: ['03', 'About', 'I’m Flávio.'], questions: ['04', 'Questions', 'What do you<br><i>actually create?</i>'], contact: ['05', 'Contact', 'Is there something<br>that deserves<br><i>its own experience?</i>'] };
+  const ORDER = ['work', 'method', 'about', 'questions', 'contact'];
+  const bgOf = sec => `<div class="bg"><div class="img"></div><div class="t">${SECS[sec][2]}</div><div class="lines"><span></span><span></span><span></span><span></span></div></div>`;
+  const secNow = () => document.querySelector('[data-s][aria-pressed="true"]')?.dataset.s || 'about';
+  let SG = '2s';   // the bar's ground in the moving frames and the menu frames
+  const gcls = () => 'g' + SG.replace('s', ' soft');
+  const mbtn = () => `<button class="mb" type="button" aria-expanded="false" aria-label="Menu"><span class="ic" aria-hidden="true"><i></i><i></i><i></i></span><span class="w" aria-hidden="true">Menu</span></button>`;
+  const barOf = (sec, label) => `<div class="bar"><div class="left"><button class="home" type="button" aria-label="Chapter One, back to the start">Chapter One</button><span class="sep" aria-hidden="true"></span>${label || `<span class="sec"><i>${SECS[sec][0]}</i>${SECS[sec][1]}</span>`}</div>
+    <div class="right"><span class="opt">${hm}</span><span class="opt">Talk to us</span>${mbtn()}</div></div>`;
+  const icons = el => { ['ib1', 'ib2', 'ib3'].forEach(c => el.classList.remove(c)); el.classList.add(el.classList.contains('ph') ? 'ib2' : 'ib3'); };   // README #67
+
+  // 2 · the page moving under the prepared glass
+  const sdFrames = [document.getElementById('sd-d'), document.getElementById('sd-p')];
+  const sdPaint = el => {
+    const ph = el.classList.contains('ph') ? ' ph' : '';
+    const page = `<div class="page"><div class="blk${ph} s-about">${bgOf('about')}</div><div class="blk${ph} s-questions">${bgOf('questions')}</div></div>`;
+    el.className = `fr${ph} sd vA ${gcls()}`; icons(el);
+    el.innerHTML = `${page}<div class="glass" aria-hidden="true">${page}<i class="grain"></i></div>${barOf('about', `<span class="secs"><span class="sec a"><i>03</i>About</span><span class="sec q"><i>04</i>Questions</span></span>`)}`;
+  };
+  sdFrames.forEach(sdPaint);
+  const sdPlay = document.getElementById('sd-play');
+  sdPlay.addEventListener('click', () => { const on = sdPlay.getAttribute('aria-pressed') !== 'true'; sdPlay.setAttribute('aria-pressed', String(on)); sdPlay.textContent = on ? 'Pausar' : 'Reproduzir'; sdFrames.forEach(el => el.classList.toggle('paused', !on)); });
+
+  // the openings
+  const OPENS = [
+    ['O1', 'A gota (escolhida)', 'O vidro cresce <b>a partir do botão, como uma gota</b>, até ocupar o ecrã todo; as secções entram uma a uma (README #56, confirmada na #67). Igual no desktop e no telemóvel. A cortina e o painel ficaram de fora.'],
+  ];
+  const host = document.getElementById('opens');
+  host.innerHTML = `<section class="scene" aria-labelledby="op-h"><div class="scene-head"><span class="n">↳</span><h2 id="op-h">A abertura do menu</h2></div>
+    <p class="muted">A abertura escolhida, em desktop e telemóvel, com o botão escolhido e o fundo escolhido em cima. Carrega no botão (ou em Enter) para abrir e fechar; Esc fecha. A secção por trás muda nos botões do topo da página.</p></section>`;
+  const menuFrames = [];
+  OPENS.forEach(([o, t, d]) => {
+    const s = document.createElement('section'); s.className = 'scene';
+    s.innerHTML = `<div class="scene-head"><span class="n">${o}</span><h2>${t}</h2></div><div class="row">
+      <figure><div class="fr mf" data-o="${o}" role="group" aria-label="${o} no desktop"></div><figcaption>Desktop · carrega no botão</figcaption></figure>
+      <figure><div class="fr ph mf" data-o="${o}" role="group" aria-label="${o} no telemóvel"></div><figcaption>Telemóvel · toca no botão</figcaption></figure>
+      <div class="notes"><p>${d}</p></div></div>`;
+    host.appendChild(s);
+    s.querySelectorAll('.mf').forEach(el => menuFrames.push(el));
+  });
+  const mfPaint = el => {
+    const sec = secNow(), ph = el.classList.contains('ph') ? ' ph' : '', o = el.dataset.o.toLowerCase();
+    el.className = `fr${ph} mf vA ${gcls()} s-${sec} ${o}`; icons(el);
+    const bg = bgOf(sec);
+    const items = [['01', 'Work'], ['02', 'Method'], ['03', 'About'], ['04', 'Questions'], ['05', 'Contact']].map(([n, w]) => `<li class="${w.toLowerCase() === sec ? 'cur' : ''}"><i>${n}</i><span>${w}</span></li>`).join('');
+    el.innerHTML = `${bg}<div class="glass" aria-hidden="true"><div class="copy">${bg}</div><i class="grain"></i></div>
+      <div class="mn" aria-hidden="true"><div class="blur">${bg}</div><div class="tint"></div><div class="sheen"></div><div class="gr"></div>
+        <nav aria-label="Secções"><ol>${items}</ol></nav>
+        <div class="side"><div class="k">Talk to us</div><div>Instagram · @chapterone.studio.pt<br>Telegram · @flavius28</div><div class="go">Instagram →</div><div class="k">Your time · ${hm}</div></div></div>
+      ${barOf(sec)}`;
+    const b = el.querySelector('.mb'), mn = el.querySelector('.mn');
+    const set = on => { el.classList.toggle('open', on); b.setAttribute('aria-expanded', String(on)); b.setAttribute('aria-label', on ? 'Close menu' : 'Menu'); mn.setAttribute('aria-hidden', String(!on)); };
+    b.addEventListener('click', () => set(!el.classList.contains('open')));
+    el.addEventListener('keydown', e => { if (e.key === 'Escape' && el.classList.contains('open')) { set(false); b.focus(); } });
+  };
+  const all = () => { sdFrames.forEach(sdPaint); menuFrames.forEach(mfPaint); };
+  menuFrames.forEach(mfPaint);
+  document.querySelectorAll('[data-s]').forEach(b => b.addEventListener('click', () => setTimeout(() => menuFrames.forEach(mfPaint), 0)));
+  document.querySelectorAll('[data-sg]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-sg]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    SG = b.dataset.sg; all();
+    if (sdPlay.getAttribute('aria-pressed') !== 'true') sdFrames.forEach(el => el.classList.add('paused'));
+  }));
+})();
+</script>

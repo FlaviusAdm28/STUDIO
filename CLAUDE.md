@@ -41,27 +41,28 @@ state by state with every approved line of copy, is **`docs/design/v5/storyboard
   copies.* + **Make it yours** (name, optional); the templates become **live web experiences** composed
   from the visitor's arrival; they gather into the cover of their chapter, fade into points of light, and
   one line stays: *Made once, for one moment.* `interactions.md` §3.
-- **Navigation** — the same bar and menu on every screen (README #56): the current section always visible,
-  **Menu** on the right (desktop also the time and *Talk to us*); the menu grows from the button as a drop of
-  **prepared glass** (a pre-blurred image of the section behind, film, edge sheen, grain) — never `backdrop-filter`.
+- **Navigation** — the same bar and menu on every screen (README #56, #67, #69): the bar is **two islands of dark
+  live glass** (iOS-style `backdrop-filter`, blur 8 px on the phone × 1.6 on the desktop, a lens at each island's rim,
+  always linen ink, darkness adapting to what is really behind each island) — left *Chapter One | 03 About*, right the
+  time + *Talk to us* + ≡ Menu (phone: the three rules in a circle). The menu fills the screen: a drop of the same glass
+  grown by `transform: scale` (never an animated `clip-path` on the blurred element) from the menu island's right end.
 - Typography: **Cormorant Garamond + Schibsted Grotesk** (approved), set in `src/fonts/index.ts`.
-- Contact is Instagram only (`content/v5.ts`). No forms, addresses, prices or integrations. The call to
+- Contact: **Instagram is the primary action** (*Talk to us*); the colophon also shows Telegram (README #54) (`content/v5.ts`). No forms, addresses, prices or integrations. The call to
   action is **Talk to us** — never "Start a project".
 
 ## Non-negotiables
 
 - **No commit, push or deploy** unless the user asks for it explicitly in the session.
-- **Native scroll, conventional navigation, no lag.** No scroll hijacking, no smooth-scroll libraries,
-  no mandatory preloaders, no gate on the first scroll. **Scroll-linked passages and short pinned scenes
-  are allowed** (revised 25 Oct 2026 by the owner: WOW matters; the limit is measured lag, not the
-  technique) under the six rules in `docs/design/v5/interactions.md` §0 — CSS scroll timelines with
-  transform/opacity only, one pinned scene at a time, video paused off-screen, a fallback for every
-  passage, each passage measured on the Xiaomi before the next is built.
-- **Motion starts from a gesture, the arrival or a scroll passage**, uses only transform / opacity / clip-path / SVG
-  strokes, and never blocks content. No WebGL, no `backdrop-filter`, no large animated filters, ≤ 6
-  animated layers at once.
-- **Video**: only the entrance video, re-encoded (≤ 2.5 MB desktop, ≤ 1.2 MB mobile), one request, a
-  poster shown at once, no video for reduced motion / Save-Data.
+- **Performance is weighed, never a hard stop** (owner, 27 Oct 2026, README #68): no technique is
+  forbidden — WebGL, `backdrop-filter`, animated filters, more layers, scroll-linked or pinned scenes are
+  all possible. Every animation must **consider performance**: when a choice carries a risk, **say so
+  clearly when proposing it** (what it costs, on which device, the fallback), build it, and the **final
+  verdict comes from measuring on the Xiaomi** — even after the owner has chosen it. The cheap default is
+  transform / opacity / clip-path / SVG strokes driven by CSS; the guidance is in `interactions.md` §0.
+- **Native scroll and conventional navigation by default**; motion starts from a gesture, the arrival or a
+  scroll passage and never blocks content.
+- **Video**: only the entrance video, re-encoded (targets ≤ 2.5 MB desktop, ≤ 1.2 MB mobile), one request,
+  a poster shown at once, no video for reduced motion / Save-Data.
 - **Minimum target: Xiaomi Mi 11 Lite with no lag** — measure on the device (`acceptance.md`) from the
   first prototype onward.
 - **Every gesture has a visible, accessible alternative.** Nothing depends on hover. Focus visible and

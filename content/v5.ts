@@ -145,8 +145,8 @@ export const questions = {
  * or integration exists.
  *
  * - `profile` — verified 24 October 2026: HTTP 200, public profile *ChapterOne Studio*.
- * - `message` — intended destination, **not verified** (`ig.me` → `instagram.com/m/…` asks for a
- *   login). Not shown on the site until the design owner has tested it on a phone.
+ * - `message` — **verified 28 October 2026** by the design owner on the Xiaomi: opens a direct message to the
+ *   studio (README #72; iPhone still to test). *Talk to us* uses it from M2 on.
  */
 export const contact = {
   cta: 'Start a project',
@@ -160,7 +160,7 @@ export const contact = {
     handle: '@chapterone.studio.pt',
     profile: 'https://www.instagram.com/chapterone.studio.pt/',
     message: 'https://ig.me/m/chapterone.studio.pt',
-    messageVerified: false,
+    messageVerified: true,
   },
 } as const
 

@@ -1,0 +1,414 @@
+<title>O Work, limpo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Schibsted+Grotesk:wght@400;500&display=swap">
+<style>
+/* Layout: the main storyboard's dark gallery page, Work only: the stage running, then states 3–6; one row per state — desktop, phone, notes. Single dark look (V5 palette). */
+:root {
+  --charcoal: #1E1D1A; --linen: #EEE8DD; --muted: #B3AB9E; --accent: #B89A7C; --ink: #2A2823; --rule: rgba(238, 232, 221, .16);
+  --voice: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+  --read: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--charcoal); color: var(--linen); font-family: var(--read); font-size: 15px; line-height: 1.55; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 48px 96px; display: grid; gap: 56px; }
+.label { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+h1, h2 { font-family: var(--voice); font-weight: 400; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(40px, 7vw, 76px); line-height: 1; font-style: italic; }
+h2 { font-size: clamp(26px, 3.4vw, 36px); line-height: 1.1; }
+p { margin: 0; max-width: 66ch; }
+header { display: grid; gap: 18px; }
+header p, .muted { color: var(--muted); }
+strong, b { color: var(--linen); font-weight: 500; }
+.changes { margin: 0; padding-left: 20px; display: grid; gap: 8px; color: var(--muted); max-width: 76ch; }
+
+.controls { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50; background: var(--charcoal); border-block: 1px solid var(--rule); padding-block: 14px; display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 60; background: var(--charcoal); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.group .label { margin-right: 6px; }
+button { font: inherit; color: inherit; }
+.chip { background: transparent; border: 1px solid var(--rule); border-radius: 999px; padding: 5px 12px; font-size: 13px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--linen); color: var(--charcoal); border-color: var(--linen); }
+.chip:focus-visible { outline: 2px solid var(--linen); outline-offset: 2px; }
+
+.scene { display: grid; gap: 20px; padding-top: 28px; border-top: 1px solid var(--rule); }
+.scene-head { display: flex; gap: 18px; align-items: baseline; flex-wrap: wrap; }
+.scene-head .n { font-family: var(--voice); font-style: italic; font-size: 30px; color: var(--muted); min-width: 1.4em; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) 190px minmax(0, 290px); gap: 28px; align-items: start; }
+.notes { display: grid; gap: 12px; min-width: 0; }
+.notes p { font-size: 14px; color: var(--muted); }
+figure { margin: 0; display: grid; gap: 8px; min-width: 0; }
+figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+@media (max-width: 900px) { .row { grid-template-columns: minmax(0, 1fr) 150px; } .notes { grid-column: 1 / -1; } }
+@media (max-width: 560px) { .row { grid-template-columns: minmax(0, 1fr) 112px; gap: 14px; } }
+
+/* ---------- the Work stage (from the main storyboard, states 3–6) ---------- */
+.frame { position: relative; overflow: hidden; width: 100%; max-width: 100%; background: #1F1C19; color: var(--linen); border-radius: 4px; container-type: inline-size; box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 18px 40px rgba(0,0,0,.35); transition: background-color 1.2s; }
+.frame.desk { aspect-ratio: 16 / 10; }
+.frame.phone { aspect-ratio: 9 / 19.5; border-radius: 14px; }
+.frame[data-ch="1"] { background: #211D18; }
+.frame[data-ch="2"] { background: #171B22; }
+.frame * { transition-timing-function: var(--ease); }
+.frame.static, .frame.static * { transition: none !important; }
+.idx, .bar { position: absolute; top: 6%; z-index: 6; font-size: max(5px, 1.2cqw); letter-spacing: .16em; text-transform: uppercase; }
+.idx { left: 3%; opacity: .7; }
+.idx i { font-family: var(--voice); font-size: 1.6em; letter-spacing: 0; text-transform: none; margin-right: .4em; }
+.bar { right: 3%; white-space: nowrap; }
+.tabs { position: absolute; left: 44%; top: 11.5%; z-index: 6; display: flex; gap: 3cqw; font-family: var(--voice); font-size: 1.8cqw; }
+.tabs button { all: unset; cursor: pointer; opacity: .45; padding-bottom: .3cqw; transition: opacity .8s; }
+.tabs button[aria-current="true"] { opacity: 1; }
+.tabs button:focus-visible { outline: 1px solid var(--linen); outline-offset: .4cqw; }
+
+.stack { position: absolute; left: 6%; top: 16%; width: 28%; height: 74%; }
+.aura { position: absolute; left: -48%; top: -16%; width: 196%; height: 132%; background: center / 100% 100% no-repeat; opacity: .5; transition: background-image 1s;
+  -webkit-mask: radial-gradient(closest-side, #000 15%, transparent 100%); mask: radial-gradient(closest-side, #000 15%, transparent 100%); }
+.ph { position: absolute; inset: 0; background: center / cover no-repeat; opacity: 0; transition: opacity 1s, transform 1s; }
+.ph.front { opacity: 1; z-index: 3; }
+.ph.b1 { transform: translate(4.5%, -2%) scale(.97); opacity: .55; z-index: 2; }
+.ph.b2 { transform: translate(9%, -4%) scale(.94); opacity: .3; z-index: 1; }
+.frame[data-ch="0"] .ph, .frame[data-ch="0"] .dm { border-radius: 50% 50% 0 0 / 24% 24% 0 0; }
+.frame[data-ch="1"] .ph, .frame[data-ch="1"] .dm { border-radius: 2px; }
+.frame[data-ch="2"] .ph, .frame[data-ch="2"] .dm { clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
+
+/* every moment shows its piece working, over the whole photograph (never cropping it) */
+.dm { position: absolute; inset: 0; z-index: 4; overflow: hidden; opacity: 0; transition: opacity .7s; pointer-events: none; }
+.dm.on { opacity: 1; }
+.dm .veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(15,14,12,.2), rgba(15,14,12,.66)); }
+.dm .k { font-size: 1cqw; letter-spacing: .18em; text-transform: uppercase; }
+.dm .in { position: absolute; left: 6%; right: 6%; bottom: 12%; display: grid; justify-items: center; gap: .7cqw; text-align: center; }
+.dm .big { font-family: var(--voice); font-style: italic; font-size: 3.2cqw; line-height: 1.02; transform: translateY(14%); opacity: 0; transition: transform 1.1s .2s, opacity .9s .2s; }
+.dm.on .big { transform: none; opacity: 1; }
+.dm .ln2 { font-family: var(--voice); font-size: 1.4cqw; }
+.dm .pimg { position: absolute; inset: 0; background: center / cover no-repeat; transition: transform 1.3s .2s; }
+.dm.on .pimg { transform: translateY(-34%); }
+.dm .pg { position: absolute; left: 0; right: 0; bottom: 0; height: 46%; background: #F2EEE7; color: var(--ink); padding: 1.6cqw 1.8cqw; display: grid; align-content: start; gap: .9cqw; transform: translateY(100%); transition: transform 1.3s .2s; }
+.dm.on .pg { transform: none; }
+.dm .pg div { display: flex; justify-content: space-between; border-top: 1px solid rgba(42,40,35,.2); padding-top: .5cqw; font-size: 1cqw; }
+.dm .pg .t { font-family: var(--voice); font-style: italic; font-size: 1.9cqw; border: 0; padding: 0; }
+.dm .grid { position: absolute; left: 9%; right: 9%; top: 16%; display: grid; grid-template-columns: repeat(3, 1fr); gap: .6cqw; }
+.dm .grid i { aspect-ratio: 3 / 4; background: center / cover no-repeat; opacity: 0; transform: translateY(12%); transition: opacity .5s, transform .6s; }
+.dm.on .grid i { opacity: 1; transform: none; }
+.dm .strip3 { position: absolute; left: 10%; top: 26%; display: flex; gap: 1cqw; width: max-content; transform: translateX(40%); opacity: 0; transition: transform 1.6s .2s, opacity .9s .2s; }
+.dm .strip3 i { width: 9cqw; aspect-ratio: 3 / 4; background: center / cover no-repeat; }
+.dm.on .strip3 { transform: none; opacity: 1; }
+.dm .zimg { position: absolute; inset: 0; background: center / cover no-repeat; transition: transform 3.4s ease-out; }
+.dm.on .zimg { transform: scale(1.28); }
+.dm .arc { position: absolute; left: 10%; right: 10%; top: 16%; display: grid; gap: 1cqw; }
+.dm .arc div { display: flex; align-items: center; gap: 1cqw; font-size: 1cqw; border-top: 1px solid rgba(238,232,221,.25); padding-top: 1cqw; opacity: 0; transform: translateX(8%); transition: opacity .5s, transform .6s; }
+.dm .arc div i { width: 3cqw; aspect-ratio: 3 / 4; background: center / cover no-repeat; flex: none; }
+.dm .arc div b { font-weight: 500; letter-spacing: .1em; font-variant-numeric: tabular-nums; }
+.dm.on .arc div { opacity: 1; transform: none; }
+.dm .card2 { position: absolute; left: 14%; right: 14%; top: 24%; background: #F4F0E8; color: var(--ink); padding: 2cqw 1.4cqw; display: grid; justify-items: center; gap: .9cqw; text-align: center; box-shadow: 0 1cqw 3cqw rgba(0,0,0,.35); transform: translateY(14%) scale(.96); opacity: 0; transition: transform 1s .2s, opacity .8s .2s; }
+.dm.on .card2 { transform: none; opacity: 1; }
+.dm .card2 .h { font-family: var(--voice); font-style: italic; font-size: 2.2cqw; line-height: 1; }
+.dm .card2 .dt { font-family: var(--voice); font-size: 1.3cqw; }
+.dm .pill { border: 1px solid currentColor; border-radius: 99px; padding: .35cqw 1.4cqw; font-size: .9cqw; letter-spacing: .12em; text-transform: uppercase; }
+.dm.on .pill { animation: pick .5s 1.6s both; }
+.frame.static .dm.on .pill { animation-duration: 0s; animation-delay: 0s; }
+@keyframes pick { to { background: var(--ink); color: var(--linen); } }
+.dm .gh { position: absolute; left: 16%; top: 9%; font-family: var(--voice); font-style: italic; font-size: 2.2cqw; }
+.dm .tl { position: absolute; left: 16%; right: 12%; top: 22%; display: grid; gap: 1.6cqw; padding-left: 1.6cqw; border-left: 1px solid rgba(238,232,221,.45); }
+.dm .tl div { position: relative; display: grid; font-size: 1.05cqw; opacity: .7; }
+.dm .tl b { font-weight: 500; letter-spacing: .1em; font-variant-numeric: tabular-nums; }
+.dm .tl div::before { content: ""; position: absolute; left: -2.05cqw; top: .35cqw; width: .8cqw; height: .8cqw; border-radius: 50%; border: 1px solid rgba(238,232,221,.6); background: #1A1D24; }
+.dm .tl div.now { opacity: 1; }
+.dm .tl div.now::before { background: var(--linen); }
+
+/* the text beside the photograph */
+.tx { position: absolute; left: 48%; top: 19%; width: 44%; z-index: 5; display: grid; gap: 1.5cqw; }
+.mom { display: flex; gap: 2.4cqw; font-size: 1.2cqw; letter-spacing: .14em; text-transform: uppercase; }
+.mom button { all: unset; cursor: pointer; position: relative; opacity: .5; padding-bottom: .5cqw; }
+.mom button:focus-visible { outline: 1px solid var(--linen); outline-offset: .4cqw; }
+.mom button[aria-current="true"] { opacity: 1; }
+/* the one line that stays: the moment's time, filling */
+.frame[data-mom="line"] .mom button[aria-current="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: rgba(238,232,221,.25); }
+.mom .fill { position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--linen); transform-origin: left; transform: scaleX(1); z-index: 1; }
+.frame:not(.static):not(.held) .mom .fill { animation: fill var(--fill, 5.2s) linear both; }
+@keyframes fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.frame:not([data-mom="line"]) .mom .fill, .frame[data-mom="line"] .mom .wf { display: none; }
+/* README #27: the moment's word fills with colour over its time, then the next one starts. A bright copy of the word
+   over the dim one, opened with clip-path (allowed by the motion rules; no animated gradient) */
+.mom .wf { position: absolute; left: 0; top: 0; color: var(--wf, var(--linen)); clip-path: inset(0 0 0 0); }
+/* suggestion 1: the word fills with the tone of the chapter's photographs (their aura), not linen */
+.frame[data-tint="photo"][data-ch="0"] { --wf: #DDBF95; }
+.frame[data-tint="photo"][data-ch="1"] { --wf: #D8AE74; }
+.frame[data-tint="photo"][data-ch="2"] { --wf: #A9BCDD; }
+/* suggestion 2: the moments already shown stay half lit: a sense of the way through the chapter */
+.frame[data-trail="on"] .mom button.past { opacity: .78; }
+.frame[data-trail="on"][data-tint="photo"] .mom button.past { color: var(--wf); opacity: .7; }
+.frame:not([data-mom="line"]) .mom button[aria-current="true"] .w { opacity: .38; }
+.frame:not(.static):not(.held) .mom .wf { animation: wfill var(--fill, 5.2s) linear both; }
+@keyframes wfill { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+/* the dot variant: where we are, before the word */
+.frame[data-mom="dot"] .mom button[aria-current="true"]::before { content: ""; position: absolute; left: -1.1cqw; top: .45em; width: .5cqw; height: .5cqw; border-radius: 50%; background: var(--linen); }
+.frame.phone[data-mom="dot"] .mom button[aria-current="true"]::before { left: -2.4cqw; width: 1.2cqw; height: 1.2cqw; }
+.tx .h { font-family: var(--voice); font-style: italic; font-size: 4.6cqw; line-height: 1; }
+.list { display: grid; gap: 1.5cqw; }
+.li { display: grid; gap: .3cqw; }
+.li .top { display: flex; justify-content: space-between; gap: 2cqw; font-size: 1.35cqw; }
+.li .top span:last-child { opacity: .6; }
+.g { display: inline-block; width: .75cqw; height: .75cqw; border-radius: 50%; margin-right: .8cqw; vertical-align: .05em; border: 1px solid currentColor; background: var(--linen); }
+.ln { font-family: var(--voice); font-size: 1.45cqw; line-height: 1.25; color: rgba(238,232,221,.66); max-width: 40cqw; }
+.li.feat .ln { color: rgba(238,232,221,.86); }
+.foot { margin-top: .6cqw; font-size: 1.15cqw; opacity: .7; }
+/* the phone: one line at a time, opened under the chosen name */
+.pick { all: unset; cursor: pointer; display: flex; justify-content: space-between; gap: 2cqw; width: 100%; }
+.pick:focus-visible { outline: 1px solid var(--linen); outline-offset: .6cqw; }
+.pick .ar { opacity: .45; }
+
+.frame.phone .idx, .frame.phone .bar { font-size: 3.4cqw; top: 3%; }
+.frame.phone .idx { left: 6%; } .frame.phone .bar { right: 6%; }
+.frame.phone .tabs { left: 6%; top: 6.5%; font-size: 4.6cqw; gap: 4cqw; }
+.frame.phone .stack { left: 8%; top: 12%; width: 66%; height: 38%; }
+.frame.phone .tx { left: 8%; top: 54%; width: 84%; gap: 3cqw; }
+.frame.phone .mom { font-size: 3.2cqw; gap: 4cqw; }
+.frame.phone .tx .h { font-size: 10cqw; }
+.frame.phone .list { gap: 3.2cqw; }
+.frame.phone .li .top, .frame.phone .pick { font-size: 3.9cqw; }
+.frame.phone .li { gap: 1cqw; }
+.frame.phone .g { width: 2.2cqw; height: 2.2cqw; margin-right: 2cqw; }
+.frame.phone .ln { font-size: 4.3cqw; max-width: none; }
+.frame.phone .dm .k { font-size: 2.8cqw; }
+.frame.phone .dm .big { font-size: 8.4cqw; }
+.frame.phone .dm .ln2 { font-size: 4cqw; }
+.frame.phone .dm .pg { padding: 3cqw 4cqw; gap: 2cqw; }
+.frame.phone .dm .pg div { font-size: 3cqw; padding-top: 1.2cqw; }
+.frame.phone .dm .pg .t { font-size: 5.4cqw; }
+.frame.phone .dm .grid { gap: 1.6cqw; }
+.frame.phone .dm .grid i:nth-child(n+7) { display: none; }
+.frame.phone .dm .strip3 { gap: 2.4cqw; }
+.frame.phone .dm .strip3 i { width: 24cqw; }
+.frame.phone .dm .arc { gap: 2.4cqw; }
+.frame.phone .dm .arc div { font-size: 3cqw; gap: 2.4cqw; padding-top: 2.2cqw; }
+.frame.phone .dm .arc div i { width: 8cqw; }
+.frame.phone .dm .card2 { padding: 4cqw 3cqw; gap: 2cqw; }
+.frame.phone .dm .card2 .h { font-size: 6cqw; }
+.frame.phone .dm .card2 .dt { font-size: 3.8cqw; }
+.frame.phone .dm .pill { font-size: 2.8cqw; padding: 1cqw 3cqw; }
+.frame.phone .dm .tl { gap: 3.6cqw; padding-left: 3.6cqw; }
+.frame.phone .dm .tl div { font-size: 3cqw; }
+.frame.phone .dm .tl div::before { left: -4.6cqw; width: 2cqw; height: 2cqw; top: .8cqw; }
+.frame.phone .dm .gh { font-size: 6cqw; }
+
+/* "como estava": the approved rules, put back for comparison */
+.old .tabs button { border-bottom: 1px solid transparent; }
+.old .tabs button[aria-current="true"] { border-bottom-color: currentColor; }
+/* the dividers between the pieces of a moment stay in both (owner, 26 Oct) */
+.frame .list { gap: 0; }
+.frame .li { border-top: 1px solid rgba(238,232,221,.16); padding-block: .8cqw; }
+.frame .li.feat { border-top-color: var(--linen); }
+.frame.phone .list { gap: 0; }
+.frame.phone .li { padding-block: 2cqw; }
+/* the proposal: the current chapter is lit and in italic, like the current section in the menu */
+.frame:not(.old) .tabs button[aria-current="true"] { font-style: italic; }
+
+@media (prefers-reduced-motion: reduce) { .frame *, .frame .mom .fill, .frame .mom .wf { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="label">Chapter One V5 · storyboard do Work · 26 de outubro de 2026 · decidido (README #61): palavra que enche no tom da fotografia, passados apagados, capítulos sem sublinhado</span>
+    <h1>O Work, limpo</h1>
+    <p>Só o Work: o palco a funcionar e os estados 3–6 do storyboard principal, com <b>as linhas das peças já aplicadas</b> (README #60) e <b>a proposta revista: sai só o sublinhado dos capítulos</b>. O desenho, as fotografias, as demonstrações e os tempos não mudam.</p>
+    <ul class="changes">
+      <li><b>Momento:</b> a linha por baixo sai; <b>a própria palavra enche-se de cor</b> durante o tempo do momento e, cheia, passa à seguinte (README #27). Para comparar: <b>a cor ao encher</b> (linho ou o tom das fotografias do capítulo), <b>os momentos já passados</b> (apagados ou meio acesos) e a linha de antes.</li>
+      <li><b>Separadores dos capítulos sem sublinhado</b>: o atual fica aceso e em itálico, como a secção atual no menu.</li>
+      <li><b>Lista das peças com os filetes</b> entre as peças de cada momento, como estava (owner, 26/10). A peça mostrada é a primeira e tem o ●.</li>
+    </ul>
+    <p>Usa <b>Momento</b> e <b>Capítulos</b> em cima para comparar com o que estava aprovado.</p>
+  </header>
+
+  <div class="controls" role="group" aria-label="Comparar">
+    <div class="group" id="g-mom"><span class="label">Momento</span></div>
+    <div class="group" id="g-tint"><span class="label">Cor ao encher</span></div>
+    <div class="group" id="g-trail"><span class="label">Já passados</span></div>
+    <div class="group" id="g-look"><span class="label">Capítulos</span></div>
+  </div>
+
+  <section class="scene" aria-labelledby="run-h">
+    <div class="scene-head"><span class="n">↳</span><h2 id="run-h">O Work a funcionar</h2></div>
+    <div class="row">
+      <figure aria-label="O Work a funcionar, no desktop"><div class="frame desk" id="run-desk"></div><figcaption>Desktop</figcaption></figure>
+      <figure aria-label="O Work a funcionar, no telemóvel"><div class="frame phone" id="run-phone"></div><figcaption>Telemóvel</figcaption></figure>
+      <div class="notes">
+        <p>O tempo muda o momento: a fotografia (~1,6 s), depois a peça sobre ela (~3,6 s). Depois do último momento volta ao primeiro: <b>o capítulo só muda com o scroll</b>, que aqui é feito pelos separadores. Tocar num momento fixa-o; o rato ou o foco sobre o palco pausa (no desktop).</p>
+        <p>No telemóvel, toca nos nomes das peças para abrir a linha de cada uma.</p>
+      </div>
+    </div>
+  </section>
+
+  <div id="rows"></div>
+</div>
+
+<script>
+(() => {
+  const I = n => `img/${n}.jpg`;
+  const pad = n => String(n).padStart(2, '0');
+  const ords = ['first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth','eleventh','twelfth','thirteenth','fourteenth','fifteenth','sixteenth','seventeenth','eighteenth','nineteenth','twentieth'];
+  const ord = n => n <= 20 ? ords[n - 1] : n < 30 ? 'twenty-' + ords[n - 21] : n === 30 ? 'thirtieth' : 'thirty-first';
+  const now = new Date();
+  const c = { weekday: now.toLocaleDateString('en-GB', { weekday: 'long' }), month: now.toLocaleDateString('en-GB', { month: 'long' }), day: now.getDate(), h: now.getHours(), hhmm: pad(now.getHours()) + ':' + pad(now.getMinutes()) };
+
+  // the approved pieces and lines (docs/design/v5/storyboard.md); feat = the piece shown on the photograph
+  const CH = [
+    { name: 'Weddings', num: 'I', key: 'w', imgs: ['w002', 'w154', 'w343'], moments: [
+      { t: 'Before', feat: 1, pieces: [
+        ['Save-the-date', 'Your date, announced in your own way, before anything else is decided.'],
+        ['Wedding website', 'One complete site for your wedding: your story, the day and how to get there, the tables, the menu, and a live gallery that stays open after the day.'],
+        ['Digital invitation', 'The invitation itself, written and shaped for the two of you, made to be opened on a phone: the words, the date, the place and the way there.'],
+        ['RSVP', 'Your guests reply in a minute: who is coming, what they would like to eat, and anything you should know.']] },
+      { t: 'On the day', feat: 2, pieces: [
+        ['Seating plan', 'The tables, laid out as they are in the room, so everyone finds their place on their phone, as they arrive.'],
+        ['Day-of page', 'The day, hour by hour: when the ceremony begins, when dinner is served, and where everyone should be.'],
+        ['Live photo gallery', 'Your guests add their photos as the day unfolds, and everyone sees them appear, together, in one place.']] },
+      { t: 'After', feat: 2, pieces: [
+        ['Private memory gallery', 'Your photographer’s and your guests’ photos, kept together in a private place, and only you choose who sees them.'],
+        ['Thank-you page', 'The last page of the day: a thank-you your guests will want to keep.'],
+        ['One year on', 'A year later, the day comes back: a page that opens on your anniversary, with the moments you chose to keep.']] }] },
+    { name: 'Artists', num: 'II', key: 'a', imgs: ['studio', 'gallery', 'folio'], moments: [
+      { t: 'Always', feat: 0, pieces: [
+        ['Portfolio', 'Your work, shown the way you see it: an artist’s site built around your pieces, not around a template.'],
+        ['Online gallery', 'A gallery that never closes, where each piece can be seen up close and at its own pace.']] },
+      { t: 'For a moment', feat: 0, pieces: [
+        ['Digital exhibition', 'Your exhibition, opened to anyone, anywhere, for as long as it runs.'],
+        ['Release page', 'Your new work, announced with the same care you put into making it.']] },
+      { t: 'On record', feat: 1, pieces: [
+        ['Press kit', 'The page you send before anyone asks: who you are, what you make, and how to reach you.'],
+        ['Archive of works', 'Every work you have made, numbered and dated, in an archive that grows with you.']] }] },
+    { name: 'Experiences', num: 'III', key: 'e', imgs: ['invite', 'concert', 'banquet'], moments: [
+      { t: 'Before', feat: 0, pieces: [
+        ['Invitation &amp; RSVP', 'The invitation and the reply in one gesture: your guests open it, read it, and accept.'],
+        ['Event website', 'Your event, given its own address and its own look, from the first announcement to the day itself.'],
+        ['Teaser page', 'A first glimpse, before anything is revealed: enough to make people curious, not enough to say it all.']] },
+      { t: 'During', feat: 0, pieces: [
+        ['On-site guide', 'What is happening now, what comes next and where to find it, open on every guest’s phone while they are there.'],
+        ['Digital programme', 'Everything you would hand out on paper, made to be read on a phone and kept afterwards.'],
+        ['Live gallery', 'The event as it happens, in photos from everyone in the room, gathered while it is still going on.']] },
+      { t: 'After', feat: 2, pieces: [
+        ['Memory archive', 'A record of the occasion, for the people who were there and for those who will ask about it.'],
+        ['Shared gallery', 'One link for every guest, with the official photos and their own, side by side.'],
+        ['Thank-you page', 'A thank-you to everyone who came, with a moment from the event and a word on what comes next.']] }] },
+  ];
+  // README #60: the piece shown on the photograph goes first; the others keep their order
+  CH.forEach(ch => ch.moments.forEach(mo => { mo.pieces = [mo.pieces[mo.feat], ...mo.pieces.filter((_, j) => j !== mo.feat)]; mo.feat = 0; }));
+
+  // what each moment's piece does over the photograph (as approved in the main storyboard)
+  const tiles = (imgs, n) => Array.from({ length: n }, (_, i) => `<i style="background-image:url(${I(imgs[i % imgs.length])});transition-delay:${(.3 + i * .18).toFixed(2)}s"></i>`).join('');
+  const DEMOS = {
+    w0: () => `<div class="pimg" style="background-image:url(${I('w002')})"></div><div class="pg"><div class="t">Our day</div>
+      <div><span>The story</span><span>→</span></div><div><span>${c.weekday}, ${c.day} ${c.month.slice(0, 3)}</span><span>${c.hhmm}</span></div><div><span>Travel &amp; stay</span><span>→</span></div><div><span>RSVP</span><span>→</span></div></div>`,
+    w1: () => `<div class="veil" style="background:rgba(15,14,12,.72)"></div><div class="grid">${tiles(['w154', 'w299', 'w002', 'w343'], 9)}</div><div class="in"><div class="k">Live photo gallery</div><div class="ln2">9 photographs shared by the guests</div></div>`,
+    w2: () => `<div class="veil"></div><div class="in"><div class="k">One year on</div><div class="big">${c.day} ${c.month} ${now.getFullYear() + 1}</div><div class="ln2">Your day, a year later.</div></div>`,
+    a0: () => `<div class="veil" style="background:rgba(15,14,12,.6)"></div><div class="in" style="top:12%;bottom:auto"><div class="k">Selected works</div></div><div class="strip3">${tiles(['studio', 'folio', 'gallery'], 3)}</div>`,
+    a1: () => `<div class="zimg" style="background-image:url(${I('gallery')})"></div><div class="veil"></div><div class="in"><div class="k">Room I</div><div class="big">Open since ${c.hhmm}</div></div>`,
+    a2: () => `<div class="veil" style="background:rgba(15,14,12,.74)"></div><div class="arc">${['studio', 'gallery', 'folio', 'studio'].map((im, i) => `<div style="transition-delay:${(.3 + i * .2).toFixed(1)}s"><i style="background-image:url(${I(im)})"></i><b>No. ${String(i + 1).padStart(3, '0')}</b><span>${['Untitled', 'Amber room', 'Light study', 'Untitled II'][i]}, ${now.getFullYear() - i}</span></div>`).join('')}</div><div class="in"><div class="k">Archive of works</div></div>`,
+    e0: () => `<div class="veil"></div><div class="card2"><div class="k" style="color:var(--accent)">An invitation</div><div class="h">You are invited</div><div class="dt">${c.weekday}, the ${ord(c.day)} of ${c.month}</div><div class="pill">Accept</div></div>`,
+    e1: () => `<div class="veil" style="background:rgba(15,16,22,.64)"></div><div class="gh">Tonight</div><div class="tl">${[-2, -1, 0, 1].map(d => `<div class="${d === 0 ? 'now' : ''}"><b>${d === 0 ? c.hhmm : pad((c.h + d + 24) % 24) + ':00'}</b>${['Arrivals', 'Dinner in the courtyard', 'You arrive', 'Music on the terrace'][d + 2]}</div>`).join('')}</div>`,
+    e2: () => `<div class="veil"></div><div class="in"><div class="big">Thank you for coming.</div><div class="k">The photographs are here →</div></div>`,
+  };
+
+  const PHOTO = 1.6, DEMO = 3.6;
+  let OLD = false, MOM = 'fill', TINT = 'photo', TRAIL = false;
+  const frames = [];
+
+  function listHTML(f, mo) {
+    if (f.kind === 'phone') {
+      const sel = f.sel ?? 0;
+      return `<div class="list">${mo.pieces.map(([n, line], j) => `<div class="li${j === 0 ? ' feat' : ''}"><button class="pick" type="button" data-j="${j}" aria-expanded="${j === sel}">
+        <span>${j === 0 ? '<i class="g"></i>' : ''}${n}</span><span class="ar" aria-hidden="true">${j === sel ? '' : '+'}</span></button>${j === sel ? `<div class="ln">${line}</div>` : ''}</div>`).join('')}</div>`;
+    }
+    return `<div class="list">${mo.pieces.map(([n, line], j) => `<div class="li${j === 0 ? ' feat' : ''}"><div class="top"><span>${j === 0 ? '<i class="g"></i>' : ''}${n}</span>${j === 0 ? '<span>on the photograph</span>' : ''}</div><div class="ln">${line}</div></div>`).join('')}</div>`;
+  }
+
+  function build(el, kind, ci, m, demo, isStatic) {
+    const f = { el, kind, ci, m, demo, sel: null, isStatic };
+    el.classList.toggle('static', !!isStatic);
+    const phone = kind === 'phone';
+    el.innerHTML = `<div class="idx"><i>01</i>Work</div><div class="bar">${phone ? '≡ Menu' : c.hhmm + '  Talk to us  ≡ Menu'}</div>
+      <nav class="tabs" aria-label="Chapters">${CH.map((x, k) => `<button type="button" data-k="${k}">${x.num} ${x.name}</button>`).join('')}</nav>
+      <div class="stack"><div class="aura"></div>${[0, 1, 2].map(() => '<div class="ph"></div>').join('')}${[0, 1, 2].map(() => '<div class="dm"></div>').join('')}</div>
+      <div class="tx"></div>`;
+    frames.push(f); paint(f); return f;
+  }
+
+  function paint(f) {
+    const el = f.el, ch = CH[f.ci], mo = ch.moments[f.m], phone = f.kind === 'phone';
+    el.dataset.ch = String(f.ci);
+    el.dataset.mom = MOM; el.dataset.tint = TINT; el.dataset.trail = TRAIL ? 'on' : 'off';
+    el.classList.toggle('old', OLD);
+    el.querySelectorAll('.tabs button').forEach((b, k) => b.setAttribute('aria-current', String(k === f.ci)));
+    el.querySelector('.aura').style.backgroundImage = `url(${I('a-' + ch.imgs[f.m])})`;
+    el.querySelectorAll('.ph').forEach((ph, j) => { ph.style.backgroundImage = `url(${I(ch.imgs[j])})`; ph.className = 'ph ' + (j === f.m ? 'front' : j === (f.m + 1) % 3 ? 'b1' : 'b2'); });
+    el.querySelectorAll('.dm').forEach((d, j) => { if (d.dataset.key !== ch.key + j) { d.dataset.key = ch.key + j; d.innerHTML = DEMOS[ch.key + j](); } d.classList.toggle('on', !!f.demo && j === f.m); });
+    el.querySelector('.tx').innerHTML = `<div class="mom">${ch.moments.map((x, j) => `<button type="button" data-j="${j}" class="${j < f.m ? 'past' : ''}" aria-current="${j === f.m}"><span class="w">${x.t}</span>${j === f.m ? `<span class="wf" aria-hidden="true">${x.t}</span><i class="fill"></i>` : ''}</button>`).join('')}</div>
+      <div class="h">${mo.t}</div>${listHTML(f, mo)}${phone ? '' : '<div class="foot">Every project is proposed for its occasion.</div>'}`;
+    el.style.setProperty('--fill', (PHOTO + DEMO) + 's');
+  }
+
+  // the running stage: time changes the moment; the tabs stand in for scroll; tapping a moment holds it
+  function run(f) {
+    let phase = 0, t;
+    const el = f.el;
+    const schedule = () => { clearTimeout(t); if (!el.classList.contains('held') && !el.classList.contains('paused')) t = setTimeout(tick, (phase === 0 ? PHOTO : DEMO) * 1000); };
+    function tick() { if (phase === 0) { phase = 1; f.demo = true; el.querySelectorAll('.dm').forEach((d, j) => d.classList.toggle('on', j === f.m)); }
+      // after the last moment, back to the first: only scroll (here, the tabs) changes the chapter
+      else { phase = 0; f.demo = false; f.sel = null; f.m = (f.m + 1) % 3; paint(f); } schedule(); }
+    el.addEventListener('click', e => {
+      const tab = e.target.closest('.tabs button'), mom = e.target.closest('.mom button'), pick = e.target.closest('.pick');
+      if (tab) { el.classList.remove('held'); f.ci = +tab.dataset.k; f.m = 0; f.sel = null; phase = 0; f.demo = false; paint(f); schedule(); el.querySelector(`.tabs button[data-k="${f.ci}"]`).focus(); }
+      else if (mom) { el.classList.add('held'); f.m = +mom.dataset.j; f.sel = null; phase = 1; f.demo = true; paint(f); clearTimeout(t); el.querySelector(`.mom button[data-j="${f.m}"]`).focus(); }
+      else if (pick) { f.sel = +pick.dataset.j; paint(f); el.querySelector(`.pick[data-j="${f.sel}"]`).focus(); }
+    });
+    // the pointer or focus on the stage pauses the time (desktop)
+    if (f.kind === 'desk') {
+      const pause = on => { el.classList.toggle('paused', on); if (on) clearTimeout(t); else schedule(); };
+      el.addEventListener('pointerenter', () => pause(true)); el.addEventListener('pointerleave', () => pause(false));
+      el.addEventListener('focusin', () => pause(true)); el.addEventListener('focusout', () => pause(false));
+    }
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) schedule();
+    else { el.classList.add('held'); }
+  }
+  run(build(document.getElementById('run-desk'), 'desk', 0, 0, false, false));
+  run(build(document.getElementById('run-phone'), 'phone', 0, 0, false, false));
+
+  // states 3–6 of the main storyboard, still
+  const STATES = [
+    { n: 3, t: 'I · Weddings', ci: 0, m: 0, demo: false, d: 'O palco preso, a fotografia com a sua aura e, ao lado, o momento <i>Before</i>. A linha que enche marca o tempo. Na lista, a peça que vai aparecer na fotografia é a primeira, com o ●; cada peça tem a sua linha.' },
+    { n: 4, t: 'O momento mostra a sua peça', ci: 0, m: 0, demo: true, d: 'O <i>Wedding website</i> sobe sobre a fotografia. A lista não muda: a peça mostrada já está em primeiro.' },
+    { n: 5, t: 'II · Artists', ci: 1, m: 0, demo: true, d: 'Ao descer muda o capítulo. Duas peças por momento: a lista fica curta.' },
+    { n: 6, t: 'III · Experiences', ci: 2, m: 1, demo: true, d: 'O momento <i>During</i>: o <i>On-site guide</i> sobre a fotografia, a ponte para o Method. No telemóvel, a linha aberta é a do guia.' },
+  ];
+  const rows = document.getElementById('rows');
+  STATES.forEach(S => {
+    const sec = document.createElement('section'); sec.className = 'scene'; sec.setAttribute('aria-labelledby', 'st' + S.n);
+    sec.innerHTML = `<div class="scene-head"><span class="n">${S.n}</span><h2 id="st${S.n}">${S.t}</h2></div>
+      <div class="row"><figure aria-label="Estado ${S.n} no desktop"><div class="frame desk"></div><figcaption>Desktop</figcaption></figure>
+      <figure aria-label="Estado ${S.n} no telemóvel"><div class="frame phone"></div><figcaption>Telemóvel</figcaption></figure>
+      <div class="notes"><p>${S.d}</p></div></div>`;
+    rows.appendChild(sec);
+    ['desk', 'phone'].forEach(kind => {
+      const f = build(sec.querySelector('.frame.' + kind), kind, S.ci, S.m, S.demo, true);
+      f.el.addEventListener('click', e => { const p = e.target.closest('.pick'); if (!p) return; f.sel = +p.dataset.j; paint(f); f.el.querySelector(`.pick[data-j="${f.sel}"]`).focus(); });
+    });
+  });
+
+  // compare with the approved rules
+  const g = document.getElementById('g-look');
+  [[false, 'Proposta · capítulos sem sublinhado'], [true, 'Como estava']].forEach(([v, l]) => {
+    const b = document.createElement('button'); b.className = 'chip'; b.type = 'button'; b.textContent = l; b.setAttribute('aria-pressed', String(v === OLD));
+    b.addEventListener('click', () => { OLD = v; g.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', String(x === b))); frames.forEach(f => f.el.classList.toggle('old', OLD)); });
+    g.appendChild(b);
+  });
+  // the other comparisons: one group of chips each
+  const group = (id, items, get, set) => { const host = document.getElementById(id); items.forEach(([v, l]) => {
+    const b = document.createElement('button'); b.className = 'chip'; b.type = 'button'; b.textContent = l; b.setAttribute('aria-pressed', String(v === get()));
+    b.addEventListener('click', () => { set(v); host.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', String(x === b))); frames.forEach(f => { f.el.dataset.mom = MOM; f.el.dataset.tint = TINT; f.el.dataset.trail = TRAIL ? 'on' : 'off'; }); });
+    host.appendChild(b); }); };
+  group('g-mom', [['fill', 'Palavra que enche'], ['line', 'Linha que enche (como estava)']], () => MOM, v => { MOM = v; });
+  group('g-tint', [['linen', 'Linho'], ['photo', 'Tom da fotografia']], () => TINT, v => { TINT = v; });
+  group('g-trail', [[false, 'Apagados'], [true, 'Meio acesos']], () => TRAIL, v => { TRAIL = v; });
+})();
+</script>

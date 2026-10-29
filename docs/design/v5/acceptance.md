@@ -31,8 +31,8 @@ verificados e o que não foi verificado está dito.
 | CLS | < 0,02 |
 | INP | < 150 ms |
 | Fontes | 3 ficheiros (+1 se a entrada precisar de um peso extra de Cormorant) |
-| Camadas animadas em simultâneo | ≤ 6 |
-| Cenas presas no ecrã em simultâneo | 1 |
+| Camadas animadas em simultâneo | ~6 (referência, não limite — acima disso, risco dito e medido; README #68) |
+| Cenas presas no ecrã em simultâneo | 1 (referência, não limite) |
 
 ## O que medir no Xiaomi, por ordem (25/10)
 
@@ -42,7 +42,11 @@ verificados e o que não foi verificado está dito.
 4. **Method:** a cena presa inteira (estúdio, seis ecrãs, folhas a sair, um ecrã vivo); o teclado aberto no campo.
 5. **About:** a luz com furo a mover-se e o nome FLIP.
 6. **Contact:** o vídeo a voltar a tocar escurecido.
-7. **Menu:** a gota `clip-path` a ecrã inteiro sobre cada secção.
+7. **Menu:** a gota (círculo de vidro por `transform: scale`) a ecrã inteiro sobre cada secção, sobretudo sobre o vídeo
+   da entrada; contar os frames lentos da primeira abertura depois de carregar (88–94 ms no teste de 28/10).
+8. **Barra (#71, A2):** o escuro das ilhas sobre o papel e sobre fotografias que só passam por uma ponta, e o contraste
+   das palavras (calcular); depois, **as duas ilhas com a lente e o escuro adaptável durante o scroll da página inteira (teste de 28/10: igual a
+   não ter vidro, 90,5 fps, p95 11,2 ms) — no site, com o vídeo real e com o dedo (fling).
 
 Critério para todos: sem frames longos durante a animação ou o scroll; nenhuma tarefa > 50 ms.
 

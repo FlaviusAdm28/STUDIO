@@ -6,8 +6,10 @@
 Regras gerais (aplicam-se a tudo):
 
 - **Nada bloqueia.** Scroll, links e teclado funcionam desde o primeiro instante.
-- **Só transform, opacity, clip-path e traços SVG** em animação. Proibido: WebGL, `backdrop-filter`,
-  `filter` animado em áreas grandes, mais de ~6 camadas animadas em simultâneo.
+- **A performance pesa-se, nada é proibido** (owner, 27/10, README #68). O caminho barato é transform,
+  opacity, clip-path e traços SVG em CSS. WebGL, `backdrop-filter`, `filter` animado, mais de ~6 camadas
+  animadas ou cenas mais longas são possíveis: quem as propõe **diz o risco** (o custo, onde, a
+  alternativa), constrói-as, e **o veredito final é a medição no Xiaomi**, mesmo depois de escolhidas.
 - **Gesto, chegada ou passagem por scroll** (regra revista a 25/10, README #24): cada animação nasce de
   um gesto (clique, toque, tecla), da chegada à página ou de uma **passagem ligada ao scroll** que cumpra
   as regras de §0. O limite não é a técnica — é o lag medido no Xiaomi.
@@ -20,18 +22,19 @@ Regras gerais (aplicam-se a tudo):
 
 ## 0. O caminho — fechado com o owner a 25/10/2026
 
-### Regras das passagens ligadas ao scroll (um mínimo contra o lag, não um teto)
+### Orientações para as passagens ligadas ao scroll (contra o lag; nenhuma é proibitiva — README #68)
 
 O owner quer WOW e aceita transições ligadas ao scroll desde que não haja lag nos telemóveis mais fracos.
 O lag do site original não vinha de "acompanhar o scroll", vinha de JavaScript por frame, muitas camadas
 e filtros, vídeo duplicado e uma progressão presa durante muitos ecrãs. Daí:
 
-1. **Scroll nativo**: sem sequestro do scroll, sem bibliotecas de smooth scroll. **Cenas presas**
-   (`position: sticky`) são permitidas durante uma passagem.
-2. **Ligado ao scroll só `transform` e `opacity`, em CSS** (`animation-timeline: view()` / `scroll()`),
-   sem JavaScript por frame — no Chrome Android corre no compositor. `clip-path` e mudanças de forma só
-   por gesto ou chegada, salvo prova no Xiaomi.
-3. **Uma passagem de cada vez**: no máximo uma cena presa no ecrã; ≤ 6 camadas animadas.
+1. **Scroll nativo por omissão**; **cenas presas** (`position: sticky`) durante uma passagem. Outra coisa
+   (sequestro do scroll, smooth scroll) só com o risco dito e medido.
+2. **Ligado ao scroll, de preferência `transform` e `opacity` em CSS** (`animation-timeline: view()` /
+   `scroll()`), sem JavaScript por frame — no Chrome Android corre no compositor. `clip-path`, filtros ou
+   JavaScript por frame são possíveis, com o risco dito e medido no Xiaomi.
+3. **Uma passagem de cada vez** como referência: uma cena presa no ecrã, ~6 camadas animadas; acima disso,
+   risco a dizer e a medir.
 4. **O vídeo pausa fora do ecrã.**
 5. **Alternativa obrigatória**: sem suporte, reduced motion ou sem JavaScript → estado final ou gesto de
    chegada único. O conteúdo nunca depende da passagem.
@@ -98,7 +101,8 @@ Referência visual de todo o caminho Entrada → Work → Method: storyboard v3.
 - **Qualquer gesto** (scroll, toque, tecla, clique) → salta para o estado final de imediato.
 - **Reduced motion / Save-Data / vídeo falhou** → estado final com o poster (imagem fixa); sem véu.
 - **Sem JavaScript** → estado final estático (poster + título + lâminas como links).
-- A sequência corre **uma vez** por carregamento; voltar ao topo não a repete.
+- A sequência corre **uma vez** por carregamento (um refresh no topo mostra-a outra vez); voltar ao topo não a repete:
+  **o E4 é o topo da página** (README #66).
 - **Risco a medir primeiro**: o custo de escalar um SVG grande com máscara no Xiaomi. Plano B se houver
   quebra de frames: rasterizar o véu (PNG/AVIF com transparência, 2 tamanhos) e escalar a imagem.
 
@@ -114,7 +118,10 @@ Referência visual de todo o caminho Entrada → Work → Method: storyboard v3.
 - `Intl.DateTimeFormat('en-GB', { weekday:'long', day:'numeric', month:'long' })` + hora `HH:MM`.
 - **O momento da chegada é guardado em memória** no arranque (dia, hora, faixa da luz, se voltou) e
   reutilizado no Method (§3) e no Contact.
-- *Welcome back*: `localStorage` (`c1.lastVisit`, ISO), sempre com `try/catch`; se falhar, não aparece.
+- *Welcome back*: `localStorage` (`c1.lastVisit`, ISO), sempre com `try/catch`; se falhar, não aparece. **Conta como
+  regresso só se a última visita foi há mais de 30 minutos** — lê-se o valor guardado *antes* de gravar a hora desta
+  visita, e um refresh dentro dos 30 min nunca mostra *Welcome back*. Sempre *second chapter* (não se conta). Sem prazo
+  (README #66).
 - Sem geolocalização, sem IP, sem cookies, sem analytics.
 
 ---
@@ -129,8 +136,8 @@ Estados 2–6 em `storyboard.md`. Técnica:
   radial, ~50 % de opacidade; P&B de Weddings com aura quente. Troca por opacidade. Nada de `filter` ao vivo.
 - **Camadas:** três fotografias empilhadas e desfasadas (frente / b1 / b2); a ativa vem à frente (opacidade +
   `transform`, ~1 s). Moldura por capítulo: I arco · II retângulo · III recorte oblíquo.
-- **Momentos por tempo** (#43): foto ~1,6 s → a peça principal anima sobre a fotografia inteira ~3,6 s → momento
-  seguinte; a linha do momento enche-se (camada `scaleX`); tocar num momento fixa-o (mecanismo de parar, WCAG
+- **Momentos por tempo** (#43, ritmo da #73): **um só tempo, 4 s** — a palavra enche-se em 4 s e, cheia, passa ao momento
+  seguinte; nesses 4 s a foto (~1,2 s) e depois a peça principal sobre a fotografia inteira (~2,8 s); a linha do momento enche-se (camada `scaleX`); tocar num momento fixa-o (mecanismo de parar, WCAG
   2.2.2); pausa com rato/foco sobre o palco; reduced motion: sem rotação; ao mudar de capítulo recomeça no primeiro.
 - **Demonstrações** (uma de cada vez, só `transform`/`opacity`, nunca recortam a fotografia): ver a lista das nove
   em `storyboard.md`. Na lista, a peça mostrada leva um círculo (preenchido enquanto anima) e *on the photograph*.
@@ -176,9 +183,21 @@ Estados 12–14 em `storyboard.md`. Técnica:
 
 - Barra em todos os ecrãs; secção atual por `IntersectionObserver` (`rootMargin`), sem custo de scroll; sem JS a
   barra é uma lista de âncoras.
-- Menu: `<dialog>`; abre com `clip-path: circle()` a partir do botão (~0,9 s); **vidro preparado** = a imagem já
-  desfocada da secção/estado atual (gerada no build, uma por secção e faixa) + película + brilho + grão; **nunca
-  `backdrop-filter`**. Foco preso e devolvido; Esc; botão ✕ *Close*; reduced motion: fade.
+- **Barra (README #71, A2):** as ilhas sempre visíveis; o vidro é só `backdrop-filter` + película `--tint` + um fio de luz
+  (`inset 0 0 0 .5px`), sem brilho nem sombra. O escuro mede-se por baixo das palavras (percentil 75 de 12 pontos), máximo
+  .50; com lum > .55 as palavras ganham `text-shadow` escuro.
+- **Barra (README #69):** duas ilhas, cada uma com o seu vidro num pseudo-elemento (`::before`) atrás do texto:
+  `backdrop-filter: url(#lente) blur(8px) saturate(1.6) brightness(1.04) contrast(1.04)`, × 1,6 no desktop (≥ 900 px).
+  A **lente** é um `feDisplacementMap` com um mapa gerado em canvas na forma da ilha (cápsula/círculo), refeito quando a
+  ilha muda de tamanho. O **escuro** é uma variável `--tint` registada com `@property` (`<color>`, transição 0,45 s), posta
+  por JavaScript em cada ilha a partir do brilho por trás (grelhas 24 × 24 lidas uma vez por imagem; `elementsFromPoint`
+  em 15 pontos; no máximo de 80 em 80 ms durante o scroll). Sem JavaScript: um escuro médio fixo.
+- **Menu:** `<dialog>`; o vidro é **um círculo** (`border-radius: 50%`, raio = da ilha ao canto mais longe) com o
+  `backdrop-filter` **no próprio círculo**, que cresce por `transform: scale()` de r/R a 1 em 0,9 s a partir do centro da
+  ponta direita da ilha do menu. **Nunca `clip-path` animado num elemento com `backdrop-filter`** (flicks no Chrome
+  Android, gravados a 28/10) e nunca o desfoque num filho de um elemento com `clip-path` (*Backdrop Root*, 27/10). O vidro
+  fica `visibility: visible` dois frames antes de crescer e `hidden` no fim de fechar. Sem lente no menu (p95 22 ms no
+  Xiaomi). Foco preso e devolvido; Esc; botão ✕ *Close*; reduced motion: fade.
 
 ---
 

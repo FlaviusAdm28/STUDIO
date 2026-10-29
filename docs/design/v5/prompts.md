@@ -30,7 +30,7 @@ Create a photorealistic editorial photograph in portrait orientation (2:3). An a
 Create a photorealistic editorial photograph in portrait orientation (2:3). Opening night of a small, quiet art exhibition: a few visitors in soft silhouette looking at two large abstract paintings, warm gallery spotlights, a polished concrete floor reflecting the light, evening atmosphere. Shot on 35mm film, muted earthy palette (linen, stone, warm grey, amber light), gentle film grain, calm and elegant mood. Keep the upper third of the frame quiet. No recognisable faces, no text or signage, no logos, no watermarks, no phones.
 ```
 
-**For the record** (press kit, catálogo, arquivo)
+**On record** (press kit, catálogo, arquivo)
 ```
 Create a photorealistic editorial photograph in portrait orientation (2:3), seen from slightly above. A large wooden table with printed exhibition catalogues, photographic prints and contact sheets laid out in neat rows, a pair of hands arranging one print, a linen cloth, a pencil. Shot on 35mm film, soft daylight from a window, muted earthy palette (linen, stone, warm grey), gentle film grain, calm archival mood. Keep the upper third quiet. No readable text on the prints or catalogues, no logos, no watermarks, no faces.
 ```

@@ -81,7 +81,7 @@ mexer no staging da V4). Todas 1024×1536 (2:3), PNG, a cores. Folha: `research/
 |---|---|---|---|
 | `Estúdio de artista ao entardecer.png` | **Artists · Always** | bbcd785c8983 | 2169 |
 | `Galeria Âmbar em Silêncio.png` | **Artists · For a moment** | 0873e1b1b23f | 2068 |
-| `Portfólio de Luz e Texturas.png` | **Artists · For the record** | 2961c6faba2a | 2400 |
+| `Portfólio de Luz e Texturas.png` | **Artists · On record** | 2961c6faba2a | 2400 |
 | `Convite elegante à entrada iluminada.png` | **Experiences · Before** | 392ec5b2bfd1 | 2243 |
 | `Concerto Íntimo em Luz Âmbar.png` | **Experiences · During** | 07fc6c294dc3 | 1735 |
 | `Banquete ao Amanhecer na Villa Histórica.png` | **Experiences · After** | 5eada5160653 | 2229 |
@@ -149,7 +149,7 @@ editar originais. O storyboard já os usa em versão pequena (`media-src/storybo
 | **Quatro fundos do estúdio** (manhã · dia · fim de tarde · noite) + o estúdio da **pedra** (Questions) | Method, Questions | papel curvo + luz + vinheta + grão; ~40–60 KB; 2 tamanhos |
 | Sombra de ecrã (pequena, transparente) | Method | uma imagem |
 | **Luz com furo** (camada escura com um círculo de luz) | fim do Method, entrada do About | uma imagem por proporção |
-| **Imagens desfocadas para o menu** (uma por secção/estado e faixa) | vidro preparado | geradas a partir de capturas/composições |
+| ~~Imagens desfocadas para o menu~~ | — | **já não são precisas**: o vidro é ao vivo (`backdrop-filter`, README #69) |
 | Fonte Cormorant 500/600 (+1 ficheiro) | a letra-janela da entrada | avaliar o peso no protótipo |
 | Imagem de partilha (Open Graph) | | fotograma da entrada + título |
 

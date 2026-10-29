@@ -22,7 +22,7 @@ Sem commits/pushes/deploys sem pedido explícito.*
 
 ## M4 — Barra e menu
 
-- [ ] `SiteBar` + `MenuOverlay` (gota `clip-path`, vidro preparado, `<dialog>`), secção atual por IntersectionObserver.
+- [ ] `SiteBar` (duas ilhas, vidro ao vivo com lente e escuro adaptável) + `MenuOverlay` (gota por `transform: scale`, `<dialog>`) — README #69; secção atual por IntersectionObserver.
 
 ## M5 — Work (estados 3–6)
 

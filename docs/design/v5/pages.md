@@ -14,7 +14,8 @@
 ## 0. Navegação (no estilo da V4, melhorada) — aprovada
 
 > **Revisto a 25/10 (README #56):** já não há índice lateral no desktop. A mesma barra e o mesmo menu em
-> todos os ecrãs; o menu é uma gota de **vidro preparado** que cresce a partir do botão. O texto abaixo é a versão
+> todos os ecrãs; desde a #69 (28/10) a barra são duas ilhas de **vidro ao vivo escuro** e o menu é uma gota do mesmo vidro que
+> nasce da ilha do menu (ver `storyboard.md`, *O menu*). O texto abaixo é a versão
 > anterior, mantida como registo.
 
 O que se mantém da V4 (o owner gosta muito): **a secção atual está sempre visível, com número e nome**
@@ -106,7 +107,7 @@ pages, Press kits, Archives of work*):
 |---|---|---|
 | **Always** | Estúdio de artista ao entardecer | Portfolio · Online gallery |
 | **For a moment** | Galeria Âmbar em Silêncio | Digital exhibition · Release page |
-| **For the record** | Portfólio de Luz e Texturas | Press kit · Archive of works |
+| **On record** | Portfólio de Luz e Texturas | Press kit · Archive of works |
 
 **III · Experiences** — imagens IA. **Rascunho, por aprovar** (peças derivadas da investigação V4 §6):
 
@@ -175,7 +176,7 @@ depois do lançamento), em `<details>` nativo. A pergunta de serviços pode liga
 | Componente | Tipo | Notas |
 |---|---|---|
 | `SiteBar` (a mesma barra em todos os ecrãs) | servidor + ilha `NavState` | secção atual por IntersectionObserver; hora |
-| `MenuOverlay` | ilha | `<dialog>`, gota `clip-path`, vidro preparado, foco preso, Esc |
+| `MenuOverlay` | ilha | `<dialog>`, gota por `transform: scale` com vidro ao vivo (README #69), foco preso, Esc |
 | `Entrance` | servidor + ilha `EntranceSequence` | vídeo, letras-janela SVG, dedicatória, lâminas |
 | `LocalMoment` | ilha | data/hora local, faixa da hora, *welcome back* (localStorage com try/catch) |
 | `WorkStage` | servidor + ilha `WorkStage` | palco preso; separadores; aura; camadas; rotação dos momentos; 9 demonstrações |

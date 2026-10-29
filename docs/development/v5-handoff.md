@@ -51,7 +51,48 @@ passar/segurar, em experiência) e **#35** (escala no desktop, A vs `?escala=b`)
 
 **Testes:** registados em `docs/development/v5-tests.md` (secção M3).
 
-**Próximo:** commit do M3 quando o owner pedir → **M4, a barra e o menu**.
+**M3 commitado (803492a, 29/10).** **A seguir: M4, a barra e o menu.**
+
+**M4 — os valores, por ordem de autoridade** (storyboard principal v42 + README #56, #67, #69, #70, #71; para tamanhos e
+alinhamento a página aprovada `D:\STUDIO-tools\glass-test-1027\composicao-aprovada-2810.html`, e para o vidro
+`index-aprovado-2810.html`):
+- **Ilhas (A2, #71):** telemóvel 44 px de altura a 10 px do topo, bordas nas margens do conteúdo (24 px; 16 px < 380 px);
+  desktop ≥ 900 px 48 px a 14 px do topo, margem 6vw; nome Cormorant 18 / 22 px; secção 13 / 12 px, .16em, maiúsculas,
+  número em Cormorant 1,6em; filete 1 px a .35. Direita: telemóvel só o botão de três traços (100/70/85 %, 26×12, 1,5 px)
+  num círculo; desktop a hora (.7) + *Talk to us* + ≡ *Menu*. **Discretas:** só desfoque + película `--tint` + fio de
+  0,5 px `rgba(255,255,255,.16)`, **sem brilho nem sombra** (a página de teste nunca aplicava a classe A2 — a linha que a
+  punha ficou dentro de um comentário; o owner viu as ilhas com brilho; seguir o README/storyboard e dizer-lhe).
+- **Vidro:** `blur(8px) saturate(1.6) brightness(1.04) contrast(1.04)`, × 1,6 no desktop; lente `feDisplacementMap`
+  escala 30 com um mapa em forma de cápsula/círculo (últimos 14 px do bordo), refeito quando a ilha muda de tamanho.
+- **Escuro adaptável:** por baixo das palavras de cada ilha, 6 × 2 pontos, percentil 75; a = .06 + (lum − .2) × .75,
+  entre .06 e .50; lum > .55 → sombra escura nas palavras (`on-paper`); brilho de cada imagem numa grelha 24 × 24 lido
+  uma vez; fundos de secção com o seu valor (papel .80–.86, carvão .10); recalcular no scroll no máximo de 80 em 80 ms;
+  `@property --tint` `<color>`, 0,45 s; com o menu aberto o escuro fica. Por cima do vídeo da entrada: usar o poster.
+- **#70:** no E4 só a ilha da direita; a ilha do nome entra com o Work (só opacidade). Secção atual por
+  IntersectionObserver.
+- **Menu (#69):** ecrã inteiro; gota = círculo de raio `hypot(w, h)` que cresce por `transform: scale` desde a ponta
+  redonda direita da ilha do menu, já com o raio dessa ponta, 0,9 s `cubic-bezier(.65, 0, .25, 1)`; visível dois frames
+  antes de crescer, `visibility: hidden` depois de fechar; vidro desfoque × 1,4, `saturate(1.6) brightness(1.02)`,
+  película .30 (≥ 50 % claro por trás da lista → .62/.66, 20–50 % → .50), brilho a 160°, aro 1 px .18; sem lente.
+  Lista: cinco secções numeradas em Cormorant (números .42 em itálico, algarismos alinhados), a atual em itálico com
+  ponto; palavras a partir de 0,32–0,35 s, +0,07 s por linha; ao fechar saem em 0,25 s. Lado: *Hello, {name}.* (só com
+  nome), *Talk to us* → Instagram, contactos, *Your time · HH:MM*. `<dialog>`, foco preso e devolvido, Esc, reduced
+  motion só desvanece. Palavras em `content/v5.ts` (`nav`, `contact`, `sections`).
+- **Medir no Xiaomi:** scroll da página com as ilhas (alvo 90 fps), abrir/fechar o menu sobre o vídeo (alvo 87–90 fps; a
+  primeira abertura teve 1 frame lento no protótipo).
+
+**M4 construído (29/10), à espera do owner:** `src/components/bar/` (`bar.tsx` servidor, `bar-client.tsx` ilha de
+cliente, `bar.css`). Testes em `v5-tests.md` (secção M4). Diferença encontrada: na página de teste aprovada a classe A2 nunca
+era aplicada (a linha ficou dentro de um comentário) — o owner viu ilhas com brilho e sombra; o site segue o README #71
+(discretas). **Revisão do owner (29/10):** (a) o vidro "não está bem liquid glass" → repostos o brilho, o aro e a sombra
+que ele viu no teste; (b) o desfoque do menu no desktop estava em 11 px em vez de 17,9 → corrigido; (c) *Menu* → *Close*
+mudava a largura da ilha → as duas palavras na mesma célula; (d) no desktop "um tremer quando a camada já assentou" →
+as palavras saltavam no fim (corrigido, `will-change` enquanto o menu está aberto); o vidro "respirava" no fim do crescimento (o desfoque acompanhava a escala) → a gota tem agora **o raio exato até ao canto mais longe** (antes a diagonal do ecrã): cobre o ecrã no instante em que pára de crescer, e não sobra tempo de "respirar". Tentado antes e posto de lado: no desktop, vidro parado revelado por `clip-path` — o fundo ficava quieto mas a abertura ia "aos saltos" (redesenha o desfoque a cada frame). Medido no PC (ecrã 144 Hz, 5 aberturas): 144 fps, p95 7,1 ms; a 1.ª abertura tem 2 frames lentos (≤ 55 ms), como no Xiaomi; **Decisão do owner (29/10): fica assim** — vê-se ainda um tremer quase impercetível no fundo desfocado enquanto a bola cresce, mas depois de assentar não volta; prefere isto aos saltos da versão `clip-path`. (e) **NOTA: com o menu aberto a página
+ainda faz scroll por trás** — o owner quer assim por agora, para os testes; **prender o scroll antes de publicar**;
+(f) as cores da hora passam a seguir o sol real (README #80, feito e verificado).
+**Próximo:** o owner revê o M4 no PC e no Xiaomi → commit → M5.
+
+
 
 ---
 

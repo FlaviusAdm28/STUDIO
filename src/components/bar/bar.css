@@ -1,0 +1,521 @@
+/*
+  The bar (README #69, #71 A2) and the menu (#69). Sizes from the approved page (glass-test-1027/composicao-aprovada,
+  A2) and the main storyboard: phone islands 44 px high, 10 px from the top, their edges on the content's margins
+  (--gutter: 24 px, 16 px under 380 px); desktop (≥ 900 px) 48 px, 14 px from the top, margins 6vw. Discreet (A2): only
+  the blur and the dark film with a hairline of light; on 29 Oct the owner chose the liquid glass of the test page
+  instead (sheen, rim, shadow: see .bar-isl).
+*/
+
+.bar-lenses {
+  position: absolute;
+}
+
+/* the darkness of each island: a registered colour, so a change of ground is a soft transition (28 Oct: it jumped) */
+@property --tint {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: rgba(22, 21, 19, 0.06);
+}
+
+.bar {
+  position: fixed;
+  z-index: 40;
+  top: calc(10px + env(safe-area-inset-top, 0px));
+  left: var(--gutter);
+  right: var(--gutter);
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+  color: var(--linen);
+  font-size: 0.8125rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  --blur: var(--glass-blur-px);
+}
+
+.bar-isl {
+  pointer-events: auto;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  border-radius: 99px;
+  color: inherit;
+  text-decoration: none;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(1.6) brightness(1.04) contrast(1.04);
+  backdrop-filter: blur(var(--blur)) saturate(1.6) brightness(1.04) contrast(1.04);
+  /* the liquid glass the owner saw and approved on 28 Oct (iOS + lens): a diagonal sheen, a rim of light (bright on top,
+     faint below) and a soft shadow, over the adaptive dark film. README #71 had asked for no sheen and no shadow, but on
+     the test page that option was never switched on; seeing the discreet version, the owner chose this (29 Oct). */
+  background:
+    linear-gradient(
+      115deg,
+      rgba(255, 255, 255, 0.18) 0%,
+      rgba(255, 255, 255, 0.04) 28%,
+      rgba(255, 255, 255, 0.02) 70%,
+      rgba(255, 255, 255, 0.1) 100%
+    ),
+    var(--tint);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.16),
+    0 10px 30px rgba(0, 0, 0, 0.16);
+  transition:
+    --tint 0.45s ease,
+    opacity 0.5s var(--ease);
+}
+
+/* the lens, where the browser can (an unknown url() would drop the whole declaration, so the plain one comes first) */
+.bar-lens .bar-left {
+  backdrop-filter: url(#bar-lens-left) blur(var(--blur)) saturate(1.6) brightness(1.04) contrast(1.04);
+}
+.bar-lens .bar-right {
+  backdrop-filter: url(#bar-lens-right) blur(var(--blur)) saturate(1.6) brightness(1.04) contrast(1.04);
+}
+
+.bar-left {
+  padding: 0 16px;
+  white-space: nowrap;
+}
+
+/* README #70: at the top the title is the name; the name's island comes in with the Work, opacity only */
+:root:not([data-section]) .bar-left,
+:root[data-section='top'] .bar-left {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    --tint 0.45s ease,
+    opacity 0.5s var(--ease),
+    visibility 0s 0.5s;
+}
+
+.bar-name {
+  font-family: var(--serif);
+  font-size: 18px;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+
+.bar-sep {
+  width: 1px;
+  height: 17px;
+  margin: 0 11px;
+  background: currentColor;
+  opacity: 0.35;
+}
+
+.bar-sec {
+  opacity: 0.8;
+}
+
+.bar-sec i {
+  margin-right: 0.4em;
+  font-family: var(--serif);
+  font-size: 1.6em;
+  font-style: normal;
+  font-variant-numeric: lining-nums; /* Cormorant's default old-style 01 read as "OI" */
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.bar-right {
+  gap: 26px;
+}
+
+.bar-time,
+.bar-talk,
+.bar-menu-word {
+  display: none;
+}
+
+.bar-talk {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* on the phone the right island is the button's circle */
+.bar-menu {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* three rules of different lengths that turn into a cross (#67, B2) */
+.bar-icon {
+  position: relative;
+  width: 22px;
+  height: 11px;
+}
+
+.bar-icon i {
+  position: absolute;
+  right: 0;
+  width: 100%;
+  height: 1.5px;
+  background: currentColor;
+  transition:
+    transform 0.6s var(--ease),
+    width 0.6s var(--ease),
+    opacity 0.4s;
+}
+
+.bar-icon i:nth-child(1) {
+  top: 0;
+}
+.bar-icon i:nth-child(2) {
+  top: 4.75px;
+  width: 70%;
+}
+.bar-icon i:nth-child(3) {
+  bottom: 0;
+  width: 85%;
+}
+
+:root[data-menu='open'] .bar-icon i:nth-child(1) {
+  width: 100%;
+  transform: translateY(4.75px) rotate(45deg) scaleX(0.82);
+}
+:root[data-menu='open'] .bar-icon i:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0.2);
+}
+:root[data-menu='open'] .bar-icon i:nth-child(3) {
+  width: 100%;
+  transform: translateY(-4.75px) rotate(-45deg) scaleX(0.82);
+}
+
+/* over a light ground (the film capped at .5) the words keep their contrast with a close dark halo of their own */
+.bar-isl.on-paper {
+  text-shadow:
+    0 0 1px rgba(20, 19, 17, 0.55),
+    0 1px 3px rgba(20, 19, 17, 0.5),
+    0 0 12px rgba(20, 19, 17, 0.5);
+}
+.bar-isl.on-paper .bar-icon i {
+  box-shadow: 0 0 6px rgba(20, 19, 17, 0.6);
+}
+
+.bar-isl:focus-visible,
+.bar-isl a:focus-visible {
+  outline: 2px solid var(--linen);
+  outline-offset: 3px;
+}
+
+/* narrow phones (measured 28 Oct with "04 Questions": the islands met at 360 px and overlapped at 320) */
+@media (max-width: 380px) {
+  .bar-left {
+    padding: 0 14px;
+  }
+  .bar-name {
+    font-size: 16px;
+  }
+  .bar-sep {
+    margin: 0 8px;
+  }
+  .bar-sec {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+  }
+}
+
+@media (min-width: 900px) {
+  .bar {
+    top: calc(14px + env(safe-area-inset-top, 0px));
+    height: 48px;
+    font-size: 0.75rem;
+    --blur: calc(var(--glass-blur-px) * var(--glass-desktop-factor));
+  }
+  .bar-left,
+  .bar-right {
+    padding: 0 22px;
+  }
+  .bar-name {
+    font-size: 22px;
+  }
+  .bar-sep {
+    height: 20px;
+    margin: 0 16px;
+  }
+  .bar-time,
+  .bar-talk {
+    display: inline;
+  }
+  /* Menu and Close in one cell, the wider one setting the width: the island and Talk to us stay put (owner, 29 Oct) */
+  .bar-menu-word {
+    display: inline-grid;
+  }
+  .bar-menu-word span {
+    grid-area: 1 / 1;
+    transition: opacity 0.3s;
+  }
+  .bar-menu-word span:last-child,
+  :root[data-menu='open'] .bar-menu-word span:first-child {
+    opacity: 0;
+  }
+  :root[data-menu='open'] .bar-menu-word span:last-child {
+    opacity: 1;
+  }
+  .bar-time {
+    opacity: 0.7;
+    letter-spacing: 0.1em;
+  }
+  .bar-menu {
+    width: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+}
+
+/* ================= the menu ================= */
+
+.menu {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: none;
+  color: var(--linen);
+  --blur: calc(var(--glass-blur-px) * var(--glass-menu-factor));
+}
+
+/* the dialog stays in the page while it closes (the drop shrinks), so it is shown by a state on <html>, not [open] */
+.menu:not([open]) {
+  display: none;
+}
+
+/* the drop: a circle centred on the menu island's rounded right end, as large as the screen's diagonal, grown by
+   transform from that end's own radius (--s0). Never an animated clip-path on the blurred element: in Chrome Android it
+   flickered (28 Oct, recorded). Visible two frames before it grows, hidden once it has shrunk (BarClient). */
+.menu-drop {
+  position: absolute;
+  left: calc(var(--drop-x, 100vw) - var(--drop-r, 150vmax));
+  top: calc(var(--drop-y, 32px) - var(--drop-r, 150vmax));
+  width: calc(2 * var(--drop-r, 150vmax));
+  height: calc(2 * var(--drop-r, 150vmax));
+  border-radius: 50%;
+  overflow: hidden;
+  transform: scale(var(--drop-s0, 0.02));
+  transition: transform var(--menu-drop-seconds) var(--menu-drop-ease);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(1.6) brightness(1.02);
+  backdrop-filter: blur(var(--blur)) saturate(1.6) brightness(1.02);
+}
+
+/* While the menu is shown the drop and the words keep layers of their own: when a transition ended on `none` Chrome
+   dropped the layer and drew the words again, and on the desktop they visibly jumped as the menu settled (owner, 29 Oct;
+   recorded frame by frame on the PC: a step in the list at 1.08 s, gone with this) */
+:root[data-menu] .menu-drop {
+  will-change: transform;
+}
+:root[data-menu] .menu-list li {
+  will-change: transform, opacity;
+}
+
+:root[data-menu='open'] .menu-drop {
+  transform: scale(1);
+}
+
+.menu-film {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 19, 17, 0.3);
+}
+
+/* dark glass, always linen ink: over a light ground the film is denser instead (measured when it opens) */
+.menu[data-ground='mixed'] .menu-film {
+  background: rgba(20, 19, 17, 0.5);
+}
+.menu[data-ground='light'] .menu-film {
+  background: rgba(20, 19, 17, 0.66);
+}
+
+.menu-sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 30%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.menu-list {
+  position: absolute;
+  z-index: 1;
+  left: 8%;
+  top: 14%;
+  display: grid;
+  gap: 2vw;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* storyboard: 12 cqw of the phone's frame, the numerals .42 of the word, italic, on its baseline, figures lined */
+.menu-list a {
+  display: flex;
+  align-items: baseline;
+  gap: 4vw;
+  color: inherit;
+  text-decoration: none;
+  font: 400 calc(10vw + 0.4rem) / 1.05 var(--serif);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.35),
+    0 0.3vw 2.4vw rgba(0, 0, 0, 0.4);
+}
+
+.menu-list i {
+  width: 9vw;
+  flex: none;
+  font-size: 0.42em;
+  font-variant-numeric: lining-nums tabular-nums;
+  opacity: 0.75;
+}
+
+.menu-list a[aria-current='true'] span {
+  font-style: italic;
+}
+
+.menu-list a[aria-current='true']::after {
+  content: '·';
+  margin-left: 0.2em;
+}
+
+.menu-list a:focus-visible,
+.menu-side a:focus-visible {
+  outline: 1px solid var(--linen);
+  outline-offset: 6px;
+}
+
+/* the words wait for the drop to cover them, one by one; closing, they go first and quickly */
+.menu-list li,
+.menu-side {
+  opacity: 0;
+  transform: translate3d(0, 18%, 0);
+  transition:
+    opacity var(--menu-words-out-seconds),
+    transform var(--menu-words-out-seconds);
+}
+
+.menu-side {
+  transform: none;
+}
+
+:root[data-menu='open'] .menu-list li {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.6s var(--ease) calc(var(--menu-words-delay-seconds) + var(--i) * var(--menu-words-stagger-seconds)),
+    transform 0.7s var(--ease) calc(var(--menu-words-delay-seconds) + var(--i) * var(--menu-words-stagger-seconds));
+}
+
+:root[data-menu='open'] .menu-side {
+  opacity: 1;
+  transition: opacity 0.7s var(--ease) 0.6s;
+}
+
+.menu-side {
+  position: absolute;
+  z-index: 1;
+  left: 8%;
+  right: 8%;
+  bottom: calc(6% + env(safe-area-inset-bottom, 0px));
+  display: grid;
+  gap: 3vw;
+  font-size: calc(3.4vw + 0.05rem);
+  line-height: 1.7;
+}
+
+.menu-side p,
+.menu-side ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.menu-side a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.menu-k {
+  font-size: calc(2.8vw + 0.05rem);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.menu-go {
+  justify-self: start;
+  padding: 2.6vw 6vw;
+  border: 1px solid rgba(238, 232, 221, 0.6);
+  border-radius: 99px;
+  font-size: calc(3vw + 0.05rem);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.menu-hello {
+  font: italic 400 calc(5.4vw + 0.1rem) / 1.2 var(--serif);
+}
+
+/* desktop: the storyboard's frame (16 : 10) — the list at the left, the side block at the right, low */
+@media (min-width: 900px) {
+  /* the menu's blur is the bar's × 1.4, and the bar's is × 1.6 on the desktop: 17.9 px (storyboard 1.24 cqw of 1440) */
+  .menu {
+    --blur: calc(var(--glass-blur-px) * var(--glass-desktop-factor) * var(--glass-menu-factor));
+  }
+  .menu-list {
+    top: 18%;
+    gap: 0.6vw;
+  }
+  .menu-list a {
+    gap: 1.6vw;
+    font-size: calc(4.6vw + 0.6rem);
+  }
+  .menu-list i {
+    width: 3.4vw;
+  }
+  .menu-side {
+    left: 62%;
+    bottom: 14%;
+    gap: 1.2vw;
+    font-size: calc(0.9vw + 0.25rem);
+  }
+  .menu-k {
+    font-size: calc(0.7vw + 0.2rem);
+  }
+  .menu-go {
+    padding: 0.8vw 2vw;
+    font-size: calc(0.75vw + 0.2rem);
+  }
+  .menu-hello {
+    font-size: calc(1.6vw + 0.4rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-drop {
+    transform: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  :root[data-menu='open'] .menu-drop {
+    opacity: 1;
+  }
+  .menu-list li,
+  :root[data-menu='open'] .menu-list li {
+    transform: none;
+    transition-delay: 0s;
+  }
+}

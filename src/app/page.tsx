@@ -1,4 +1,5 @@
 import { about, contact, method, nav, questions, sections, work } from '@content'
+import { Bar } from '@/components/bar/bar'
 import { Entrance } from '@/components/entrance/entrance'
 import { Picture } from '@/components/picture'
 
@@ -15,12 +16,7 @@ export default function Home() {
       <a className="skip-link" href="#main">
         {nav.skipToContent}
       </a>
-      {/* The bar and the menu are the next module (M4). Until then: the right side only — no name at the top
-          (README #70) — and Menu leads to the index in the colophon. */}
-      <header className="site-header">
-        <a href={contact.message}>{contact.cta}</a>
-        <a href="#index">{nav.menu}</a>
-      </header>
+      <Bar />
 
       <main id="main">
         <Entrance />

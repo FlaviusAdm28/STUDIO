@@ -51,8 +51,45 @@ export function entranceSequence(c: EntranceConfig) {
     returning = now.getTime() - last > 30 * 60 * 1000
     localStorage.setItem('c1.lastVisit', now.toISOString())
   } catch {}
-  const h = now.getHours()
-  const light = h >= 5 && h < 11 ? 'morning' : h >= 11 && h < 17 ? 'day' : h >= 17 && h < 21 ? 'evening' : 'night'
+  // The light of the visitor's hour follows the real sun of the day (owner, 29 Oct: fixed hours said "evening" at 20:50
+  // in late October, two hours after sunset). Sunrise and sunset from the sunrise equation, for Lisbon / Madeira / the
+  // Azores by time zone, elsewhere for the zone's meridian at 40° N — nothing is asked of the visitor. Morning: from
+  // 30 min before sunrise to 3 h after; evening: from 1 h 30 before sunset to 40 min after; day between; night the rest.
+  const zone = (() => {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone
+    } catch {
+      return ''
+    }
+  })()
+  const place: Record<string, [number, number]> = {
+    'Europe/Lisbon': [38.72, -9.14],
+    'Atlantic/Madeira': [32.65, -16.91],
+    'Atlantic/Azores': [37.74, -25.67],
+  }
+  const [lat, lon] = place[zone] ?? [40, -now.getTimezoneOffset() / 4]
+  const rad = Math.PI / 180
+  const J2000 = Date.UTC(2000, 0, 1, 12)
+  const n = Math.round((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), 12) - J2000) / 864e5) - lon / 360
+  const M = (357.5291 + 0.98560028 * n) % 360
+  const C = 1.9148 * Math.sin(M * rad) + 0.02 * Math.sin(2 * M * rad) + 0.0003 * Math.sin(3 * M * rad)
+  const lambda = (M + C + 282.9372) % 360
+  const transit = n + 0.0053 * Math.sin(M * rad) - 0.0069 * Math.sin(2 * lambda * rad)
+  const dec = Math.asin(Math.sin(lambda * rad) * Math.sin(23.44 * rad))
+  const cosW = (Math.sin(-0.833 * rad) - Math.sin(lat * rad) * Math.sin(dec)) / (Math.cos(lat * rad) * Math.cos(dec))
+  const w0 = Math.acos(Math.min(1, Math.max(-1, cosW))) / rad / 360
+  const rise = J2000 + (transit - w0) * 864e5
+  const set = J2000 + (transit + w0) * 864e5
+  const t = now.getTime()
+  const min = 6e4
+  const light =
+    t >= rise - 30 * min && t < rise + 180 * min
+      ? 'morning'
+      : t >= rise + 180 * min && t < set - 90 * min
+        ? 'day'
+        : t >= set - 90 * min && t < set + 40 * min
+          ? 'evening'
+          : 'night'
   const w = window as Window & {
     __c1?: { arrival: object; chapter: string | null }
   }

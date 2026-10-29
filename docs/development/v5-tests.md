@@ -107,3 +107,76 @@ Abaixo do alvo de dia (3 : 1 letra grande, 4,5 : 1 o subtítulo), por causa do s
 - **Rede real 4G:** só simulada.
 - **O telemóvel quente.**
 - **O momento exato em que o vídeo começa a tocar na rede lenta:** o registo da sequência falhou nessas corridas; só se mediu o fim da descarga.
+
+---
+
+## M4 — a barra e o menu (29/10, em revisão do owner)
+
+Construído com os valores do storyboard e da página aprovada (`v5-handoff.md`, plano do M4). Ferramentas novas em
+`D:\STUDIO-tools\v5-m4\`: `bar.mjs` (capturas e estado da barra e do menu, 390/1440/320), `a11y.mjs` (teclado e
+movimento reduzido), `phone-bar.mjs [corridas] [css]` (Xiaomi: scroll da página inteira com um gesto real + menu a abrir e
+fechar 3 vezes).
+
+### Build
+typecheck, lint (0 avisos), build: **passam**.
+
+### PC
+- **Bateria do M3 (`pc.mjs`) com a barra nova:** 16 verificações, 0 problemas, 0 erros. A ordem do teclado no topo
+  continua *Skip to content › Talk to us › Menu › I Weddings › II Artists › III Experiences*: a ilha do nome está escondida
+  e fora do Tab no topo (#70).
+- **`bar.mjs`:** sem erros na consola.
+  - O nome aparece com o Work (*Chapter One | 01 Work*).
+  - Ilhas a 390: 44 px a 10 px do topo, nas margens de 24 px; a 320, margens de 16 px; a 1440, 48 px a 14 px.
+  - Lente ativa (Chromium).
+  - O menu abre, marca a secção atual, fecha com Esc e devolve o foco ao botão.
+- **`a11y.mjs`, com movimento normal e com movimento reduzido:**
+  - Enter abre o menu e o foco vai para *01 Work*.
+  - O Tab dá a volta dentro do menu: as cinco secções, os contactos, *Talk to us*, *Close menu* e outra vez *01 Work*. **Encontrado e corrigido:** antes o Tab saía do menu depois de *Telegram*.
+  - O resto da página fica `inert` com o menu aberto.
+  - Esc fecha e devolve o foco.
+  - Escolher *04 Questions* fecha o menu e vai para `#questions`.
+  - Com movimento reduzido, a gota só desvanece.
+- **Encontrado e corrigido:** o "01" da barra lia-se "OI", porque os algarismos do Cormorant são de estilo antigo; agora usa `lining-nums`.
+
+### Xiaomi (`phone-bar.mjs`)
+
+| Teste | Scroll da página inteira | Menu (3 aberturas por corrida) |
+|---|---|---|
+| Com a barra (3 corridas) | 82,7–84,2 fps, 12–14 frames > 25 ms | 1.ª abertura 78,5–87,6 fps (1–4 frames > 50 ms); as outras 88,9–89,5 fps, 1 frame > 25 ms |
+| **Sem a barra** (controlo, 2 corridas) | 82,9–83,6 fps, 13 frames > 25 ms | — |
+| Barra sem lente (2 corridas) | 83,6–84,1 fps, 13–14 frames > 25 ms | — |
+
+**A barra e a lente não custam nada mensurável:** os frames lentos do scroll são iguais sem a barra. Vêm da página
+provisória do M2, com fotografias grandes a carregar e a descodificar durante um scroll rápido; ficam para medir com as
+secções reais (M5–M7). A primeira abertura do menu tem um soluço, como no protótipo (#69).
+
+**Ecrã real** (`adb screencap`; o `Page.captureScreenshot` não mostra o `backdrop-filter`): as ilhas e o menu de vidro
+estão como no storyboard.
+
+### Não verificado
+- **iPhone / Safari:** lá o vidro fica sem lente; a declaração simples vem primeiro.
+- **O escuro das ilhas sobre secções claras (papel):** as secções reais ainda não existem (M5–M7); hoje mede-se sobre o vídeo da entrada (pelo poster, com a tinta) e sobre o carvão.
+- ***Hello, {name}.*:** só existe quando o Method (M6) guardar um nome.
+- **O fling com o dedo; Mi Browser e Firefox.**
+
+### Revisão do owner (29/10, tarde)
+- **Abertura do menu no desktop (`settle.mjs`, gravado frame a frame com o vídeo parado):**
+  - Gota maior que o ecrã: o vidro mudava até 18 níveis de cinzento por frame já depois de cobrir o ecrã, e as palavras davam um salto a 1,08 s.
+  - Com `will-change` e o raio exato até ao canto mais longe: 0 mudanças depois de assentar, e as palavras já não saltam.
+  - Revelação por `clip-path`, testada e posta de lado: o fundo ficava quieto, mas a abertura ia aos saltos (o desfoque é redesenhado a cada frame).
+- **Fluidez da abertura no desktop (`openfps.mjs`, ecrã 144 Hz, 5 aberturas):** 144 fps, p95 7,1 ms. A 1.ª abertura tem 2 frames lentos (≤ 55 ms).
+- **A luz do sol (`light.mjs`, relógio do navegador fixado, fuso de Lisboa):**
+
+  | Hora | Luz |
+  |---|---|
+  | 29/10 06:40 | manhã |
+  | 10:30 | dia |
+  | 16:00 | dia |
+  | 16:20 | fim de tarde |
+  | 18:15 | fim de tarde |
+  | 18:30 | noite |
+  | 21/6 21:00 (hora local) | fim de tarde |
+  | 21/6 22:30 (hora local) | noite |
+
+  As contas batem com as horas conhecidas de Lisboa: 21/6 06:12–21:05, 21/12 07:51–17:18.
+- **Bateria do PC (`pc.mjs`):** sem problemas.

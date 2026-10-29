@@ -5,8 +5,8 @@
 > #19–#56). As secções abaixo guardam o ponto de partida; onde divergirem, vale `storyboard.md`. Mantêm-se válidos
 > daqui: a ordem da página, a numeração, os componentes previstos (atualizados em baixo).
 
-*Uma só página, rota `/`. As rotas `/weddings`, `/artists`, `/experiences` (marcadores do M1) devem ser
-**removidas** na implementação — decisão #8. Texto: tudo em `content/v5.ts`; o que está marcado
+*Uma só página, rota `/`. As rotas `/weddings`, `/artists`, `/experiences` do M1 foram
+**removidas** a 29/10 (M2, README #74). Texto: tudo em `content/v5.ts`; o que está marcado
 **rascunho** precisa de aprovação do owner.*
 
 ---
@@ -184,4 +184,5 @@ depois do lançamento), em `<details>` nativo. A pergunta de serviços pode liga
 | `Method` (+ `MadeForYou`) | servidor + ilha | "Feito para quem chega"; lê o momento da chegada de `LocalMoment` |
 | `About` (+ ilha do retrato e do nome) · `QuestionList` (+ ilha "uma aberta") · `Contact` (+ vídeo) · `Colophon` | servidor | |
 | `LocalMoment` → também `ArrivalStore` | ilha | hora de chegada, faixa, nome, já cá esteve, capítulo escolhido (memória da página) |
-| `Picture`, `ColourReveal` | existentes (M1) | reutilizar |
+| `Picture` | reescrito no M2 (29/10) | `src/components/picture.tsx` |
+| `ColourReveal` | a escrever (M7) | o do M1 saiu com a limpeza |

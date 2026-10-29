@@ -31,3 +31,6 @@ next-env.d.ts
 /docs/design/v5/research/*.jpg
 /docs/design/v5/research/refs/
 /docs/design/v5/storyboards/img/
+
+# IDE files stay local.
+/.idea/

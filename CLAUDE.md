@@ -19,9 +19,9 @@ state by state with every approved line of copy, is **`docs/design/v5/storyboard
 3. `docs/design/v5/pages.md`, `interactions.md`, `assets.md`, `acceptance.md`, `roadmap.md`,
    `prompts.md` — working specification. `history.md` — rejected iterations; do not repeat them.
 4. `docs/design/v5/research/` — context and evidence only.
-5. Everything describing V1–V4 — `docs/design/v2/`, `docs/design/archive/`,
-   `docs/development/02-motion-system.md`, `03-choreography.md`, `SESSION-HANDOFF.md`, the October
-   audits, `prototypes/` — is **history**.
+5. V1–V4 are **not in this worktree** (removed 29 Oct 2026, owner): their documents, prototypes, code and
+   media live on branch `v4` (`D:\STUDIO`). The V5 holds only V5 decisions; anything wanted from the V4 is
+   brought over deliberately (copy or merge), checked, and recorded.
 
 ## What V5 is ("First Page", approved 24 Oct 2026)
 

@@ -1,36 +1,39 @@
-import { images, type ImageId } from '@/lib/images'
+import { media } from '@/lib/media'
 
 type Props = {
-  id: ImageId
-  /** The monochrome derived from the same colour frame (the studio's default state). */
-  mono?: boolean
+  /** Base path of the derivative, as in `content/v5.ts`. */
+  src: string
   alt: string
   sizes: string
+  /** The monochrome derived from the same colour frame. */
+  mono?: boolean
   priority?: boolean
   className?: string
 }
 
 /*
-  A static <picture>: AVIF first, JPEG fallback, pre-generated widths, explicit intrinsic size so the
-  layout never shifts. No runtime optimiser — the derivatives are already the right files.
+  A static <picture>: AVIF first, JPEG fallback, the pre-generated widths and the intrinsic size.
+  No runtime optimiser — the derivatives are already the right files.
 */
-export function Picture({ id, mono = false, alt, sizes, priority = false, className }: Props) {
-  const image = images[id]
-  const name = mono ? `${id}-mono` : id
-  const set = (ext: 'avif' | 'jpg') => image.widths.map((w) => `/media/v5/${name}-${w}.${ext} ${w}w`).join(', ')
+export function Picture({ src, alt, sizes, mono = false, priority = false, className }: Props) {
+  const image = media[src]
+  if (!image) throw new Error(`No derivatives listed for ${src} (src/lib/media.ts)`)
+  const base = mono ? `${src}-mono` : src
+  const set = (ext: 'avif' | 'jpg') => image.widths.map((w) => `${base}-${w}.${ext} ${w}w`).join(', ')
+  const fallback = image.widths[Math.min(1, image.widths.length - 1)]
 
   return (
     <picture className={className}>
       <source type="image/avif" srcSet={set('avif')} sizes={sizes} />
       <img
-        src={`/media/v5/${name}-960.jpg`}
+        src={`${base}-${fallback}.jpg`}
         srcSet={set('jpg')}
         sizes={sizes}
         width={image.width}
         height={image.height}
         alt={alt}
         loading={priority ? 'eager' : 'lazy'}
-        fetchPriority={priority ? 'high' : 'auto'}
+        fetchPriority={priority ? 'high' : undefined}
         decoding="async"
       />
     </picture>

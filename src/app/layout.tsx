@@ -1,44 +1,23 @@
+import type { CSSProperties, ReactNode } from 'react'
 import type { Metadata, Viewport } from 'next'
 import { studio } from '@content'
+import { tuningProperties } from '@content/tuning'
 import { fontClassName } from '@/fonts'
 import './globals.css'
 
-/*
-  The faces are set once here (`src/fonts`), chosen after the M1 comparison.
-
-  Absolute URLs for share cards: Vercel names the deployment; no domain has been decided. The icons
-  and the share image are files beside this one, which is how the framework finds them.
-*/
-const host = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL
-
 export const metadata: Metadata = {
-  metadataBase: new URL(host ? `https://${host}` : 'http://localhost:3100'),
   title: studio.name,
   description: studio.sentence,
-  alternates: { canonical: '/' },
-  openGraph: {
-    type: 'website',
-    url: '/',
-    siteName: studio.name,
-    title: studio.name,
-    description: studio.sentence,
-    locale: 'en',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: studio.name,
-    description: studio.sentence,
-  },
 }
 
 export const viewport: Viewport = {
+  themeColor: '#1E1D1A',
   colorScheme: 'dark',
-  themeColor: '#12100d',
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={fontClassName}>
+    <html lang="en" className={fontClassName} style={tuningProperties() as CSSProperties}>
       <body>{children}</body>
     </html>
   )

@@ -3,22 +3,35 @@
 *Ordem acordada a 24/10/2026. Cada marco termina com validação (`acceptance.md`) e revisão do owner.
 Sem commits/pushes/deploys sem pedido explícito.*
 
+## Como se constrói: por módulos (owner, 29/10 — README #75)
+
+Um módulo de cada vez, pela ordem da página; **o seguinte só começa quando o anterior está fechado**:
+
+1. Construir só esse módulo, sobre o esqueleto (o resto da página fica como está, legível).
+2. Validar por inteiro: typecheck, lint, build; os cinco viewports; teclado, reduced motion, sem JS
+   (`next start`); sem overflow; contraste; **medir no Xiaomi** (fps, p95, frames > 25 ms) e ver no PC numa
+   janela de Chrome visível.
+3. O owner vê e aprova (no PC e no Xiaomi).
+4. Commit próprio do módulo (só quando o owner pedir) e registo no handoff.
+
+A passagem que liga dois módulos pertence ao módulo que chega (o estado 2, entrada → Work, vai com o Work).
+
 ## M2 — Preparação (autorizado a 25/10)
 
 - [x] Perguntas ao owner; todo o percurso desenhado e aprovado (README #19–#56; `storyboard.md`).
-- [ ] **Organizar assets** em `media-src/` (`assets.md` §5; SHA-1; nunca mover; nada na V4).
-- [ ] **Derivados** de `assets.md` §7 (incluindo auras, estúdios, luz com furo, desfocados do menu, posters).
-- [ ] **Texto aprovado** para `content/v5.ts` (`storyboard.md` §Texto aprovado; *Talk to us* em vez de *Start a project*).
-- [ ] **Limpeza** do código da "secretária" e das rotas `/weddings|/artists|/experiences` — **mostrar a lista
-      exata ao owner antes de apagar**.
-- [ ] typecheck, lint, build.
+- [x] **Organizar assets** em `media-src/` (`assets.md` §5; SHA-1; nada na V4) — 29/10.
+- [x] **Derivados** da fotografia e do vídeo (posters, Work, Method, About, auras) — 29/10. Os fundos do estúdio,
+      a luz com furo e a sombra de ecrã fazem-se no M6; a imagem de partilha no M7.
+- [x] **Texto aprovado** em `content/v5.ts`, por secção; tempos em `content/tuning.ts` (#59) — 29/10. Alt text verificado contra
+      cada imagem (#75); *Skip to content* fica rascunho.
+- [x] **Limpeza** — lista mostrada e aprovada pelo owner; foi mais longe: a V5 refeita do zero (README #74), 29/10.
+- [x] typecheck, lint, build — 29/10.
 
 ## M3 — Entrada (E1–E4 e estado 1)
 
 - [ ] Vídeo + tinta da hora + véu SVG com CHAPTER ONE + entrar pelo **traço** do O + título/subtítulo + lâminas +
       dedicatória + *welcome back*; qualquer gesto completa; reduced motion / Save-Data / sem vídeo / sem JS.
 - [ ] **Medir no Xiaomi primeiro** (plano B: véu rasterizado).
-- [ ] Passagem **estado 2** (o vídeo torna-se o palco), medida no Xiaomi.
 
 ## M4 — Barra e menu
 
@@ -26,8 +39,8 @@ Sem commits/pushes/deploys sem pedido explícito.*
 
 ## M5 — Work (estados 3–6)
 
-- [ ] Palco preso, separadores, aura, camadas, rotação dos momentos, **nove demonstrações**, aterragem por capítulo.
-- [ ] Redigir as linhas descritivas das peças → aprovação (aberta #3).
+- [ ] Passagem **estado 2** (o vídeo da entrada torna-se o palco), medida no Xiaomi — veio do M3 (#75).
+- [ ] Palco preso, o título como navegação (#62), aura, camadas, rotação dos momentos, **nove demonstrações**, aterragem por capítulo.
 - [ ] Xiaomi: mudar de capítulo e de momento sem quebras.
 
 ## M6 — Method (estados 7–11)

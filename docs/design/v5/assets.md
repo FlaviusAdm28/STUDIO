@@ -102,9 +102,9 @@ Prompts usados/para regenerar: `prompts.md`. Referências de estilo: `research/r
 | Retrato do fundador (cor) | `media-src/helder-couto/HelderCoutoPhoto_124.jpg` (cópia M0) | **About** |
 | Fotografias M0 (cópias) | `media-src/helder-couto/` (14) | reserva; 024/157/300/302 a cores com P&B derivado já gerados |
 | Materiais do convite | `D:\INVITE\media\` (15) e cópias em `media-src/invite/` (main, 171, 335, 347) | reserva (as noites 335/347 podem servir de alternativa ao After) |
-| Placas IA antigas | `public/media/projects/*`, `public/media/studio/*`, cópias em `media-src/plates/` | **provavelmente fora** da nova direção (eram da "secretária") |
-| Vídeos `.mov` | `public/media/hero/video/` | fonte do vídeo da entrada; os `.mov` não se servem |
-| Derivados existentes | `public/media/v5/` (302, 157, main, 024, 335, 347, art, method, lamp) | gerados no M1; os não usados serão retirados na limpeza |
+| Placas IA antigas | cópias em `media-src/plates/` (as de `public/media/` saíram a 29/10) | **fora** da V5 (eram da "secretária") |
+| Vídeos `.mov` | `media-src/video/` (copiados a 29/10; o original fica na V4) | fonte do vídeo da entrada; os `.mov` não se servem |
+| Derivados | `public/media/v5/{entrance,work,method,about}/` | refeitos a 29/10 só com o que o desenho usa; os do M1 saíram |
 | Imagem de partilha | `src/app/opengraph-image.jpg` (V1–V4) | **substituir** por um fotograma da entrada + título |
 | Referências de estilo para IA | `research/refs/` (still do vídeo, 157, 024) | para o ChatGPT |
 
@@ -126,9 +126,21 @@ media-src/
   helder-couto/  invite/  plates/  ← cópias anteriores (M0/M1), ficam como reserva
 ```
 
-Depois, `scripts/images.mjs` passa a ler esta estrutura (entradas `dir`/`file` já suportadas) e escreve
-derivados em `public/media/v5/{entrance,work,about}/`. Registar a origem (caminho original + SHA-1) de
-cada cópia nesta secção quando for feita.
+**Feito a 29/10** (cópias, nunca movidos; SHA-1 completo verificado = original):
+
+| Cópia em `media-src/` | Original | SHA-1 (12) |
+|---|---|---|
+| `video/hero_demo4.mov` · `hero_demo2.mov` · `hero_demo3.mov` | `public/media/hero/video/` (antes de sair do ramo `v5`; = V4) | 63d648beb6a7 · 3435fcd96c23 · dfd2b3adc38e |
+| `weddings/HelderCoutoPhoto_002/154/343/299.jpg` | `D:\Pessoal\myairbridge-o0RmwZNCc5y\Solteiros\` | b2c31e066c7e · 80f5f4b55efd · 16ba040817ce · dd46b86be6b2 |
+| `artists/always.png` · `for-a-moment.png` · `on-record.png` | `D:\STUDIO\public\media
+ew\` (V4, só leitura) | bbcd785c8983 · 0873e1b1b23f · 2961c6faba2a |
+| `experiences/before.png` · `during.png` · `after.png` | idem | 392ec5b2bfd1 · 07fc6c294dc3 · 5eada5160653 |
+| `about/workspace.png` | idem (`Espaço de trabalho ao entardecer.png`) | 1f26bfc9351a |
+| `about/portrait-124.jpg` | `media-src/helder-couto/HelderCoutoPhoto_124.jpg` | 80a838fcc8d8 |
+
+`for-the-record.png` chama-se `on-record.png`, como o momento (*On record*). `scripts/images.mjs` lê esta estrutura
+e escreve em `public/media/v5/{entrance,work,method,about}/` (os ids estão no script). As pastas `helder-couto/`,
+`invite/` e `plates/` ficam como reserva; o site já não as usa.
 
 ---
 

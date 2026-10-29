@@ -1,6 +1,40 @@
 # Chapter One V5 — handoff
 
-## ▶ COMEÇAR AQUI · fim do dia 28 de outubro de 2026
+## ▶ COMEÇAR AQUI · 29 de outubro de 2026 — M2 feito e commitado
+
+**Fechado no fim de 29/10 (README #75):** alt text verificado contra cada imagem; Telegram `t.me/flavius28` aceite; aura
+P&B `#b8936a` e `on-record.png` aceites. **O site constrói-se por módulos** (entrada → barra e menu → Work → Method →
+About/Questions/Contact), cada um testado por inteiro, aprovado e commitado antes do seguinte — regras no topo do
+`roadmap.md`. O estado 2 (entrada → Work) passou para o módulo do Work.
+
+**Estado numa frase:** o **M2 está feito** e a V5 foi **refeita do zero, só com o que é da V5** (README **#74**, pedido do
+owner): saiu todo o código do M1 (a "secretária"), os protótipos, os media e os documentos V1–V4 — ficam no ramo `v4`.
+O trabalho de 26–28/10 foi commitado e enviado (`a854a64`); o M2 também (commit a seguir, 29/10). typecheck, lint e build
+passam; a página responde no `next start` (imagens e vídeo 200).
+
+**O que existe agora:**
+
+| O quê | Onde |
+|---|---|
+| Texto e fotografias, por secção | `content/v5.ts` (do *Texto aprovado* do `storyboard.md`; alt text e *Skip to content* = rascunho) |
+| Tempos e escalas (#59) | `content/tuning.ts` → variáveis CSS no `<html>` (`--moment-seconds: 4s`, …) |
+| Página | `src/app/page.tsx` — **esqueleto**: todas as palavras e fotografias, sem JavaScript, sem desenho ainda |
+| Base CSS | `src/app/globals.css` — só a paleta, o tipo e um documento legível |
+| Imagens | `src/components/picture.tsx` + `src/lib/media.ts` (larguras e tamanho de cada derivado) |
+| Derivados | `npm run images` → `public/media/v5/{entrance,work,method,about}/` (fontes e origens: `assets.md` §5) |
+
+**Por fazer nos seus marcos:** os fundos do estúdio, a luz com furo e a sombra de ecrã (M6); a imagem de partilha e o
+`ColourReveal` (M7); a aura quente das fotografias P&B tem um tom inicial (`#b8936a`) a afinar no Work (M5). O ano do
+colofão é o da build (estático) — passa a ser do visitante quando o Contact tiver o seu script (M7).
+
+**Não verificado no M2:** viewports, teclado e Xiaomi — o esqueleto ainda não tem desenho; começam no M3.
+
+**Próximo passo:** **M3 — a entrada**, medida no Xiaomi primeiro (`roadmap.md`, `acceptance.md`; risco: o véu ~120×,
+plano B véu rasterizado).
+
+---
+
+## Sessão de 28 de outubro de 2026 (onde contradiz a secção acima, vale a de cima)
 
 **Estado numa frase:** o desenho da V5 está **completo e aprovado até à README #73** — já não há decisões de desenho em
 aberto que bloqueiem; **o próximo passo é o M2**. A sessão de 28/10 foi de desenho e de testes no Xiaomi e no PC; do site

@@ -37,6 +37,8 @@ verificados e o que não foi verificado está dito.
 ## O que medir no Xiaomi, por ordem (25/10)
 
 1. **Entrada:** E2 (véu com letras sobre o vídeo) e E3 (escala ~60× do véu) — sem frames longos; plano B se falhar.
+   **Medido a 29/10 (M3):** 90,5 fps, p95 11,2 ms, 0 frames > 25 ms, 0 tarefas longas em todas as fases (Chrome do
+   Xiaomi, 5 + 3 corridas, `D:\STUDIO-tools\v5-m3\phone.mjs`).
 2. **Estado 2:** a moldura do vídeo a encolher até ao palco.
 3. **Work:** palco preso + troca de capítulo + rotação + uma demonstração ao mesmo tempo.
 4. **Method:** a cena presa inteira (estúdio, seis ecrãs, folhas a sair, um ecrã vivo); o teclado aberto no campo.

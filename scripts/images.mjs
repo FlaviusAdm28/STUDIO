@@ -45,7 +45,8 @@ const AURA_WARM = '#b8936a'
 
 /**
  * id → master, group and role. `widths` are the widths written (the AI masters are 1024 px wide, so
- * they stop there). `reveal`: colour master used for hold-to-colour. `aura`: adds the aura (and,
+ * they stop there). `reveal`: colour master used for hold-to-colour. `mono`: also writes the derived
+ * monochrome, with no reveal (the entrance's blades are B&W). `aura`: adds the aura (and,
  * for a reveal, the aura of its monochrome too). `warm`: the master is B&W; its aura is tinted.
  */
 const SOURCES = [
@@ -57,11 +58,11 @@ const SOURCES = [
   { id: 'weddings-day', group: 'work', file: 'weddings/HelderCoutoPhoto_154.jpg', widths: [640, 960, 1440], aura: true, warm: true },
   { id: 'weddings-after', group: 'work', file: 'weddings/HelderCoutoPhoto_343.jpg', widths: [640, 960, 1440], aura: true, warm: true },
   // Work — II Artists and III Experiences: AI images, in colour (assets.md §3; never presented as client work).
-  { id: 'artists-always', group: 'work', file: 'artists/always.png', widths: [640, 1024], aura: true },
+  { id: 'artists-always', group: 'work', file: 'artists/always.png', widths: [640, 1024], aura: true, mono: true },
   { id: 'artists-moment', group: 'work', file: 'artists/for-a-moment.png', widths: [640, 1024], aura: true },
   { id: 'artists-record', group: 'work', file: 'artists/on-record.png', widths: [640, 1024], aura: true },
   { id: 'experiences-before', group: 'work', file: 'experiences/before.png', widths: [640, 1024], aura: true },
-  { id: 'experiences-during', group: 'work', file: 'experiences/during.png', widths: [640, 1024], aura: true },
+  { id: 'experiences-during', group: 'work', file: 'experiences/during.png', widths: [640, 1024], aura: true, mono: true },
   { id: 'experiences-after', group: 'work', file: 'experiences/after.png', widths: [640, 1024], aura: true },
   // Method — the Wedding website screen (Solteiros 299, #49).
   { id: 'screen-wedding', group: 'method', file: 'weddings/HelderCoutoPhoto_299.jpg', widths: [640, 960] },
@@ -167,7 +168,7 @@ async function main() {
     console.log(`\n${source.id}  saturation ${sat.toFixed(3)}  ${source.reveal ? 'colour + derived mono' : 'as delivered'}`)
     for (const w of source.widths) {
       await write(input, w, base, false)
-      if (source.reveal) await write(input, w, `${base}-mono`, true)
+      if (source.reveal || source.mono) await write(input, w, `${base}-mono`, true)
     }
     if (source.aura) {
       await writeAura(input, base, { grade: false, warm: source.warm })

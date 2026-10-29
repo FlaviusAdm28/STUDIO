@@ -162,7 +162,7 @@ editar originais. O storyboard já os usa em versão pequena (`media-src/storybo
 | Sombra de ecrã (pequena, transparente) | Method | uma imagem |
 | **Luz com furo** (camada escura com um círculo de luz) | fim do Method, entrada do About | uma imagem por proporção |
 | ~~Imagens desfocadas para o menu~~ | — | **já não são precisas**: o vidro é ao vivo (`backdrop-filter`, README #69) |
-| Fonte Cormorant 500/600 (+1 ficheiro) | a letra-janela da entrada | avaliar o peso no protótipo |
+| Fonte Cormorant 700 (+1 ficheiro) | a letra-janela da entrada | **700** (README #78: o storyboard pede 600 a uma família carregada a 400/500 e o navegador desenha 500 engrossado, igual a um 700 real) |
 | Imagem de partilha (Open Graph) | | fotograma da entrada + título |
 
 ---

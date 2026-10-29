@@ -1,11 +1,11 @@
-import { about, contact, entrance, method, nav, questions, sections, studio, work } from '@content'
+import { about, contact, method, nav, questions, sections, work } from '@content'
+import { Entrance } from '@/components/entrance/entrance'
 import { Picture } from '@/components/picture'
 
 /*
   The one page, in reading order: Entrance → Work → Method → About → Questions → Contact.
-  This is the M2 skeleton — every approved word and photograph, readable with no JavaScript and no
-  design yet. Each section gets its scene in its milestone (roadmap.md M3–M7); the bar and the menu
-  are M4. Until then the header is the plain list of anchors the menu falls back to without script.
+  Built module by module (README #75): the entrance is M3; the sections after it are still the M2
+  skeleton — every approved word and photograph, readable with no JavaScript and no design yet.
 */
 export default function Home() {
   const year = new Date().getFullYear()
@@ -15,36 +15,15 @@ export default function Home() {
       <a className="skip-link" href="#main">
         {nav.skipToContent}
       </a>
+      {/* The bar and the menu are the next module (M4). Until then: the right side only — no name at the top
+          (README #70) — and Menu leads to the index in the colophon. */}
       <header className="site-header">
-        <a href="#top">{studio.name}</a>
-        <nav aria-label="Sections">
-          <ol>
-            {sections.map((s) => (
-              <li key={s.id}>
-                <a href={`#${s.id}`}>
-                  {s.number} {s.label}
-                </a>
-              </li>
-            ))}
-          </ol>
-        </nav>
         <a href={contact.message}>{contact.cta}</a>
+        <a href="#index">{nav.menu}</a>
       </header>
 
       <main id="main">
-        <section id="top" className="entrance" aria-labelledby="entrance-title">
-          <h1 id="entrance-title">{entrance.title}</h1>
-          <p>{entrance.subtitle}</p>
-          <ul className="blades">
-            {work.chapters.map((c) => (
-              <li key={c.id}>
-                <a href={`#${c.id}`}>
-                  {c.numeral} {c.word}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </section>
+        <Entrance />
 
         <section id="work" aria-labelledby="work-title">
           <h2 id="work-title">01 Work</h2>
@@ -116,6 +95,17 @@ export default function Home() {
 
       <footer className="colophon">
         <p>{contact.colophon.signature}</p>
+        <nav id="index" aria-label={contact.colophon.index}>
+          <ol>
+            {sections.map((s) => (
+              <li key={s.id}>
+                <a href={`#${s.id}`}>
+                  {s.number} {s.label}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
         <ul>
           {contact.channels.map((c) => (
             <li key={c.label}>

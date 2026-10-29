@@ -1,9 +1,64 @@
 # Chapter One V5 — handoff
 
-## ▶ COMEÇAR AQUI · 29 de outubro de 2026 — M2 feito e commitado
+## ▶ COMEÇAR AQUI · 29 de outubro de 2026 — M3 (a entrada) construído, à espera do owner
+
+**Estado:** o módulo da entrada está feito e testado no PC e no Xiaomi; **falta a aprovação do owner** e as abertas
+**#31** (tinta da hora), **#32** (contraste ao sol, agora sem véu), **#33** (janela do O), **#34** (lâminas ao
+passar/segurar, em experiência) e **#35** (escala no desktop, A vs `?escala=b`). **O M3 não está commitado.**
+
+- Código: `src/components/entrance/` — `entrance.tsx` (HTML = estado final; sem JS lê-se), `sequence.ts` (os dois
+  scripts embutidos: a porta no `<body>` e a sequência), `entrance.css`. A barra provisória (*Talk to us* · *Menu* →
+  índice no colofão) fica até ao M4. +1 ficheiro de fonte (Cormorant 600, a letra-janela). Lâminas com o P&B derivado
+  (`mono` em `scripts/images.mjs`).
+- **Xiaomi** (5 + 3 corridas): 90,5 fps, p95 11,2 ms, 0 frames > 25 ms em todas as fases; o vídeo certo (720×1280),
+  um pedido. **PC** (janela visível, 5 viewports): sequência certa, 0 erros, 0 sobreposições, sem overflow; reduced
+  motion (sem vídeo), sem JS, salto por tecla, ordem do teclado, *Welcome back* (> 30 min; refresh não), hash e refresh
+  a meio (sem sequência) — tudo passa.
+- **Bugs encontrados e corrigidos:** a hidratação do React refazia a página (o script escrevia em elementos do React);
+  no Android `document.fonts.load` falhava e a entrada ficava escura para sempre (agora nunca > 3 s); o título
+  sobrepunha-se ao subtítulo a 768×1024; o zoom era cortado no E4 e deixava uma faixa escura; o véu da dedicatória
+  via-se como uma oval no telemóvel; o zoom dava 48–58 fps no Xiaomi (resolvido com `will-change`).
+- **Revisão do owner (29/10), corrigido:** (1) refresh no topo não repetia a entrada — a ancoragem de scroll do Chrome
+  repunha a página 12 px abaixo (`overflow-anchor: none` na entrada) e, depois de uma lâmina, o `#capítulo` no endereço
+  saltava a entrada (agora sai do endereço ao voltar ao topo); (2) o véu atrás do título no telemóvel era uma mancha —
+  agora uma faixa a toda a largura, sem véu na dedicatória; (4) o zoom do browser não aumentava o texto (tudo em vw) —
+  cada tamanho tem agora uma parte em rem (iguais a 100 %), testado a 150 % e 200 %.
+- **Segunda revisão do owner (29/10), feito:** a entrada comparada com o storyboard e corrigida (README **#76**: E1 e
+  E2 com o seu tempo, sem o crescimento de 1,08, vídeo nas letras sem tinta, dedicatória a 38 % no telemóvel); **o véu
+  atrás das palavras saiu** (contraste em #32 — desce para ~2 : 1 de dia); **as bordas do O** ficam nítidas com uma
+  camada só para o O (#33; Xiaomi zoom 88 fps, 1 frame lento no arranque); **lâminas** em experiência (#34; no
+  telemóvel o menu do Android aparece ao segurar); **escala** A/B (#35); o nome das lâminas para leitores de ecrã era
+  "IIArtists" — agora "II Artists". PC: bateria toda a passar.
+- **Terceira revisão do owner (29/10), feito (README #77):** **regra — o storyboard manda; nada de documentos mais antigos
+  por cima dele.** Tinta nunca mais clara que a do storyboard (0,35 → 0,55) e a escurecer durante o zoom (não depois,
+  onde se via um filtro); escala B com o título um pouco maior (93 px a 1440×900), a A saiu; lâminas com movimento
+  aprovadas e fotografias enquadradas por lâmina (`entrance.blades[].frame`). Xiaomi ronda 8: zoom 86,3 fps, 1 frame
+  lento no arranque (já existia; não é da tinta). Contraste: título ~2,6 de dia (era ~2,0).
+- **Ferramentas:** `D:\STUDIO-tools\v5-m3\` — `pc.mjs <out>` (PC, janela visível), `phone.mjs [runs] [query] [css]`
+  (Xiaomi; `sum.mjs` resume), `contrast.mjs`, `nav.mjs`, `peek.mjs`. Xiaomi: `adb reverse tcp:3100`, `forward
+  tcp:9555`; capturas com `adb exec-out screencap` (no Git Bash: `MSYS_NO_PATHCONV=1`).
+- **Não verificado:** iPhone/Safari (o owner); Mi Browser e Firefox do Xiaomi; rede lenta real (4G); o telemóvel quente.
+
+- **Quarta revisão (29/10), feito (README #78):** letra 400 como no storyboard (era 300) e letras-janela 700; contorno
+  suave nas palavras; segurar uma lâmina sem o menu do Android; #32, #33, #34, #36 fechadas. Página de teste temporária
+  `?teste` (hora, subtítulo, contorno) — sai quando #31 e #37 estiverem decididas.
+
+- **Fotografias das lâminas numa rede lenta (29/10, Xiaomi, 4G lenta simulada 1,6 Mbit/s + 150 ms, sem cache, 3
+  corridas):** com `loading="lazy"` chegam a 1,2–2,1 s; forçadas a carregar logo, 1,2–2,2 s — igual, porque estão no
+  primeiro ecrã e o Chrome já as pede de início. O poster chega a ~0,85 s e o vídeo acaba de descarregar a ~8,1 s nas
+  duas. Fica `lazy`. (`D:\STUDIO-tools\v5-m3\net.mjs`)
+- **Fecho (29/10, README #79):** cores por hora aprovadas, contorno fica, subtítulo em Cormorant itálico; painel `?teste` retirado. **Sem decisões abertas no M3.**
+
+**Testes:** registados em `docs/development/v5-tests.md` (secção M3).
+
+**Próximo:** commit do M3 quando o owner pedir → **M4, a barra e o menu**.
+
+---
+
+## Sessão de 29 de outubro de 2026 — M2 feito e commitado
 
 **Fechado no fim de 29/10 (README #75):** alt text verificado contra cada imagem; Telegram `t.me/flavius28` aceite; aura
-P&B `#b8936a` e `on-record.png` aceites. **O site constrói-se por módulos** (entrada → barra e menu → Work → Method →
+P&B `#b8936a` aceite como ponto de partida (**não fechada**, ajusta-se se for preciso) e `on-record.png` aceite. **O site constrói-se por módulos** (entrada → barra e menu → Work → Method →
 About/Questions/Contact), cada um testado por inteiro, aprovado e commitado antes do seguinte — regras no topo do
 `roadmap.md`. O estado 2 (entrada → Work) passou para o módulo do Work.
 

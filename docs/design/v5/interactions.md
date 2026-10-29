@@ -89,14 +89,14 @@ Referência visual de todo o caminho Entrada → Work → Method: storyboard v3.
    estática; anima-se só com `transform`.
 4. **Dedicatória** e, no fim, **título**, **subtítulo**, **lâminas** e **Talk to us** (HTML normal).
 
-### Sequência (≈ 2,6 s; valores de partida a afinar no protótipo e no Xiaomi)
+### Sequência (≈ 3,2 s desde 29/10, README #76 — o storyboard prevalece; valores de partida a afinar no protótipo e no Xiaomi)
 
 | t | Acontece |
 |---|---|
-| 0 | Ecrã carvão; dedicatória entra (opacidade, 600 ms). O véu cobre tudo; o vídeo (ou o poster) já está por trás |
-| 0,3–1,2 s | As letras abrem-se: o véu passa de `scale(1.08)` + opacidade 0 → `scale(1)` + 1 — o vídeo aparece dentro das letras |
-| 1,4–2,6 s | **Entrar pelo O**: o véu escala **a partir do traço esquerdo do O** (`transform-origin` no traço; `scale(1)` → `scale(~60)`) até a letra cobrir o ecrã; no fim, opacidade 0 e `display:none`. **Corrigido a 25/10:** escalar pelo *centro* do O enche o ecrã com o miolo da letra, que é véu (escuro); a janela é o traço. **E o que escala é o véu, nunca o vídeo**: o vídeo fica parado (com um ligeiro avanço de 1,14 → 1) e a janela aproxima-se — é isso que se lê como câmara (README #58). Letra-janela num peso mais forte de Cormorant (500/600) |
-| 2,2–3,0 s | O título **reaparece centrado, mais pequeno, em letra sólida** sobre o vídeo, com o subtítulo *Digital experiences built for moments worth remembering.* (opacidade + 12 px); **três lâminas** entram em profundidade (translate + leve rotação, desfasadas 120 ms); a **navegação** e o **Talk to us** aparecem com este estado |
+| 0–0,7 s | **E1** — ecrã carvão; só a dedicatória (opacidade, 600 ms), logo acima de onde vai o título (34 %; telemóvel 38 %). O véu cobre tudo; o vídeo (ou o poster) já toca por trás, **sem a tinta** |
+| 0,7–2,0 s | **E2** — as letras abrem-se **só por opacidade** (1,1 s, como no storyboard) e ficam um instante paradas: o vídeo vê-se dentro das letras. *(Antes: `scale(1.08)` → 1 desde 0,3 s — substituído a 29/10, README #76: o storyboard não o faz)* |
+| 2,0–3,2 s | **Entrar pelo O**: o véu escala **a partir do traço esquerdo do O** (`transform-origin` no traço; `scale(1)` → `scale(~60)`) até a letra cobrir o ecrã; no fim, opacidade 0 e `display:none`. **Corrigido a 25/10:** escalar pelo *centro* do O enche o ecrã com o miolo da letra, que é véu (escuro); a janela é o traço. **E o que escala é o véu, nunca o vídeo**: o vídeo fica parado (com um ligeiro avanço de 1,14 → 1) e a janela aproxima-se — é isso que se lê como câmara (README #58). Letra-janela num peso mais forte de Cormorant (500/600) |
+| 3,2–4,2 s | **E4** — a tinta da hora já entrou (escurece durante o zoom, 2,0–3,9 s; README #77: no storyboard entra aqui, 1 s depois de 0,4 s, mas no vídeo real via-se um filtro a cair); o título **reaparece centrado, mais pequeno, em letra sólida** sobre o vídeo, com o subtítulo *Digital experiences built for moments worth remembering.* (opacidade + 12 px); **três lâminas** entram em profundidade (translate + leve rotação, desfasadas 120 ms); a **navegação** e o **Talk to us** aparecem com este estado |
 
 - **Qualquer gesto** (scroll, toque, tecla, clique) → salta para o estado final de imediato.
 - **Reduced motion / Save-Data / vídeo falhou** → estado final com o poster (imagem fixa); sem véu.
@@ -105,6 +105,17 @@ Referência visual de todo o caminho Entrada → Work → Method: storyboard v3.
   **o E4 é o topo da página** (README #66).
 - **Risco a medir primeiro**: o custo de escalar um SVG grande com máscara no Xiaomi. Plano B se houver
   quebra de frames: rasterizar o véu (PNG/AVIF com transparência, 2 tamanhos) e escalar a imagem.
+- **Como ficou no M3 (29/10, medido):** a sequência corre num script embutido logo a seguir ao HTML da entrada, antes
+  da hidratação do React (nunca um ecrã escuro à espera da framework); o estado vive em `<html data-entrance>`
+  (`e0`–`e4`, `skip`). Tudo o que o script escreve vai para o `<html>`: escrever em elementos do React antes da
+  hidratação fazia-o refazer a página (erro #418). O véu leva `will-change: transform` durante a sequência — desenhado
+  uma vez e ampliado pela GPU: sem isso o Xiaomi fazia 58 fps no zoom e 48 no final; com isso 90,5 fps e 0 frames
+  lentos. Escala **160** (a 120 ficava uma faixa escura no desktop). A fonte da letra-janela espera no máximo 1,5 s e
+  a sequência nunca deixa o ecrã escuro mais de 3 s (no Android a fonte de recurso do Next fazia `document.fonts.load`
+  falhar). Tempos em `content/tuning.ts`. **Revisto a 29/10 (README #76):** os tempos e o E2 seguem o storyboard; a tinta
+  só entra no E4; sem véu por trás das palavras (#32); **o O tem uma camada própria** (`.e-o`, pequena, que a GPU desenha
+  mais fina) para as bordas não ficarem em degraus, e o véu e essa camada crescem dentro de um só elemento (`.e-zoom`)
+  para nunca se separarem (#33).
 
 ### Lâminas (a ideia C, no fim da entrada)
 

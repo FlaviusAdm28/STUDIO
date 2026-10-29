@@ -93,6 +93,8 @@ state by state with every approved line of copy, is **`docs/design/v5/storyboard
 - No horizontal overflow; text readable at real size; contrast computed.
 - The Xiaomi Mi 11 Lite (ADB serial `c3e8fb35`) for anything touching motion, images, layout or client code.
 - State what was not verified and why (iOS Safari cannot be tested from this environment).
+- **Record the tests** in `docs/development/v5-tests.md` (one section per module: what, how, numbers, not verified)
+  before a module is committed (owner, 29 Oct 2026).
 
 ## Commands
 

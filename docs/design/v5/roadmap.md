@@ -29,9 +29,11 @@ A passagem que liga dois módulos pertence ao módulo que chega (o estado 2, ent
 
 ## M3 — Entrada (E1–E4 e estado 1)
 
-- [ ] Vídeo + tinta da hora + véu SVG com CHAPTER ONE + entrar pelo **traço** do O + título/subtítulo + lâminas +
-      dedicatória + *welcome back*; qualquer gesto completa; reduced motion / Save-Data / sem vídeo / sem JS.
-- [ ] **Medir no Xiaomi primeiro** (plano B: véu rasterizado).
+- [x] Vídeo + tinta da hora + véu SVG com CHAPTER ONE + entrar pelo **traço** do O + título/subtítulo + lâminas +
+      dedicatória + *welcome back*; qualquer gesto completa; reduced motion / Save-Data / sem vídeo / sem JS — 29/10.
+- [x] **Medido no Xiaomi** — 90,5 fps, p95 11,2 ms, 0 frames > 25 ms em todas as fases (5 corridas), com o véu
+      rasterizado pela GPU (`will-change`; sem ele 48–58 fps). O plano B (imagem) não foi preciso.
+- [ ] **Aprovação do owner** no PC e no Xiaomi; abertas #31 (tinta), #32 (contraste), #33 (janela do O).
 
 ## M4 — Barra e menu
 

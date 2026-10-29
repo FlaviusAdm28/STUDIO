@@ -55,7 +55,7 @@ h2,
 h3,
 h4 {
   font-family: var(--serif);
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1.1;
   margin: 0 0 0.5em;
 }
@@ -90,21 +90,31 @@ a {
 }
 
 .site-header,
-main > section,
+main > section:not(.entrance),
 .colophon {
   padding-inline: var(--gutter);
 }
 
+/* Until the bar (M4): the right side, over the entrance. */
 .site-header {
+  overflow-anchor: none;
+  position: absolute;
+  z-index: 20;
+  top: 0;
+  right: 0;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px 24px;
-  align-items: baseline;
-  padding-block: 16px;
+  gap: 24px;
+  padding-block: 18px;
+  font-size: 0.8125rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
-.site-header ol,
-.blades,
+.site-header a {
+  text-decoration: none;
+}
+
+.colophon ol,
 .colophon ul {
   display: flex;
   flex-wrap: wrap;
@@ -114,16 +124,11 @@ main > section,
   list-style: none;
 }
 
-main > section {
+main > section:not(.entrance) {
   padding-block: 64px;
 }
 
-.entrance h1 {
-  font-size: clamp(2.5rem, 9vw, 7rem);
-  letter-spacing: 0.04em;
-}
-
-main picture {
+main section:not(.entrance) picture {
   max-width: 420px;
   margin-block: 16px;
 }

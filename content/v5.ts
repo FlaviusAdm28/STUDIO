@@ -33,6 +33,32 @@ export const entrance = {
   welcomeBack: 'Welcome back',
   title: 'CHAPTER ONE',
   subtitle: 'Digital experiences built for moments worth remembering.',
+  /**
+   * The three blades (E4): each chapter's photograph in B&W; decorative — the link reads the chapter's name.
+   * `frame` places the subject in the oblique shape (owner, 29 Oct: "melhor centradas"): `y` the height shown on the
+   * desktop and `yTall` in the phone's thin band (object-position), `zoom` and `shift` bring a subject off to one side
+   * toward the middle (|shift| ≤ (zoom − 1) / 2, or the photograph's edge shows).
+   */
+  blades: [
+    {
+      chapter: 'weddings',
+      image: '/media/v5/work/weddings-before',
+      mono: false,
+      frame: { y: '85%', yTall: '66%', zoom: 1, shift: '0%' },
+    },
+    {
+      chapter: 'artists',
+      image: '/media/v5/work/artists-always',
+      mono: true,
+      frame: { y: '50%', yTall: '40%', zoom: 1.3, shift: '-15%' },
+    },
+    {
+      chapter: 'experiences',
+      image: '/media/v5/work/experiences-during',
+      mono: true,
+      frame: { y: '35%', yTall: '42%', zoom: 1, shift: '0%' },
+    },
+  ],
   video: {
     wide: '/media/v5/entrance/hero-1920.mp4',
     tall: '/media/v5/entrance/hero-720x1280.mp4',

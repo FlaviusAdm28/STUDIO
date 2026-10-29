@@ -1,0 +1,504 @@
+/*
+  The entrance. The rules without a [data-entrance] state are the final state (E4) — what the page shows
+  with no JavaScript, after the sequence, and after a skip. The sequence's states only change transform and
+  opacity (the veil, the cover, the film, the words); positions come from the approved storyboard frames
+  (16:10 desktop, 9:19.5 phone, in % of the screen and vw), the phone layout being the portrait screen.
+*/
+
+.entrance {
+  position: relative;
+  /* Not a scroll anchor: on a reload Chrome restored the page 12 px down — the anchor was a word still lifted by the
+     sequence's translateY — and that scroll read as a gesture and skipped the entrance (29 Oct). */
+  overflow-anchor: none;
+  height: 100svh;
+  min-height: 460px;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--charcoal);
+  color: var(--linen);
+}
+
+/* ---- the film: poster at once, the video over it once it plays; the tint of the hour ---- */
+.e-film {
+  position: absolute;
+  inset: 0;
+  transition: transform var(--entrance-dolly-seconds) cubic-bezier(0.3, 0, 0.2, 1);
+}
+
+.e-film picture,
+.e-film img,
+.e-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+}
+
+.e-video {
+  opacity: 0;
+  transition: opacity 0.6s;
+}
+
+:root[data-film='playing'] .e-video {
+  opacity: 1;
+}
+
+.e-tint {
+  position: absolute;
+  inset: 0;
+  --tint-top: rgba(20, 24, 40, 0.35); /* the storyboard's tint, until the visitor's hour is known */
+  background: linear-gradient(180deg, var(--tint-top), var(--tint-floor));
+}
+
+:root[data-light='morning'] .e-tint {
+  --tint-top: var(--tint-morning);
+}
+:root[data-light='day'] .e-tint {
+  --tint-top: var(--tint-day);
+}
+:root[data-light='evening'] .e-tint {
+  --tint-top: var(--tint-evening);
+}
+:root[data-light='night'] .e-tint {
+  --tint-top: var(--tint-night);
+}
+
+/* ---- the veil (CHAPTER ONE cut out of charcoal) and the cover: only while the sequence runs ---- */
+.e-zoom,
+.e-veil,
+.e-cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.e-zoom,
+.e-cover {
+  display: none;
+}
+
+/* The veil and the O's layer move as one: the transform is on their parent. Each with its own transform, on the
+   Xiaomi the O's layer started a frame or two after the veil and the letters near it broke apart (29 Oct). */
+.e-zoom {
+  z-index: 2;
+  transform-origin: var(--e-origin, 50% 50%); /* the O's stroke, measured by sequence.ts */
+}
+
+/* The O's window, drawn again in a layer the size of its box (sequence.ts): the GPU draws a small layer finer, so
+   the O keeps a clean edge as it grows. */
+.e-o {
+  position: absolute;
+  left: var(--e-o-x);
+  top: var(--e-o-y);
+  width: var(--e-o-w);
+  height: var(--e-o-h);
+}
+
+.e-o svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* the veil's hole under that layer, 4 px inside its box */
+.e-o-hole {
+  x: calc(var(--e-o-x, 0px) + 4px);
+  y: calc(var(--e-o-y, 0px) + 4px);
+  width: max(0px, calc(var(--e-o-w, 0px) - 8px));
+  height: max(0px, calc(var(--e-o-h, 0px) - 8px));
+}
+
+:is(.e-veil, .e-o) text {
+  font-family: var(--font-window), serif;
+  font-weight: 700; /* the storyboard's letters as drawn: see src/fonts */
+  letter-spacing: 0.04em;
+}
+
+/* storyboard: 176 / 1600 of the desktop frame; 160 / 900 on the phone, two lines */
+:is(.e-veil, .e-o) .wide {
+  font-size: 11vw;
+}
+
+:is(.e-veil, .e-o) .tall {
+  display: none;
+  font-size: 17.78vw;
+}
+
+.e-cover {
+  z-index: 3;
+  background: var(--charcoal);
+}
+
+/* ---- the words ----
+   Every size has a part in rem: browser zoom does not change vw, so sizes in vw alone never grew with it (owner,
+   29 Oct: zooming only changed the menu; WCAG 1.4.4). At 100 % each calc equals the storyboard's vw size within ~1 px
+   at 1440 and 1920 wide (title 7.4vw → 6.4vw + 1rem). */
+.e-ded {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  right: 0;
+  top: 13%;
+  margin: 0;
+  text-align: center;
+  font: italic 400 calc(1.2vw + 0.6rem)/1.2 var(--serif);
+  opacity: 0.85;
+}
+
+.e-ded:empty {
+  display: none;
+}
+
+/* No local veil behind the words: the storyboard has none and the owner removed it (29 Oct). Each letter carries a
+   soft dark halo instead, hugging its own shape so it is not seen as a shape (owner: "um contorno… quase
+   impercetível"; README #32). A shadow on still text: painted once, nothing per frame. */
+:is(.e-title, .e-sub, .e-ded) {
+  text-shadow:
+    0 0 0.08em rgba(20, 18, 15, 0.35),
+    0 0 0.6em rgba(20, 18, 15, 0.3);
+}
+
+.e-final {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+}
+
+/* the title and the subtitle are one block in flow: the storyboard's gap (2 vw desktop, 7.4 vw phone) holds
+   on every screen shape — fixed % tops overlapped at 768×1024 (29 Oct) */
+.e-head {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 30%;
+  text-align: center;
+}
+
+.e-title {
+  margin: 0;
+  /* B (owner, 29 Oct, of A/B: "gosto da B… chapter 1 ligeiramente maior"): on a wide screen the title follows the
+     height too, so it never outgrows the frame (A, 6.4vw + 1rem, was 108 px at 1440×900, 139 at 1920×970) */
+  font-size: calc(min(5.6vw, 9svh) + 0.8rem);
+  letter-spacing: 0.16em;
+  line-height: 1;
+}
+
+/* Cormorant italic, like the dedication (owner, 29 Oct, of A/B: "prefiro B"; the storyboard set it in the grotesk) */
+.e-sub {
+  margin: calc(min(1.1vw, 1.8svh) + 0.45rem) 0 0;
+  font: italic 400 calc(min(1.15vw, 1.9svh) + 0.62rem) / 1.3 var(--serif);
+  letter-spacing: 0.02em;
+  opacity: 0.9;
+}
+
+/* ---- the blades: three oblique links, each with its chapter's photograph in B&W ---- */
+.e-blades {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.e-blade {
+  position: absolute;
+  top: 62%;
+  /* the storyboard's blade shape (aspect-ratio) at any screen height; 25 % of the height made them squat and large */
+  width: 18%;
+  aspect-ratio: 1.41;
+  /* depth with a fine pointer (sequence.ts): the nearer blade moves a little more, at most 10 px */
+  translate: calc(var(--px, 0) * (6px + var(--i) * 2px)) calc(var(--py, 0) * (4px + var(--i) * 1px));
+  transition: translate 0.6s var(--ease);
+}
+
+.e-blade:nth-child(1) {
+  left: 20%;
+}
+.e-blade:nth-child(2) {
+  left: 41%;
+}
+.e-blade:nth-child(3) {
+  left: 62%;
+}
+
+.e-blade a {
+  position: absolute;
+  inset: 0;
+  color: inherit;
+  text-decoration: none;
+  /* a held finger: no link callout on iOS, no text selection (sequence.ts holds the movement and blocks Android's menu; README #34) */
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+.e-blade-shape {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  clip-path: polygon(14% 0, 100% 0, 86% 100%, 0 100%);
+}
+
+.e-blade-shape picture,
+.e-blade-shape img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  object-fit: cover;
+}
+
+/* each photograph's subject placed in the shape: content/v5.ts, entrance.blades[].frame */
+.e-blade-shape img {
+  object-position: 50% var(--fy, 50%);
+  transform: translate3d(var(--fx, 0%), 0, 0) scale(var(--fz, 1));
+}
+
+.e-blade-shape::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* the names sit on the photographs' light skies: 0.7 measured 2.3 : 1 on the phone (29 Oct) */
+  background: linear-gradient(transparent 20%, rgba(15, 14, 12, 0.88));
+}
+
+.e-blade-name {
+  position: absolute;
+  left: 18%;
+  bottom: 10%;
+  font: 400 calc(min(1.1vw, 1.8svh) + 0.6rem)/1 var(--serif);
+}
+
+.e-blade-name i {
+  font-size: 0.7em;
+  opacity: 0.8;
+  margin-right: 0.15em; /* plus the space that keeps "II Artists" two words for a screen reader */
+}
+
+/* Approved (owner, 29 Oct, README #77; the long press on Android is #34): a blade answers the pointer, the keyboard and a finger held on it — the
+   photograph drifts slowly inside the shape, the shade lifts a little, the name steps forward. No colour: the
+   Weddings frame is the photographer's own B&W, with no colour of the same frame (CLAUDE.md: one photograph).
+   Transform and opacity only. */
+.e-blade-shape img {
+  transition: transform 1.6s var(--ease);
+}
+
+.e-blade-shape::after,
+.e-blade-name {
+  transition:
+    opacity 0.6s var(--ease),
+    transform 0.6s var(--ease);
+}
+
+.e-blade a:is(:focus-visible, :active) img,
+:root[data-held='0'] .e-blade:nth-child(1) img,
+:root[data-held='1'] .e-blade:nth-child(2) img,
+:root[data-held='2'] .e-blade:nth-child(3) img {
+  transform: translate3d(calc(var(--fx, 0%) - 2.5%), 0, 0) scale(calc(var(--fz, 1) * 1.08));
+}
+
+.e-blade a:is(:focus-visible, :active) .e-blade-shape::after,
+:root[data-held='0'] .e-blade:nth-child(1) .e-blade-shape::after,
+:root[data-held='1'] .e-blade:nth-child(2) .e-blade-shape::after,
+:root[data-held='2'] .e-blade:nth-child(3) .e-blade-shape::after {
+  opacity: 0.8;
+}
+
+.e-blade a:is(:focus-visible, :active) .e-blade-name,
+:root[data-held='0'] .e-blade:nth-child(1) .e-blade-name,
+:root[data-held='1'] .e-blade:nth-child(2) .e-blade-name,
+:root[data-held='2'] .e-blade:nth-child(3) .e-blade-name {
+  transform: translate3d(0.35em, 0, 0);
+}
+
+@media (hover: hover) {
+  .e-blade a:hover img {
+    transform: translate3d(calc(var(--fx, 0%) - 2.5%), 0, 0) scale(calc(var(--fz, 1) * 1.08));
+  }
+
+  .e-blade a:hover .e-blade-shape::after {
+    opacity: 0.8;
+  }
+
+  .e-blade a:hover .e-blade-name {
+    transform: translate3d(0.35em, 0, 0);
+  }
+}
+
+/* ---- the phone: the portrait screen. Sizes are the storyboard's phone frame (9 : 19.5) in vw; on a portrait
+   screen wider than a phone (a tablet) they follow the height instead — 1 vw of a 390×844 phone = 0.462 svh —
+   so the proportions hold ---- */
+@media (orientation: portrait) {
+  :is(.e-veil, .e-o) .wide {
+    display: none;
+  }
+  :is(.e-veil, .e-o) .tall {
+    display: inline;
+  }
+
+  .e-ded {
+    top: 9%;
+    font-size: calc(min(4.2vw, 1.94svh) + 0.3rem);
+  }
+
+  .e-head {
+    top: 22%;
+    left: 10%;
+    right: 10%;
+  }
+
+  .e-title {
+    font-size: calc(min(10.5vw, 4.85svh) + 0.6rem);
+    line-height: 1.05;
+  }
+
+  .e-title span {
+    display: block;
+  }
+
+  .e-sub {
+    margin-top: calc(min(6vw, 2.77svh) + 0.35rem);
+    font-size: calc(min(4.4vw, 2.03svh) + 0.3rem);
+  }
+
+  .e-blade {
+    left: 8% !important;
+    width: 84%;
+    height: 11%;
+  }
+
+  .e-blade-shape img {
+    object-position: 50% var(--fy-tall, 50%);
+  }
+
+  .e-blade:nth-child(1) {
+    top: 54%;
+  }
+  .e-blade:nth-child(2) {
+    top: 67%;
+  }
+  .e-blade:nth-child(3) {
+    top: 80%;
+  }
+
+  .e-blade-shape {
+    clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%);
+  }
+
+  .e-blade-name {
+    left: 10%;
+    font-size: calc(min(5vw, 2.31svh) + 0.35rem);
+  }
+}
+
+/* ================= the sequence (sequence.ts writes the state on <html>) ================= */
+
+:root:is([data-entrance='e0'], [data-entrance='e1'], [data-entrance='e2'], [data-entrance='e3'], [data-entrance='e4'])
+  :is(.e-zoom, .e-cover) {
+  display: block;
+}
+
+/* The veil is drawn once, at 1×, and the GPU scales it. Without this Chrome re-rasterises the masked SVG as the
+   scale grows: measured on the Xiaomi (29 Oct, 3 runs each) the zoom ran at 58 fps and the final phase at 48 fps
+   (p95 55 ms, 4–7 frames > 50 ms); with it, 90.4 fps, p95 11.2 ms, 0 frames > 25 ms in every phase. The cost: the
+   O's edges stepped as it grew (a 1× drawing ×160): .e-o draws the O finer, in a layer of its own (its own
+   will-change). Only while the sequence runs. */
+:root:is([data-entrance='e0'], [data-entrance='e1'], [data-entrance='e2'], [data-entrance='e3'], [data-entrance='e4'])
+  :is(.e-zoom, .e-o) {
+  will-change: transform;
+}
+
+/* E1 — dark; only the dedication, just above where the title will be. The film plays behind, already moving
+   (storyboard), and without the tint: the letters show it at full light. */
+:root:is([data-entrance='e0'], [data-entrance='e1'], [data-entrance='e2']) .e-film {
+  transform: scale(var(--entrance-dolly-scale));
+}
+
+:root:is([data-entrance='e0'], [data-entrance='e1'], [data-entrance='e2']) .e-tint {
+  opacity: 0;
+}
+
+:root:is([data-entrance='e3'], [data-entrance='e4']) .e-tint {
+  /* The tint darkens while the camera goes through the O, over the whole zoom, so it is never seen arriving on its
+     own. The storyboard brings it with E4 (1 s after a 0.4 s pause); on the real film that read as a filter laid over
+     the video once it was still (owner, 29 Oct: "não deve ser notável"). The film's sun is dimmed during the zoom too. */
+  transition: opacity var(--entrance-zoom-seconds) cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+:root:is([data-entrance='e0'], [data-entrance='e1'], [data-entrance='e2'], [data-entrance='e3']) .e-ded {
+  top: 34%;
+}
+
+@media (orientation: portrait) {
+  :root:is([data-entrance='e0'], [data-entrance='e1'], [data-entrance='e2'], [data-entrance='e3']) .e-ded {
+    top: 38%;
+  }
+}
+
+:root[data-entrance='e0'] .e-ded {
+  opacity: 0;
+}
+
+:root:is([data-entrance='e1'], [data-entrance='e2']) .e-ded {
+  transition: opacity 0.6s var(--ease);
+}
+
+/* E2 — the letters open: only the cover fades, the veil stays still (storyboard; the older interactions.md table
+   also grew the veil from 1.08, which the storyboard does not do); the film is seen inside CHAPTER ONE */
+:root:is([data-entrance='e2'], [data-entrance='e3'], [data-entrance='e4']) .e-cover {
+  opacity: 0;
+  transition: opacity var(--entrance-letters-seconds) var(--ease);
+}
+
+/* E3 — the camera enters through the O: the veil grows from the stroke; the film eases in */
+:root[data-entrance='e3'] .e-zoom {
+  transform: scale(var(--entrance-zoom-scale));
+  transition: transform var(--entrance-zoom-seconds) var(--entrance-zoom-ease);
+}
+
+:root[data-entrance='e3'] .e-ded {
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+/* E4 — the final state arrives: the zoom finishes (its transition is kept, or it would jump to the end) while
+   the veil fades away; the words come in */
+:root[data-entrance='e4'] .e-zoom {
+  transform: scale(var(--entrance-zoom-scale));
+  opacity: 0;
+  transition:
+    transform var(--entrance-zoom-seconds) var(--entrance-zoom-ease),
+    opacity 0.8s;
+}
+
+:root[data-entrance='e4'] .e-ded {
+  transition: opacity 1s 0.5s;
+}
+
+:root:is([data-entrance='e0'], [data-entrance='e1'], [data-entrance='e2'], [data-entrance='e3'])
+  :is(.e-head, .site-header) {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+:root[data-entrance='e4'] :is(.e-head, .site-header) {
+  transition:
+    opacity 0.8s var(--ease),
+    transform 0.8s var(--ease);
+}
+
+:root:is([data-entrance='e0'], [data-entrance='e1'], [data-entrance='e2'], [data-entrance='e3']) .e-blade a {
+  opacity: 0;
+  transform: translate3d(0, 18%, 0) rotate(-2deg) scale(0.96);
+}
+
+:root[data-entrance='e4'] .e-blade a {
+  transition:
+    opacity 0.9s var(--ease) calc(0.2s + var(--i) * var(--entrance-blade-stagger-seconds)),
+    transform 0.9s var(--ease) calc(0.2s + var(--i) * var(--entrance-blade-stagger-seconds));
+}
+
+/* a skip: the final state at once */
+:root[data-entrance='skip'] :is(.entrance, .entrance *, .site-header) {
+  transition: none !important;
+}

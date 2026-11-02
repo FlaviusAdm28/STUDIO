@@ -20,7 +20,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     // The entrance's gate writes data-entrance on <html> before the first paint: not React's to reconcile.
     <html lang="en" className={fontClassName} style={tuningProperties() as CSSProperties} suppressHydrationWarning>
-      <body>
+      <body suppressHydrationWarning>
         <script dangerouslySetInnerHTML={{ __html: `(${entranceGate.toString()})()` }} />
         {children}
       </body>

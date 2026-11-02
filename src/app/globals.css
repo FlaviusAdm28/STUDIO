@@ -14,7 +14,17 @@
   --sans: var(--font-text), system-ui, sans-serif;
 
   --gutter: 24px;
+  --screen: 100lvh; /* the height of a held scene and the unit of the scroll's tracks */
+  --room: calc(var(--screen) - 100svh); /* what the browser's bars may cover: scenes run under it, words stay out */
   color-scheme: dark;
+}
+
+/* iOS: Safari's bar floats over the page, and page content in flow runs on under it to the screen's foot. A sticky box stops where it ends
+   (stripes test, iPhone, 1 Nov). So held scenes are taller than the largest viewport: 874 px of screen, 754 of it viewport. */
+@supports (-webkit-touch-callout: none) {
+  :root {
+    --screen: calc(100lvh + 130px);
+  }
 }
 
 @media (max-width: 379px) {
@@ -38,8 +48,11 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  background: var(--charcoal);
 }
 
+/* html and body in one colour: Safari fills its status area from them. Body left charcoal, that area stayed charcoal over the hour's colour
+   and the bar came out half way between the two (iPhone, 1 Nov). With both equal the whole screen is one colour (calibration page). */
 body {
   margin: 0;
   background: var(--charcoal);
@@ -108,7 +121,8 @@ main > section:not(.entrance) {
   padding-block: 64px;
 }
 
-main section:not(.entrance) picture {
+/* the sections not built yet (M6, M7): a plain size; the built ones size their own photographs */
+main section:not(.entrance, .work) picture {
   max-width: 420px;
   margin-block: 16px;
 }

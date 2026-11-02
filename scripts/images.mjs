@@ -26,6 +26,21 @@ const SRC = path.join(root, 'media-src')
 
 const AVIF = { quality: 50, effort: 6 }
 const JPEG = { quality: 80, progressive: true, mozjpeg: true }
+// The photographer's own photographs (`fine`): at quality 50 the AVIF wiped their grain, the sky went flat and the cloth
+// plastic (owner, 30 Oct: "fotos reais de boa qualidade"; before-1440: 62 KB at 50, 289 KB at 78, the grain back).
+const AVIF_FINE = { quality: 78, effort: 6 }
+const JPEG_FINE = { quality: 88, progressive: true, mozjpeg: true }
+
+// The calm grade of the bought-in photographs (`calm`, their saturation): a warm cast and softened blacks, one treatment
+// for all, so they sit with the amber of the AI images; each source only sets how far its colour comes down. Never on the
+// photographer's own photographs (owner, 30 Oct: "identidade de cor parecida… não quero que pareçam falsas").
+const CALM_WARM = [
+  [1.03, 0, 0],
+  [0, 1, 0],
+  [0, 0, 0.93],
+]
+const CALM_CONTRAST = 0.94
+const CALM_LIFT = 14
 
 // Below this mean saturation (0–1, measured at 64×96) a file is treated as monochrome.
 // Measured 24 Oct 2026: every Helder Couto B&W delivery reads 0.000; the colour ones 0.099–0.354.
@@ -48,22 +63,40 @@ const AURA_WARM = '#b8936a'
  * they stop there). `reveal`: colour master used for hold-to-colour. `mono`: also writes the derived
  * monochrome, with no reveal (the entrance's blades are B&W). `aura`: adds the aura (and,
  * for a reveal, the aura of its monochrome too). `warm`: the master is B&W; its aura is tinted.
+ * `fine`: a real photograph, encoded to keep its grain. `calm`: the calm grade, with this saturation.
+ * `crop`: the part of the master used.
  */
 const SOURCES = [
   // Entrance — the poster frame at 4.4 s (assets.md §1), wide and tall; also the Contact.
   { id: 'poster-wide', group: 'entrance', file: 'video/test-encodes/poster-wide.png', widths: [960, 1920] },
   { id: 'poster-tall', group: 'entrance', file: 'video/test-encodes/poster-tall.png', widths: [720] },
   // Work — I Weddings: the photographer's own B&W (Solteiros, assets.md §2).
-  { id: 'weddings-before', group: 'work', file: 'weddings/HelderCoutoPhoto_002.jpg', widths: [640, 960, 1440], aura: true, warm: true },
-  { id: 'weddings-day', group: 'work', file: 'weddings/HelderCoutoPhoto_154.jpg', widths: [640, 960, 1440], aura: true, warm: true },
-  { id: 'weddings-after', group: 'work', file: 'weddings/HelderCoutoPhoto_343.jpg', widths: [640, 960, 1440], aura: true, warm: true },
+  { id: 'weddings-before', group: 'work', file: 'weddings/HelderCoutoPhoto_002.jpg', widths: [640, 960, 1280, 1600], aura: true, warm: true, fine: true },
+  { id: 'weddings-day', group: 'work', file: 'weddings/HelderCoutoPhoto_154.jpg', widths: [640, 960, 1280, 1600], aura: true, warm: true, fine: true },
+  { id: 'weddings-after', group: 'work', file: 'weddings/HelderCoutoPhoto_343.jpg', widths: [640, 960, 1280, 1600], aura: true, warm: true, fine: true },
+  // the guests' photographs of the live gallery (On the day): six more of the photographer's B&W, so the gallery never
+  // repeats the chapter's own three (owner, 29 Oct). Copied from the V4's public/media/new, SHA-1 checked.
+  { id: 'weddings-guests-1', group: 'work', file: 'weddings/HelderCoutoPhoto_046.jpg', widths: [320, 640], fine: true },
+  { id: 'weddings-guests-2', group: 'work', file: 'weddings/HelderCoutoPhoto_067.jpg', widths: [320, 640], fine: true },
+  { id: 'weddings-guests-3', group: 'work', file: 'weddings/HelderCoutoPhoto_126.jpg', widths: [320, 640], fine: true },
+  { id: 'weddings-guests-4', group: 'work', file: 'weddings/HelderCoutoPhoto_156.jpg', widths: [320, 640], fine: true },
+  { id: 'weddings-guests-5', group: 'work', file: 'weddings/HelderCoutoPhoto_179.jpg', widths: [320, 640], fine: true },
+  { id: 'weddings-guests-6', group: 'work', file: 'weddings/HelderCoutoPhoto_337.jpg', widths: [320, 640], fine: true },
   // Work — II Artists and III Experiences: AI images, in colour (assets.md §3; never presented as client work).
-  { id: 'artists-always', group: 'work', file: 'artists/always.png', widths: [640, 1024], aura: true, mono: true },
+  { id: 'artists-always', group: 'work', file: 'artists/always.png', widths: [640, 1024], aura: true, mono: true, fine: true },
   { id: 'artists-moment', group: 'work', file: 'artists/for-a-moment.png', widths: [640, 1024], aura: true },
-  { id: 'artists-record', group: 'work', file: 'artists/on-record.png', widths: [640, 1024], aura: true },
+  { id: 'artists-record', group: 'work', file: 'artists/on-record.png', widths: [640, 1024], aura: true, fine: true },
   { id: 'experiences-before', group: 'work', file: 'experiences/before.png', widths: [640, 1024], aura: true },
   { id: 'experiences-during', group: 'work', file: 'experiences/during.png', widths: [640, 1024], aura: true, mono: true },
   { id: 'experiences-after', group: 'work', file: 'experiences/after.png', widths: [640, 1024], aura: true },
+  // Work — bought-in photographs chosen by the owner (30 Oct; Unsplash License, assets.md §3). New ids: the entrance's
+  // blade keeps the AI concert (experiences-during), the approved entrance does not change.
+  { id: 'artists-moment-photo', group: 'work', file: 'stock/unsplash-Cu5pKZkpJj8.jpg', widths: [640, 960, 1280, 1600], aura: true, fine: true, calm: 0.72 },
+  { id: 'experiences-before-photo', group: 'work', file: 'stock/unsplash-e_0kguyKNmc.jpg', widths: [640, 960, 1280, 1600], aura: true, fine: true, calm: 0.7 },
+  { id: 'experiences-during-photo', group: 'work', file: 'stock/unsplash-rCX_nOPnSNA.jpg', widths: [640, 960, 1280, 1600], aura: true, fine: true, calm: 0.55 },
+  { id: 'experiences-after-photo', group: 'work', file: 'stock/unsplash-5PNmURC73JQ.jpg', widths: [640, 960, 1280, 1600], aura: true, fine: true, calm: 0.8 },
+  // the owner's own new studio image (ChatGPT, 30 Oct), for Always; the door frame at its left is cut. The blade keeps artists-always.
+  { id: 'artists-always-photo', group: 'work', file: 'artists/always-studio.png', widths: [640, 960], aura: true, fine: true, calm: 0.8, crop: { left: 64, top: 0, width: 960, height: 1536 } },
   // Method — the Wedding website screen (Solteiros 299, #49).
   { id: 'screen-wedding', group: 'method', file: 'weddings/HelderCoutoPhoto_299.jpg', widths: [640, 960] },
   // About — the portrait and the room, B&W derived from the colour frame, colour by gesture.
@@ -109,6 +142,10 @@ function mono(pipeline) {
     )
 }
 
+function calm(pipeline, saturation) {
+  return pipeline.modulate({ saturation }).recomb(CALM_WARM).linear(CALM_CONTRAST, CALM_LIFT)
+}
+
 /** Skips an existing file unless --force; in a dry run only says what it would write. */
 function shouldWrite(target) {
   if (!force && existsSync(target)) {
@@ -123,25 +160,31 @@ function shouldWrite(target) {
   return true
 }
 
-async function write(input, width, base, grade) {
+async function write(input, width, base, grade, { fine, calm: calmed, crop } = {}) {
   const targets = [
-    [`${base}-${width}.avif`, (p) => p.avif(AVIF)],
-    [`${base}-${width}.jpg`, (p) => p.jpeg(JPEG)],
+    [`${base}-${width}.avif`, (p) => p.avif(fine ? AVIF_FINE : AVIF)],
+    [`${base}-${width}.jpg`, (p) => p.jpeg(fine ? JPEG_FINE : JPEG)],
   ]
   for (const [target, encode] of targets) {
     if (!shouldWrite(target)) continue
-    let p = sharp(input).rotate().resize({ width, withoutEnlargement: true }).toColourspace('srgb')
+    let p = sharp(input).rotate()
+    if (crop) p = p.extract(crop)
+    p = p.resize({ width, withoutEnlargement: true }).toColourspace('srgb')
     if (grade) p = mono(p)
+    if (calmed) p = calm(p, calmed)
     const info = await encode(p).toFile(target)
     console.log(`wrote  ${path.relative(root, target)}  ${info.width}×${info.height}  ${Math.round(info.size / 1024)} KB`)
   }
 }
 
-async function writeAura(input, base, { grade, warm }) {
+async function writeAura(input, base, { grade, warm, calm: calmed, crop }) {
   const target = `${base}-aura.jpg`
   if (!shouldWrite(target)) return
-  let p = sharp(input).rotate().resize({ width: AURA_WIDTH }).toColourspace('srgb')
+  let p = sharp(input).rotate()
+  if (crop) p = p.extract(crop)
+  p = p.resize({ width: AURA_WIDTH }).toColourspace('srgb')
   if (grade) p = mono(p)
+  if (calmed) p = calm(p, calmed)
   if (warm) p = p.tint(AURA_WARM)
   const info = await p.blur(AURA_BLUR).jpeg({ quality: 70 }).toFile(target)
   console.log(`wrote  ${path.relative(root, target)}  ${info.width}×${info.height}  ${info.size} B`)
@@ -167,11 +210,11 @@ async function main() {
     const base = path.join(OUT, source.group, source.id)
     console.log(`\n${source.id}  saturation ${sat.toFixed(3)}  ${source.reveal ? 'colour + derived mono' : 'as delivered'}`)
     for (const w of source.widths) {
-      await write(input, w, base, false)
+      await write(input, w, base, false, source)
       if (source.reveal || source.mono) await write(input, w, `${base}-mono`, true)
     }
     if (source.aura) {
-      await writeAura(input, base, { grade: false, warm: source.warm })
+      await writeAura(input, base, { grade: false, warm: source.warm, calm: source.calm, crop: source.crop })
       if (source.reveal) await writeAura(input, `${base}-mono`, { grade: true, warm: true })
     }
   }

@@ -10,19 +10,62 @@
   /* Not a scroll anchor: on a reload Chrome restored the page 12 px down — the anchor was a word still lifted by the
      sequence's translateY — and that scroll read as a gesture and skipped the entrance (29 Oct). */
   overflow-anchor: none;
-  height: 100svh;
+  height: var(--screen); /* to the screen's foot, under Safari's bar (owner, iPhone, 1 Nov); .e-final keeps the words above it */
   min-height: 460px;
   overflow: hidden;
   isolation: isolate;
-  background: var(--charcoal);
+  background: var(--frame, var(--charcoal));
   color: var(--linen);
 }
 
-/* ---- the film: poster at once, the video over it once it plays; the tint of the hour ---- */
-.e-film {
+/* iOS only (this property exists nowhere else). Safari keeps a strip above and below the page; the film cannot meet them, the page's
+   colour can. So the film rises out of that colour (--frame) on one smootherstep ramp. Colour alone: a live blur here popped as the ramp began to
+   leave, a flick of 2 levels across the top (iPhone, 1 Nov). It leaves with the film (WorkClient); the Work needs none. */
+.e-edge {
+  display: none;
+}
+@supports (-webkit-touch-callout: none) {
+  .e-edge {
+    display: block;
+    position: absolute;
+    z-index: 3;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+    --edge: var(--frame, var(--charcoal));
+  }
+  .e-tint {
+    --tint-floor: rgba(20, 18, 15, 0.32); /* less veil over the film's foot: its names have their own shade */
+  }
+  .e-edge-top {
+    top: 0;
+    height: 130px;
+    background: linear-gradient(to bottom, color-mix(in srgb, var(--edge) 100%, transparent) 0.0%, color-mix(in srgb, var(--edge) 99%, transparent) 8.3%, color-mix(in srgb, var(--edge) 96%, transparent) 16.7%, color-mix(in srgb, var(--edge) 90%, transparent) 25.0%, color-mix(in srgb, var(--edge) 79%, transparent) 33.3%, color-mix(in srgb, var(--edge) 65%, transparent) 41.7%, color-mix(in srgb, var(--edge) 50%, transparent) 50.0%, color-mix(in srgb, var(--edge) 35%, transparent) 58.3%, color-mix(in srgb, var(--edge) 21%, transparent) 66.7%, color-mix(in srgb, var(--edge) 10%, transparent) 75.0%, color-mix(in srgb, var(--edge) 4%, transparent) 83.3%, color-mix(in srgb, var(--edge) 1%, transparent) 91.7%, color-mix(in srgb, var(--edge) 0%, transparent) 100.0%);
+  }
+}
+
+/* the veil and the cover are the page itself: the film opens out of the colour the Work has */
+.e-veil > rect,
+.e-o svg > rect {
+  fill: var(--frame, #1e1d1a);
+}
+
+/* everything of the entrance, and the boxes the blade flies in during the passage (WorkClient) */
+.e-window {
   position: absolute;
   inset: 0;
-  transition: transform var(--entrance-dolly-seconds) cubic-bezier(0.3, 0, 0.2, 1);
+}
+
+/* ---- the film: poster at once, the video over it once it plays; the tint of the hour ---- */
+/* The film always carries an invisible turn. Axis-aligned, the compositor rounds a video's position to the pixel grid on
+   every frame, and as the dolly slows the film shook by up to 1.3 px, the tremor before it settles (owner, 31 Oct). Measured
+   on the Xiaomi from the mountain ridge in a screen recording, film frozen: 24 reversals of direction with the video,
+   none with the poster; with 0.03° (at most 0.3 px at the corners, hence the extra pixel around it), 1, a clean glide.
+   No opacity, filter or will-change on the video cured it. It has to stay at rest too: removing it would turn the film. */
+.e-film {
+  position: absolute;
+  inset: -1px;
+  transform: scale(1) rotate(0.03deg);
 }
 
 .e-film picture,
@@ -129,7 +172,7 @@
 
 .e-cover {
   z-index: 3;
-  background: var(--charcoal);
+  background: var(--frame, var(--charcoal));
 }
 
 /* ---- the words ----
@@ -141,7 +184,7 @@
   z-index: 4;
   left: 0;
   right: 0;
-  top: 13%;
+  top: 13svh;
   margin: 0;
   text-align: center;
   font: italic 400 calc(1.2vw + 0.6rem)/1.2 var(--serif);
@@ -163,7 +206,7 @@
 
 .e-final {
   position: absolute;
-  inset: 0;
+  inset: 0 0 var(--room);
   z-index: 4;
 }
 
@@ -207,9 +250,7 @@
   /* the storyboard's blade shape (aspect-ratio) at any screen height; 25 % of the height made them squat and large */
   width: 18%;
   aspect-ratio: 1.41;
-  /* depth with a fine pointer (sequence.ts): the nearer blade moves a little more, at most 10 px */
-  translate: calc(var(--px, 0) * (6px + var(--i) * 2px)) calc(var(--py, 0) * (4px + var(--i) * 1px));
-  transition: translate 0.6s var(--ease);
+  /* depth with a fine pointer: sequence.ts moves each blade itself, the nearer one a little more, at most 10 px */
 }
 
 .e-blade:nth-child(1) {
@@ -235,7 +276,6 @@
 .e-blade-shape {
   position: absolute;
   inset: 0;
-  overflow: hidden;
   clip-path: polygon(14% 0, 100% 0, 86% 100%, 0 100%);
 }
 
@@ -251,13 +291,17 @@
 /* each photograph's subject placed in the shape: content/v5.ts, entrance.blades[].frame */
 .e-blade-shape img {
   object-position: 50% var(--fy, 50%);
-  transform: translate3d(var(--fx, 0%), 0, 0) scale(var(--fz, 1));
+  /* a 2D transform: with translate3d the photograph had a layer of its own, and it and its shade each softened the fractional
+     edge on their own, a line of light along the bottom (owner, 31 Oct; ~7 levels at rest, up to 73 as the page moved) */
+  transform: translate(var(--fx, 0%), 0) scale(var(--fz, 1));
 }
 
 .e-blade-shape::after {
   content: '';
   position: absolute;
-  inset: 0;
+  /* past the cut on every side: flush with it, a row of the photograph showed under the shade as a bar of light at
+     fractional positions (31 Oct: that row's light ranged over 56 levels in a short scroll and back) */
+  inset: -2px;
   /* the names sit on the photographs' light skies: 0.7 measured 2.3 : 1 on the phone (29 Oct) */
   background: linear-gradient(transparent 20%, rgba(15, 14, 12, 0.88));
 }
@@ -279,8 +323,10 @@
    photograph drifts slowly inside the shape, the shade lifts a little, the name steps forward. No colour: the
    Weddings frame is the photographer's own B&W, with no colour of the same frame (CLAUDE.md: one photograph).
    Transform and opacity only. */
+/* eases in as well as out: the site's easing starts at full speed, and on a light photograph the first frames jumped
+   1.4 px as the pointer came onto a blade, the tremor on Weddings and Artists (owner, 31 Oct) */
 .e-blade-shape img {
-  transition: transform 1.6s var(--ease);
+  transition: transform 2.2s cubic-bezier(0.37, 0, 0.63, 1);
 }
 
 .e-blade-shape::after,
@@ -290,11 +336,36 @@
     transform 0.6s var(--ease);
 }
 
+/* The pointer leaving waits a moment and arriving does not: shaken across a blade's edge, the name and the shade turned back
+   several times a second, part of the tremor (owner, 1 Nov). Its own layer: painted with the page, the blade's depth landed on
+   whole pixels, 1 px jumps and reversals, the third blade the worst (shake.mjs: 9 → 2). Only with a mouse: nothing moves it on a phone. */
+@media (hover: hover) and (pointer: fine) {
+  .e-blade {
+    will-change: translate;
+  }
+
+  /* one layer for the whole slow zoom: promoted only while it ran, the photograph was drawn again as it stopped */
+  .e-blade-shape img {
+    will-change: transform;
+  }
+
+  .e-blade-shape img,
+  .e-blade-shape::after,
+  .e-blade-name {
+    transition-delay: 0.18s;
+  }
+
+  .e-blade a:hover :is(img, .e-blade-name),
+  .e-blade a:hover .e-blade-shape::after {
+    transition-delay: 0s;
+  }
+}
+
 .e-blade a:is(:focus-visible, :active) img,
 :root[data-held='0'] .e-blade:nth-child(1) img,
 :root[data-held='1'] .e-blade:nth-child(2) img,
 :root[data-held='2'] .e-blade:nth-child(3) img {
-  transform: translate3d(calc(var(--fx, 0%) - 2.5%), 0, 0) scale(calc(var(--fz, 1) * 1.08));
+  transform: translate(calc(var(--fx, 0%) - 2.5%), 0) scale(calc(var(--fz, 1) * 1.08));
 }
 
 .e-blade a:is(:focus-visible, :active) .e-blade-shape::after,
@@ -313,7 +384,7 @@
 
 @media (hover: hover) {
   .e-blade a:hover img {
-    transform: translate3d(calc(var(--fx, 0%) - 2.5%), 0, 0) scale(calc(var(--fz, 1) * 1.08));
+    transform: translate(calc(var(--fx, 0%) - 2.5%), 0) scale(calc(var(--fz, 1) * 1.08));
   }
 
   .e-blade a:hover .e-blade-shape::after {
@@ -337,7 +408,7 @@
   }
 
   .e-ded {
-    top: 9%;
+    top: 9svh;
     font-size: calc(min(4.2vw, 1.94svh) + 0.3rem);
   }
 
@@ -391,111 +462,161 @@
   }
 }
 
-/* ================= the sequence (sequence.ts writes the state on <html>) ================= */
+/* ================= the sequence =================
+   One timeline, declared once while the screen is dark. <html data-entrance> is e0 (paused, waiting for the title's
+   face), then run, then it goes: nothing is written during the motion. It used to change state at each beat, and each
+   change recalculated the style of the whole page in the middle of the movement: 42 ms as the zoom began, 64 ms as the final
+   state came in, with the film's frames and the veil waiting (Xiaomi trace, 31 Oct). Declared ahead, every animated layer
+   is also drawn in the dark: Chrome draws it for the largest scale it will reach, and started at the zoom it did so ~165 ms
+   into the movement, a frame of 77–88 ms and film frames skipped. Only transform and opacity: the compositor runs it all.
+   Each `from` is explicit: left out, an animation starts from the value below it (the zoom jumped to its end). */
 
-:root:is([data-entrance='e0'], [data-entrance='e1'], [data-entrance='e2'], [data-entrance='e3'], [data-entrance='e4'])
-  :is(.e-zoom, .e-cover) {
+:root:is([data-entrance='e0'], [data-entrance='run']) :is(.e-zoom, .e-cover) {
   display: block;
 }
 
-/* The veil is drawn once, at 1×, and the GPU scales it. Without this Chrome re-rasterises the masked SVG as the
-   scale grows: measured on the Xiaomi (29 Oct, 3 runs each) the zoom ran at 58 fps and the final phase at 48 fps
-   (p95 55 ms, 4–7 frames > 50 ms); with it, 90.4 fps, p95 11.2 ms, 0 frames > 25 ms in every phase. The cost: the
-   O's edges stepped as it grew (a 1× drawing ×160): .e-o draws the O finer, in a layer of its own (its own
-   will-change). Only while the sequence runs. */
-:root:is([data-entrance='e0'], [data-entrance='e1'], [data-entrance='e2'], [data-entrance='e3'], [data-entrance='e4'])
-  :is(.e-zoom, .e-o) {
+/* The veil is drawn once and the GPU scales it. Without this Chrome re-rasterises the masked SVG as the scale grows:
+   measured on the Xiaomi (29 Oct, 3 runs each) the zoom ran at 58 fps. The cost: the O's edges stepped as it grew (a 1×
+   drawing ×160): .e-o draws the O finer, in a layer of its own. */
+:root:is([data-entrance='e0'], [data-entrance='run']) :is(.e-zoom, .e-o) {
   will-change: transform;
 }
 
-/* E1 — dark; only the dedication, just above where the title will be. The film plays behind, already moving
-   (storyboard), and without the tint: the letters show it at full light. */
-:root:is([data-entrance='e0'], [data-entrance='e1'], [data-entrance='e2']) .e-film {
-  transform: scale(var(--entrance-dolly-scale));
+:root:is([data-entrance='e0'], [data-entrance='run']) :is(.e-head, .site-header, .e-blade a, .e-ded, .e-tint, .e-cover) {
+  will-change: opacity, transform;
 }
 
-:root:is([data-entrance='e0'], [data-entrance='e1'], [data-entrance='e2']) .e-tint {
-  opacity: 0;
+@keyframes e-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
-
-:root:is([data-entrance='e3'], [data-entrance='e4']) .e-tint {
-  /* The tint darkens while the camera goes through the O, over the whole zoom, so it is never seen arriving on its
-     own. The storyboard brings it with E4 (1 s after a 0.4 s pause); on the real film that read as a filter laid over
-     the video once it was still (owner, 29 Oct: "não deve ser notável"). The film's sun is dimmed during the zoom too. */
-  transition: opacity var(--entrance-zoom-seconds) cubic-bezier(0.4, 0, 0.6, 1);
+@keyframes e-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
-
-:root:is([data-entrance='e0'], [data-entrance='e1'], [data-entrance='e2'], [data-entrance='e3']) .e-ded {
-  top: 34%;
+/* E3: the veil grows from the O's stroke */
+@keyframes e-zoom {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(var(--entrance-zoom-scale));
+  }
 }
-
-@media (orientation: portrait) {
-  :root:is([data-entrance='e0'], [data-entrance='e1'], [data-entrance='e2'], [data-entrance='e3']) .e-ded {
-    top: 38%;
+/* the film eases in as the camera arrives */
+@keyframes e-dolly {
+  from {
+    transform: scale(var(--entrance-dolly-scale)) rotate(0.03deg);
+  }
+  to {
+    transform: scale(1) rotate(0.03deg);
+  }
+}
+@keyframes e-ded-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.85;
+  }
+}
+@keyframes e-ded-out {
+  from {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes e-ded-final {
+  from {
+    opacity: 0;
+    transform: none;
+  }
+  to {
+    opacity: 0.85;
+    transform: none;
+  }
+}
+@keyframes e-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes e-blade-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18%, 0) rotate(-2deg) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
-:root[data-entrance='e0'] .e-ded {
-  opacity: 0;
+/* E1: the dedication alone over charcoal, just above where the title will be. It waits there, moved by transform; it
+   leaves at E3 and returns in its final place at E4. (The storyboard's positions: 34 % then 13 %, on the phone 38 % then 9 %.) */
+:root:is([data-entrance='e0'], [data-entrance='run']) .e-ded {
+  transform: translateY(21svh);
+  animation:
+    e-ded-in 0.6s var(--ease) both,
+    e-ded-out 0.4s linear var(--entrance-zoom-at-ms) forwards,
+    e-ded-final 1s linear calc(var(--entrance-final-at-ms) + 0.5s) forwards;
 }
 
-:root:is([data-entrance='e1'], [data-entrance='e2']) .e-ded {
-  transition: opacity 0.6s var(--ease);
+@media (orientation: portrait) {
+  :root:is([data-entrance='e0'], [data-entrance='run']) .e-ded {
+    transform: translateY(29svh);
+  }
 }
 
-/* E2 — the letters open: only the cover fades, the veil stays still (storyboard; the older interactions.md table
-   also grew the veil from 1.08, which the storyboard does not do); the film is seen inside CHAPTER ONE */
-:root:is([data-entrance='e2'], [data-entrance='e3'], [data-entrance='e4']) .e-cover {
-  opacity: 0;
-  transition: opacity var(--entrance-letters-seconds) var(--ease);
+/* E2: the letters open. Only the cover fades, the veil stays still (storyboard) */
+:root:is([data-entrance='e0'], [data-entrance='run']) .e-cover {
+  animation: e-fade-out var(--entrance-letters-seconds) var(--ease) var(--entrance-letters-at-ms) both;
 }
 
-/* E3 — the camera enters through the O: the veil grows from the stroke; the film eases in */
-:root[data-entrance='e3'] .e-zoom {
-  transform: scale(var(--entrance-zoom-scale));
-  transition: transform var(--entrance-zoom-seconds) var(--entrance-zoom-ease);
+/* E3: the camera enters through the O; the film eases in; the tint of the hour darkens over the whole zoom, so it is never
+   seen arriving on its own (owner, 29 Oct: "não deve ser notável"). E4: the veil fades away while the zoom finishes */
+:root:is([data-entrance='e0'], [data-entrance='run']) .e-zoom {
+  animation:
+    e-zoom var(--entrance-zoom-seconds) var(--entrance-zoom-ease) var(--entrance-zoom-at-ms) both,
+    e-fade-out 0.8s linear var(--entrance-final-at-ms) forwards;
 }
 
-:root[data-entrance='e3'] .e-ded {
-  opacity: 0;
-  transition: opacity 0.4s;
+:root:is([data-entrance='e0'], [data-entrance='run']) .e-film {
+  animation: e-dolly var(--entrance-dolly-seconds) cubic-bezier(0.37, 0, 0.63, 1) var(--entrance-zoom-at-ms) both;
 }
 
-/* E4 — the final state arrives: the zoom finishes (its transition is kept, or it would jump to the end) while
-   the veil fades away; the words come in */
-:root[data-entrance='e4'] .e-zoom {
-  transform: scale(var(--entrance-zoom-scale));
-  opacity: 0;
-  transition:
-    transform var(--entrance-zoom-seconds) var(--entrance-zoom-ease),
-    opacity 0.8s;
+:root:is([data-entrance='e0'], [data-entrance='run']) .e-tint {
+  animation: e-fade-in var(--entrance-zoom-seconds) cubic-bezier(0.4, 0, 0.6, 1) var(--entrance-zoom-at-ms) both;
 }
 
-:root[data-entrance='e4'] .e-ded {
-  transition: opacity 1s 0.5s;
+/* E4: the words, the bar, the blades one after another */
+:root:is([data-entrance='e0'], [data-entrance='run']) :is(.e-head, .site-header) {
+  animation: e-rise 0.8s var(--ease) var(--entrance-final-at-ms) both;
 }
 
-:root:is([data-entrance='e0'], [data-entrance='e1'], [data-entrance='e2'], [data-entrance='e3'])
-  :is(.e-head, .site-header) {
-  opacity: 0;
-  transform: translateY(12px);
+:root:is([data-entrance='e0'], [data-entrance='run']) .e-blade a {
+  animation: e-blade-in 0.9s var(--ease)
+    calc(var(--entrance-final-at-ms) + 0.2s + var(--i) * var(--entrance-blade-stagger-seconds)) both;
 }
 
-:root[data-entrance='e4'] :is(.e-head, .site-header) {
-  transition:
-    opacity 0.8s var(--ease),
-    transform 0.8s var(--ease);
-}
-
-:root:is([data-entrance='e0'], [data-entrance='e1'], [data-entrance='e2'], [data-entrance='e3']) .e-blade a {
-  opacity: 0;
-  transform: translate3d(0, 18%, 0) rotate(-2deg) scale(0.96);
-}
-
-:root[data-entrance='e4'] .e-blade a {
-  transition:
-    opacity 0.9s var(--ease) calc(0.2s + var(--i) * var(--entrance-blade-stagger-seconds)),
-    transform 0.9s var(--ease) calc(0.2s + var(--i) * var(--entrance-blade-stagger-seconds));
+/* waiting for the title's face: everything is in place, nothing has started */
+:root[data-entrance='e0'] :is(.e-ded, .e-cover, .e-zoom, .e-film, .e-tint, .e-head, .site-header, .e-blade a) {
+  animation-play-state: paused;
 }
 
 /* a skip: the final state at once */

@@ -31,7 +31,7 @@ state by state with every approved line of copy, is **`docs/design/v5/storyboard
   site — only its hero video is reused, re-encoded.
 - **Entrance ("Through the letters")** — the visitor's local date and time; the video seen through the
   letters of CHAPTER ONE; the camera enters through the O; three oblique blades lead to the chapters.
-  Never blocks: any gesture completes it.
+  A tap or key completes it; scroll does nothing until the camera is through (README #85).
 - **Work** — one stage, three chapters (Weddings, Artists, Experiences), same structure, three moments
   each, presented by layers; every piece explained in one line; "the made and its drawing". **Scroll
   moves the chapters** (pinned stage), **touch or a timer moves the moments** (the word fills with colour);
@@ -53,6 +53,8 @@ state by state with every approved line of copy, is **`docs/design/v5/storyboard
 ## Non-negotiables
 
 - **No commit, push or deploy** unless the user asks for it explicitly in the session.
+- **The published site never shows the FPS meter** (owner, 31 Oct 2026): `src/components/fps-meter.tsx` needs `?fps` and works
+  only on `localhost` / `127.0.0.1`. Keep that guard; take the component out of `page.tsx` before launch.
 - **Performance is weighed, never a hard stop** (owner, 27 Oct 2026, README #68): no technique is
   forbidden — WebGL, `backdrop-filter`, animated filters, more layers, scroll-linked or pinned scenes are
   all possible. Every animation must **consider performance**: when a choice carries a risk, **say so

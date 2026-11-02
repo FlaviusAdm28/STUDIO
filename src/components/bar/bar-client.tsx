@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { lensMap } from '@/lib/lens'
 
 type Section = { readonly id: string; readonly number: string; readonly label: string }
 type Props = {
@@ -45,20 +46,52 @@ export function BarClient(props: Props) {
       if (root.dataset.section === id) return
       root.dataset.section = id
       const s = byId[id]
-      if (sec) sec.innerHTML = s ? `<i>${s.number}</i>${s.label}` : ''
+      // Leaving for the top the last words stay while the island fades: emptied here, 01 Work vanished at once and the name went
+      // on alone (owner, iPhone, 1 Nov).
+      if (sec && s) sec.innerHTML = `<i>${s.number}</i>${s.label}`
       // at the top the name's island is hidden (#70): out of the keyboard's way too
       if (left) left.tabIndex = s ? 0 : -1
       links.forEach((a) => a.setAttribute('aria-current', String(a.dataset.section === id)))
       queue()
     }
-    const watched = [document.getElementById('top'), ...props.sections.map((s) => document.getElementById(s.id))]
+    // a section can mark where it really starts (data-starts): the Work lies under the entrance during the passage
+    const mark = (id: string) => document.querySelector(`[data-starts="${id}"]`) ?? document.getElementById(id)
+    const watched = [document.getElementById('top'), ...props.sections.map((s) => mark(s.id))]
+    const idOf = (el: Element) => (el as HTMLElement).dataset.starts ?? el.id
+    // The held entrance lies over the Work's start: two marks can share the band. The later one in the page wins. Weddings'
+    // step grew half a screen (README #88), and on the way up the entrance's end then reached the band inside Weddings and
+    // hid the name's island there (Xiaomi, 2 Nov).
+    const inBand = new Set<Element>()
     const sections = new IntersectionObserver(
-      (entries) => entries.forEach((e) => e.isIntersecting && setSection(e.target.id)),
+      (entries) => {
+        entries.forEach((e) => (e.isIntersecting ? inBand.add(e.target) : inBand.delete(e.target)))
+        entries.forEach((e) => {
+          const later = watched.slice(watched.indexOf(e.target) + 1).some((x) => x && inBand.has(x))
+          if (e.isIntersecting) {
+            if (!later) setSection(idOf(e.target))
+          }
+          // Back above a section's start, the one before it again: it never left the line, so nothing announces it. The bar stayed
+          // on 02 Method over the whole of Experiences on the way up (test round, 1 Nov); above the Work it is the top.
+          else if (idOf(e.target) === root.dataset.section && e.boundingClientRect.top > 0) {
+            const before = watched[watched.indexOf(e.target) - 1]
+            if (before) setSection(idOf(before))
+          }
+        })
+      },
       { rootMargin: '0px 0px -92% 0px' },
     )
     watched.forEach((el) => el && sections.observe(el))
     cleanups.push(() => sections.disconnect())
     if (left && !root.dataset.section) left.tabIndex = -1
+    // The name goes to the top. By its address alone it did nothing in the passage and at the start of the Work: the held
+    // entrance is already on screen there, so there is nowhere to scroll to (audit, 31 Oct).
+    const toTop = (e: MouseEvent) => {
+      e.preventDefault()
+      history.pushState(null, '', location.pathname + location.search)
+      scrollTo(0, 0)
+    }
+    left?.addEventListener('click', toTop)
+    cleanups.push(() => left?.removeEventListener('click', toTop))
 
     // ---- the visitor's time, in the bar (desktop) and the menu ----
     const pad = (n: number) => String(n).padStart(2, '0')
@@ -160,8 +193,12 @@ export function BarClient(props: Props) {
     // at most every 80 ms while scrolling, once after it stops; never per frame
     let last = 0
     let queued = false
+    // Not while the camera goes through the O, nor during the passage: 24 hit tests force the style of the whole page,
+    // and with the Work in it that blocked the main thread 60–100 ms right as the zoom began; the film skipped up to 5
+    // frames, the tremor the owner saw (Xiaomi, 31 Oct). What is behind the islands is read before and after.
+    const moving = () => root.dataset.entrance === 'run' || root.dataset.pass === 'on'
     function queue() {
-      if (queued) return
+      if (queued || moving()) return
       queued = true
       const wait = Math.max(0, 80 - (performance.now() - last))
       window.setTimeout(
@@ -169,7 +206,7 @@ export function BarClient(props: Props) {
           requestAnimationFrame(() => {
             queued = false
             last = performance.now()
-            update()
+            if (!moving()) update()
           }),
         wait,
       )
@@ -181,8 +218,14 @@ export function BarClient(props: Props) {
     const onImage = (e: Event) => e.target instanceof HTMLImageElement && queue()
     document.addEventListener('load', onImage, true)
     cleanups.push(() => document.removeEventListener('load', onImage, true))
-    const states = new MutationObserver(queue)
-    states.observe(root, { attributes: true, attributeFilter: ['data-entrance', 'data-light'] })
+    // A jump to a chapter passes the mark of the Work's start without ever touching the band, and no observer fires: the bar
+    // stayed with no section, and the name's island hidden, arriving by a blade or a chapter's address (audit, 31 Oct).
+    const states = new MutationObserver(() => {
+      if (root.dataset.pass === 'done' && (!root.dataset.section || root.dataset.section === 'top'))
+        setSection(props.sections[0].id)
+      queue()
+    })
+    states.observe(root, { attributes: true, attributeFilter: ['data-entrance', 'data-light', 'data-pass'] })
     cleanups.push(() => states.disconnect())
     queue()
 
@@ -190,32 +233,6 @@ export function BarClient(props: Props) {
     // further inside, so the rim magnifies (README #69). Only where backdrop-filter takes a url() (Chromium). ----
     if (CSS.supports('backdrop-filter', 'url(#bar-lens-left) blur(1px)')) {
       const sizes = new Map<string, string>()
-      const lensMap = (w: number, h: number) => {
-        const c = document.createElement('canvas')
-        c.width = w
-        c.height = h
-        const g = c.getContext('2d')
-        if (!g) return ''
-        const im = g.createImageData(w, h)
-        const r = h / 2
-        const E = 14
-        for (let y = 0; y < h; y++)
-          for (let x = 0; x < w; x++) {
-            const cx = Math.min(Math.max(x + 0.5, r), w - r)
-            const vx = x + 0.5 - cx
-            const vy = y + 0.5 - r
-            const len = Math.hypot(vx, vy) || 1
-            const d = r - len
-            const k = d < E ? ((E - Math.max(d, 0)) / E) ** 2 : 0
-            const i = (y * w + x) * 4
-            im.data[i] = 128 + 127 * (vx / len) * k * 0.9
-            im.data[i + 1] = 128 + 127 * (vy / len) * k * 0.9
-            im.data[i + 2] = 128
-            im.data[i + 3] = 255
-          }
-        g.putImageData(im, 0, 0)
-        return c.toDataURL()
-      }
       const lens = () =>
         islands.forEach((el) => {
           const side = el.dataset.lens ?? ''

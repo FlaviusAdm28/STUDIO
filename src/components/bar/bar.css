@@ -74,6 +74,14 @@
   backdrop-filter: url(#bar-lens-right) blur(var(--blur)) saturate(1.6) brightness(1.04) contrast(1.04);
 }
 
+/* iOS only (this property exists nowhere else): over a moving page Safari let the island's glow out of the circle, a patch
+   above the menu button (owner, iPhone, 1 Nov). Cut to the island; it costs the soft outer shadow, there alone. */
+@supports (-webkit-touch-callout: none) {
+  .bar-isl {
+    clip-path: inset(0 round 99px);
+  }
+}
+
 .bar-left {
   padding: 0 16px;
   white-space: nowrap;
@@ -87,8 +95,8 @@
   pointer-events: none;
   transition:
     --tint 0.45s ease,
-    opacity 0.5s var(--ease),
-    visibility 0s 0.5s;
+    opacity 0.9s var(--ease),
+    visibility 0s 0.9s;
 }
 
 .bar-name {

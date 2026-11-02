@@ -167,7 +167,7 @@ depois do lançamento), em `<details>` nativo. A pergunta de serviços pode liga
   `ig.me/m/chapterone.studio.pt` só depois de testado pelo owner (`content/v5.ts`, `messageVerified`).
 - Chamada: **Talk to us** (com o nome, se o visitante o escreveu no Method: *Talk to us, Ana.*).
 - Rodapé: secções, Instagram, *No templates. No copies.* (pequeno, junto ao Talk to us — por confirmar,
-  README aberta #12), *Photographs — Helder Couto*.
+  README aberta #12). Sem crédito de fotografias no Work (README #87).
 
 ---
 

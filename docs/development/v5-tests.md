@@ -180,3 +180,620 @@ estão como no storyboard.
 
   As contas batem com as horas conhecidas de Lisboa: 21/6 06:12–21:05, 21/12 07:51–17:18.
 - **Bateria do PC (`pc.mjs`):** sem problemas.
+
+---
+
+## M5 — o Work (29/10, primeira versão, em revisão do owner)
+
+Ferramentas em `D:\STUDIO-tools\v5-m5\`: `work.mjs` (capturas de cada capítulo, fotografia e peça, 1440 e 390),
+`rot.mjs` (rotação, momento fixado, navegação pelo título, sem JavaScript, 320×640), `phone-work.mjs [corridas] [css]
+[só-scroll]` (Xiaomi: scroll pelos três capítulos com um gesto real + 8 s parado em cada um).
+
+### Build
+typecheck, lint (0 avisos), build: **passam**.
+
+### PC
+- **Os três capítulos:** palco preso; fotografias em camadas com a aura; moldura por capítulo (arco, retângulo, oblíquo);
+  a palavra do momento enche no tom do capítulo; a peça mostrada em primeiro, com o círculo e *on the photograph*.
+- **No telemóvel:** uma linha de cada vez; o título com os outros capítulos à direita.
+- **Sem scroll horizontal, sem erros na consola.**
+- **Rotação (`rot.mjs`, uma leitura por segundo):** `0p 0d 0d 1p 1p 1d 1d 2p 2p 2d 2d 0p…`, ou seja 4 s por momento, ~1,2 s
+  só a fotografia e depois a peça.
+  - Tocar num momento fixa-o (`aria-pressed`).
+  - O título leva ao capítulo (`#experiences`, `data-ch` 2).
+- **Encontrado e corrigido:**
+  - Com o rato em qualquer sítio do palco a rotação parava. O palco ocupa o ecrã inteiro, por isso agora só pára sobre a fotografia ou as palavras.
+  - O crédito *Photographs — Helder Couto* aparecia em Artists e Experiences, que são imagens de IA. Agora fica só em Weddings.
+- **Sem JavaScript (390):** os 3 capítulos com as 25 linhas visíveis, sem scroll horizontal.
+- **320×640:** o texto acaba a 617 px de 640; cabe.
+
+### Xiaomi (`phone-work.mjs`)
+
+| Teste | Resultado |
+|---|---|
+| **Parado em cada capítulo, momentos a rodar com as peças** (3 corridas × 3 capítulos) | **90,2–90,5 fps, p95 11,2 ms, 0 frames > 25 ms** |
+| Scroll pelos três capítulos (3 corridas) | 71,4–72,6 fps, p95 33 ms, 10 frames > 25 ms |
+| Controlo: o mesmo scroll **com o palco escondido** | 71,1–71,6 fps, 9–10 frames > 25 ms (igual) |
+| Sem aura / sem transições / sem fotografias / sem barra / sem vídeo (uma coisa de cada vez) | 73–79 fps, 5–8 frames > 25 ms |
+| Tudo isso desligado de uma vez | 74–77 fps |
+
+**O Work não é o que custa no scroll:** com o palco escondido, os números são os mesmos. O que sobra é o próprio gesto
+de scroll simulado e o resto da página provisória. Volta a medir-se com as secções reais e um scroll feito à mão.
+
+### Não verificado / por fazer
+- **A passagem estado 2** (o vídeo da entrada torna-se o palco): ainda não construída.
+- **A passagem de capítulo (FLIP do título):** construída; falta o owner vê-la.
+- **iPhone; o fling com o dedo; *Hello, {name}* nas demonstrações:** este último só depois do Method.
+
+### Revisão do owner (29/10, noite) — "vejo muitos bugs"
+1. **A passagem estado 2 não existia** (era só scroll). **Construída:** a entrada fica presa; um ecrã de scroll encolhe o
+   vídeo até ao arco de Weddings (escala que cobre o arco, recorte em arco, as palavras da entrada saem e o texto do Work
+   entra ao lado); 0,4 de ecrã dissolve-o na primeira fotografia, que está por baixo no mesmo sítio; o vídeo pára no fim e
+   volta a tocar ao subir. Visto frame a frame no PC (1440 e 390, `pass.mjs`).
+   - **Encontrado e corrigido:** o vídeo não preenchia o arco, porque a medida incluía a barra de scroll do desktop.
+   - **Xiaomi (`phone-pass.mjs`, gesto real de 1,6 ecrãs, a descer e a subir):**
+
+     | Versão | fps | Frames > 25 ms |
+     |---|---|---|
+     | Primeira | 57–64, p95 33 ms | 6–7 |
+     | Com a geometria guardada (sem layout forçado por frame) | 58–65 | 3–8 |
+     | **Controlo:** o mesmo gesto numa zona simples da página | 75–84 | 0–2 |
+
+     Tirar o recorte, o vídeo, a barra ou o palco, um de cada vez, não muda o resultado.
+   - **Por resolver:** passar a passagem para animações ligadas ao scroll em CSS (corre no compositor) e medir outra vez.
+2. **"O rato sobre as imagens não faz nada":** o rato sobre a fotografia pára o momento (a palavra e a peça param).
+   **Corrigido:** ao sair, o momento recomeçava do início; agora continua de onde parou (`hover.mjs`). Nenhum efeito
+   visível além da pausa — perguntado ao owner.
+3. **A palavra no telemóvel enchia e ficava cheia:** um toque deixava o foco no palco, e isso pausava-o para sempre.
+   **Corrigido:** só o foco do teclado pausa. Visto com toque emulado: enche em 4 s e passa ao momento seguinte.
+4. **A ordem dos capítulos no telemóvel:** agora segue o storyboard e a #62 — o outro capítulo pequeno em cima e não
+   tocável, o seguinte em baixo, maior e o único tocável.
+5. **Texto e fotografias fora do tamanho do ecrã:**
+   - Todas as medidas do Work passam por uma unidade, `min(1vw, 1,6svh)` no desktop e `min(1vw, 0,462svh)` no telemóvel,
+     que mantém as proporções dos quadros do storyboard em ecrãs mais baixos (Xiaomi) ou mais largos (tablet, 1920).
+   - Os outros capítulos no título em itálico e *on the photograph* em minúsculas, como no storyboard.
+   - Comparado lado a lado com o storyboard a 1440 e a 390 (`sbshot2.mjs`).
+
+### Segunda revisão do owner (29/10, noite)
+1. **Telemóvel, do III de volta ao I:** o scroll suave atravessava o II e cada passo começava a sua própria passagem.
+   **Corrigido:** uma só passagem, direta (`phonenav.mjs`: os capítulos vistos depois de tocar em *I* no III: `0` — só
+   um).
+2. **O rato sobre o texto parava a palavra:** já não para; só a fotografia.
+3. ***Before* → *Our day*:** as peças dos outros momentos ficavam "a funcionar" escondidas, por isso o site aparecia já
+   subido por cima de uma fotografia ainda a vir para a frente. **Corrigido:** cada peça só anda no seu momento, e um
+   momento escolhido mostra primeiro a fotografia e depois a peça (`ourday.mjs`, 6 capturas: a fotografia vem para a
+   frente, depois a página sobe com as secções).
+4. **O rato sobre a fotografia (EXPERIÊNCIA, para o owner decidir):** o tempo espera, a peça recua para se ver a
+   fotografia inteira, e a fotografia desliza devagar como as lâminas da entrada; no telemóvel, ao segurar.
+- **Também corrigido:** chegar com o endereço de um capítulo (`/#weddings`) já não aterrava, porque a entrada limpava o
+  endereço antes de o Work o ler. Agora é guardado à chegada (aterra a `y` 1261 com `data-ch` 0).
+
+### Terceira revisão do owner (29/10, noite)
+- **"A imagem está partida no *Our day*" (desktop):** uma regra da página provisória do M2
+  (`main section:not(.entrance) picture { max-width: 420px; margin-block: 16px }`) apanhava as fotografias do Work. A 1920
+  ficavam com 420 px num arco de 538 e desencontradas. **Corrigido:** a regra já não se aplica ao `.work`
+  (`pimg.mjs`: 538 × 718 = o arco; captura a 1920 inteira).
+- **O rato sobre a fotografia:** a fotografia desliza e o tempo espera; a peça já não recua (owner).
+- **A passagem para o palco:** o owner viu-a no Xiaomi e não sente lag; aceita-a como está, apesar dos ~60 fps medidos
+  com o gesto simulado.
+
+### Quarta revisão do owner (29/10, noite)
+- **Mudar de momento depressa punha todas as peças a mexer:** as peças que saíam voltavam atrás animadas. **Corrigido:**
+  só a peça mostrada anima, e as outras voltam ao início de imediato (`quick.mjs`, seis cliques com 250 ms de intervalo:
+  as peças fora de vista têm 0 animações a correr; só a escolhida anima).
+- **Galeria de *On the day*:** 6 fotografias (2 filas) também no desktop.
+- **O cartão *Our day*:** quatro caminhos postos lado a lado para o owner decidir: https://claude.ai/artifact/HsZbtjMsaDstNzhDAHBP9V
+  (fonte `scratchpad/ourday/index.html`; a guardar em `media-src/storyboards/` quando decidido).
+
+### Quinta revisão do owner (29/10, noite)
+- **Os momentos, revistos como componente** (`moments.mjs`, cenários seguidos no PC).
+  - **Regra nova (owner):** tocar noutro momento muda logo para ele, que passa a ser o que conta, e a rotação segue a
+    partir dele; tocar no momento atual pausa-o (a palavra pára onde ia) e outra vez retoma. Esta é a forma de parar
+    (WCAG 2.2.2). Os momentos já passados ficam apagados (#61).
+  - **Encontrado e corrigido:** a palavra do momento anterior ficava com a animação de encher ligada.
+  - **Os cenários:**
+    - aterrar e rodar: 4 s por momento;
+    - tocar noutro momento muda logo;
+    - tocar no atual pausa; outra vez, retoma;
+    - cliques rápidos: fica a contar só o último, com 0 animações nas peças fora de vista;
+    - o rato sobre a fotografia pausa e retoma;
+    - mudar de capítulo recomeça no primeiro momento;
+    - nunca há mais de uma palavra a encher.
+- **O cartão *Our day*, opção B (vidro):**
+  - **Construção:** um painel do vidro do site, com a data, o dia hora a hora e *Reply by RSVP*; as horas e as frases são
+    exemplos (DRAFT em `content/v5.ts`).
+  - **Encontrado e corrigido:** o painel tapava o casal, que anda no fundo da fotografia. Agora a fotografia aproxima-se
+    e sobe (−27 %, escala 1,05 em 3 s) e o casal fica à vista por cima do vidro.
+  - **No telemóvel:** o painel fica só com a data, o dia e o RSVP (`glass.mjs`, 1440 e 390).
+
+### Sexta revisão do owner (29/10, noite) — as peças novas e o cartão
+- **O cartão do *Wedding website*:** o desenho da B (centrado, a resposta preenchida) no escuro do estúdio, com a fotografia
+  a fundir-se no cartão (gradiente) e um filete no tom de Weddings onde se encontram. O interruptor temporário
+  `?cartao=b` saiu do código.
+- **As oito peças da página de opções aplicadas** (palavras em `content/v5.ts` como DRAFT, para o owner aprovar).
+  Cada peça entra pela ordem de leitura (`dm-e1…e6`) depois da fotografia e volta ao início de imediato ao sair. A galeria
+  conta 1 → 6 ao ritmo das fotografias que chegam; o convite troca *Accept* por *See you there ✓* aos 1,9 s.
+- **`nine.mjs`** (cada peça segurada, 1440 e 390): as nove visíveis e completas, sem erros.
+  - **Encontrado e corrigido:** na reescrita, a regra que mostra a peça ficou mais fraca do que a que a esconde, por isso
+    nenhuma aparecia.
+  - **Encontrado e corrigido:** pausar um momento durante a fotografia deixava-o sem peça; agora pausar mostra sempre a
+    peça.
+  - **Encontrado e corrigido:** ao retomar, o momento continuava marcado como pausado durante ~3 s.
+  - **Encontrado e corrigido:** o endereço de um capítulo mudado sem recarregar (recuar/avançar) não aterrava; agora
+    ouve `hashchange` e `popstate`.
+  - **No telemóvel:** a galeria mais estreita, o portfolio com 3 obras numa fila, o arquivo com 3 linhas.
+- **`moments.mjs`:** todos os cenários certos. **`pc.mjs`:** sem problemas nem erros.
+
+### Sétima revisão do owner (29/10, noite)
+- **Os momentos mais lentos:** 6 s (fotografia 1,2 + peça 4,8; era 4). Em `content/tuning.ts`.
+- **Portfolio:** três obras diferentes numa fila; já não há cortes nem repetidas.
+- **Exposição:** a entrada na sala passa de 3,4 s a 1,8 s; a etiqueta de parede e o convite de Experiences passam a vidro
+  (o do site).
+- **O fim de uma peça:** desvanece em 0,4 s e só depois volta ao início, sem se ver. Era provavelmente o "quadrado preto"
+  do fim do *On-site guide*, que não se reproduziu no desktop (`during.mjs`, 8 frames).
+- **`nine.mjs`** de novo (1440 e 390): sem erros.
+- **Weddings *Before*:** três ideias novas para o owner escolher, https://claude.ai/artifact/HsZbtjMsaDstNzhDAHBP9V
+  (versão 4).
+
+### Oitava revisão do owner (29/10, noite)
+- **O "quadrado preto" no fim do *On-site guide*:** reproduzido e gravado frame a frame (`during2.mjs`). A peça escura
+  ainda desvanecia quando a fotografia seguinte entrava de lado, e o véu ficava à vista como um retângulo. **Corrigido:**
+  no fim de um momento a peça sai primeiro (0,45 s) e só depois as fotografias trocam (`during3.mjs`: a peça desvanece,
+  a fotografia limpa fica e a seguinte entra, sem retângulo).
+- **Weddings *Before* = a contagem** (owner):
+  - quanto falta para um dia 42 dias depois da visita, às 16:00, a contar enquanto se olha;
+  - a data desse dia e *Reply by RSVP* em vidro;
+  - um véu no céu e uma sombra suave em todas as palavras para se lerem.
+  `nine.mjs`: 1440 e 390 sem erros.
+
+### Nona revisão do owner (29/10, noite)
+- **O "quadrado preto" (segunda causa):** a fotografia que vinha para a frente deslizava a partir da posição de trás e
+  deixava um canto da que saía a descoberto; com o concerto de Experiences, um bloco preto. **Corrigido:** a que chega
+  toma logo o lugar da frente e aparece por opacidade (0,7 s); a que sai desvanece em 0,3 s enquanto recua; as de trás
+  arrumam-se com movimento (`during5.mjs`, frames da troca: sem bloco escuro).
+- **A galeria de *On the day*:** seis fotografias novas do fotógrafo, nenhuma das três do capítulo. Copiadas da V4
+  (`D:\STUDIO\public\media\new`, HelderCoutoPhoto_046, 067, 126, 156, 179, 337) para `media-src/weddings/`, com o SHA-1
+  verificado (iguais), sem tocar na V4. Derivados `weddings-guests-1…6` a 320 e 640 px (`npm run images`).
+- **Weddings *Before*:** continua em aberto (owner).
+
+### Décima revisão do owner (30/10)
+- **O "quadrado" atrás da fotografia em Experiences (terceira causa):** gravadas as três trocas a correr sozinhas, a
+  1920×1080 (`exp6.mjs`, ~90 frames/s; folhas com `sheet.mjs` e `zoom.mjs`). Na troca, a fotografia que chega começava
+  translúcida, a que saía recuava por trás dela e as de trás mudavam de lugar: a metade escura do concerto via-se como um
+  bloco. **Corrigido sem deslizar nada:** as camadas de trás desvanecem com a peça (`data-swap="out"`), a nova fotografia
+  aparece sobre a antiga ainda inteira (`cross`, `.w-leaving`, 0,7 s), e as camadas voltam já no lugar, por opacidade
+  (`settle`). Gravado de novo: 1920 (`exp7`) e 390×844 (`exp8`), sem bloco. Weddings e Artists usam o mesmo código; não
+  foram gravados.
+- **O teclado não mudava de momento:** o foco pausa o palco e `run` não fazia nada. Encontrado ao ler o código, corrigido
+  e testado (`cd30.mjs`, Enter em *After*: m 2, peça visível).
+- **Weddings *Before*:** a contagem vai para o próximo 25 de agosto às 16:00; lê-se de novo a cada contagem. `cd30.mjs`,
+  relógio fixo: 30/10/2026 → 299 dias; 25/08/2027 15:59:30 → 00 00 01; 16:00:00 → 366 dias, sexta 25 agosto (2028);
+  31/12/2027 e 29/02/2028 certos. Três dígitos cabem (`before30.mjs`): 1920, 768, 390 e 320, sem overflow; a 320 sobram
+  23 px de cada lado.
+- **Decisão (o owner deixou comigo):** sem contagem acelerada até ao dia. Em 4,8 s seriam ~300 dias a girar, ilegíveis e
+  contra a calma do site, e o momento seguinte, *On the day*, já é a chegada.
+- **`m30.mjs`:** outro momento nunca pausa por engano; pausar, rato e mudar de capítulo durante `out` não deixam estado
+  preso. **`moments.mjs`:** S2 acusou pausa por corrida do próprio script (o clique calhou com a rotação já em 1), sem
+  relação com o código. **`nine.mjs`:** sem erros. typecheck, lint e build passam.
+- **Caso antigo, não alterado:** o rato a entrar na fotografia nos 0,45 s em que a peça sai deixa a fotografia sem peça
+  até o rato sair.
+- **Não verificado:** Xiaomi (ecrã bloqueado, `phone-work.mjs` não ligou); iPhone.
+
+### Décima primeira revisão do owner (30/10): o quadrado era outra coisa
+- **O que o owner via:** em *During*, no fim da animação do cartão, e não na troca de fotografias. As três correções
+  anteriores trataram da troca e continuavam certas, mas não eram isto; o quadrado ficou dado como corrigido sem se ter
+  visto a peça inteira.
+- **Causa (`dur6.mjs` + `diff.mjs` + `amp.mjs`):** gravada a peça inteira e comparado cada frame com o anterior. Salto
+  a +1,94 s da peça: quando a última parte (`dm-e4`, 1,1 + 0,8 s) acaba, o Chrome volta a compor e o véu `dm-night` pinta
+  fora do corte oblíquo. Luz junto ao corte: 31,9 → 21,2 (`wedge.mjs`).
+- **Só se vê na gravação do compositor:** `page.screenshot` redesenha e dá sempre 31,9. Não usar screenshots para isto.
+- **Variantes medidas:** sem `transform` nas partes, não resolve; `will-change: opacity` na peça, resolve, com uma camada
+  a mais; `clip-path` no próprio véu, resolve e sem camada. **Escolhido o `clip-path`** (`work.css`).
+- **Depois da correção:** luz estável a 1920 (31,9) e a 1440 (32,0). Sem salto em 1920 e 1440; a 390 resta o texto do
+  horário a acertar a nitidez, sem cunha (`d7c-amp.jpg`).
+- **`sweep.mjs` (1920):** sem saltos fora do esperado em 7 peças; os movimentos listados são os desenhados (galeria,
+  tira de fotografias). *Before* de Experiences medido só com `wedge.mjs`; *Always* de Artists não coberto.
+- **Xiaomi, versão final (`phone-dur.mjs`, `phone-work.mjs`, `phone-pass.mjs`):** *During* gravado no telefone (305 frames):
+  luz junto ao corte estável em 38,5 de +1,65 s a +5,95 s, sem salto. Momentos a rodar: 90 fps, p95 11,2 ms, 0 frames
+  > 25 ms (2 corridas). Scroll pelo Work: 66 fps, p95 33 ms, 9–10 frames > 25 ms e 3–4 > 50 ms. Passagem (3 corridas): a
+  descer 61–63 fps, a subir 56–59 fps, 1–4 frames > 50 ms; números de um gesto simulado.
+- **Não verificado:** iPhone.
+
+### Décima segunda revisão do owner (30/10): qualidade das fotografias e *Before*
+- **Causa da má qualidade:** os originais têm 3453×5172; a AVIF a 50 tirava-lhes o grão (`q30.mjs`, crop lado a lado).
+  **Corrigido:** as fotografias do fotógrafo (`fine`) passam a AVIF 78 e JPEG 88, com larguras 640, 960, 1280 e 1600 (era
+  1440). Conteúdo e originais intactos.
+- **Peso:** `weddings-before` 640 AVIF 16 → 39 KB, 960 31 → 87 KB; `weddings-day` 960 69 → 285 KB; 1600 até 955 KB. Com
+  muito grão a AVIF sai maior do que a JPEG, e o browser fica com a AVIF. O grão pesa; a medir com cuidado no 4G.
+- **Weddings *Before*:** as palavras sobem (`top` 24 → 15 %) e o véu mantém-se escuro até ao fim da data. Contraste do
+  linho no pedaço mais claro atrás de cada linha (`before31.mjs`): data 2,95 → 4,85 a 1920, 2,72 → 4,71 a 390, 2,04 → 4,57
+  a 320. **Custo:** o céu fica cinzento escuro.
+- **Véu aligeirado a pedido do owner (30/10, 0,5 / 0,45):** a data desce para 3,11 a 1920, 2,99 a 390 e 2,87 a 320; o
+  contraste é medido sem a sombra das palavras. Escolha do owner, à espera da sua vista.
+- **Não verificado:** peso e fluidez no Xiaomi depois das novas fotografias; iPhone.
+
+### Décima terceira revisão do owner (30/10): fotografias do Unsplash
+- **Aplicadas por escolha do owner:** *For a moment*, Experiences *Before*, *During* e *After*. *On record* e *Always*
+  ficam as de IA, com menos compressão; *Always* continua em aberto. Originais de 3024–3675 px, SHA-1 verificado na cópia
+  para `media-src/stock/`, licença em `assets.md` §3.
+- **Tratamento `calm`:** o mesmo para as quatro (tom quente, negros suaves), com saturação própria: 0,72, 0,7, 0,55 e 0,8.
+- **A entrada não muda:** ids novos (`*-photo`); a lâmina continua com o concerto de IA em P&B.
+- **Efeito encontrado:** a fotografia clara de *For a moment* deixava *Room I of III* e *Open since* sobre a parede pálida.
+  Véu `dm-room` mais forte no topo; contraste no pedaço mais claro (`room.mjs`): mínimo 5,32 a 1920/1440/390, 4,85 a 320.
+- **`six.mjs`:** seis momentos, fotografia e peça, a 1440 e 390: sem erros, nada a falhar. typecheck, lint e build passam.
+- **Não verificado:** Xiaomi (ecrã bloqueado, `phone-work.mjs` não ligou), `sweep.mjs` com as novas fotografias; iPhone.
+
+### Décima quarta revisão do owner (30/10): *Always* e o vidro das peças
+- ***Always*:** imagem nova do owner (`artists-always-photo`), `calm` 0,8, cortados 64 px à esquerda (o batente). A lâmina
+  da entrada não muda.
+- **O vidro das peças era fosco:** 14 px de desfoque, escurecido e sem lente, nas peças *Reply by RSVP*, etiqueta e
+  convite. **Corrigido:** a mesma receita da barra (8 px, × 1,6 no desktop; saturação 1,6; brilho 1,04), película 0,2 e a
+  mesma lente, com `lensMap` passado para `src/lib/lens.ts`, agora com o raio do canto.
+- **Convite:** o corte oblíquo isola a peça e o vidro só via o véu. A fotografia entra na peça (`dm-still`).
+- **`glass30.mjs` (2×):** o `backdrop-filter` calculado traz a lente nas três peças e na barra; mapas desenhados; zero
+  erros. Vistos de perto: a silhueta e o arco veem-se através do vidro. `six.mjs` a 1440 sem erros; a 390 só antes desta
+  revisão. typecheck, lint e build passam.
+- **Custo:** a lente é um filtro SVG; na barra não custou no Xiaomi, mas aqui fica sobre fotografias e não foi medida.
+- **Xiaomi com tudo aplicado (gesto simulado):** momentos a rodar 90 fps, p95 11,2 ms, 1 frame > 50 ms em seis janelas de
+  8 s. Scroll 66 fps, p95 33 ms, 3–4 > 50 ms. Passagem 59–65 fps a descer, 54–58 a subir, 1–3 > 50 ms. Iguais às medições
+  antes das fotografias e do vidro. Não medido: peso em rede móvel; primeiro carregamento das fotografias.
+- **Não verificado:** Safari e iPhone ficam sem lente, só com o desfoque.
+
+### Décima quinta revisão do owner (31/10): o quadrado confirmado e a medição final
+- **Quadrado em Experiences *During*:** o owner confirmou que desapareceu.
+- **Build, `typecheck`, `lint`:** passam, sem avisos.
+- **PC (`pc.mjs`):** sete viewports e os testes de movimento reduzido, sem JS, teclado, regresso e refresh; `errors: []`, sem
+  overflow horizontal. `moments.mjs` e `nine.mjs`: sem erros.
+- **`sweep.mjs` a 1920:** sem saltos em cinco peças; *On the day* e *After* de Experiences listam a galeria e a tira,
+  movimentos desenhados. *Always* e *Before* de Experiences não cobertos (o primeiro momento de cada capítulo não entra sempre na gravação).
+- **`sweep.mjs` a 390:** todas as peças listam movimento a partir de +1,0 s. Sem linha de base a 390 e não visto a olho.
+- **Peso no Xiaomi (carga fria, sem cache):** 3,70 MB em 50 pedidos à chegada (imagens 2 572 KB, vídeo 928 KB, JS 139 KB,
+  fontes 114 KB); 3,73 MB depois dos três capítulos. Medido em localhost, por USB: são bytes, não tempo em 4G.
+- **Xiaomi, fluidez (`phone-work.mjs`, `phone-pass.mjs`, gesto simulado):**
+
+  | Medida | 30/10 | 31/10 |
+  |---|---|---|
+  | Momentos a rodar | 90 fps | 90 fps, p95 11,1 ms; 61 fps depois de reiniciar o Chrome |
+  | Scroll pelo Work | 66 fps | 59–63 fps, 4–5 frames > 50 ms; 37 fps depois de reiniciar o Chrome |
+  | Passagem, a descer | 59–65 fps | 36–41 fps, 1–3 > 50 ms |
+  | Passagem, a subir | 54–59 fps | 31–41 fps, 2–5 > 50 ms |
+  | **Controlo:** zona simples da página | 75–84 fps (29/10) | 46–50 fps |
+
+- **A queda não vem do código da passagem:** o código não mudou desde 30/10 às 14:32, o controlo caiu quase o mesmo (~40 %),
+  e simular 14:30 e 22:30 não muda nada. Poupança de bateria desligada, 27 °C, thermal 0, sem pressão de memória, ligado à
+  corrente; reiniciar o Chrome não ajudou. **Causa não encontrada.** A carga do sistema estava alta (loadavg ~7). A mudança
+  para 61 fps sugere que o ecrã baixou de 90 para 60 Hz; não confirmado.
+- **Não verificado:** a passagem com o dedo do owner (o gesto simulado não é o critério), o peso em 4G, o iPhone.
+
+### Décima sexta revisão do owner (31/10): o tremor da entrada e a passagem
+- **Medidor:** `?fps` no endereço (`src/components/fps-meter.tsx`): fps do último segundo, pior frame e frames > 25 e > 50 ms
+  desde o último toque. Instrumento de teste; **sai antes de publicar**.
+- **Tremor no zoom, confirmado:** frame de 88–122 ms ~180 ms depois de E3, em todas as corridas, com o vídeo a saltar até 5
+  frames (`entr-diag`, trace no Xiaomi). Duas causas:
+  1. `update()` da barra: 24 `elementsFromPoint` a cada estado da entrada e a cada imagem carregada; 61 ms na thread principal.
+     Agora não corre em e2–e4 nem durante a passagem (`bar-client.tsx`). O vidro lê antes e depois: 0,18 ao aparecer, 0,17 depois.
+  2. O Chrome redesenhava o véu para a escala máxima ~165 ms depois do início do zoom. Corrigido com uma animação declarada em
+     E1 com atraso, em vez de uma transição iniciada em E3 (`entrance.css`).
+- **Erro meu, corrigido a seguir:** a primeira correção (animação em pausa) fazia a escala saltar para 160 no primeiro frame:
+  **o zoom pelo O deixou de existir** e os números "bons" eram falsos. O owner viu-o. Sem `from` explícito a animação parte da
+  escala final. **Regra nova:** `entr-check.mjs` só conta uma corrida se a escala do véu crescer frame a frame.
+- **Depois, com o zoom verdadeiro (Xiaomi, 5 corridas, portão ok):** 87–88 fps, 0 paragens do vídeo, 0 frames perdidos; antes
+  85 fps, frame de 77–88 ms, até 4 perdidos. Resta um frame de 33–44 ms a ~1,3 s (E4, em 4 de 5 corridas).
+- **Ecrã real do Xiaomi (`screenrecord`, 510 frames):** sem picos de luz no zoom, O nítido, véu sai sem resíduo, lâminas por ordem.
+- **Seis ecrãs:** Chrome 1920×1080, 1366×768, 768×1024, 820×1180; WebKit (motor do Safari, no Windows) 393×852 e 430×932: escala
+  sempre a crescer, sem erros, sem overflow, O certo em frames exatos. Chrome 122–141 fps. **WebKit no Windows corre a 4–5 fps sem
+  GPU: vale para a imagem, não para fluidez.** Um frame de 167 ms a 1920 (uma vez, em E4), por repetir.
+- **Passagem:** 36–41 fps → 50–57 a descer, 45–51 a subir, a 90 Hz (`phone-pass.mjs`). Numa ronda intermédia deu 38–41, com tudo
+  a 60 fps (entrada 58–60, p95 16,5): o telemóvel oscila entre 60 e 90 sem o pedirmos. Explica parte da queda de manhã; não confirmado.
+- **Critério:** `acceptance.md` pede 60 fps estável e nenhuma tarefa > 50 ms. Por cumprir na passagem (> 50 ms: 1–4) e no scroll
+  do Work (5–8). Na entrada: tarefas de 56–78 ms a 3 das 3 corridas.
+- **`pc.mjs`:** `errors: []`, sem overflow. typecheck, lint, build passam.
+- **Não verificado:** o olho do owner; fluidez em iPhone real.
+
+### Décima sétima revisão do owner (31/10): o tremor ao assentar
+- **Sintoma do owner:** tremor no filme quando diminui para assentar (*dolly* 1,14 → 1), no PC e no Xiaomi, com fps bons.
+- **Medição:** filme parado num frame, palavras e barra escondidas, posição da crista das montanhas frame a frame por deslocamento
+  sub-pixel: gravação do ecrã no Xiaomi (`dolly.mjs`, `track.cjs`) e screencast no PC (`dolly-pc.mjs`).
+- **Resultado:** com o vídeo, saltos até ±1,3 px e 24 inversões; só com o poster, suave. Opacidade, filtro, `will-change` e
+  `clip-path` no vídeo não resolvem (±0,4 px no melhor caso).
+- **Causa:** o compositor arredonda à grelha de píxeis a posição de um vídeo alinhado aos eixos.
+- **Correção:** rotação de 0,03° permanente em `.e-film` e na passagem. Inversões: Xiaomi 24 → 1 no teste e 9 de ruído (≤ 0,26 px) no build
+  final; PC 9 → 1. Zoom verificado pelo portão.
+- **Passagem para Weddings (a atual fica, decisão do owner):** tirar vídeo, recorte, barra ou aura não muda nada (33–40 fps a 60 Hz). Trace de
+  2,06 s: 113 desenhos do compositor (~55 fps) e 55 frames da thread principal (~27 por s), com espera de raster da GPU (commit até 50 ms).
+- **Não verificado:** iPhone real; o olho do owner.
+
+### Décima oitava revisão do owner (31/10): a curva do filme e a pilha
+- **Curva do *dolly*:** `cubic-bezier(.3,0,.2,1)` → `(.37,0,.63,1)`, mesma duração e escala. Cálculo: tempo a rastejar a < 0,15 px por frame
+  0,33 → 0,09 s; pico 2,2 → 1,3 px por frame.
+- **Passagem para Weddings:** a passagem para CSS fica adiada (owner: "n sei se vale a pena").
+- **Pilha de cartões:** opções em https://claude.ai/artifact/EENJtCtWgXHrjnM434Zmc4. Medidas numa página isolada no Xiaomi, sem o peso do site: ~90 fps nas quatro.
+
+### Décima nona revisão do owner (31/10): da entrada pelo O até o vídeo desaparecer
+- **62 fps em repouso:** não é o site. O ecrã do Xiaomi estava a 60 Hz: 61 fps com o filme a rodar, parado, sem a rotação e sem a barra (`rest.mjs`); filme 30 fps, 0 perdidos.
+  O telemóvel alterna 60/90 Hz sozinho; causa não apurada. O medidor nunca passa do ecrã.
+- **Entrada:** cada estado em `<html>` recalculava a página: 42 ms a abrir o zoom, 64 ms a chegar o estado final. Agora é uma só linha de tempo declarada no escuro
+  (`e0` → `run` → fim), em `entrance.css`; nada se escreve durante o movimento.
+- **Passagem:** de script para `ScrollTimeline` no compositor; recorte substituído por janela em arco com contra-escala (`flight()` em `work-client.tsx`). Alternativa em script mantida.
+  `rangeStart: CSS.px()` é ignorado pelo Chrome: usar a string `'100px'`. Quem lê o portão apanhou isto (escala final 2,48 em vez de 1).
+- **Xiaomi (`full.mjs`, portão zoom + palavras + lâminas + arco):** a 90 Hz 89,5–90 fps, pior frame 33 ms; a 60 Hz 60,4–61,1 fps, pior 33 ms, intervalo do filme até 66 ms.
+  Passagem: 76 desenhos/s (eram 55), pior frame da thread principal 15 ms (era 64). Tremor (`dolly.mjs`): 1 inversão.
+- **Scroll pelo Work (não mexido):** 45–48 fps a 60 Hz, 3–5 frames > 50 ms; por tratar.
+- **Seis ecrãs (`passcheck.mjs`, Chrome no 2.º ecrã, WebKit visível):** escala até 1, voltar para cima certo, salto por gesto, sem erros. `modes.mjs`: movimento reduzido, sem JS, tecla e lâmina sem erros.
+- **Pilha:** A e B com mola (`linear()`), ~61 fps a 60 Hz na página isolada.
+- **Não verificado:** iPhone real; fluidez no WebKit do Windows; `pc.mjs` completo (lança browser próprio, por migrar); a pilha no site.
+
+### Vigésima revisão do owner (31/10): a pilha A no site
+- **Construída:** cartões opacos com película (`.w-ph::after`), troca por Web Animations em `change()` de `work-client.tsx`, mola sampleada em `linear()`. A película escurece mais cedo ao passar para trás (0,5 a 30 %), sem máscara.
+- **Xiaomi (`phone-pile.mjs`, a 60 Hz, gravado):** três capítulos 60,6–60,8 fps, p95 16,5 ms, 5–7 frames > 25 ms, 0 > 50 ms; cartões a mexer em 147 frames (portão). Saltar momento e toques rápidos acabam nos lugares certos.
+- **Não verificado:** a 90 Hz; PC; `moments.mjs` (lança browser próprio); iPhone real.
+- **Passagem:** opções 1 e 3 em https://claude.ai/artifact/BQJNPwzzAZQqhRAv4t4B55; a lâmina de Weddings e o arco usam a mesma fotografia.
+
+### Vigésima primeira revisão do owner (31/10): desktop e refinamento
+- **Lâmina (`?lamina`, no site real, por escolher):** a lâmina de Weddings voa até ao arco no compositor (`bladeFlight()`), inclinação por shear, curva por duas caixas em crossfade, 1,4 ecrãs de scroll. `lamina.mjs`: 1920, 1366, 820, 393: certo, volta para trás certo, sem erros.
+- **Cartões:** deslocamento 58 % → 20 %; o cartão desvanece a sair em vez de saltar para trás; a peça sai com o cartão (espera 450 → 40 ms). A regra de 29/10 (peça primeiro) existia por causa da pilha transparente.
+
+### Vigésima segunda revisão do owner (31/10): a aterragem e o trajeto para trás
+- **Bug:** o palco, por baixo da entrada, contava como visível e rodava sem ninguém o ver; ao voltar para trás a peça ficava ligada e ao aterrar aparecia antes da fotografia. Reproduzido (`landing.mjs`: `on: 1` no topo, 3 s depois).
+- **Correção:** `onStage()` em `work-client.tsx`: o palco só trabalha com a passagem aterrada; ao sair repõe primeiro momento, sem peça, sem preenchimento.
+- **`landing.mjs` (393 e 1920):** descer, voltar, topo, aterrar outra vez, abanar na fronteira, ir a outro capítulo e voltar: estado certo em todos os pontos, sem erros; aterragem vista frame a frame.
+- **Cartões:** lateral 40 % (58 % e 20 % rejeitados), 1,45 s, passa por baixo com mola, peça sai com o cartão. Xiaomi a 60 Hz: 60,8–60,9 fps, p95 16,5 ms, 3–4 frames > 25 ms, 0 > 50 ms.
+- **Não verificado:** a gesto real do owner; 90 Hz; iPhone real.
+
+### Vigésima terceira revisão do owner (31/10): salto da lâmina, a linha, o regresso do cartão
+- **Salto da lâmina:** o enquadramento assumia que a fotografia enchia a largura do arco, e a cópia não trazia a sombra da lâmina. `takeover.mjs`: era até 5 px e +45 de luz; agora 0 px e ≤ 2 de luz, em 393, 820 e 1920. Enquadramentos calculados pelas proporções da própria fotografia.
+- **Linha:** a primeira separação acendia com a peça (`.w-li[data-k='0']`); regra retirada, fica sempre apagada.
+- **Regresso do cartão:** o salto é a mudança de camada a meio. Três alternativas no storyboard (`pilha-test.mjs`, Xiaomi a 60 Hz, página isolada): ~61 fps nas três; por escolher.
+
+### Vigésima quarta revisão do owner (31/10): a barra de luz; a lâmina como passagem normal
+- **Barra de luz:** a cópia da lâmina entrava por cima do nome e da sombra e, nos primeiros píxeis de scroll, isso piscava. As caixas voam agora por baixo das palavras (`.e-window`, z 3); o nome fica inteiro e sai sozinho. `barra.mjs`, gesto de ida e volta gravado no Xiaomi: subida máxima de luz por frame +8 → +3 (ruído).
+- **Lâmina normal:** `?lamina` e a janela em arco retirados; `.e-counter` removido. `takeover.mjs` 0 px, luz ≤ 0,6; `landing.mjs` (393) e `lamina.mjs` (quatro tamanhos) certos; `modes.mjs` sem erros; WebKit 393 e 430 sem erros, 20 animações de scroll. Xiaomi a 60 Hz: 54 desenhos/s, pior frame da thread principal 27 ms.
+- **Não verificado:** gesto real do owner; 90 Hz; iPhone real; `pc.mjs` completo.
+
+### Vigésima quinta revisão do owner (31/10): a película, o rato e o regresso 1
+- **Barra na lâmina:** a sombra (`.e-blade-shape::after` e a da cópia) coincidia com o corte e uma linha da fotografia passava por baixo em posições fracionárias (`barra-pc.mjs`, screencast a 1440: linha inferior a variar 56 níveis num scroll curto e volta). Sombra agora ultrapassa o corte.
+- **Rato:** cada movimento gravava `--px/--py` em `<html>` e recomeçava a transição de `translate`. Agora `sequence.ts` suaviza e escreve em cada lâmina, só enquanto assentam.
+- **Regresso do cartão:** versão 1 no site: sai para o lado a apagar-se e entra por trás vindo do mesmo lado (1,65 s). A troca de camada acontece com o cartão invisível.
+- **A linha de luz, causa final:** a película dentro da caixa era cortada com a fotografia e uma linha ficava descoberta (12 → 103 níveis, só em frames do compositor; `barra-frame.mjs`). A sombra voa agora à parte, por cima, e a fotografia acaba 2 px antes da borda: 12–13 níveis em todos os frames a 1440.
+- **Bug novo, corrigido:** chegar a `#capítulo` ou recarregar abaixo da passagem deixava animações presas nos cartões e no texto (`swapFrames` 855 → 206).
+- **Xiaomi (`phone-pile.mjs`, 60 Hz):** regresso 1 no site, 60,8–60,9 fps, 0 frames > 50 ms; saltar e tocar depressa certos.
+- **Não verificado:** tremor do rato medido apenas pelo mecanismo, não por rastreio de imagem; gesto real; 90 Hz; iPhone real.
+
+### Vigésima sexta revisão do owner (31/10): a linha, de novo, e o cartão em diagonal
+- **A linha ao forçar scroll para trás no topo** (`barra-pull.mjs`, toque real no Xiaomi, `edge.cjs`): mesmo em repouso a última fila da lâmina estava ~7 níveis acima das vizinhas e subia a 73 com a página em movimento. Fotografia e sombra eram camadas separadas (translate3d) e cada uma suavizava a borda fracionária. Transform 2D: uma só camada em repouso.
+- **A barra escura para a frente:** vinha dos 2 px a menos na fotografia. Agora a caixa acaba no píxel do dispositivo da lâmina (para baixo) e a sombra passa-a 1,5 píxel físico.
+- **Cartão:** a versão que desvanece misturava fotografias (recusada). Sólido, diagonal para trás (30 %, −10 %, escala 0,9), 1,45 s. Xiaomi a 60 Hz: 60,6–60,9 fps, 0 frames > 50 ms.
+- **Não verificado:** a mudança de camada do cartão a olho no site; gesto do owner; 90 Hz; iPhone real.
+- **Regresso do cartão, final (owner):** o movimento em diagonal com o apagar da versão 1: sai a desvanecer na diagonal, troca de camada invisível a meio, reaparece atrás na mesma linha (1,65 s). `phone-pile.mjs`, Xiaomi.
+
+### Vigésima sétima revisão do owner (31/10): o conjunto, o hover, o medidor
+- **Hover nas lâminas:** não era tremor contínuo: arranque a alta velocidade, salto de 1,44 px no primeiro frame (`rato-over.mjs`). Curva com entrada suave, 2,2 s: primeiro passo ~0,3 px, 0 inversões; passo máximo restante 0,8–1,3 px, origem não identificada.
+- **Cartão:** cartão, película e peça no mesmo relógio (1,7 s); volta sem paragem, invisível só entre 44 e 54 %, troca de camada a meio. Sem espera entre a peça e o cartão.
+- **Xiaomi a 60 Hz:** 59,8–60,5 fps; Weddings 15 frames > 25 ms e 1 > 50 ms (a peça a mover o vidro), outros 6–8 e 0.
+- **Medidor:** só em localhost/127.0.0.1 e com `?fps`. Regra em CLAUDE.md.
+- **Não verificado:** 90 Hz, iPhone real, passagem com a nova película.
+
+### Auditoria de 31/10
+Relatório completo em `docs/development/v5-auditoria-entrada-work.md`: sete tamanhos, percurso de ida e volta, Xiaomi a 60 e 90 Hz, sete bugs corrigidos, decisões por aprovar.
+
+### Revisão do owner de 1/11: tremor das lâminas, passagem a 768, regresso do cartão
+- **Tremor das lâminas:** reproduzido com `shake.mjs` (rato a abanar entre Artists e Experiences). A lâmina III era a pior: 9 inversões em x, passo máximo 3,0 px em y; a I: 0.
+  Causas: profundidade pintada com a página, a cair em píxeis inteiros; uma só suavização por frame, que deixava passar o abanar e piorava com mais Hz; nome e sombra a voltar atrás ao cruzar a borda.
+  Corrigido: camada por lâmina só com rato (`will-change: translate`), duas suavizações no relógio, 0,18 s de espera ao sair. Depois: x 1 inversão; y 5 inversões, passo máximo 1,67 px. As inversões em y subiram de 2 para 5 e a medição mistura o deslize do hover: falta o olho do owner.
+  Simulação numérica (abanar a 5 Hz, ±126 px, lâmina III): 60 Hz 1,40 → 0,50 px; 144 Hz 2,34 → 0,33 px. A medição real frame a frame (`tremor.mjs`) falhou: só 3 amostras.
+- **Passagem a 768:** a descer e a subir com roda real, carga direta bem. Após redimensionar 1440 → 768, a lâmina trocava de ficheiro, `naturalWidth` era 0, NaN, e a fotografia voava sem enquadramento e saltava ao aterrar. Corrigido: a passagem espera pela imagem, e as caixas refazem-se em cada medição. Keyframes iguais em carga direta e redimensionada. Sem regressão a 1440 (`wheel768.mjs`, `wheel-resize.mjs`).
+- **Arco a 768:** tablet ao alto, 60 % de largura, 42 % de altura, texto a 56 %.
+- **Regresso do cartão:** diagonal mantida, apaga até 26 % do percurso (era 44 %). `moments.mjs` corre sem erro; o aspeto não foi avaliado em gravação.
+- **Validação:** tsc e eslint sem avisos, build bem.
+- **Não verificado:** tablet real; Xiaomi com estas alterações (só recarregado); 320×640 não alterado; `nine.mjs`, `sweep.mjs` e `pc.mjs` não repetidos; iPhone.
+
+### Segunda revisão do owner de 1/11: cartão com a peça, risco branco, composição a 768
+- **Cartão:** a peça ia sobre o cartão ainda inteiro e apagava-se à parte; parecia voltar à imagem normal antes de recuar. Agora entra no cartão ao sair (`carried`, `drop()` a 49 %) e cartão, filtro, zoom e etiqueta saem como um só. Visto frame a frame em Artists *For a moment*. Weddings não gravado.
+- **Risco branco:** a última linha da fotografia ficava sem sombra enquanto esta animava. `risco.mjs`, Artists: 18,6 → 2,0 níveis a 1440; 1,8 a 1920. A fotografia pára 2 px antes do corte. O primeiro valor de 5,6 (`overflow: visible`) foi variação; `overflow` saiu na mesma.
+- **768×1024:** `tour2.mjs` de cima ao fim do Work e volta, carga direta, redimensionada (1440 → 768) e modo de dispositivo com toque; nove peças com `nine768.mjs`. Layout certo nos três; defeito visível: texto de dois capítulos sobreposto. Corrigido só em tablet ao alto (saída 0,22 s).
+- **Validação:** tsc, eslint, build, `moments.mjs` sem erros de página.
+- **Não verificado:** tablet real; passagem e cartão medidos no Xiaomi; `pc.mjs`, `nine.mjs`, `sweep.mjs`; iPhone.
+- **Correções depois da verificação (1/11):** o corte de 2 px deixava uma barra escura na lâmina de Weddings no Xiaomi: passou a valer só com rato; ecrã do Xiaomi visto, barra desaparecida; risco no PC 1,7 níveis. A saída de 0,22 s não chegava: o texto do momento nunca se apagava com o capítulo; regra própria em tablet ao alto, com o novo a entrar 0,24 s depois. `tour2.mjs` a 768: texto limpo nos dois sentidos.
+- **Ficou por decidir:** o telemóvel tem a mesma regra de texto; não foi alterado.
+
+### Terceira revisão do owner de 1/11: risco preto e tremor no zoom das lâminas
+- **Sintoma:** com o rato parado sobre qualquer lâmina, risco e tremor em baixo durante o zoom, a crescer e a encolher. Os cartões, o nome na barra e a composição a 768 o owner deu como bem.
+- **Causa:** a profundidade vertical deixava a borda inferior em frações de píxel, onde fotografia e sombra, em camadas separadas, eram cortadas de forma diferente. O corte de 2 px só trocou o risco branco pelo preto.
+- **Decisão:** profundidade só na horizontal; a borda inferior fica fixa num píxel do dispositivo; corte de 2 px retirado; camada fixa na fotografia (`will-change`, só com rato). Efeito visual: as lâminas deixam de subir e descer 4–6 px com o rato. Para reverter: `sequence.ts`.
+- **Medido:** `hover.mjs` com rato parado: linha 2,0 / 1,1 / 0,4 níveis (lâminas I, II, III); com a vertical eram 6,3 / 18,6 / 0,6. `risco.mjs` Artists 1,6 a 1440. A 1920 e 1536 só o primeiro frame gravado dá 7,4–7,6, antes de a lâmina ser alinhada. Inversões da fotografia: 2 / 0 / 0.
+- **Não verificado:** ecrã com devicePixelRatio fracionário; Xiaomi (o código novo só corre com rato); iPhone.
+
+### Ronda completa de 1/11: scroll do início ao fim e volta
+- **PC, Chrome visível, roda real (`tour3.mjs`):** 1920×1080, 1440×900, 768×1024, 390×844, 320×640, página inteira nos dois sentidos: 0 erros, 0 overflow, de volta ao topo sem peça acesa, passagem limpa, filme a correr. Depois das duas correções abaixo repetido a 1920, 768 e 390.
+- **`pc.mjs` ligado ao Chrome de testes (`pc-c.mjs`), sete tamanhos:** 0 erros; movimento reduzido, sem JS (1440, 390, 320), teclado, tecla a saltar, regresso, refresh a meio: bem. Corrido antes das correções da barra e do link.
+- **Xiaomi (`--experimental-websocket`):** momentos 89–90 fps; scroll no Work 63–66 fps (p95 33–44 ms, 4–5 frames > 50 ms); passagem a descer 78–80 fps, a subir 72–74 fps (2 frames > 50 ms). Três corridas. Sem gesto real de dedo.
+- **Corrigido:** a barra ficava em 02 Method sobre Experiences ao subir; agora recua para a secção anterior. *01 Work* no índice levava à entrada; agora aterra em Weddings (`chapterOf`).
+- **Em aberto:**
+  - Texto de dois capítulos sobreposto ~0,5 s ao mudar de capítulo, a 1920, 1440, 390 e 320. Só corrigido em tablet ao alto (#73 define 0,65 s). Decisão do owner.
+  - 320×640 Weddings: *Every project…* (621–639) sobrepõe o crédito (617–634).
+  - Barra: 3 amostras uma secção atrasadas em saltos de 1/4 de ecrã a 1440 e 768; mediu-se 140 ms depois do salto, sem efeito visto com a roda real.
+- **Nota de teste:** o Chrome do 2.º ecrã não desenha frames sem gravação ativa; medições com `requestAnimationFrame` ou `IntersectionObserver` precisam de screencast ligado (`tremor.mjs` falhou por isto).
+- **Não verificado:** iPhone, tablet real, `sweep.mjs`, `nine.mjs`.
+
+### Decisões do owner sobre a ronda (1/11, README #83)
+- **Mudança de capítulo:** a correção do tablet passou a todos os tamanhos. **Crédito:** escondido abaixo de 360 px; a 320 o rodapé termina a 639 de 640, a 390 o crédito continua visível.
+- **Medido:** `tour3.mjs` nos cinco tamanhos, nos dois sentidos: 0 erros, 0 overflow, regresso ao topo limpo; `moments.mjs` sem erros; tsc, eslint, build.
+- **Não verificado:** `pc-c.mjs` e Xiaomi não repetidos depois destas alterações; iPhone, tablet real, `sweep.mjs`, `nine.mjs`.
+
+### Primeiro teste no iPhone (owner, 1/11, README #84)
+- **Reportado no Safari:** a imagem parava acima da barra de baixo; ao puxar para atualizar, o vídeo parava por baixo da ilha dinâmica, com cor lisa em cima; ao descer, uma mancha de luz fora da bola do menu.
+- **Corrigido:** `viewport-fit=cover`; entrada, palco e percursos do scroll em `lvh`; `.e-final` e `.w-ch` terminam no viewport pequeno (`--room`), o fundo continua até ao pé; `clip-path` estático nas ilhas, só no iOS (`@supports (-webkit-touch-callout: none)`).
+- **Medido no Xiaomi (`ios-room.mjs`, gesto real, barra visível 779 px, escondida 835 px):** entrada e palco 835 px; palavras em 779; rodapé do Work termina em 745. Descer até Experiences e voltar ao topo: 0 erros, 0 overflow. Ecrã real capturado com `adb screencap`: filme até ao pé. A faixa escura em `Page.captureScreenshot` é artefacto da captura.
+- **Passagem no Xiaomi (`phone-pass.mjs`, 3 execuções):** a descer 78–81 fps, 0 frames > 50 ms; a subir 72–76 fps, 3 frames > 50 ms em cada execução. Iguais à medição anterior.
+- **PC (`tour3.mjs`):** 1440×900 e 390×844, nos dois sentidos: 0 erros, 0 overflow, regresso limpo. `tsc`, `eslint` e build passam.
+- **Não verificado:** as três correções no próprio iPhone, que é a única prova delas; a causa da mancha é hipótese, sem captura; menu aberto no iPhone com `viewport-fit=cover`; 1920, 768, 320; tablet real; `pc-c.mjs`, `sweep.mjs`, `nine.mjs`.
+
+### Segundo olhar do owner no iPhone (1/11)
+- **Confirmado pelo owner:** a mancha do menu saiu. **Não resolvido:** o vídeo continua a parar acima da barra do Safari e abaixo da ilha dinâmica, apesar de `viewport-fit=cover` e `lvh`. O Xiaomi não reproduz isto.
+- **Ferramenta:** `D:\STUDIO-tools5-m5\ios\` (`proxy.mjs`, `hud.js`, `tape.cjs`), porta 3130, sobre o build, sem tocar no site: `● rec`, marca, envio de fotos e vídeos, testes *Fundo magenta*, *Réguas*, *Filme a sangrar*. Provada no Xiaomi com `hud-smoke.mjs`: gravar, enviar, ligar e desligar um teste; alcançável por Wi-Fi. Não testada no Safari.
+
+### Gravação do iPhone (1/11, README #85)
+- **Aparelho:** iPhone 402×874, Safari 27.2. Fita: página de 714 a 754 px, safe areas 0 mesmo com `viewport-fit=cover`; 62 px em cima são sempre do Safari. Barra recolhida: a página chega ao fundo do ecrã. Só chegou um vídeo e uma fita a `ios\out\`; o segundo vídeo não está lá.
+- **Cor:** faixa do Safari (27,25,24) contra topo do filme (112,90,69). A cor da página segue a cena (`--scene`, `theme-color`). Xiaomi: entrada `rgb(126,103,79)`, regressa a carvão na passagem. Efeito no Safari por ver.
+- **Scroll na sequência:** dois swipes reais no Xiaomi: `scrollY` 0, sequência continua; depois do fim a página anda; um toque completa (`hold.mjs`).
+- **Tremor no fim da entrada:** vídeo do iPhone a 60 fps, banda de 1206×260 px, 96 frames: sem frames repetidos nem inversões de sentido; passos de 0,2 a 0,9 px físicos (0,3 CSS px) com cadência irregular no fim. Filme a 30 fps. Sem alteração feita.
+- **Regressão:** `tour3.mjs` 1440 e 390: 0 erros, 0 overflow. Passagem no Xiaomi: 75–76 fps a descer, 74–75 a subir (antes 78–81 e 72–76), 2–3 frames > 50 ms a subir.
+
+### Moldura do Safari (1/11, README #86, por aprovar a olho)
+- **Evidência:** gravação do iPhone das 16:50: a cor do filme tingiu a faixa de cima e a de baixo por igual, e criou uma banda castanha sob o pé escuro do filme. No Work não há borda: chão de cor lisa igual à faixa.
+- **Aplicado:** faixas a carvão na entrada; filme com 84 px de transição em cada ponta, só com `-webkit-touch-callout`; no Work, o chão do capítulo.
+- **Medido no Xiaomi:** a regra forçada por CDP (`frame.mjs`), ecrã real com `adb screencap`: transição limpa, título e lâminas intactos. `hold.mjs`: scroll retido na sequência, `theme-color` carvão na entrada, `rgb(33,29,24)` e `rgb(23,27,34)` no Work. tsc, eslint, build.
+- **Não verificado:** a regra no próprio Safari; menu aberto no iPhone; `tour3.mjs` depois desta alteração.
+
+### Terceiro olhar no iPhone (1/11, README #86)
+- **Pedidos do owner:** moldura com a cor da hora; em baixo, o filme acompanhar a barra; saída abrupta da ilha *Chapter One | 01 Work*; texto a tremer em baixo ao fazer scroll.
+- **Moldura da hora:** `frame*` em `tuning.ts`. Xiaomi às 17:08, luz evening: `--scene` e `theme-color` `#261d15`. As outras três horas só confirmadas como valores definidos, não vistas.
+- **Barra ao sair:** causa: o texto da secção era apagado de imediato. Agora fica até o fundido acabar, 0,9 s (`barexit.mjs`: *01 Work* mantém-se até opacidade 0).
+- **Pé do filme:** transição de 44 px presa a `100dvh`. Xiaomi com a regra forçada: bom aspeto com a barra visível; a barra não recolheu neste teste, por isso acompanhar a barra fica por ver no iPhone.
+- **Texto a tremer:** por resolver. Chegaram duas fitas, sem imagem. Fitas: palco imóvel (`stageTop` 0), 4 frames > 50 ms numa fita. Vídeo das 16:50: sem oscilação clara, medição grosseira. Falta gravação de ecrã do momento.
+- tsc, eslint, build passam. **Não verificado:** Safari; `tour3.mjs` depois destas alterações.
+
+### Bordas do filme com desfoque (1/11, README #86)
+- **Evidência (fita 17:21):** marca do owner a 1,7 s, página parada, barra aberta: a barra escura era a transição de 44 px. `dvh` no Safari anda em saltos (727 → 743): acompanhar a barra nunca seria suave. Só chegou fita, sem imagem.
+- **Aplicado:** `.e-edge` só no iOS: dois desfoques (3 e 10 px) e cor em rampa de 13 pontos; em baixo, parada no viewport pequeno, com cor lisa por baixo. Saem com o filme na passagem.
+- **Medido:** Chrome de testes a 402×754 com a regra forçada (`edge-pc.mjs`): sem camadas visíveis, título e lâminas intactos, opacidade 1 → 0,59 → 0,04 → 0, sem erros. `tour3.mjs` 390 e 1440: 0 erros, 0 overflow. tsc, eslint, build.
+- **Não verificado:** Safari; custo de dois desfoques sobre o vídeo no iPhone; Xiaomi desligado do PC (`hold.mjs` e `phone-pass.mjs` não repetidos); texto a tremer continua sem gravação de ecrã.
+
+### Bordas na passagem (1/11, README #86)
+- **Reportado:** ao avançar, o filtro de cima quase desaparecia e o filme ficava cru até ao topo; em baixo, uma camada de luz ao aterrar e uma camada cinzenta a meio da passagem. Só chegaram fitas, sem imagem: diagnóstico pela descrição do owner e pelo código.
+- **Causas:** as bordas saíam com o filme desde 5 % do percurso; a moldura era mais clara do que o pé do filme (17,15,14), por isso a transição clareava; a cor da faixa mudava logo no início da passagem.
+- **Aplicado:** bordas inteiras até 74 % de H, saem até 90 %; a cor passa à do palco nesse ponto (`data-passed`); moldura escurecida; pé só com cor, 110 px.
+- **Medido no Chrome de testes, 402×754, regra forçada (`edge-pc.mjs`):** opacidade 1, 1, 0,32, 0 aos 300, 520, 640 e 1200 px; sem camada clara nem cinzenta nos frames. `tour3.mjs` 390 e 1440: 0 erros, 0 overflow. tsc, eslint, build.
+- **Não verificado:** Safari; fluidez do desfoque no iPhone; Xiaomi desligado; texto a tremer sem gravação de ecrã.
+
+### Investigação das cores no Safari (1/11, README #86)
+- **Evidência:** gravação do iPhone de 37 s, cores amostradas de 0,2 em 0,2 s. Faixa de cima 47,47,45 com carvão; 37,34,31 com `#1a140f`: sempre mais clara do que a cor dada. Barra aberta 44,37,33; pequena 24,20,17. Ao passar a câmara, a faixa saltou de 47 para 37 e o bordo da página de 29 para 25 num frame. No Work a faixa ficou nos 37 enquanto o chão era 28, e só mudou mais tarde: o Safari segue as mudanças com atraso.
+- **Conclusão:** cada mudança de cor por cena criava um degrau. Eliminadas: uma cor por visita, uma camada fixa `.frame`. Removidos `.e-edge`, `--scene`, `data-passed`.
+- **Medido depois:** Chrome de testes 402×754, regra forçada: sem degrau de cor ao longo da passagem; pé fora no Work, topo mantém-se. `tour3.mjs` nos cinco tamanhos: 0 erros, 0 overflow. tsc, eslint, build.
+- **Limite conhecido:** barra aberta 44 contra página 23: faixa do Safari, sem controlo do site; com a barra pequena desaparece.
+- **Não verificado:** Safari; custo do desfoque fixo no iPhone; se a camada fixa de baixo acompanha a barra sem saltos; menu aberto; Xiaomi desligado; texto a tremer, não identificado na gravação.
+
+### Crédito, palavra do momento e simulador (1/11, README #87)
+- **Crédito:** *Photographs* saiu do site; `word.mjs`: 0 nós, texto ausente. O tremor reportado era nessa linha.
+- **Palavra ao entrar no Work:** 402×754, passagem com texto a 0,25, 0,72 e 0,95 de opacidade: palavra vazia; ao aterrar começa a encher do zero (91,97 % → 81,78 % por preencher).
+- **Regressão:** `tour3.mjs` 390, 1440, 320: 0 erros, 0 overflow. tsc, eslint, build.
+- **Simulador da moldura:** https://claude.ai/artifact/A7pZMaQ54BJD8wHJiQp5WQ (fonte em `ios/sim/`). Quatro opções com o filme real; por decidir pelo owner. Faixas nas outras horas estimadas.
+- **Não verificado:** Safari; Xiaomi desligado.
+
+### Faixas de cor do Safari (1/11, README #86)
+- **Investigação:** fontes da comunidade dizem que o Safari 26 ignora `theme-color` e lê a cor de elementos fixos na borda, ou fica com uma imagem da página. Explica o 73,63,56 sobre o Work escuro. Sobha: `#1A1919` em `theme-color` e `body`; Belgrade `viewport-fit=cover`; Brandon sem nada; Cartier recusou o pedido. Visto só o HTML, não em iOS.
+- **Aplicado:** faixas sólidas de 4 px; cor da hora = chão de Weddings = véu da entrada; pontas do filme nessa cor.
+- **Medido no Chrome de testes, 402×754, regra forçada:** a cor não muda da capa até Weddings; muda uma vez em Artists, Experiences e depois do Work; pontas do filme 1 → 0,32 → 0 na passagem; frames sem degrau. `tour3.mjs` 390, 1440, 320: 0 erros, 0 overflow. tsc, eslint, build.
+- **Não verificado:** tudo no Safari: se a faixa fica exatamente da cor pedida é a hipótese central. Xiaomi desligado.
+
+### Gravação das 18:23 no iPhone (1/11, README #86)
+- **Em baixo:** a zona sob a barra toma a cor pedida (24,23,30 para `#181a20`), mas fica com a cor anterior até à mudança seguinte. Corrigido: tirar a faixa e repô-la 120 ms depois. Por confirmar.
+- **Em cima:** com a faixa fixa, a zona da ilha fica a 62, seja qual for a cor pedida; sem ela, era a cor pedida mais cerca de 12. Faixa de cima retirada.
+- **Calibração:** `http://192.168.1.202:3130/__diag/lab` (`ios/lab.html`) passa 12 cores no topo e com scroll; serve para fazer a tabela entre a cor pedida e a pintada. Por gravar.
+
+### Primeira calibração (1/11)
+- **Faixa de cima para cor da página, topo / com scroll:** 0 → 42 / 35; 12 → 50 / 44; 17 → 54 / 47; 23 → 57 / 51; 29 → 61 / 55; 36 → 66 / 60. A página de teste não tinha `color-scheme: dark`, e no site já se mediu 37 com a página a 25. Segunda calibração preparada no mesmo endereço, com tema, faixa fixa e cor da raiz a variar.
+
+### Correção da calibração (1/11)
+- **Erro de medição:** a linha usada para a "faixa de cima" passava pelos algarismos do relógio. Os valores 37, 47, 58, 62 e a tabela da primeira calibração estão errados; a conclusão de que o Safari clareia é falsa.
+- **Medido de novo em y 6 e 54, sem texto, página de calibração:** faixa, página e barra iguais em todas as cores: 0, 17, 28,25,24, 36.
+- **No site, mesma gravação:** faixa de cima 29,26,25 sobre 24,23,30, a cor do `body`; barra 26,25,28, a meio caminho. Causa: `body` a carvão e `html` na cor da hora. Corrigido: ambos na mesma cor. Por confirmar no iPhone.
+- As rondas B, C e D da calibração não correram, e já não são precisas.
+
+### Gravação das 18:40 no iPhone (1/11)
+- **Bem:** capa, entrada pelo O, Weddings: ilha, página e barra iguais, a passagem sem degrau; Artists certo a descer.
+- **Mal:** em Experiences a ilha ficou em 29,26,23 e a barra em 26,25,28; a subir, tudo desatualizado. Causa provável: o Safari não relê enquanto a página anda.
+- **Aplicado:** faixas em cima e em baixo, repostas a 80 ms, 500 ms, 1,2 s e quando o scroll para. Cantos cinzentos da foto na passagem somem mais cedo (fundido de 0,40–0,78 para 0,24–0,50).
+- **Medido:** `strips.mjs`, Chrome com a verificação de iOS forçada. Regressão `tour3.mjs` 390. tsc, eslint, build.
+- **Não verificado:** releitura no Safari; se os cantos eram o bug do filtro.
+
+### Gravação das 18:48 no iPhone (1/11)
+- **Barra de baixo:** certa em todos os capítulos, nos dois sentidos, com cerca de 0,5 s de atraso.
+- **Ilha:** ficou em 29,26,23 de 8,2 s a 23,8 s, parada em Experiences e Weddings. Hipótese: elemento sticky no topo sobrepõe-se à faixa fixa (um relato da comunidade descreve isto). Aplicado no iOS: entrada e palco param a 6 px do topo. Por confirmar.
+- **Fade de baixo:** 190 → 96 px; tinta do fundo do filme 0,55 → 0,32, só no iOS.
+- **Medido:** Chrome com a regra forçada, passagem e capa; `tour3.mjs` 390; tsc, eslint, build.
+
+### Gravação das 18:56 no iPhone (1/11)
+- **Resultado:** os 6 px não resolveram e foram retirados. Barra de baixo e página certas nos dois sentidos. Ilha: seguiu a capa e mudou uma vez para Artists (13,2 s); ficou em 29,26,23 em Experiences, Weddings e capa até ao fim (32 s). Em todas as gravações desde as 18:36, Experiences nunca chegou à ilha.
+- **Proposta ao owner:** cor da hora em todo o Work; o teste `Cor única no Work` no HUD mostra-a sem tocar no site. Decisão pendente.
+
+### Cenas por baixo da barra do Safari (1/11)
+- **Pedido do owner:** como no site da Tesla no iPhone, esticar vídeo e fundos em baixo, sem cor própria. Tesla recusou o pedido (403): não visto.
+- **Aplicado só no iOS:** retiradas as faixas e o fade de baixo; filme e chãos 130 px além do fim da página; Work com `overflow-y: clip`.
+- **Medido:** Chrome com a regra forçada, `tour3.mjs` 390, tsc, eslint, build.
+- **Não verificado:** se o Safari desenha a página por baixo da barra: só o iPhone diz. A cor da barra sem faixa pode voltar ao que era.
+
+### Referência Not a Tesla App (1/11)
+- **Gravação 19:08:** nesse site o conteúdo passa por baixo da barra até ao fim do ecrã, aberta ou pequena. No nosso, o filme acaba em y 815 (14,11,10 → 25,27,31), e por baixo fica a cor do Safari, mesmo com o filme a sangrar 130 px.
+- **HTML dessa referência:** sem `viewport-fit=cover`, `theme-color` clara, conteúdo em fluxo.
+- **Aplicado:** `viewport-fit=cover` retirado. `lab.html` agora com riscas: fluxo, sticky e sticky com filho a sangrar. `tour3.mjs` 390, tsc, eslint, build. Efeito no Safari por ver.
+
+### Teste de riscas no iPhone (1/11, README #86)
+- **Fluxo normal:** riscas por baixo da barra até ao fim do ecrã, aberta ou pequena; com scroll, também atrás da ilha. **Sticky de 100 lvh:** pára onde acaba, e por baixo fica cor lisa; a sua cor pinta as faixas do Safari mesmo fora do ecrã. Blocos 3 e 4 não chegaram a ser vistos.
+- **Site sem `viewport-fit=cover`:** igual; a causa não era essa.
+- **Aplicado só no iOS:** `--screen` = 100 lvh + 130 px em entrada, palco e percursos; palco 70 px acima do ecrã com o chão do capítulo; letras do véu no ecrã visível.
+
+### Gravação das 19:21 no iPhone (1/11, README #86)
+- **Confirmado pelo owner:** em baixo o site vai até ao fim do ecrã. **Ilha:** acompanha Weddings, Artists, Experiences e a volta (22,25,31 em Experiences; 29,26,23 em Artists), cerca de 0,2 s antes do chão.
+- **Flick:** sem pulsos de brilho nas médias por linha, de 4,4 s a 8,6 s; aos 8,65 s, quando a rampa começa a sair, a zona do desfoque salta ±2 níveis. Desfoque retirado. Causa provável, não provada.
+- **Ajuste:** chão do capítulo em 0,45 s no iOS, para coincidir com a ilha.
+
+### Fita das 19:31 no iPhone (1/11)
+- **Marcas do owner:** y 679, 679, 753, com H = 884: 0,77 a 0,85 H, sem imagem. Coincidem com a saída da rampa (0,74–0,90 H), com o filme ainda a 8–18 %. Rampa agora sai a 0,90–0,98 H, depois do filme. Por confirmar.
+
+### Ecrã do iPhone fechado (1/11, README #86)
+- **Owner, no iPhone:** "ficou bem agora perfeito". Em baixo, conteúdo até ao fim do ecrã; em cima, cores certas; passagem da capa para Weddings sem o defeito.
+- **Não verificado depois destas alterações:** Xiaomi, desligado do PC; `pc-c.mjs`, `sweep.mjs`, `nine.mjs`; tablet real; teclado, movimento reduzido e sem JavaScript.
+
+### Ronda final do M5: Xiaomi e desktop (1/11)
+**Desktop, Chrome de testes no 2.º ecrã**
+- `tour3.mjs` 1920, 1440, 768, 390, 320, nos dois sentidos: 0 erros, 0 overflow, regresso limpo. `pc-c.mjs`: sete tamanhos sem erros; movimento reduzido sem entrada nem vídeo; sem JS sem overflow; ordem de teclado certa; *Welcome back*; refresh a meio.
+- `full.mjs`, normal e com as regras do iOS: flick ao fim e volta; scroll, tecla e clique na entrada; chegada por endereço a seis secções; lâmina, nome, Voltar e Avançar; menu, Esc com foco devolvido; menu para About e volta; momento preso; redimensionar no Work e a meio da passagem; 2560×1440, 1024×600, 844×390, 360×640, 820×1180. 0 erros, 0 overflow.
+- `sweep2.mjs` a 1440: saltos só a 1,05–1,24 s de cada peça, quando a peça entra. Só 6 de 9 peças apareceram no tempo de medição.
+**Bugs encontrados e corrigidos**
+1. Vindo de um capítulo adiantado para o topo, o palco ficava nesse capítulo durante a passagem seguinte. Agora volta a Weddings.
+2. Um capítulo que saía mantinha a peça ligada, com 12 animações escondidas. Agora descansa 1,3 s depois de sair.
+3. A cor da página era uma variável em `<html>`, e cada mudança recalculava a página inteira. Agora é escrita em `html` e `body`.
+**Xiaomi (`phone-pass`, `phone-work`, `phone-bar`, `phone-long`, `hold`)**
+- Passagem: a descer 83–86 fps, 0 frames > 50 ms; a subir 74–81 fps, 2–3 > 50 ms. Work com scroll: 75–77 fps, 3–4 > 50 ms (66 antes da ronda). Momentos parados: 90 fps, 0 > 50 ms. Menu: 85–89 fps. Página inteira: 67–69 fps, 8–10 > 50 ms.
+- Mudança de capítulo: pico de 110–122 ms → 66–88 ms. Picos do Method e About desapareceram. Scroll na entrada bloqueado, toque completa. Temperatura 28 °C.
+**Por resolver**
+- Mudança de capítulo no Xiaomi ainda custa 66–88 ms a um frame, e é o maior defeito medido.
+- Frame único de cerca de 278 ms a 0,94 ecrã no Chrome de testes do PC, sem tarefa no traço e sem equivalente no Xiaomi. Causa não encontrada.
+- **Não verificado:** iPhone depois destas três correções; tablet real; `nine.mjs`; leitor de ecrã; rede lenta real.
+
+### Weddings mais longo e secção da barra (2/11, README #88)
+- **Owner, iPhone:** Weddings → Artists passava depressa demais nos dois sentidos; Artists → Experiences estava bem. Frame lento do Xiaomi aceite.
+- **Fita do iPhone, 2/11 10:50:** depois da passagem, Weddings durou 0,7–1,0 s e Artists 1,4–2,2 s. Em scroll, Weddings tinha ~480 px e Artists 884 px. A troca dá-se quando o passo seguinte cruza o meio do ecrã, e o passo de Weddings começa debaixo da passagem.
+- **Correção:** o passo de Weddings passou a 1,5 `--screen` e o Work a 4,9 `--screen`, só com movimento.
+- **Bug que a correção trouxe, corrigido:** a subir, o fim da entrada chegava à faixa da barra dentro de Weddings e escondia a ilha do nome (`data-section` = top a 1802 px). Agora, quando duas marcas partilham a faixa, ganha a que vem depois na página.
+- **Xiaomi (`long-ch.mjs`, cópia de `phone-long.mjs` que regista o capítulo), duas voltas:** W → A a 2071–2092 px (antes 1650), A → E a 2899–2900 px. Weddings tem agora ~910 px depois da passagem e Artists ~829. A subir, a barra fica em `work` em todo o Work. Frames > 40 ms iguais aos de antes (máximo 99–100 ms à saída do Work).
+- `typecheck`, `lint` e `build` passam.
+- **Não verificado:** iPhone (espera pelo owner), viewports do PC (`tour3`, `full.mjs`), teclado, sem JS. O movimento reduzido não muda, porque a regra está dentro de `prefers-reduced-motion: no-preference`.
+- **Experiences, mesma regra (2/11, fita do iPhone das 11:01):** Experiences ficava parado ~365 px, 0,4 s, antes de o palco se soltar. O último passo passou a 1,5 `--screen` e o Work a 5,4. Xiaomi, duas voltas: Experiences fica parado de 2896–2908 px a 3683–3717 px, ~800 px. Weddings ~910 e Artists ~830. O frame à saída do Work está em 99–111 ms (antes 99–100). Lint e build passam. iPhone por ver.
+
+### Palavra do momento na troca de capítulo (2/11, README #89)
+- **Vídeo do iPhone das 11:13:** o limite do BEFORE preenchido, seguido a 60 fps num recorte do vídeo. Na troca de capítulo o texto desaparece durante ~0,4 s e volta a aparecer com ~15 px (meio B) já cheios, nas duas chegadas a Experiences (6,2 s e 23,4 s) e também em Artists (10,15 s). Depois enche de forma linear, a ~27 px/s; as "paragens" são os espaços entre letras. Fora do ecrã durante 0,8 s (7,6–8,3 s), o enchimento continuou, como devia.
+- **Correção:** na troca de capítulo, a palavra espera 450 ms (`--fill-lead` na `.w-mom`, que o `.w-wf` herda) e o primeiro momento conta os 6 s a partir daí.
+- **Erro meu, corrigido na mesma ronda:** a primeira versão punha `animation-delay` no botão, e a animação está no filho, por isso o atraso não fazia nada. O Xiaomi mostrou-o.
+- **Xiaomi, depois da correção:** troca aos 547 ms; o texto começa a aparecer aos 914 ms; a palavra começa a encher aos ~1055 ms, com o texto a 0,5 de opacidade e a palavra vazia até lá. Typecheck, lint e build passam.
+- **Atenção nas medições do Xiaomi:** `Page.navigate` para o mesmo endereço com outro `#` não recarrega a página, e o telemóvel continuou com o JS antigo. Usar `?r=<tempo>`.
+- **Não verificado:** iPhone; o ritmo completo de 6 s depois do atraso (só no código).
+
+### Título do capítulo e margem na troca (2/11, README #90)
+- **Vídeo do iPhone das 11:30, recorte do título a 30 fps:** na chegada a Experiences, "III Experiences" anda ~0,17 s e salta para o lugar final num frame. Visto aos 5,6–6,0 s. Na fita há também muitas trocas Artists ↔ Experiences entre os 6 e os 20 s.
+- **Título:** o FLIP passou de "transição a `none`, dois rAF, transição a ''" para `el.animate()` com 1,2 s e o `--ease`. Uma viagem ainda a decorrer é cancelada; a nova parte do retângulo e da escala que se veem (escala lida da matriz do `transform`).
+- **Troca de capítulo:** o `IntersectionObserver` no meio do ecrã deu lugar a uma leitura no scroll (três `getBoundingClientRect`, sem reflow durante o scroll), com uma margem de 12 % do ecrã nos dois sentidos.
+- **Chrome de testes, 390×844, scroll com rato (o toque emulado não faz scroll):**
+  - O título anda de forma contínua de left 229 / largura 114 até 31 / 191 em ~1,2 s (339 → ~1500 ms), sem saltos.
+  - Partindo de 20 px antes da troca, com seis oscilações: ±40, ±80 e ±110 px não mudam de capítulo. ±160 px (19 %) muda uma vez, para Experiences, e não volta. Antes, ±40 px já trocava a cada oscilação.
+- Typecheck, lint e build passam.
+- **Não verificado:** Xiaomi (bloqueado, o adb não o acorda); iPhone; o ritmo com o dedo real.
+
+### Pilha de fotografias na troca (2/11, README #91)
+- **Vídeo do iPhone das 12:00, banda da fotografia a 60 fps (média e centróide dos píxeis claros):** troca para Experiences às 15,06 s. A pilha que sai desaparece num frame às 15,333 s (+0,27 s). A que entra só aparece às 15,417 s (+0,35 s), sobe de forma contínua até 15,600 s e salta às 15,617 s (+0,55 s). Depois fica parada. Na chegada das 5,73 s, o mesmo salto às 6,133 s (+0,40 s).
+- **Correção:** `fly()` em `passage()` — as duas pilhas animam com `el.animate()` (1,1 s, `--ease`) a partir do estilo calculado no momento da troca. Uma viagem anterior é cancelada. As regras CSS continuam como estado final.
+- **Chrome de testes, 390×844:** em Artists → Experiences as duas pilhas cruzam-se de forma contínua (0,91/0,09 → 0,50/0,50 aos +130 ms → 0,10/0,90 aos +440 ms → 0/1 aos ~900 ms). A pilha que entra sobe 117 → 101 px sem saltos. Typecheck, lint e build passam.
+- **Não verificado:** iPhone (a causa do corte no Safari não está provada; a correção é a mesma que resolveu o título na #90); Xiaomi (bloqueado).
+
+- **Owner, iPhone, 2/11:** "ficou corrigido, parece-me tudo bem agora". #88–#91 aprovadas no iPhone. Por medir no Xiaomi: #90 e #91, porque o telemóvel estava bloqueado.

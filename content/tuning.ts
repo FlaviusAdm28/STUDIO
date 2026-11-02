@@ -42,11 +42,20 @@ export const tuning = {
   tintEvening: 'rgba(96, 60, 24, 0.38)',
   tintNight: 'rgba(12, 16, 36, 0.48)',
   tintFloor: 'rgba(20, 18, 15, 0.55)',
+  /**
+   * The page's own colour at the entrance, leaning to the hour (owner, 1 Nov), and so the ground of Weddings: film, Safari's strips and
+   * the first chapter end in one colour, and nothing has to change on the way into the Work.
+   */
+  frameMorning: '#1c1e21',
+  frameDay: '#1f1c19',
+  frameEvening: '#221b15',
+  frameNight: '#181a20',
 
   /** Work — one moment lasts as long as its word takes to fill (#73): the photograph, then the piece. */
-  momentSeconds: 4,
+  // 6 s (owner, 29 Oct, with the richer pieces: "o tempo em cada before, during, after está demasiado rápido"; was 4)
+  momentSeconds: 6,
   momentPhotoSeconds: 1.2,
-  momentPieceSeconds: 2.8,
+  momentPieceSeconds: 4.8,
   /** Moments not yet lit: linen at this opacity (#73; 3.1:1 on the stage, the owner's choice). */
   momentDimOpacity: 0.38,
   /** Work — the chapter passage (#73): the arriving chapter grows and slides, the old text fades, the new text enters. */

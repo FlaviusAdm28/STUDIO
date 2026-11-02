@@ -1,6 +1,212 @@
 # Chapter One V5 — handoff
 
-## ▶ COMEÇAR AQUI · 29 de outubro de 2026 — M3 (a entrada) construído, à espera do owner
+## ▶ COMEÇAR AQUI · 1 de novembro de 2026, fim do dia — iPhone aprovado, ronda final feita, M5 por commitar
+
+**Estado:** branch `v5`, último commit `c748c0b` (M4). **Todo o M5 e o trabalho de 31/10 e 1/11 estão por commitar.** Commit só quando o owner pedir. Não perder o working tree.
+
+**O que falta, por ordem:**
+1. **iPhone:** o owner dá uma volta rápida depois das três últimas correções (a cor passou a ser escrita diretamente em `html` e `body`, capítulos em descanso, regresso a Weddings). Antes delas tinha dito "ficou bem agora perfeito".
+2. **Crédito — confirmado pelo owner a 2/11:** *Photographs — Helder Couto* sai do Work (README #87; já aplicado no código); a fotografia dele continua no site. O crédito do retrato em About fica.
+3. **Xiaomi — aceite pelo owner a 2/11** ("não é nenhuma queda brusca, não vejo lag evidente"): mudança de capítulo com um frame de 66–88 ms, uns 130–220 px depois da troca; saída do Work para o Method 88–99 ms (`phone-long.mjs`, medido a 2/11).
+3b. **iPhone, aberto a 2/11:** Weddings → Artists (e o inverso) passa depressa demais; Artists → Experiences está bem. A fita de 2/11 10:50 mostra a causa: depois da passagem, Weddings só tem ~480 px de scroll (a troca dá-se quando o passo seguinte cruza o meio do ecrã), Artists tem 884 px (um `--screen`). No Android a proporção é a mesma (~490 / 828), mas o owner não o sente lá. **Corrigido (README #88):** o passo de Weddings tem agora 1,5 `--screen` e o Work 4,9. Também foi corrigida a barra a subir, onde a ilha do nome desaparecia em Weddings. Depois, Experiences: ficava parado só ~365 px e ganhou também meio ecrã (último passo 1,5, Work 5,4). Medido no Xiaomi; falta o owner ver no iPhone.
+3c. **Palavra do momento (README #89, 2/11):** na troca de capítulo chegava com meio B cheio. Agora chega vazia e começa a encher 450 ms depois. Medido no Xiaomi; falta o iPhone.
+3d. **Título e troca de capítulo (README #90, 2/11):** o salto que o owner via em Experiences era o título, cortado no iPhone; agora voa com Web Animations. A troca tem uma margem de 12 % contra o vaivém. Medido no Chrome de testes a 390 px; faltam o Xiaomi (estava bloqueado) e o iPhone. O owner achou "bem melhor".
+3e. **Pilha de fotografias (README #91, 2/11):** no iPhone, a fotografia de Experiences a subir saltava (transição cortada). Agora usa Web Animations, como o título. Medido no Chrome de testes. **Owner, iPhone, 2/11: "ficou corrigido, parece-me tudo bem agora"** — #88–#91 aprovadas no iPhone. Falta só o Xiaomi (bloqueado durante #90/#91) e o commit, a pedido. Owner, Xiaomi 2/11: transições boas. Perguntou se a barra do Chrome Android (em cima, empurra a página ao subir e descer) podia ficar por cima como no Safari. Resposta: é o comportamento do Chrome numa aba normal e não há forma de o mudar a partir da página. O palco já usa `100lvh` no Android e não muda de tamanho; a página só se desloca com a barra. Recomendado deixar assim; aguarda a palavra do owner.
+4. **Commit do M5**, a pedido. Depois, M6 (Method), que nasce já com as regras do iPhone (storyboard, regra 8).
+
+**Por provar:** `nine.mjs`; 3 das 9 peças em `sweep`; tablet real; leitor de ecrã; rede lenta. Frame de ~278 ms a 0,94 ecrã no Chrome de testes, sem tarefa no traço e sem equivalente no Xiaomi: causa não encontrada.
+
+**Aprovado pelo owner a 1/11:** cartões, nome na barra, 768, lâminas sem tremor nem risco, palavras DRAFT de `work.demos`, ecrã do iPhone, scroll bloqueado na entrada, cor por capítulo. Decisões: README #83–#87; site tal como está: `storyboard.md`, regras 3, 7 e 8; números: `v5-tests.md`, última secção. O storyboard visual tem no topo o painel de 1/11, que prevalece sobre os frames.
+
+**iPhone, o que não repetir** (memória `ios-safari-edge-colour`):
+- Medir a faixa da ilha em y 6 ou 54 px e x 100–300: a linha do relógio dá valores falsos e custou várias rondas.
+- Não voltar a `viewport-fit=cover`, faixas fixas nas bordas, `theme-color` como solução, nem desfoque ao vivo nas pontas do filme.
+- Em baixo não há cor: as cenas presas têm `--screen` = 100 lvh + 130 px e passam por baixo da barra. Referência do owner: notateslaapp.com.
+- Com scroll, a ilha mostra a página logo acima do ecrã: daí os 70 px do palco.
+
+**Como repor o ambiente de teste** (a sessão terminou, os servidores pararam):
+```
+cd D:\STUDIO-v5
+npm run build
+npx next start -p 3100                       # site, em segundo plano
+node D:\STUDIO-tools\v5-m5\ios\proxy.mjs 3130 3100   # iPhone: ferramenta e envio de vídeos
+```
+- **iPhone:** no Safari, `http://<ip do PC>:3130` (a 1/11 era `192.168.1.202`; confirmar com `ipconfig`), Wi-Fi NOS-24B4-5. `testes` e `● rec` no HUD. **`● rec` não traz imagem:** para ver, gravar pelo Centro de Controlo e enviar por `📎`. Ficheiros em `D:\STUDIO-tools\v5-m5\ios\out\` (761 MB de gravações, apagáveis); ler fitas com `tape.cjs`; ffmpeg do Cypress.
+- **Xiaomi:** `adb -s c3e8fb35 reverse tcp:3100 tcp:3100`, `adb -s c3e8fb35 forward tcp:9555 localabstract:chrome_devtools_remote`; adb em `D:\STUDIO-tools\android-sdk\platform-tools\`; scripts com `node --experimental-websocket`.
+- **Chrome de testes:** `D:\STUDIO-tools\v5-m5\screen2.ps1`, porta 9444, 2.º monitor. `sweep.mjs` e `nine.mjs` abrem janela no ecrã principal; usar `ios\sweep2.mjs`.
+
+**Ferramentas novas em `D:\STUDIO-tools\v5-m5\ios\`:** `full.mjs [ios]` (edge cases, com as regras do iOS opcionais), `screen.mjs`, `ramp.mjs`, `strips.mjs`, `probe.mjs`, `phone-long.mjs`, `hold.mjs`, `word.mjs`, `lab.html` (`/__diag/lab`, riscas). Simulador das margens: `ios\sim\`, https://claude.ai/artifact/A7pZMaQ54BJD8wHJiQp5WQ. O botão `Cor única no Work` existe só no HUD.
+
+---
+
+## 31 de outubro de 2026 — Entrada e Work quase fechados
+
+**Em que ponto estamos:** M3 (`803492a`) e M4 (`c748c0b`) commitados. **M5 (Work) e as alterações de 31/10 estão por commitar**
+(`git status`). Commit só quando o owner pedir. Sessão de 31/10 terminada a pedido do owner, sem tempo para continuar.
+
+**Decisões do owner a 31/10:**
+- **Passagem:** a lâmina é aprovada (README #81, storyboard estado 2). O código da janela em arco saiu.
+- **Scroll dentro do Work:** o owner não vê lag; os números (63 fps a 90 Hz, 45–48 a 60 Hz) **não bloqueiam**.
+- **Rodapé *Every project is proposed…*:** visível também no telemóvel (0,72 rem; crédito por baixo). Aplicado; apertado a 320×640, ver a olho.
+- **`02 Method ↓`:** o owner disse que foi erro dele; não existe no Work. Confirmar o sentido se reaparecer.
+- **Storyboard:** atualizar só a lâmina. O ritmo de 6 s e a regra de tocar continuam diferentes do storyboard, a pedido.
+- **FPS:** o medidor `?fps` fica por agora, mas só em localhost; nunca na versão publicada (regra em `CLAUDE.md`).
+
+**A responder primeiro na próxima sessão:**
+1. **Cartões (README #82, em validação):** o owner hesita entre a versão atual e o *apaga* de https://claude.ai/artifact/EENJtCtWgXHrjnM434Zmc4#fade.
+   Recomendação dada: manter a diagonal e apagar mais depressa, para a mistura de fotografias durar menos. Sem alteração feita.
+2. **Nome na barra:** recomendação dada: sobe ao topo sem repetir a entrada. Falta a resposta do owner; hoje é assim.
+3. **320×640 e 768×1024:** recomendação dada: a 768 aumentar o arco; a 320 deixar. Falta a resposta.
+4. **Tremor do rato nas lâminas:** falta o owner confirmar. Passos isolados de 0,8–1,3 px sem origem identificada.
+
+**Depois disso:** o owner testa no iPhone real; commit do M5; M6 (Method).
+
+**Antes de publicar:** tirar `FpsMeter` de `page.tsx`; prender o scroll com o menu aberto; tratar `pc.mjs`, que ainda lança browser próprio.
+
+**Como retomar:**
+- `npm run build`, `npx next start -p 3100` (servidor desligado ao fechar a sessão).
+- Depois de desligar o PC, voltar a abrir servidor, Chrome de testes e ligação do Xiaomi.
+- Chrome de testes, sem roubar o foco: `D:\STUDIO-tools\v5-m5\screen2.ps1` (porta 9444); os testes ligam-se a ele. Navegar por `about:blank` antes de recarregar.
+- Xiaomi: `adb -s c3e8fb35 reverse tcp:3100 tcp:3100` e `forward tcp:9555 localabstract:chrome_devtools_remote`; tem de estar desbloqueado.
+- Testes em `D:\STUDIO-tools\v5-m5\`: `audit.mjs`, `audit2.mjs`, `landing.mjs`, `takeover.mjs`, `barra-frame.mjs`, `barra-pull.mjs`, `rato-over.mjs`, `phone-pile.mjs`, `phone-pass.mjs`, `phone-work.mjs`.
+- Auditoria completa: `docs/development/v5-auditoria-entrada-work.md`. Testes: `v5-tests.md`.
+
+---
+
+## Sessão de 30 de outubro de 2026 — M5 (o Work) em revisão com o owner, não commitado
+
+**Em que ponto estamos:**
+- **Commitados e enviados:** M3, a entrada (`803492a`); M4, a barra e o menu (`c748c0b`).
+- **Por commitar:** o M5, o Work. Está construído e a ser revisto com o owner, peça a peça. Nada do M5 foi commitado
+  (`git status` mostra o trabalho).
+- **Regras a manter:** o V5 segue o **storyboard** (README #76–#77; memória `v5-storyboard-prevails`). Cada módulo
+  regista os seus testes em `docs/development/v5-tests.md` antes do commit (regra no `CLAUDE.md`).
+
+### 31 de outubro — auditoria de Entrada, transição e Work em `v5-auditoria-entrada-work.md`: lista do que aguarda o owner.
+
+### 31 de outubro — estado atual (detalhe: `v5-tests.md`, décima quinta revisão; prevalece sobre o que está abaixo)
+- **Quadrado:** o owner confirmou que desapareceu.
+- **Medido:** build, typecheck, lint, `pc.mjs`, `moments.mjs`, `nine.mjs`, `sweep.mjs` a 1920: bem. Peso no Xiaomi: 3,70 MB à chegada.
+- **Em aberto, Xiaomi:** passagem 36–41 fps (eram ~60), mas o controlo caiu o mesmo (~40 %), por isso não é a passagem.
+  Causa não encontrada. Falta o owner sentir a passagem com o dedo e repetir a medição noutro momento.
+- **Falta:** aprovação palavra a palavra de `work.demos`; o vidro e *Always* a 390 no telemóvel; olhar o `sweep.mjs` a 390.
+- **Decisão do owner:** commit do M5 e início do M6 só quando esta fase toda estiver concluída.
+- **Tremor da entrada e passagem (`v5-tests.md`, décima sexta revisão):** duas causas corrigidas com o zoom verdadeiro (87–88 fps, 0 frames perdidos); passagem a
+  50–57 fps a 90 Hz. **Filme:** corte verde → sépia a ~2 s, em pleno zoom: decisão do owner. **Tremor ao assentar corrigido** (rotação 0,03° em `.e-film`). **Passagem:** o owner rejeitou as versões B, C e D; fica a atual, otimizar sem mudar o visual.
+- **Testes no PC:** Chrome visível no 2.º ecrã, sem roubar o foco: `D:STUDIO-tools5-m5screen2.ps1` (porta 9444); ligar a ele em vez de lançar um browser. Nunca headless.
+- **Entrada e passagem refeitas no compositor (décima nona revisão):** uma linha de tempo em `entrance.css`; `flight()` em `work-client.tsx`. Aspeto da passagem por aprovar pelo owner.
+- **Entrada pelo O:** o owner viu melhor e smooth (31/10). **iPhone real:** o owner testa depois de fechar entrada e Work.
+- **Pilha de cartões:** A construída no site e medida (vigésima revisão de v5-tests.md).
+- **Passagem para o Work:** a lâmina é a passagem normal (README #81); `?lamina` e a janela em arco foram retirados.
+- **Regresso do cartão:** fechado: diagonal com o apagar (`change()`). Falta o owner rever no site.
+- **Por tratar:** scroll pelo Work 45–48 fps a 60 Hz.
+- **Medidor:** fica por agora; só funciona em localhost com `?fps`; a versão publicada nunca o mostra. Sair de `page.tsx` antes do lançamento.
+
+### Sessão de 30 de outubro — o que mudou (detalhe e números: `v5-tests.md`, décima a décima quarta revisões)
+- **Quadrado em Experiences *During*:** causa real encontrada, o véu pintava fora do corte oblíquo quando a animação do
+  cartão acabava. Corrigido com `clip-path` no véu; sem salto no PC nem no Xiaomi. **O owner ainda não confirmou.**
+- **Troca de momentos:** as camadas já não deslizam (`data-swap`, `.w-leaving`).
+- **Weddings *Before*:** contagem para o próximo 25 de agosto às 16:00, o ano muda sozinho. Palavras mais acima; véu leve
+  escolhido e aprovado pelo owner, com a data a ~3,1 de contraste.
+- **Qualidade:** fotografias reais em `fine` (AVIF 78, até 1600 px).
+- **Imagens (aprovadas pelo owner):** Unsplash em *For a moment*, Experiences *Before*, *During* e *After*; *Always* = imagem
+  nova do owner no ChatGPT; *On record* = IA. Tratamento `calm`; as lâminas da entrada não mudam. Licenças em `assets.md` §3.
+- **Vidro das peças:** igual ao da barra, com lente partilhada (`src/lib/lens.ts`). O convite tem a fotografia dentro da peça.
+- **Teclado:** escolher outro momento com o palco em pausa já funciona.
+- **Xiaomi com tudo aplicado:** momentos 90 fps; scroll 66 fps; passagem 54–65 fps. Peso em rede móvel por medir.
+- **A seguir:** ver o vidro e *Always* a 390 px e no telemóvel real; correr `sweep.mjs` e `pc.mjs`.
+- **Ferramentas novas em `D:\STUDIO-tools\v5-m5\`:** `dur6.mjs`, `diff.mjs`, `amp.mjs`, `wedge.mjs`, `sweep.mjs` (defeitos do
+  compositor: gravar, nunca screenshots), `six.mjs`, `glass30.mjs`, `before31.mjs`, `room.mjs`, `cd30.mjs`, `m30.mjs`,
+  `phone-dur.mjs`, `look.mjs`, `round2.mjs`, `board.mjs`. Página das imagens: https://claude.ai/artifact/XmzcJUwHjESMFNW5yZfXwT
+
+### O M5 — o que está feito (tudo testado no PC; detalhe e números em `v5-tests.md`, secção M5)
+- **Código:** `src/components/work/`, com `work.tsx` (HTML completo sem JS), `work-client.tsx` (o palco) e
+  `work.css`. As palavras das peças estão em `content/v5.ts` → `work.demos`, marcadas **DRAFT**. Os tempos estão em
+  `content/tuning.ts`.
+- **A passagem estado 2:**
+  - a entrada fica presa (`.e-hold` em `page.tsx`) e o vídeo encolhe até ao arco de Weddings;
+  - depois dissolve-se na primeira fotografia e o vídeo pára;
+  - funciona a subir e a descer;
+  - no Xiaomi mede ~60 fps com o gesto simulado, mas o owner vê-a sem lag e aceitou-a.
+- **O palco:**
+  - preso por três passos de scroll, e o título é a navegação (#62);
+  - no telemóvel: o outro capítulo pequeno em cima, o seguinte em baixo, maior e o único tocável;
+  - passagem de capítulo FLIP, numa só passagem direta;
+  - aura, molduras (arco, retângulo, oblíquo) e unidade `--u` = `min(1vw, 1,6svh)` (telemóvel `0,462svh`).
+- **Os momentos (regra do owner, 29/10):**
+  - 6 s cada: 1,2 s só a fotografia, depois 4,8 s a peça;
+  - tocar noutro momento muda logo para ele e a rotação segue dali;
+  - tocar no atual pausa-o, e outra vez retoma; pausar mostra sempre a peça;
+  - os momentos passados ficam apagados;
+  - o rato sobre a fotografia pausa e a fotografia desliza (sobre o texto não);
+  - no fim de um momento a peça sai primeiro e só depois as fotografias trocam; a fotografia que chega aparece no
+    lugar por opacidade (era o "quadrado preto").
+- **As nove peças:**
+
+  | Momento | Peça | Estado |
+  |---|---|---|
+  | Weddings *Before* | contagem para o próximo 25 de agosto às 16:00 (o ano muda sozinho; 30/10), data, *Reply by RSVP* em vidro, sombra nas palavras | aprovado (30/10) |
+  | Weddings *On the day* | galeria ao vivo: 6 fotografias que chegam e a contagem 1 → 6 | aprovado |
+  | Weddings *After* | *One year on* | aprovado |
+  | Artists *Always* | portfolio: 3 obras numa fila, filtros | aprovado |
+  | Artists *For a moment* | exposição: entrada na sala em 1,8 s, etiqueta em vidro | aprovado |
+  | Artists *On record* | arquivo | aprovado |
+  | Experiences *Before* | convite em vidro, *Accept* → *See you there ✓* | aprovado |
+  | Experiences *During* | guia | aprovado; o "quadrado preto" corrigido, **a confirmar pelo owner** |
+  | Experiences *After* | agradecimento com tira de fotografias | aprovado |
+
+  As propostas das oito peças estão em https://claude.ai/artifact/VpGPN2hkMejVzWXhvjZJuN.
+- **Assets novos:** seis fotografias do Helder Couto (046, 067, 126, 156, 179, 337).
+  - Copiadas da V4 (`public/media/new`) para `media-src/weddings/`, com o SHA-1 verificado e sem tocar na V4.
+  - Derivados `weddings-guests-1…6`, registados em `scripts/images.mjs` e `src/lib/media.ts`.
+
+### O M5 — o que falta, por ordem
+1. **Weddings *Before*:** feito e aprovado (filtro leve, 30/10).
+2. **O owner confirma** que o quadrado desapareceu. A causa real, a 30/10: o véu do *During* pintava fora do corte
+   oblíquo quando a animação do cartão acabava (`v5-tests.md`, décima primeira revisão). Testado no Chrome do PC; falta o
+   telemóvel real. Estes defeitos só se veem a gravar o compositor (`dur6.mjs`, `diff.mjs`), nunca com screenshots.
+   **Imagens de Artists e Experiences (30/10):** quatro fotografias do Unsplash aplicadas (`assets.md` §3); *On record*
+   fica a de IA; *Always* usa a imagem nova que o owner gerou no ChatGPT. Nunca como trabalho real de um cliente.
+   Fotografias reais de Weddings refeitas em `fine`, e o vidro das peças igual ao da barra (`v5-tests.md`, décimas
+   segunda a quarta revisões). Falta medir tudo no Xiaomi.
+3. **As palavras DRAFT de `work.demos`:** aprovação do owner, peça a peça (horas, sítios, títulos de obras, *Our day,
+   in*, *Reply by RSVP*, *An evening of music*, *Doors at 20:00 · The courtyard*…).
+4. **Medir no Xiaomi a versão final:**
+   - `phone-work.mjs`: os momentos a rodar e o scroll;
+   - `phone-pass.mjs`: a passagem.
+5. **Antes do commit:**
+   - bateria do PC (`D:\STUDIO-tools\v5-m3\pc.mjs`);
+   - `moments.mjs` e `nine.mjs`;
+   - registar em `v5-tests.md` e no README: uma linha #81 com as decisões do Work (momentos 6 s, regra de tocar e
+     pausar, nove peças, cartão, galeria);
+   - commit e push do M5, só quando o owner pedir.
+6. **Depois do M5:** o M6, o Method.
+
+### Notas que não se perdem
+- **Menu:** com o menu aberto a página ainda faz scroll por trás. O owner quer assim para os testes; **prender antes de
+  publicar**.
+- **Contraste, #32:** aceite. O título fica ~3,0 de dia no desktop.
+- **iPhone:** nada testado. O vidro lá fica sem lente.
+
+### Como retomar
+- **Servidor:** `npm run build` e depois `npx next start -p 3100`. Está desligado no fim da sessão.
+- **Xiaomi:** `adb -s c3e8fb35 reverse tcp:3100 tcp:3100` e `forward tcp:9555 localabstract:chrome_devtools_remote`.
+  O adb está em `D:\STUDIO-tools\android-sdk\platform-tools`; no Git Bash usar `MSYS_NO_PATHCONV=1`.
+- **Ferramentas de teste:**
+  - `D:\STUDIO-tools\v5-m3\` (entrada, bateria do PC);
+  - `D:\STUDIO-tools\v5-m4\` (barra e menu);
+  - `D:\STUDIO-tools\v5-m5\` (`work.mjs`, `rot.mjs`, `moments.mjs`, `nine.mjs`, `during5.mjs`, `glass.mjs`,
+    `phone-work.mjs`, `phone-pass.mjs`, `pass.mjs`, `hover.mjs`, `quick.mjs`).
+  - Os scripts do telemóvel correm com `node --experimental-websocket`.
+- **Prettier:** sempre com as opções do repositório (`--no-semi --single-quote --print-width 120 --trailing-comma
+  all`), e **nunca sobre `content/v5.ts` inteiro**: reformata linhas que não são nossas.
+- **Nunca `rm` com padrões de nomes:** a 29/10 foi apagado `dur2/*.png` (só capturas minhas), contra a regra.
+
+---
+
+## Sessão de 29 de outubro (manhã e tarde) — M3 e M4
+
+### M3 (a entrada) — resumo da altura em que foi construído (depois commitado como 803492a)
 
 **Estado:** o módulo da entrada está feito e testado no PC e no Xiaomi; **falta a aprovação do owner** e as abertas
 **#31** (tinta da hora), **#32** (contraste ao sol, agora sem véu), **#33** (janela do O), **#34** (lâminas ao
@@ -90,7 +296,33 @@ mudava a largura da ilha → as duas palavras na mesma célula; (d) no desktop "
 as palavras saltavam no fim (corrigido, `will-change` enquanto o menu está aberto); o vidro "respirava" no fim do crescimento (o desfoque acompanhava a escala) → a gota tem agora **o raio exato até ao canto mais longe** (antes a diagonal do ecrã): cobre o ecrã no instante em que pára de crescer, e não sobra tempo de "respirar". Tentado antes e posto de lado: no desktop, vidro parado revelado por `clip-path` — o fundo ficava quieto mas a abertura ia "aos saltos" (redesenha o desfoque a cada frame). Medido no PC (ecrã 144 Hz, 5 aberturas): 144 fps, p95 7,1 ms; a 1.ª abertura tem 2 frames lentos (≤ 55 ms), como no Xiaomi; **Decisão do owner (29/10): fica assim** — vê-se ainda um tremer quase impercetível no fundo desfocado enquanto a bola cresce, mas depois de assentar não volta; prefere isto aos saltos da versão `clip-path`. (e) **NOTA: com o menu aberto a página
 ainda faz scroll por trás** — o owner quer assim por agora, para os testes; **prender o scroll antes de publicar**;
 (f) as cores da hora passam a seguir o sol real (README #80, feito e verificado).
-**Próximo:** o owner revê o M4 no PC e no Xiaomi → commit → M5.
+**M4 commitado (c748c0b, 29/10).**
+
+**M5 — o Work: de onde vêm os valores** (por ordem de autoridade, [[storyboard manda]]):
+- **Storyboard principal** `media-src/storyboards-2026-10-25/work-method-storyboard.html`: CSS do Work nas linhas ~111–250
+  (`.g1–.g3` fundos, `.aura`, `.dm` + as nove demonstrações, `.hnav` título-navegação, `.idx`, `.stack` camadas
+  frente/b1/b2, molduras `.c1` arco · `.c2` retângulo · `.c3` oblíquo, `.tx` texto, `.mom` + `.wf` palavra que enche,
+  `.li` peças com filete e círculo, versões `.frame.phone`); o JS das passagens (FLIP do título) mais abaixo no ficheiro.
+  `docs/design/v5/storyboard.md` estados 2–6 e a tabela das peças e linhas.
+- **README:** #40 (aura v3.2), #43 (um momento = uma peça a funcionar, nove), #44 (aterragem: scroll → I Weddings, lâmina →
+  esse capítulo), #60 (linhas: desktop todas, telemóvel uma de cada vez, a mostrada primeiro), #61 (sem sublinhados,
+  palavra que enche no tom do capítulo), #62 (título = navegação; telemóvel: os outros dois à direita, o seguinte o único
+  tocável), #63 (*On record*, momentos sem partir), #73 (passagem de capítulo atual: cresce e desliza 1,2 s, texto sai
+  0,65 s e entra 1 s; **um só tempo de 4 s** — foto 1,2 + peça 2,8; momentos por acender a .38).
+- **Protótipo aprovado da passagem e do ritmo:** `D:\STUDIO-tools\glass-test-1027\work-passagem.html` (opção A, ritmo
+  único 4 s, .38).
+- **Técnica:** `interactions.md` §2 — palco `sticky` por três passos de scroll; aura pré-gerada (`*-aura.jpg` já em
+  `public/media/v5/work/`), nada de `filter` ao vivo; tocar num momento fixa-o; pausa com rato/foco; reduced motion sem
+  rotação; sem JS os três capítulos em sequência. Tempos já em `content/tuning.ts` (`moment*`, `chapter*`).
+- **Fica para depois do palco:** a passagem estado 2 (o vídeo da entrada torna-se o palco), medida no Xiaomi.
+- **Medir no Xiaomi:** scroll pelos três capítulos e a rotação dos momentos com as demonstrações (alvo 90 fps).
+
+**M5, primeira versão (29/10, noite), à espera do owner:** `src/components/work/` (`work.tsx`, `work-client.tsx`,
+`work.css`); as palavras das nove demonstrações em `content/v5.ts` (`work.demos`, as do storyboard); `data-js` posto em
+`<html>` pelo script da entrada antes da primeira pintura (o palco só existe com JavaScript; sem ele, os capítulos em
+sequência). Testes em `v5-tests.md` (M5). **Interpretação a confirmar com o owner:** "pausa com rato sobre o palco" —
+o palco ocupa o ecrã, por isso a pausa é só sobre a fotografia ou as palavras. **Falta:** a passagem estado 2 (vídeo →
+palco); o owner ver a passagem de capítulo. **Próximo:** owner revê → passagem estado 2 → commit.
 
 
 

@@ -98,7 +98,7 @@ Referência visual de todo o caminho Entrada → Work → Method: storyboard v3.
 | 2,0–3,2 s | **Entrar pelo O**: o véu escala **a partir do traço esquerdo do O** (`transform-origin` no traço; `scale(1)` → `scale(~60)`) até a letra cobrir o ecrã; no fim, opacidade 0 e `display:none`. **Corrigido a 25/10:** escalar pelo *centro* do O enche o ecrã com o miolo da letra, que é véu (escuro); a janela é o traço. **E o que escala é o véu, nunca o vídeo**: o vídeo fica parado (com um ligeiro avanço de 1,14 → 1) e a janela aproxima-se — é isso que se lê como câmara (README #58). Letra-janela num peso mais forte de Cormorant (500/600) |
 | 3,2–4,2 s | **E4** — a tinta da hora já entrou (escurece durante o zoom, 2,0–3,9 s; README #77: no storyboard entra aqui, 1 s depois de 0,4 s, mas no vídeo real via-se um filtro a cair); o título **reaparece centrado, mais pequeno, em letra sólida** sobre o vídeo, com o subtítulo *Digital experiences built for moments worth remembering.* (opacidade + 12 px); **três lâminas** entram em profundidade (translate + leve rotação, desfasadas 120 ms); a **navegação** e o **Talk to us** aparecem com este estado |
 
-- **Qualquer gesto** (scroll, toque, tecla, clique) → salta para o estado final de imediato.
+- **Toque, clique ou tecla** → salta para o estado final de imediato; o **scroll não faz nada** até a câmara passar (README #85).
 - **Reduced motion / Save-Data / vídeo falhou** → estado final com o poster (imagem fixa); sem véu.
 - **Sem JavaScript** → estado final estático (poster + título + lâminas como links).
 - A sequência corre **uma vez** por carregamento (um refresh no topo mostra-a outra vez); voltar ao topo não a repete:

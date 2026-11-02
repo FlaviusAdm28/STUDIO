@@ -4,7 +4,7 @@
  *
  * Source: `docs/design/v5/storyboard.md` → *Texto aprovado*, approved by the owner 24–28 Oct 2026.
  * Alt text: written for each image and checked against it, 29 Oct 2026 (the owner asked for the check).
- * Entries marked **draft** are mine and wait for the owner.
+ * Every entry is approved (the last drafts on 1 Nov 2026).
  * `{name}`, `{time}` and the like are filled on the page from the visitor's arrival.
  *
  * Photographs: `src` is the derivative's base path under `public/` (`npm run images` writes
@@ -129,8 +129,8 @@ export const work = {
         {
           moment: 'Always',
           image: {
-            src: '/media/v5/work/artists-always',
-            alt: 'In a sunlit studio, a woman stands before a large unfinished canvas; brushes and papers cover the table.',
+            src: '/media/v5/work/artists-always-photo',
+            alt: 'In a plain sunlit studio, a woman in paint-marked trousers stands back from a large unfinished canvas, a hand at her chin.',
           },
           pieces: [
             { name: 'Portfolio', line: "Your work, shown the way you see it: an artist's site built around your pieces, not around a template." },
@@ -140,8 +140,8 @@ export const work = {
         {
           moment: 'For a moment',
           image: {
-            src: '/media/v5/work/artists-moment',
-            alt: 'Visitors stand before two large abstract paintings in a softly lit gallery.',
+            src: '/media/v5/work/artists-moment-photo',
+            alt: 'Two visitors in silhouette stand in a long white gallery, framed works along the wall, a wide window behind them.',
           },
           pieces: [
             { name: 'Digital exhibition', line: 'Your exhibition, opened to anyone, anywhere, for as long as it runs.' },
@@ -169,8 +169,8 @@ export const work = {
         {
           moment: 'Before',
           image: {
-            src: '/media/v5/work/experiences-before',
-            alt: 'Hands hold a paper invitation tied with a ribbon, before a candlelit entrance where guests are gathering.',
+            src: '/media/v5/work/experiences-before-photo',
+            alt: 'At night, a stone arch lit in warm yellow opens onto a courtyard where a few guests stand, a round table in front.',
           },
           pieces: [
             { name: 'Invitation & RSVP', line: 'The invitation and the reply in one gesture: your guests open it, read it, and accept.' },
@@ -181,8 +181,8 @@ export const work = {
         {
           moment: 'During',
           image: {
-            src: '/media/v5/work/experiences-during',
-            alt: 'An audience in silhouette watches a musician with a guitar on a stage, in warm haze and candlelight.',
+            src: '/media/v5/work/experiences-during-photo',
+            alt: 'A grand piano and its stool in a panelled room, surrounded by dozens of lit candles on the floor.',
           },
           pieces: [
             { name: 'On-site guide', line: "What is happening now, what comes next and where to find it, open on every guest's phone while they are there." },
@@ -193,8 +193,8 @@ export const work = {
         {
           moment: 'After',
           image: {
-            src: '/media/v5/work/experiences-after',
-            alt: 'A long table set with linen, glasses and flowers in an old villa, its doors open to cypresses at dawn.',
+            src: '/media/v5/work/experiences-after-photo',
+            alt: 'A candlelit table set with wine glasses and white calla lilies in a vaulted room, seen close to the glasses.',
           },
           pieces: [
             { name: 'Thank-you page', line: 'A thank-you to everyone who came, with a moment from the event and a word on what comes next.' },
@@ -206,7 +206,91 @@ export const work = {
     },
   ] satisfies readonly { id: string; numeral: string; word: string; moments: readonly Moment[] }[],
   footer: 'Every project is proposed for its occasion.',
-  credit: 'Photographs — Helder Couto',
+  /** The chapters' title is their navigation (#62). */
+  chaptersLabel: 'Chapters',
+  /** On the desktop the shown piece says where it is (#60). */
+  onThePhotograph: 'on the photograph',
+  /**
+   * The nine pieces at work over the photographs (#43; the storyboard's words, approved with it). They are
+   * demonstrations, composed with the visitor's own date, time and name — never a client's project. `{…}` are filled
+   * on the page; the works in the archive are placeholders of a demonstration, not real works.
+   */
+  demos: {
+    // Approved word by word (owner, 1 Nov). The richer pieces of the options page
+    // (https://claude.ai/artifact/VpGPN2hkMejVzWXhvjZJuN). Titles of works, places, the evening's hours and lines are a
+    // demonstration's examples, never real works.
+    // the wedding website as its countdown (owner, 29 Oct: "gosto da contagem"): to 25 August (owner, 30 Oct), always the
+    // next one; the year turns over by itself (work-client.tsx)
+    website: {
+      title: 'Our day, in',
+      titleNamed: '{name} — our day, in',
+      day: { month: 8, date: 25 },
+      units: ['days', 'hours', 'min'],
+      reply: 'Reply by RSVP',
+    },
+    gallery: {
+      label: 'Live photo gallery',
+      count: '{n} photographs, shared today',
+      newest: 'Just now · {where}',
+      places: ['Table 4', 'The terrace', 'Table 2', 'By the fountain', 'Table 7', 'The dance floor'],
+    },
+    yearOn: {
+      label: 'One year on',
+      line: 'Your day, a year later.',
+      lineNamed: '{name}, your day, a year later.',
+      open: 'Open your day',
+    },
+    portfolio: {
+      title: 'Selected works',
+      titleNamed: 'Works by {name}',
+      info: 'Info',
+      filters: ['All', 'Painting', 'Drawing', 'Prints'],
+      works: ['Morning room', 'Study in amber', 'Light, west wall', 'Untitled'],
+    },
+    exhibition: {
+      room: 'Room I of III',
+      open: 'Open since {time}',
+      number: 'No. 07',
+      title: 'Light, west wall',
+      medium: 'Oil on linen',
+    },
+    archive: {
+      title: 'Archive',
+      count: '4 works',
+      works: [
+        ['Untitled', 'Oil on linen'],
+        ['Amber room', 'Oil on board'],
+        ['Light study', 'Charcoal'],
+        ['Untitled II', 'Oil on linen'],
+      ],
+      search: 'Search the archive',
+    },
+    invitation: {
+      kicker: 'An invitation',
+      kickerNamed: 'Dear {name}',
+      title: 'An evening of music',
+      date: '{weekday}, the {ordinal} of {month}',
+      where: 'Doors at 20:00 · The courtyard',
+      accept: 'Accept',
+      accepted: 'See you there',
+    },
+    guide: {
+      title: 'Tonight',
+      titleNamed: '{name}, tonight',
+      now: 'Now',
+      next: 'Next · in 24 min',
+      nowItem: 'Dinner in the courtyard',
+      nextItem: 'Music on the terrace',
+      nextWhere: 'Up the stairs, on your left',
+      programme: ['Arrivals', 'Dinner', 'Music'],
+    },
+    thanks: {
+      title: 'Thank you for coming.',
+      titleNamed: 'Thank you for coming, {name}.',
+      line: 'It was a night to remember.',
+      link: 'The photographs',
+    },
+  },
 } as const
 
 export type ChapterId = (typeof work.chapters)[number]['id']
@@ -325,5 +409,5 @@ export const nav = {
   closeMenu: 'Close menu',
   hello: 'Hello, {name}.',
   yourTime: 'Your time · {time}',
-  skipToContent: 'Skip to content', // draft
+  skipToContent: 'Skip to content',
 } as const

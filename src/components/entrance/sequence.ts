@@ -7,14 +7,16 @@
   nothing here changes how it looks. Everything this script writes goes on <html> (or inside the dedication,
   whose content React does not hydrate): it runs before hydration, and React rebuilds any element it owns
   whose attributes or text changed (measured 29 Oct: error #418 wiped the state, the text and the film).
-  The states live on <html data-entrance>: e0 dark → e1 the dedication
-  → e2 the letters open → e3 the camera enters through the O → e4 the final state; then the attribute goes.
+  The state lives on <html data-entrance>: e0 waits for the title's face, run plays the one timeline that entrance.css
+  declares (E1 the dedication, E2 the letters open, E3 through the O, E4 the final state), and then the attribute goes.
   Any gesture jumps to the end ("skip"). interactions.md §1, storyboard E1–E4, README #64 #66 #70.
 */
 
 /** Runs first in <body>: decides whether the sequence runs, before anything is painted. */
 export function entranceGate() {
   try {
+    // the page's scripts will run: the Work's stage and the like style themselves on this (no flash, set before paint)
+    document.documentElement.dataset.js = ''
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
     const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection
     if (!reduce && !connection?.saveData && !location.hash) document.documentElement.dataset.entrance = 'e0'
@@ -25,8 +27,6 @@ export type EntranceConfig = {
   welcomeBack: string
   wide: string
   tall: string
-  lettersAt: number
-  zoomAt: number
   finalAt: number
   /** How long the final state takes to settle before the veil is removed. */
   settle: number
@@ -91,13 +91,46 @@ export function entranceSequence(c: EntranceConfig) {
           ? 'evening'
           : 'night'
   const w = window as Window & {
-    __c1?: { arrival: object; chapter: string | null }
+    __c1?: { arrival: object; chapter: string | null; hash: string }
   }
   w.__c1 = {
     arrival: { time: now.getTime(), hhmm, light, returning },
     chapter: null,
+    // the address the visitor arrived with: the Work lands on it later, after this script has cleared it at the top
+    hash: location.hash,
   }
   root.dataset.light = light
+  // The page's colour: Safari fills the status area and the overscroll from html and body. Nothing fixed at the bottom edge: a strip made
+  // Safari paint a solid bar there, and the scenes now run on under it (entrance.css).
+  const frame = getComputedStyle(root).getPropertyValue(`--frame-${light}`).trim()
+  const themeMeta = document.querySelector('meta[name="theme-color"]')
+  let tone = ''
+  const paintEdges = (colour: string) => {
+    if (colour === tone) return
+    tone = colour
+    // written on the two elements: as a custom property on <html> every change restyled the whole page, on the phone's chapter change
+    root.style.backgroundColor = colour
+    document.body.style.backgroundColor = colour
+    themeMeta?.setAttribute('content', colour)
+  }
+  if (frame) {
+    root.style.setProperty('--frame', frame)
+    paintEdges(frame)
+    const scene = () => {
+      const d = root.dataset
+      const work = document.querySelector<HTMLElement>('.work') // parsed after this script
+      const ch = Number(work?.dataset.ch ?? 0)
+      const ground = ch > 0 && d.pass === 'done' && work?.querySelectorAll('.w-ground')[ch]
+      const past = d.section && d.section !== 'top' && d.section !== 'work'
+      paintEdges(past ? '#1e1d1a' : ground ? getComputedStyle(ground).backgroundColor : frame)
+    }
+    const watch = new MutationObserver(scene)
+    watch.observe(root, { attributes: true, attributeFilter: ['data-pass', 'data-section'] })
+    addEventListener('DOMContentLoaded', () => {
+      const work = document.querySelector('.work')
+      if (work) watch.observe(work, { attributes: true, attributeFilter: ['data-ch'] })
+    })
+  }
   const dedication = section.querySelector('.e-ded')
   if (dedication) {
     const weekday = now.toLocaleDateString('en-GB', { weekday: 'long' })
@@ -165,36 +198,90 @@ export function entranceSequence(c: EntranceConfig) {
     { threshold: [0.95] },
   ).observe(section)
 
-  // Slight depth on the blades with a fine pointer, one frame per movement at most.
+  // Slight depth on the blades with a fine pointer, across only. Each blade is eased here and written directly. It was a custom
+  // property on <html> with a CSS transition: every movement recalculated the page and restarted the transition, and the blades
+  // shook under the pointer (owner, 31 Oct). The loop runs only while they are settling, and not during the sequence.
   if (matchMedia('(pointer: fine)').matches && !reduce) {
+    const blades = [...section.querySelectorAll<HTMLElement>('.e-blade')]
+    let aim = 0
+    let mid = 0
+    let x = 0
     let frame = 0
-    section.addEventListener('pointermove', (e) => {
-      if (frame) return
-      frame = requestAnimationFrame(() => {
-        frame = 0
-        root.style.setProperty('--px', ((e.clientX / innerWidth) * 2 - 1).toFixed(3))
-        root.style.setProperty('--py', ((e.clientY / innerHeight) * 2 - 1).toFixed(3))
+    let last = 0
+    // Nothing vertical, and the bottom edge held on a device pixel. Moving through fractions of a pixel, the photograph and its
+    // shade, composited apart, were cut differently there: a light or dark line that trembled under the slow zoom (owner, 1 Nov;
+    // risco.mjs, 20 levels with the 4–6 px of vertical depth).
+    let snaps: string[] | null = null
+    addEventListener('resize', () => (snaps = null))
+    const snap = () =>
+      blades.map((b) => {
+        const bottom = b.getBoundingClientRect().bottom - (parseFloat(b.style.translate.split(' ')[1]) || 0)
+        const dpr = devicePixelRatio
+        return (Math.round(bottom * dpr) / dpr - bottom).toFixed(3)
       })
-    })
+    // Two easings in a row, on the clock and not per frame: one passed a shaken pointer through as a tremor, worse the more hertz
+    // the screen has (owner, 1 Nov).
+    const ease = (t: number) => {
+      const k = 1 - Math.exp(-Math.min(0.05, (t - last) / 1000) * 7)
+      last = t
+      mid += (aim - mid) * k
+      x += (mid - x) * k
+      const resting = Math.abs(aim - x) < 0.002
+      if (resting) mid = x = aim
+      snaps ??= snap()
+      const edges = snaps
+      blades.forEach((b, i) => (b.style.translate = `${(x * (6 + i * 2)).toFixed(2)}px ${edges[i]}px`))
+      frame = resting ? 0 : requestAnimationFrame(ease)
+    }
+    section.addEventListener(
+      'pointermove',
+      (e) => {
+        if (root.dataset.entrance) return
+        aim = (e.clientX / innerWidth) * 2 - 1
+        if (frame) return
+        last = performance.now()
+        frame = requestAnimationFrame(ease)
+      },
+      { passive: true },
+    )
   }
 
   if (root.dataset.entrance !== 'e0') return
 
   const timers: number[] = []
-  const gestures = ['wheel', 'touchstart', 'pointerdown', 'keydown', 'scroll'] as const
+  const gestures = ['keydown', 'scroll'] as const
+  // Scrolling does nothing until the camera is through (owner, iPhone, 1 Nov: a scroll cut the entrance short and went on to Weddings;
+  // revises "any gesture"). A tap or a key still completes it, and the lock ends with the sequence, within 3 s if it never starts.
+  const hold = (e: Event) => e.preventDefault()
+  const unhold = () => {
+    removeEventListener('wheel', hold)
+    removeEventListener('touchmove', hold)
+  }
+  let downY = 0
+  const down = (e: PointerEvent) => (downY = e.clientY)
+  const up = (e: PointerEvent) => {
+    if (Math.abs(e.clientY - downY) < 10) skip()
+  }
   const finish = () => {
     timers.forEach(clearTimeout)
     gestures.forEach((g) => removeEventListener(g, skip, true))
+    removeEventListener('pointerdown', down, true)
+    removeEventListener('pointerup', up, true)
+    unhold()
     delete root.dataset.entrance
   }
-  // Any gesture: the final state at once, without transitions, then the page is the page.
+  // The final state at once, without transitions, then the page is the page.
   function skip() {
     timers.forEach(clearTimeout)
+    unhold()
     root.dataset.entrance = 'skip'
     requestAnimationFrame(() => requestAnimationFrame(finish))
   }
   gestures.forEach((g) => addEventListener(g, skip, { capture: true, passive: true }))
-  const at = (ms: number, state: string) => timers.push(window.setTimeout(() => (root.dataset.entrance = state), ms))
+  addEventListener('pointerdown', down, { capture: true, passive: true })
+  addEventListener('pointerup', up, { capture: true, passive: true })
+  addEventListener('wheel', hold, { passive: false })
+  addEventListener('touchmove', hold, { passive: false })
 
   // The camera enters through the O's left stroke — the letter is the window, its middle is veil.
   const veil = section.querySelector<SVGSVGElement>('.e-veil')
@@ -202,6 +289,12 @@ export function entranceSequence(c: EntranceConfig) {
     const portrait = matchMedia('(orientation: portrait)').matches
     const text = section.querySelector<SVGTextElement>(portrait ? '.e-veil .tall' : '.e-veil .wide')
     if (!veil || !text || text.getNumberOfChars() < 9) return false
+    if (portrait) {
+      const lines = text.querySelectorAll('tspan')
+      const shown = Math.min(section.clientHeight, innerHeight)
+      lines[0]?.setAttribute('y', String(shown * 0.5))
+      lines[1]?.setAttribute('y', String(shown * 0.5923))
+    }
     const o = text.getExtentOfChar(portrait ? 7 : 8)
     const ox = o.x + o.width * 0.125
     const oy = o.y + o.height * 0.55
@@ -217,7 +310,8 @@ export function entranceSequence(c: EntranceConfig) {
       const pad = o.height * 0.2
       const [x, y, bw, bh] = [o.x - pad, o.y - pad, o.width + 2 * pad, o.height + 2 * pad]
       const W = section.clientWidth
-      const H = section.clientHeight
+      // the letters sit on the part of the screen that shows, not on the scene that runs on under the bar
+      const H = Math.min(section.clientHeight, innerHeight)
       const box = { x, y, w: bw, h: bh }
       for (const [k, v] of Object.entries(box)) root.style.setProperty(`--e-o-${k}`, `${v.toFixed(2)}px`)
       layer.innerHTML =
@@ -249,10 +343,8 @@ export function entranceSequence(c: EntranceConfig) {
       if (root.dataset.entrance !== 'e0') return
       if (!ready || scrollY > 0 || !origin()) return skip()
       addEventListener('resize', origin)
-      root.dataset.entrance = 'e1'
-      at(c.lettersAt, 'e2')
-      at(c.zoomAt, 'e3')
-      at(c.finalAt, 'e4')
+      root.dataset.entrance = 'run'
+      timers.push(window.setTimeout(unhold, c.finalAt))
       timers.push(window.setTimeout(finish, c.finalAt + c.settle))
     })
     .catch(skip)

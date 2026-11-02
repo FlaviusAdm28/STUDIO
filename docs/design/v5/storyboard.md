@@ -2,9 +2,10 @@
 
 *Aprovado pelo owner a 25 de outubro de 2026 (README #19–#56). Este documento é a **especificação estado a
 estado** da página única. Prevalece sobre as descrições mais antigas em `pages.md` e `interactions.md` onde
-divergirem; os dois foram atualizados para apontar para aqui.*
+divergirem; os dois foram atualizados para apontar para aqui. Atualizado a 1 de novembro de 2026 com o que o site faz e o
+owner aprovou até à README #87.*
 
-**Referência visual (privada, do owner):** https://claude.ai/artifact/9vkDx379vuwuiaXre62cxz — entrada (E1–E4),
+**Referência visual (privada, do owner):** https://claude.ai/artifact/9vkDx379vuwuiaXre62cxz (no topo, as decisões de 1/11, que prevalecem sobre os frames) — entrada (E1–E4),
 estados 1–21, menu, as quatro luzes do estúdio. Com controlos para a hora de chegada, o nome, *já cá esteve* e o
 capítulo escolhido na entrada. **Fontes locais** (HTML + imagens pequenas, fora do Git):
 `media-src/storyboards-2026-10-25/` (`work-method-storyboard.html` é o principal; `about/`, `questions/`,
@@ -24,7 +25,8 @@ capítulo escolhido na entrada. **Fontes locais** (HTML + imagens pequenas, fora
    `opacity`; cenas presas com `position: sticky`; uma cena presa de cada vez; ≤ 6 camadas a animar; o vídeo pausa
    fora do ecrã; alternativa para tudo (reduced motion, sem suporte, sem JS). Cada passagem é **medida no Xiaomi
    antes** de construir a seguinte (`interactions.md` §0, README #24).
-3. **O que não é scroll:** a sequência da entrada (corre sozinha, qualquer gesto a completa), o tempo que muda os
+3. **O que não é scroll:** a sequência da entrada (corre sozinha; **durante ela o scroll não faz nada**, um toque ou uma tecla
+   completam-na, README #85), o tempo que muda os
    momentos do Work, o campo *Make it yours*, a cor do retrato por gesto, abrir perguntas, abrir o menu.
 4. **A barra está em todos os estados** (README #56), **na mesma linha da etiqueta da secção** (alinhada pela linha de texto, não por uma percentagem): à esquerda a secção atual (`01 Work`…); à direita, no
    desktop, a hora de quem visita + *Talk to us* + **≡ Menu**; no telemóvel só **≡ Menu**. Em baixo de cada secção,
@@ -40,6 +42,17 @@ capítulo escolhido na entrada. **Fontes locais** (HTML + imagens pequenas, fora
    | Capítulo escolhido na entrada | clique numa lâmina (memória da página) | aterragem no Work; ecrã em destaque do Method |
 
 6. **Voz:** *we* em todo o site; *I* só no About (README #51). Site em inglês.
+7. **Cor da hora (README #86):** a hora de quem chega dá uma cor escura à página (`frame*` em `tuning.ts`: manhã `#1c1e21`, dia
+   `#1f1c19`, fim de tarde `#221b15`, noite `#181a20`). É a cor do véu da entrada e do fundo de **I Weddings**; assim a capa, a
+   passagem e Weddings são uma só cor. Artists e Experiences têm a sua.
+8. **iPhone, ecrã inteiro (README #84–#86, só no iOS; referência do owner: Not a Tesla App):**
+   - A página nunca passa da ilha dinâmica, mas vai **até ao fim do ecrã por baixo da barra do Safari**, que flutua sobre o site. Não há
+     cor nossa nem fade em baixo.
+   - Cenas presas: altura `--screen` = 100 lvh + 130 px, porque um bloco sticky pára onde acaba. O texto fica sempre na zona visível.
+   - O palco do Work sobe 70 px acima do ecrã: com scroll, o Safari mostra atrás da ilha o que está logo acima, e ali está o fundo do capítulo.
+   - `html` e `body` sempre da mesma cor, escrita diretamente nos dois. Sem `viewport-fit=cover`, sem faixas fixas nas bordas, sem desfoque ao vivo.
+   - No topo, o filme nasce da cor da hora em 130 px, só cor, e essa rampa só sai depois do filme. Tinta do fundo do filme 0,32 (0,55 no resto).
+   - Ao mudar de capítulo, o fundo entra em 0,45 s, para chegar com a cor da ilha.
 
 ---
 
@@ -57,8 +70,8 @@ capítulo escolhido na entrada. **Fontes locais** (HTML + imagens pequenas, fora
 - **O vídeo carrega e toca desde o primeiro instante**, por trás do véu (já no E1); por isso **no E2 vê-se o vídeo em
   movimento dentro das letras**. Se a rede ainda não o tiver, vê-se o poster (o mesmo fotograma) até arrancar —
   nada bloqueia nem fica preto. Um só pedido por formato de ecrã (`hero-1920.mp4` ou `hero-720x1280.mp4`).
-- Corre sozinha à chegada (~2,6 s), **uma vez por carregamento** (um refresh no topo mostra-a outra vez); **qualquer gesto
-  salta para o final**. **O E4 é o topo da página** (README #66): o E1–E3 não são lugares da página, são a chegada; ao voltar
+- Corre sozinha à chegada (~2,6 s), **uma vez por carregamento** (um refresh no topo mostra-a outra vez). **O scroll não faz nada até a
+  câmara passar; um toque ou uma tecla saltam para o final** (README #85). **O E4 é o topo da página** (README #66): o E1–E3 não são lugares da página, são a chegada; ao voltar
   ao topo vê-se o E4, a entrada não se repete.
 - Reduced motion / Save-Data / vídeo falhou / sem JS → começa no final, com o poster.
 - **Aterragem no Work** (README #44): com scroll aterra-se sempre em **I Weddings**; uma lâmina leva a **esse
@@ -68,9 +81,9 @@ capítulo escolhido na entrada. **Fontes locais** (HTML + imagens pequenas, fora
 
 | # | O que se vê | Técnica |
 |---|---|---|
-| **2** | **O vídeo torna-se o palco:** a moldura do vídeo encolhe até à moldura em arco do palco e dissolve-se na primeira fotografia de Weddings; o texto do Work entra ao lado | passagem por scroll: `transform` da moldura do vídeo + opacidade; o vídeo pausa quando deixa de se ver |
+| **2** | **A lâmina leva ao Work** (owner, 31/10, README #81; substitui a moldura do vídeo a encolher): as palavras e as outras lâminas saem, o filme apaga-se até ao fundo do Work, que não muda, e **a lâmina de Weddings cresce até ser o arco** do palco. É a mesma fotografia, sem troca; o texto do Work entra ao lado | ligada ao scroll, no compositor (`ScrollTimeline`), só `transform` e `opacity`, 1,4 ecrãs; o vídeo pausa quando deixa de se ver |
 | **3** | **I · Weddings**, momento *Before*: palco preso; fotografias em camadas com **aura da própria fotografia**; **sem separadores debaixo da barra: o título é a navegação** (README #62) — o capítulo atual grande, sempre à esquerda, numeral do tamanho da palavra; os outros a seguir, pequenos (telemóvel: à direita do título, o seguinte maior e o único tocável, I → II → III → I); momentos *Before · On the day · After*: **a palavra do momento enche-se com o tom das fotografias do capítulo** e, cheia, passa à seguinte (os já passados ficam apagados); lista das peças com filetes, **a peça mostrada em primeiro** e a linha de cada peça (README #60, #61) | palco `sticky`; aura = imagem minúscula desfocada pré-gerada, esticada com máscara radial; palavra que enche = cópia na cor aberta com `clip-path` |
-| **4** | **O momento mostra a sua peça:** depois da foto (~1,2 s), a peça principal do momento anima sobre a fotografia inteira (~2,8 s) — o momento dura **4 s**, o tempo da palavra a encher (README #73); na lista, a peça é a primeira, com um círculo e *on the photograph* | uma demonstração de cada vez, `transform`/`opacity` |
+| **4** | **O momento mostra a sua peça:** depois da foto (~1,2 s), a peça principal do momento anima sobre a fotografia inteira (~4,8 s) — o momento dura **6 s**, o tempo da palavra a encher (owner, 29/10). **Ao entrar no Work a palavra chega vazia e só depois enche** (README #87); na lista, a peça é a primeira, com um círculo e *on the photograph* | uma demonstração de cada vez, `transform`/`opacity` |
 | **5** | **II · Artists** — ao descer muda o capítulo: luz e fotografias de Artists; momentos *Always · For a moment · On record* | a atmosfera nova sobe pelo palco (~1 s); moldura retângulo |
 | **6** | **III · Experiences**, momento *During*: o *On-site guide* mostra-se sozinho — é a ponte para o Method | recorte oblíquo; fundo azul-noite |
 
@@ -85,12 +98,14 @@ programa com a hora de quem visita), *Thank-you page* (*Thank you for coming*).
   primeiro, no mesmo capítulo** — o tempo nunca muda o capítulo (README #61).
 - **Capítulos (README #62):** o Work começa sempre em *I Weddings*, salvo se a pessoa escolheu outra lâmina na entrada.
   Ao mudar de capítulo, o que chega cresce e desliza para a esquerda; os outros apagam-se e voltam pequenos nos seus
-  lugares; o texto que sai esbate-se no lugar enquanto o novo entra por opacidade (FLIP, só `transform`/`opacity`; reduced motion: sem
+  lugares; o texto que sai apaga-se em 0,22 s e o novo entra 0,24 s depois, sem se sobreporem (README #83) (FLIP, só `transform`/`opacity`; reduced motion: sem
   passagem). **A passagem está em aberto** (README aberta #28). No
   telemóvel o capítulo seguinte tem área de toque de 44 px; o outro é só texto.
 - **Linhas no ecrã (README #61):** só os filetes entre as peças de cada momento; nem sublinhado nos capítulos nem
   linha por baixo dos momentos.
 - Os capítulos no título, as lâminas da entrada e as ligações das Questions levam à posição de scroll do capítulo.
+- **Não há linha de crédito das fotografias no Work** (README #87). O crédito do retrato fica no About.
+- **Um capítulo que sai volta ao seu primeiro momento**, sem nada a correr; quem volta ao topo reencontra Weddings na passagem seguinte.
 - Sem JS: três capítulos em sequência, momentos e peças todos visíveis.
 
 ## 02 Method — "Feito para quem chega" (estados 7–11)
@@ -143,7 +158,7 @@ verticais; ligam ao Work (README #53). Sem rótulo "Questions" por cima da ânco
 **A barra (README #67 e #69):** **duas ilhas de vidro**. À esquerda **o nome e a secção** — *Chapter One | 03 About*
 (o nome em Cormorant, um filete fino, a secção); **no topo (E4) não há ilha do nome** — o título *CHAPTER ONE* já é o
 nome; a ilha entra com o Work (estado 2), enquanto o título sai (README #70). No E4 fica só a ilha do menu. **Clicar no nome sobe ao topo e mostra a entrada
-outra vez** (qualquer gesto salta para o E4; reduced motion / sem JS: só o topo). À direita: no desktop a hora, *Talk to us*
+outra vez** (um toque ou uma tecla saltam para o E4; reduced motion / sem JS: só o topo). À direita: no desktop a hora, *Talk to us*
 e **≡ Menu** (a palavra fica; *Close* com o menu aberto); no telemóvel **três traços de comprimentos diferentes (100 / 70 /
 85 %), sem palavra, num círculo de vidro**, que viram **X** ao abrir (os de fora cruzam-se, o do meio recolhe-se) —
 `aria-label` *Menu* / *Close menu*, 44 px de toque. O meio fica aberto. As duas ilhas à mesma distância da borda, com a

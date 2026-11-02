@@ -1,7 +1,9 @@
-import { about, contact, method, nav, questions, sections, work } from '@content'
+import { about, contact, method, nav, questions, sections } from '@content'
 import { Bar } from '@/components/bar/bar'
 import { Entrance } from '@/components/entrance/entrance'
+import { Work } from '@/components/work/work'
 import { Picture } from '@/components/picture'
+import { FpsMeter } from '@/components/fps-meter'
 
 /*
   The one page, in reading order: Entrance → Work → Method → About → Questions → Contact.
@@ -17,36 +19,15 @@ export default function Home() {
         {nav.skipToContent}
       </a>
       <Bar />
+      <FpsMeter />
 
       <main id="main">
-        <Entrance />
+        {/* the entrance is held here while the passage turns its film into the Work's stage (work.css) */}
+        <div className="e-hold">
+          <Entrance />
+        </div>
 
-        <section id="work" aria-labelledby="work-title">
-          <h2 id="work-title">01 Work</h2>
-          {work.chapters.map((chapter) => (
-            <article key={chapter.id} id={chapter.id} aria-labelledby={`${chapter.id}-title`}>
-              <h3 id={`${chapter.id}-title`}>
-                {chapter.numeral} {chapter.word}
-              </h3>
-              {chapter.moments.map((m) => (
-                <section key={m.moment} aria-label={`${chapter.word} · ${m.moment}`}>
-                  <h4>{m.moment}</h4>
-                  <Picture src={m.image.src} alt={m.image.alt} sizes="(min-width: 900px) 40vw, 100vw" />
-                  <dl>
-                    {m.pieces.map((p) => (
-                      <div key={p.name}>
-                        <dt>{p.name}</dt>
-                        <dd>{p.line}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </section>
-              ))}
-            </article>
-          ))}
-          <p>{work.footer}</p>
-          <p>{work.credit}</p>
-        </section>
+        <Work />
 
         <section id="method" aria-labelledby="method-title">
           <h2 id="method-title">02 Method</h2>

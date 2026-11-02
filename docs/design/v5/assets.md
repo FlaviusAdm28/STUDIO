@@ -68,7 +68,7 @@ O conjunto P&B conta **um dia da manhã à noite**: estrada em pleno dia (002–
 Ficam a P&B (o owner adora). Não há revelação de cor para estas (são P&B do fotógrafo). Se um dia
 for preciso um cenário que não exista, pode editar-se uma real com IA (aprovado como hipótese).
 
-Crédito: *Photographs — Helder Couto*. Direitos: confirmados pelo owner (M0), sem documentos vistos.
+O site não mostra crédito destas fotografias (owner, 1/11, README #87). Direitos: confirmados pelo owner (M0), sem documentos vistos.
 
 ---
 
@@ -92,6 +92,26 @@ revelação de cor, se se quiser usar. Resolução máxima 1536 px de altura: su
 que aparecem; não ampliar para lá disso.
 
 Prompts usados/para regenerar: `prompts.md`. Referências de estilo: `research/refs/`.
+
+---
+
+### Fotografias do Unsplash (escolhidas pelo owner, 30/10/2026)
+
+Substituem as de IA nestes lugares; `artists-always` e `artists-record` ficam as de IA. Masters em `media-src/stock/`,
+com o tratamento `calm` de `scripts/images.mjs`. Licença: Unsplash License (uso comercial, sem pedir nem creditar; não é
+CC0 nem domínio público). A licença não cobre pessoas nem obras visíveis. Nunca como trabalho real de um cliente.
+
+| Lugar | Fotografia | Original |
+|---|---|---|
+| Artists · For a moment | https://unsplash.com/photos/Cu5pKZkpJj8 | 3675×4900 |
+| Experiences · Before | https://unsplash.com/photos/e_0kguyKNmc | 3193×4821 |
+| Experiences · During | https://unsplash.com/photos/rCX_nOPnSNA | 3024×4032 |
+| Experiences · After | https://unsplash.com/photos/5PNmURC73JQ | 2786×4179 |
+
+O `experiences-during` de IA continua a servir a lâmina da entrada, em P&B.
+
+**Artists · Always (30/10):** imagem nova gerada pelo owner no ChatGPT (`media-src/artists/always-studio.png`, 1024×1536,
+SHA-1 dd335e25299a), derivado cortado à esquerda (`artists-always-photo`). O `artists-always` anterior serve a lâmina.
 
 ---
 

@@ -120,6 +120,7 @@ site original (V1–V4). Detalhe em `direction.md`.
 | 89 | **Work (owner, 2/11, vídeo do iPhone):** a palavra do momento parecia dar um salto ao mudar de capítulo, sobretudo em Experiences. Começava a encher no instante da troca, mas o texto só aparece 0,3 s depois, e surgia com meio B cheio. A partir daí o enchimento é linear (27 px/s medidos). Decisão: na troca de capítulo, a palavra chega vazia e só começa a encher 0,45 s depois; o primeiro momento conta os seus 6 s a partir daí. É a mesma regra da #87 para a entrada no Work. |
 | 90 | **Work (owner, 2/11, vídeo do iPhone das 11:30):** (1) o salto em Experiences era o título. "III Experiences" começava a deslizar e crescer, mas no iPhone ao fim de ~0,17 s saltava para o lugar final, porque a transição CSS que liga e desliga em dois frames era cortada. Agora cada nome voa com uma Web Animation de 1,2 s (o mesmo `--chapter-move-seconds` e `--ease`), cancelada e retomada de onde está se o visitante voltar atrás. (2) Para trás e para a frente perto da troca, o capítulo mudava a cada cruzamento do meio do ecrã e tudo recomeçava. Agora há uma margem de 12 % do ecrã: o passo seguinte tem de passar o meio por essa margem, e para voltar o atual tem de sair dela. |
 | 91 | **Work (owner, 2/11, vídeo do iPhone das 12:00):** ao chegar a Experiences, a fotografia a subir dava saltos. Medido no vídeo a 60 fps: a pilha que sai desaparecia de repente ~0,27 s depois da troca; a que entra só aparecia ~0,35 s depois e saltava para o lugar aos ~0,55 s. Mostrava só ~0,2 s dos 1,1 s de subida. Era o mesmo corte das transições CSS da #90. Agora as duas pilhas sobem e descem com Web Animations (1,1 s, o mesmo `--ease`), a partir de onde estão. O CSS continua a definir onde cada pilha fica. |
+| 92 | **Work e barra (owner, 2/11):** (1) aparecia um rebordo branco à volta da peça de cada momento, sobretudo no arco de Weddings: a camada da peça e a fotografia tinham o mesmo recorte suavizado e via-se um fio de fotografia sem véu. A camada da peça passou a ser 1 px maior. Confirmado pelo owner. (2) O aro de luz do vidro da barra e do menu **fica como está** (#69, #80). Vistas e postas de lado: aro suave, sem aro, e sem aro nem lente (https://claude.ai/artifact/LXX3DjkKNWoExydD3dFMgg). |
 
 ## Decisões abertas
 
@@ -139,7 +140,7 @@ dos documentos); foram reconstruídos aqui com o estado final de cada um.*
 10. ~~Fundos do About e das Questions~~ — **fechada** (#52, #53).
 11. ~~Email~~ — **fechada** (#54): só quando o owner der um endereço.
 12. ~~"No templates. No copies." no rodapé~~ — **fechada** (#54): o colofão assina *Built around you.*
-13. **Ritmo e escalas finas** (o ritmo dos momentos está fechado — 4 s, #73; falta afinar alturas presas e escalas) — afinar no protótipo e no Xiaomi; os valores ficam em `content/tuning.ts` (#59).
+13. **Ritmo e escalas finas** (o ritmo dos momentos está fechado — 6 s desde 29/10, #73 e #82; falta afinar alturas presas e escalas) — afinar no protótipo e no Xiaomi; os valores ficam em `content/tuning.ts` (#59).
 14. ~~O hover / desenho do Work~~ — **fechada** (#43: cada momento mostra a sua peça).
 15. ~~Aura de cor no Work~~ — **fechada** (#40).
 16. ~~154 ou 157~~ — **fechada**: 154 (P&B).

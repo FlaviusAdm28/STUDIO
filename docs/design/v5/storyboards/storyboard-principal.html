@@ -1,5 +1,22 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Do Work ao Method</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<section aria-labelledby="nov1" style="max-width:1180px;margin:32px auto 0;padding:22px 24px;border:1px solid rgba(238,232,221,.22);border-radius:6px;color:#EEE8DD;background:#2A2823">
+<h2 id="nov1" style="font:italic 400 30px/1.1 'Cormorant Garamond',Georgia,serif;margin:0 0 6px">O que o site faz hoje · 2 de novembro de 2026 · Entrada, barra e Work fechados</h2>
+<p style="margin:0 0 12px;color:#B3AB9E;max-width:72ch">A 2/11 os quadros e as animações da entrada, da passagem e do Work passaram a mostrar o que o site faz (tempos, pilha de cartões, a lâmina, a troca de capítulo). Se algum pormenor divergir, estas decisões prevalecem. Detalhe: README #80 a #91 e storyboard.md. O Method (estados 7–11) ainda não foi construído: os frames dele continuam a ser a referência.</p>
+<ul style="margin:0;padding-left:20px;display:grid;gap:7px;max-width:82ch">
+<li><b>Entrada:</b> durante a sequência o scroll não faz nada; um toque ou uma tecla completam-na.</li>
+<li><b>Cor da hora:</b> uma cor escura por hora (manhã #1c1e21, dia #1f1c19, fim de tarde #221b15, noite #181a20) no véu, na capa e em I Weddings: da capa a Weddings não há troca de cor.</li>
+<li><b>Barra e menu (#69–#71, #80):</b> duas ilhas de vidro ao vivo com brilho, aro e sombra; a luz da hora segue o sol real.</li>
+<li><b>Entrada → Work (#81):</b> a lâmina de Weddings cresce até ser o arco do palco; as palavras e as outras lâminas saem, o filme apaga-se. É o que mostra agora o quadro 2.</li>
+<li><b>Work, momentos (#82, #87, #89):</b> cada momento dura 6 s; a palavra chega vazia e só depois enche, ao entrar no Work e em cada troca de capítulo (começa 0,45 s depois); as fotografias são uma pilha de cartões sempre à vista, o da frente recua em diagonal e reaparece atrás; tocar noutro momento muda, tocar no atual pausa.</li>
+<li><b>Work, capítulos (#83, #88, #90, #91):</b> cada capítulo tem um ecrã de scroll; o capítulo só muda quando o seguinte passa o meio do ecrã por 12 % (sem vaivém); o título e as fotografias mudam com Web Animations, sem cortes no Safari; o texto antigo sai em 0,22 s e o novo entra a seguir; Artists e Experiences têm cor própria.</li>
+<li><b>Crédito:</b> sem linha de crédito das fotografias no Work; o crédito do retrato fica no About.</li>
+<li><b>iPhone:</b> o site vai até ao fim do ecrã por baixo da barra do Safari, sem cor nossa em baixo; a ilha dinâmica mostra a cor da cena; em cima, o filme nasce da cor da hora numa rampa só de cor, que sai depois do filme.</li>
+<li><b>iPhone, técnica:</b> cenas presas com 100 lvh + 130 px; palco 70 px acima do ecrã; html e body na mesma cor; sem viewport-fit=cover, sem faixas fixas, sem desfoque nas bordas.</li>
+<li><b>Android (Chrome):</b> a barra de endereço fica em cima e empurra a página ao subir e descer; é do browser e fica assim (2/11).</li>
+</ul>
+</section>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Schibsted+Grotesk:wght@400;500&display=swap">
@@ -16,6 +33,7 @@
   --voice: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
   --read: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --e2: cubic-bezier(0.45, 0, 0.2, 1);
   color-scheme: dark;
 }
 /* muted, studio skies: low chroma, soft steps, a little grain */
@@ -93,7 +111,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
 .ent .top { position: absolute; left: 3%; right: 3%; top: 4%; display: flex; justify-content: space-between; font-size: max(5px, 1.3cqw); letter-spacing: .16em; text-transform: uppercase; }
 .ent .ded { position: absolute; left: 0; right: 0; top: 13%; text-align: center; font-family: var(--voice); font-style: italic; font-size: 1.9cqw; opacity: .85; }
 .ent .title { position: absolute; left: 0; right: 0; top: 30%; text-align: center; font-family: var(--voice); font-size: 7.4cqw; letter-spacing: .16em; line-height: 1; }
-.ent .sub { position: absolute; left: 0; right: 0; top: 45%; text-align: center; font-size: 1.5cqw; letter-spacing: .04em; opacity: .9; }
+.ent .sub { position: absolute; left: 0; right: 0; top: 45%; text-align: center; font-family: var(--voice); font-style: italic; font-size: 1.85cqw; letter-spacing: .02em; opacity: .9; } /* Cormorant italic, like the dedication (owner, 29 Oct, README #79) */
 .blade { position: absolute; width: 22%; height: 25%; top: 64%; clip-path: polygon(14% 0, 100% 0, 86% 100%, 0 100%); }
 .blade .bg { position: absolute; inset: 0; filter: grayscale(1); }
 .blade .bg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 30%, rgba(15,14,12,.7)); }
@@ -103,7 +121,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
 .frame.phone .ent .top { font-size: 3.6cqw; top: 2.6%; left: 6%; right: 6%; }
 .frame.phone .ent .ded { font-size: 5.4cqw; top: 9%; }
 .frame.phone .ent .title { font-size: 13cqw; top: 22%; line-height: 1.05; }
-.frame.phone .ent .sub { font-size: 4.2cqw; top: 38%; left: 10%; right: 10%; }
+.frame.phone .ent .sub { font-size: 5.6cqw; line-height: 1.3; top: 38%; left: 10%; right: 10%; }
 .frame.phone .blade { width: 84%; height: 11%; left: 8%; clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%); }
 .frame.phone .blade span { font-size: 6.4cqw; left: 10%; }
 .frame.phone .blade.b1 { top: 54%; } .frame.phone .blade.b2 { top: 67%; } .frame.phone .blade.b3 { top: 80%; }
@@ -191,7 +209,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
 .tx .li.act .g { background: var(--linen); }
 .frame.phone .tx .li .g { width: 2.2cqw; height: 2.2cqw; margin-right: 2cqw; }
 .tx .li b.nm { font-weight: 400; }
-.frame.held .mom .wf { animation: none !important; }
+.frame.held .mom .wf { animation-play-state: paused !important; } /* tapping the current moment pauses it (README #82) */
 /* only what is visible can be touched: hidden chapters never catch the pointer */
 .L { pointer-events: none; }
 .frame.try[data-ch="1"] .c1 .hnav button, .frame.try[data-ch="2"] .c2 .hnav button, .frame.try[data-ch="3"] .c3 .hnav button { pointer-events: auto; }
@@ -220,10 +238,18 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
 .stack, .tx { opacity: 0; transform: translateY(5%); transition: opacity 1.1s, transform 1.1s; }
 .frame[data-ch="1"] .c1, .frame[data-ch="2"] .c2, .frame[data-ch="3"] .c3 { opacity: 1; transform: none; }
 .stack { position: absolute; left: 6%; top: 16%; width: 28%; height: 74%; }
-.stack .ph { position: absolute; inset: 0; background: center / cover no-repeat; opacity: 0; transition: opacity 1s, transform 1s; }
-.stack .ph.front { opacity: 1; transform: none; z-index: 3; }
-.stack .ph.b1 { transform: translate(4.5%, -2%) scale(.97); opacity: .55; z-index: 2; }
-.stack .ph.b2 { transform: translate(9%, -4%) scale(.94); opacity: .3; z-index: 1; }
+/* README #82, as built: the pile is always there — opaque cards, each darkened by a film of its own; the cards move on a
+   spring (the crossing one is drawn by script, setMoment) */
+.stack .ph { position: absolute; inset: 0; background: center / cover no-repeat; transition: transform .95s var(--spring, ease-out); }
+.stack .ph::after { content: ""; position: absolute; inset: 0; background: #16140f; opacity: 0; border-radius: inherit; transition: opacity .95s var(--spring, ease-out); }
+.stack .ph.front { transform: none; z-index: 3; }
+.stack .ph.b1 { transform: translate(4.5%, -2%) scale(.97); z-index: 2; }
+.stack .ph.b2 { transform: translate(9%, -4%) scale(.94); z-index: 1; }
+.stack .ph.b1::after { opacity: .42; }
+.stack .ph.b2::after { opacity: .68; }
+/* README #81, as built: the Weddings blade grows into the stage's arch (the same photograph); the film fades out */
+.bl { position: absolute; z-index: 3; overflow: hidden; pointer-events: none; transition: left 1.2s var(--e2), top 1.2s var(--e2), width 1.2s var(--e2), height 1.2s var(--e2), clip-path 1.2s var(--e2), border-radius 1.2s var(--e2), opacity .6s, filter 1.2s; }
+.bl .bg { position: absolute; inset: 0; background: center / cover no-repeat; }
 .c1 .ph { border-radius: 50% 50% 0 0 / 24% 24% 0 0; }
 .c2 .ph { border-radius: 2px; }
 .c3 .ph { clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
@@ -829,10 +855,10 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
 .efinal { position: absolute; inset: 0; z-index: 3; opacity: 0; transition: opacity 1s .5s; }
 .es3 .efinal { opacity: 1; }
 .efinal .t { position: absolute; left: 0; right: 0; top: 30%; text-align: center; font-family: var(--voice); font-size: 7.4cqw; letter-spacing: .16em; line-height: 1; }
-.efinal .s { position: absolute; left: 0; right: 0; top: 45%; text-align: center; font-size: 1.5cqw; opacity: .9; }
+.efinal .s { position: absolute; left: 0; right: 0; top: 45%; text-align: center; font-family: var(--voice); font-style: italic; font-size: 1.85cqw; letter-spacing: .02em; opacity: .9; }
 .efinal .top { position: absolute; left: 3%; right: 3%; top: 4%; display: flex; justify-content: space-between; font-size: max(5px, 1.3cqw); letter-spacing: .16em; text-transform: uppercase; }
 .eph .efinal .t { top: 22%; font-size: 13cqw; }
-.eph .efinal .s { top: 38%; left: 10%; right: 10%; font-size: 4.2cqw; }
+.eph .efinal .s { top: 38%; left: 10%; right: 10%; font-size: 5.6cqw; line-height: 1.3; }
 /* E4 is state 1: the same three blades with their photographs (the phone's, as in .frame.phone) */
 .eph .blade { width: 84%; height: 11%; left: 8%; clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%); }
 .eph .blade span { font-size: 6.4cqw; left: 10%; }
@@ -1004,7 +1030,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
     <div class="row">
       <figure><div class="efr" id="e-m-d" aria-label="A entrada no desktop, em movimento"></div><figcaption>Desktop</figcaption></figure>
       <figure><div class="efr eph" id="e-m-p" aria-label="A entrada no telemóvel, em movimento"></div><figcaption>Telemóvel</figcaption></figure>
-      <div class="notes"><p>A entrada corre sozinha à chegada (cerca de 2,6 s) e <b>nunca bloqueia</b>: qualquer gesto (scroll, toque, tecla) salta para o estado final. Com reduced motion, poupança de dados ou sem vídeo, começa logo no final, com a imagem parada. Corre uma vez por visita. Aprovado (README #5–#7, #22).</p></div>
+      <div class="notes"><p>A entrada corre sozinha à chegada (cerca de 3,2 s). <b>Durante ela o scroll não faz nada</b>; um toque ou uma tecla saltam para o estado final (README #85). Com reduced motion, poupança de dados ou sem vídeo, começa logo no final, com a imagem parada. Corre uma vez por carregamento (README #66, #76).</p></div>
     </div>
   </section>
   <div id="e-rows"></div>
@@ -1035,7 +1061,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
       <figure><div class="frame phone" id="try-phone" aria-label="O Work a funcionar, no telemóvel"></div><figcaption>Telemóvel</figcaption></figure>
       <div class="notes">
         <p><b>Uma regra só:</b> o scroll muda o capítulo, o tempo muda o momento, e <b>cada momento mostra uma peça a funcionar</b> sobre a fotografia inteira. Nove ao todo, uma por momento.</p>
-        <p>Não há hover, botão nem nada para descobrir. A pessoa só tem de olhar. Para ficar num momento, toca no nome dele. Aqui os capítulos no título fazem de scroll.</p>
+        <p>Não há hover, botão nem nada para descobrir. A pessoa só tem de olhar. Tocar noutro momento muda para ele; tocar no atual pausa-o. Aqui os capítulos no título fazem de scroll. Os tempos e as passagens são os do site (6 s por momento, a pilha de cartões, a palavra que chega vazia, o título que voa).</p>
         <p>Weddings: <i>Wedding website · Live photo gallery · One year on</i>. Artists: <i>Portfolio · Digital exhibition · Archive of works</i>. Experiences: <i>Invitation &amp; RSVP · On-site guide · Thank-you page</i>.</p>
       </div>
     </div>
@@ -1250,7 +1276,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
     e2: c => `<div class="veil"></div><div class="in"><div class="big">Thank you for coming${c.name ? ', ' + c.name : ''}.</div><div class="k">The photographs are here →</div></div>`,
   };
   // sel: the piece whose line is open on a phone (the shown piece at first)
-  function renderTx(ci, m, phone, demo, fill, sel = 0) {
+  function renderTx(ci, m, phone, demo, fill, sel = 0, lead = 0) {
     const mo = CH[ci].moments[m];
     const mark = j => j === mo.feat ? '<i class="g"></i>' : '';
     const cls = j => `li${j === mo.feat ? ' feat' + (demo ? ' act' : '') : ''}`;
@@ -1266,19 +1292,41 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
       ? `<span class="ch" data-k="${k}">${chapter(k)}</span>`
       : `<button type="button" class="ch${phone && k === next ? ' next' : ''}" data-k="${k}" aria-current="${k === ci}">${chapter(k)}</button>`).join('')}</nav>`;
     return `${nav}
-      <div class="mom">${CH[ci].moments.map((x, j) => `<span data-j="${j}" class="${j === m ? 'on' : ''}"><span class="w">${x.t}</span>${j === m ? `<span class="wf" aria-hidden="true" style="animation-duration:${fill}s">${x.t}</span>` : ''}</span>`).join('')}</div>
+      <div class="mom">${CH[ci].moments.map((x, j) => `<span data-j="${j}" class="${j === m ? 'on' : ''}"><span class="w">${x.t}</span>${j === m ? `<span class="wf" aria-hidden="true" style="animation-duration:${fill}s;animation-delay:${lead}s">${x.t}</span>` : ''}</span>`).join('')}</div>
       ${list}
       ${phone ? '' : '<div class="foot">Every project is proposed for its occasion.</div>'}`;
   }
   // chapter ci at moment m; demo = that moment's piece working over the photograph
-  function setMoment(f, ci, m, demo, fill = 4, sel = 0) { // 4 s: the one rhythm of the moments (README #73)
+  // the pile as built (README #82): the cards move on a damped spring; the one that crosses goes up and to the side,
+  // fading out early (26 % of the way, owner 1 Nov), and comes back at the back of the pile
+  const spring = (damping, stiffness) => { const w = Math.sqrt(stiffness), z = damping / (2 * w), wd = w * Math.sqrt(1 - z * z);
+    const p = Array.from({ length: 41 }, (_, i) => { const t = i / 40; return (1 - Math.exp(-z * w * t) * (Math.cos(wd * t) + (z * w / wd) * Math.sin(wd * t))).toFixed(4); });
+    p[40] = '1'; return `linear(${p.join(', ')})`; };
+  document.documentElement.style.setProperty('--spring', spring(15, 90));
+  const PILE = ['translate(0, 0) scale(1)', 'translate(4.5%, -2%) scale(.97)', 'translate(9%, -4%) scale(.94)'];
+  const LIFT = 'translate(0, 0) scale(1.015)', SIDE = 'translate(30%, -10%) scale(.9)', FADED = .26;
+  function cross(ph) {
+    const W = 1700;
+    ph.style.zIndex = '5'; setTimeout(() => { ph.style.zIndex = ''; }, W * .49);
+    ph.animate([{ transform: PILE[0], easing: 'cubic-bezier(0.4, 0, 0.3, 1)' }, { transform: LIFT, offset: .06, easing: 'cubic-bezier(0.4, 0, 0.3, 1)' },
+      { transform: SIDE, offset: .48, easing: 'cubic-bezier(0.45, 0, 0.2, 1)' }, { transform: PILE[2] }], { duration: W });
+    ph.animate([{ opacity: 1 }, { opacity: 1, offset: .06 }, { opacity: 0, offset: FADED }, { opacity: 0, offset: .54 }, { opacity: 1 }], { duration: W, easing: 'ease-in-out' });
+  }
+  // 6 s: the moment's rhythm as built (29 Oct, README #82: 1.2 s photograph + 4.8 s its piece); lead: on a chapter change the
+  // word waits 0.45 s, until the text is seen, and arrives empty (README #89)
+  function setMoment(f, ci, m, demo, fill = 6, sel = 0, lead = 0) {
     const stack = f.el.querySelector('.stack.c' + (ci + 1));
-    stack.querySelectorAll('.ph').forEach((ph, j) => { ph.className = 'ph ' + (j === m ? 'front' : j === (m + 1) % 3 ? 'b1' : 'b2'); });
+    const was = stack.dataset.m;
+    stack.querySelectorAll('.ph').forEach((ph, j) => {
+      ph.className = 'ph ' + (j === m ? 'front' : j === (m + 1) % 3 ? 'b1' : 'b2');
+      if (!f.el.classList.contains('static') && was !== undefined && +was === j && j !== m && (j - m + 3) % 3 === 2) cross(ph);
+    });
+    stack.dataset.m = m;
     stack.querySelector('.aura').style.backgroundImage = `url(${I('a-' + CH[ci].imgs[m])})`;
     stack.querySelectorAll('.dm').forEach((d, j) => d.classList.toggle('on', !!demo && j === m));
     const tx = f.el.querySelector('.tx.c' + (ci + 1));
     const key = m + '-' + sel;
-    if (tx.dataset.m !== key) { tx.innerHTML = renderTx(ci, m, f.kind === 'phone', demo, fill, sel); tx.dataset.m = key; }
+    if (tx.dataset.m !== key) { tx.innerHTML = renderTx(ci, m, f.kind === 'phone', demo, fill, sel, lead); tx.dataset.m = key; }
     else tx.querySelectorAll('.li.feat').forEach(li => li.classList.toggle('act', !!demo));
   }
   const sketch = `<div class="sk-bar"><span>LOGO</span><span>≡</span></div><div class="sk-img"></div><div class="sk-t">Your title</div><div class="sk-l"></div><div class="sk-l s"></div><div class="sk-btn">Button</div>`;
@@ -1305,10 +1353,10 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
   // ----- states -----
   const STATES = [
     { part: 'Entrada → Work', t: 'A entrada, no fim', d: 'O estado final da entrada: o vídeo em ecrã inteiro (depois de entrar pelo O), <b>CHAPTER ONE</b> centrado, o subtítulo, as três lâminas e a navegação.', s: 'Já aprovado. Está aqui só para se ver de onde parte o Work.' },
-    { part: '', t: 'O vídeo torna-se o palco', d: 'Ao descer, <b>a moldura do vídeo encolhe até à moldura em arco do palco</b> e dissolve-se na primeira fotografia de Weddings. Entretanto, o texto do Work aparece ao lado.', s: '<b>Com scroll, aterra-se sempre em Weddings.</b> Um clique numa lâmina (Artists ou Experiences) leva diretamente a esse capítulo, e essa escolha volta no Method.' },
-    { part: 'Work', t: 'I · Weddings', d: 'O palco fica preso. As fotografias do capítulo estão em camadas, com uma luz suave da cor da própria fotografia. <b>O tempo muda o momento</b>: a palavra do momento enche-se com o tom das fotografias do capítulo e, cheia, passa à seguinte; depois do último volta ao primeiro. Tocar num momento fixa-o. <b>O título é a navegação</b> (README #62): o capítulo atual grande, sempre à esquerda, e os outros a seguir, pequenos; no telemóvel, à direita do título, o seguinte maior e o único a tocar. Não há separadores debaixo da barra.', s: 'A regra é uma só: <b>o scroll muda o capítulo, o tempo muda o momento, e cada momento mostra uma peça a funcionar.</b> Não há nada escondido para descobrir.' },
+    { part: '', t: 'A lâmina torna-se o palco', d: 'Ao descer (como está no site, README #81): as palavras e as outras lâminas saem, <b>o filme apaga-se até ao fundo do Work, que não muda</b>, e <b>a lâmina de Weddings cresce até ser o arco do palco</b>. É a mesma fotografia, sem troca. Entretanto, o texto do Work aparece ao lado. Ligada ao scroll (1,4 ecrãs), no compositor.', s: '<b>Com scroll, aterra-se sempre em Weddings.</b> Um clique numa lâmina (Artists ou Experiences) leva diretamente a esse capítulo, e essa escolha volta no Method.' },
+    { part: 'Work', t: 'I · Weddings', d: 'O palco fica preso. As fotografias do capítulo são <b>uma pilha de cartões sempre à vista</b> (README #82): cartões opacos, os de trás escurecidos; ao mudar de momento, o da frente sobe para o lado a apagar-se e reaparece atrás, com mola. Há uma luz suave da cor da própria fotografia. <b>O tempo muda o momento</b>: a palavra do momento enche-se em <b>6 s</b> com o tom das fotografias do capítulo e, cheia, passa à seguinte; depois do último volta ao primeiro. <b>Ao chegar, a palavra vem vazia e só depois enche</b> (README #87, #89). Tocar noutro momento muda para ele; tocar no atual pausa-o. <b>O título é a navegação</b> (README #62): o capítulo atual grande, sempre à esquerda, e os outros a seguir, pequenos; no telemóvel, à direita do título, o seguinte maior e o único a tocar. Não há separadores debaixo da barra.', s: 'A regra é uma só: <b>o scroll muda o capítulo, o tempo muda o momento, e cada momento mostra uma peça a funcionar.</b> Não há nada escondido para descobrir.' },
     { part: '', t: 'O momento mostra a sua peça', d: 'Depois de a fotografia aparecer, <b>a peça principal do momento mostra-se sozinha</b> por cima dela. Em <i>Before</i> é o <i>Wedding website</i>: a fotografia sobe como uma página e aparecem as secções do site. Na lista, a peça mostrada é <b>a primeira</b>, marcada com um círculo, e cada peça tem a sua linha; no telemóvel, uma linha de cada vez, debaixo do nome escolhido (README #60).', s: 'Uma peça por momento, nove ao todo. As outras ficam escritas na lista. <b>A fotografia nunca é cortada.</b>' },
-    { part: '', t: 'II · Artists', d: 'Ao descer, muda o capítulo: a luz e as fotografias passam a ser as de Artists, e os momentos a <i>Always · For a moment · On record</i>. Cada momento mostra a sua peça: portfolio, exposição digital, arquivo de obras.', s: 'O título mostra sempre onde se está. Ao mudar de capítulo, <b>o que chega cresce e desliza para a esquerda</b>; os outros apagam-se e voltam aos seus lugares, e o texto novo entra devagar. A passagem está em aberto (README aberta #28).' },
+    { part: '', t: 'II · Artists', d: 'Ao descer, muda o capítulo: a luz e as fotografias passam a ser as de Artists, e os momentos a <i>Always · For a moment · On record</i>. Cada momento mostra a sua peça: portfolio, exposição digital, arquivo de obras.', s: 'O título mostra sempre onde se está. Ao mudar de capítulo, <b>cada nome do título voa de onde estava: o que chega cresce e desliza para a esquerda</b> (1,2 s); o texto antigo sai em 0,22 s e o novo entra 0,24 s depois; a pilha nova sobe e a antiga desce (1,1 s). <b>Cada capítulo tem um ecrã de scroll</b>, e só muda quando o seguinte passa o meio do ecrã por 12 %, para um dedo a oscilar não fazer recomeçar tudo (README #73, #83, #88, #90, #91).' },
     { part: '', t: 'III · Experiences', d: 'O último capítulo, no momento <i>During</i>: <b>o <i>On-site guide</i> mostra-se sobre a fotografia</b>, com o programa da noite e a hora de quem visita.', s: 'É esta a ponte: o guia é o último ecrã do Work e o primeiro a multiplicar-se.' },
     { part: 'Work → Method', t: 'O ecrã multiplica-se', d: 'O guia solta-se da fotografia e <b>multiplica-se em ecrãs-template iguais</b>, enquanto <b>se acende o estúdio</b>: o papel de fundo, com a luz da hora de quem chega a vir do seu lado. Escreve-se <i>No templates. No copies.</i> e, logo por baixo, <b>Make it yours</b> (opcional).', s: '<b>Quem escreve o nome vê-o aparecer igual em todos os templates</b>, no lugar de <i>Your title</i>: pôr um nome num template continua a ser um template. É isso que a transformação desfaz. Experimenta o botão <b>Com nome · Ana</b> em cima.' },
     { part: 'Method', t: 'A transformação', d: 'A cada passo de scroll, uma folha-template levanta-se e sai. Por baixo está <b>uma experiência web viva composta à volta do nome</b>: <i>Ana, will you join us?</i>, <i>Ana — Open since 21:14</i>, <i>Ana, you are here</i>. Sem nome, compõe-se com a data e a hora.', s: 'Desktop: duas a duas. Telemóvel: um baralho de três cartões sem moldura.' },
@@ -1364,6 +1412,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
       <div class="L sky"></div><div class="L dusk"></div>
       <div class="L work"><div class="idx"><i>01</i>Work</div>${stacks}${txs}</div>
       <div class="vid bg" style="background-image:url(${I(phone ? 'poster-tall' : 'poster-wide')})"><div class="tint"></div></div>
+      <div class="bl" aria-hidden="true"><div class="bg" style="background-image:url(${I('w002')})"></div></div>
       <div class="L ent"><div class="top"><span>Chapter One</span><span>${phone ? '<i class="ic3" aria-label="Menu"></i>' : 'Talk to us\u2003\u2003≡ Menu'}</span></div><div class="ded"></div>
         <div class="title">CHAPTER${phone ? '<br>' : ' '}ONE</div><div class="sub">Digital experiences built for moments worth remembering.</div>
         <div class="blade b1"><div class="bg" style="background-image:url(${I('w002')})"></div><span><i>I</i>Weddings</span></div>
@@ -1376,11 +1425,13 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
       <div class="cover"><div class="dev"><div class="scr"></div></div></div>
       <div class="end"><div class="msg"></div><div class="steps">Conversation · Creative direction · Development with your feedback · Launch &amp; aftercare</div><div class="cta"></div></div>
       <div class="L grain" style="opacity:.11"></div>`;
-    const f = { el, kind, cards: [...el.querySelectorAll('.card')], vid: el.querySelector('.vid') };
+    const f = { el, kind, cards: [...el.querySelectorAll('.card')], vid: el.querySelector('.vid'), bl: el.querySelector('.bl') };
     frames.push(f); setState(f, st); return f;
   }
 
   const VID = { desk: { full: [0, 0, 100, 100], stage: [6, 16, 28, 74] }, phone: { full: [0, 0, 100, 100], stage: [8, 12, 66, 38] } };
+  const BLADE = { desk: [15, 64, 22, 25], phone: [8, 54, 84, 11] };
+  const BLADE_CUT = { desk: 'polygon(14% 0%, 100% 0%, 86% 100%, 0% 100%)', phone: 'polygon(6% 0%, 100% 0%, 94% 100%, 0% 100%)' };
   function setState(f, st) {
     const el = f.el, kind = f.kind; f.st = st;
     for (let s = 1; s <= N; s++) el.classList.toggle('st' + s, s === st);
@@ -1388,9 +1439,13 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
     el.classList.toggle('work-on', st >= 2 && st <= 6);
     el.classList.toggle('sky-on', st >= 7);
     el.querySelector('.ent').style.opacity = st === 1 ? 1 : 0;
-    // the video's frame shrinks into the stage's arch, then dissolves into the photograph
-    const [vx, vy, vw, vh] = st === 1 ? VID[kind].full : VID[kind].stage;
-    Object.assign(f.vid.style, { left: vx + '%', top: vy + '%', width: vw + '%', height: vh + '%', borderRadius: st === 1 ? '0' : '50% 50% 0 0 / 24% 24% 0 0', opacity: st === 1 ? 1 : st === 2 ? .5 : 0 });
+    // README #81, as built: the film stays where it is and fades to the Work's ground; the words and the other blades leave;
+    // the Weddings blade grows into the stage's arch — the same photograph, no exchange
+    Object.assign(f.vid.style, { left: '0%', top: '0%', width: '100%', height: '100%', borderRadius: '0', opacity: st === 1 ? 1 : 0 });
+    const [bx, by, bw, bh] = st === 1 ? BLADE[kind] : VID[kind].stage;
+    Object.assign(f.bl.style, { left: bx + '%', top: by + '%', width: bw + '%', height: bh + '%',
+      clipPath: st === 1 ? BLADE_CUT[kind] : 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)',
+      borderRadius: st === 1 ? '0' : '50% 50% 0 0 / 24% 24% 0 0', filter: st === 1 ? 'grayscale(1)' : 'none', opacity: st <= 2 ? 1 : 0 });
     // each moment shows its piece working over the photograph; at the end of the Work the guide is the bridge
     const ci = st <= 4 ? 0 : st === 5 ? 1 : 2, demo = st === 4 || st === 6;
     CH.forEach((_, k) => setMoment(f, k, k === 2 ? 1 : 0, k === ci && demo));
@@ -1454,12 +1509,12 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
   // and each moment shows its piece working. Tapping a moment holds it.
   function runTry(f) {
     const el = f.el; el.classList.add('try');
-    // one time only (owner 28/10, README #73): the word fills in 4 s and, full, the next moment begins — the photograph
-    // and the piece working share those 4 s (1.2 + 2.8, the old 1.6 : 3.6 proportion)
-    const PHOTO = 1.2, DEMO = 2.8;
-    let ci = 0, m = 0, phase = 0, sel = 0, t;
-    const show = () => { el.dataset.ch = String(ci + 1); setMoment(f, ci, m, phase === 1, PHOTO + DEMO, sel); };
-    const schedule = () => { clearTimeout(t); if (!el.classList.contains('held')) t = setTimeout(tick, (phase === 0 ? PHOTO : DEMO) * 1000); };
+    // one time only, as built (29 Oct, README #82): the word fills in 6 s and, full, the next moment begins — the photograph
+    // 1.2 s, then its piece working 4.8 s. On a chapter change the word arrives empty and waits 0.45 s (README #89)
+    const PHOTO = 1.2, DEMO = 4.8, LEAD = .45;
+    let ci = 0, m = 0, phase = 0, sel = 0, t, lead = 0;
+    const show = () => { el.dataset.ch = String(ci + 1); setMoment(f, ci, m, phase === 1, PHOTO + DEMO, sel, lead); };
+    const schedule = () => { clearTimeout(t); if (!el.classList.contains('held')) t = setTimeout(tick, ((phase === 0 ? PHOTO : DEMO) + lead) * 1000); lead = 0; };
     // after the last moment, back to the first: only scroll (here, the chapters in the title) changes the chapter (README #61)
     function tick() { if (phase === 0) phase = 1; else { phase = 0; sel = 0; m = (m + 1) % 3; } show(); schedule(); }
     el.addEventListener('click', e => {
@@ -1469,31 +1524,38 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
         // back, small, in their places; then the moments and the pieces come in (transform and opacity only)
         const was = {}; el.querySelectorAll(`.tx.c${ci + 1} .hnav .ch`).forEach(b => { was[b.dataset.k] = { r: b.getBoundingClientRect(), fs: parseFloat(getComputedStyle(b).fontSize), o: +getComputedStyle(b).opacity }; });
         const old = el.querySelector(`.tx.c${ci + 1}`);
-        el.classList.remove('held'); ci = +c.dataset.k; m = 0; sel = 0; phase = 0; show(); schedule();
+        // the chapter that leaves goes back to its first moment once it has faded (1.3 s), with nothing running (as built)
+        const left = ci; setTimeout(() => { if (ci !== left) setMoment(f, left, 0, false, PHOTO + DEMO); }, 1300);
+        el.classList.remove('held'); ci = +c.dataset.k; m = 0; sel = 0; phase = 0; lead = LEAD;
+        el.querySelector(`.tx.c${ci + 1}`).dataset.m = ''; // a new fill, from empty
+        show(); schedule();
         if (!matchMedia('(prefers-reduced-motion: reduce)').matches) passage(old, el.querySelector(`.tx.c${ci + 1}`), was);
         el.querySelector(`.tx.c${ci + 1} .hnav button[aria-current="true"]`)?.focus();
         return;
       }
       const p = e.target.closest('.pick'); if (p) { sel = +p.dataset.p; show(); return; }
-      const s = e.target.closest('.mom > span'); if (!s) return; el.classList.add('held'); m = +s.dataset.j; sel = 0; phase = 1; show(); clearTimeout(t); });
+      // README #82, as built: tapping another moment goes to it; tapping the current one pauses it (again: it goes on)
+      const s = e.target.closest('.mom > span'); if (!s) return;
+      const j = +s.dataset.j;
+      if (j === m) { if (el.classList.toggle('held')) clearTimeout(t); else schedule(); return; }
+      el.classList.remove('held'); m = j; sel = 0; phase = 0; show(); schedule(); });
     show(); schedule();
   }
-  const EASE = 'cubic-bezier(0.65, 0, 0.25, 1)';
+  // the chapter change as built (README #73, #83, #90): every name of the arriving title flies from where it was in the
+  // leaving one (1.2 s, the site's ease); the old text goes in 0.22 s and the new one comes 0.24 s later, so they never overlap
+  const EASE = 'cubic-bezier(0.2, 0.7, 0.2, 1)';
   function passage(old, tx, was) {
-    // the text that leaves dims in place (its chapters at once: the new title is already moving)
     old.querySelector('.hnav').style.visibility = 'hidden';
-    old.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'none' }], { duration: 650, easing: 'ease-out' });
+    old.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, easing: EASE });
     setTimeout(() => { old.querySelector('.hnav').style.visibility = ''; }, 700);
     tx.querySelectorAll('.hnav .ch').forEach(b => {
       const a = was[b.dataset.k]; if (!a) return;
       const r = b.getBoundingClientRect(), fs = parseFloat(getComputedStyle(b).fontSize), o = +getComputedStyle(b).opacity;
-      const from = `translate(${a.r.left - r.left}px, ${a.r.bottom - r.bottom}px) scale(${a.fs / fs})`;
-      if (b.getAttribute('aria-current') === 'true') b.animate([{ transform: from, opacity: a.o }, { transform: 'none', opacity: o }], { duration: 1200, easing: EASE, fill: 'backwards' });
-      else b.animate([{ transform: from, opacity: a.o, offset: 0 }, { transform: from + ' translateY(-8%)', opacity: 0, offset: .3 },
-        { transform: 'translateY(8%)', opacity: 0, offset: .62 }, { transform: 'none', opacity: o, offset: 1 }], { duration: 1300, easing: 'ease-in-out', fill: 'backwards' });
+      b.animate([{ transformOrigin: '0 100%', transform: `translate(${a.r.left - r.left}px, ${a.r.bottom - r.bottom}px) scale(${a.fs / fs})`, opacity: a.o },
+        { transformOrigin: '0 100%', transform: 'none', opacity: o }], { duration: 1200, easing: EASE });
     });
     tx.querySelectorAll('.mom, .li, .foot').forEach((x, i) => x.animate([{ opacity: 0 }, { opacity: 1 }],
-      { duration: 1000, delay: 420 + i * 70, easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)', fill: 'backwards' }));
+      { duration: 600, delay: 240 + i * 60, easing: EASE, fill: 'backwards' }));
   }
   runTry(build(document.getElementById('try-desk'), 'desk', 3, false));
   runTry(build(document.getElementById('try-phone'), 'phone', 3, false));
@@ -1504,14 +1566,14 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
   [mDesk, mPhone].forEach(f => f.el.classList.add('pass'));
   function show(st) {
     [mDesk, mPhone].forEach(f => {
-      // restart the moment's fill each time a Work state is shown
-      f.el.querySelectorAll('.wf').forEach(x => { x.style.animation = 'none'; void x.offsetWidth; x.style.animation = ''; });
       // between chapters (4 → 5 → 6) the same passage as in the running Work
       const from = f.el.dataset.ch, was = {};
       if (+from) f.el.querySelectorAll(`.tx.c${from} .hnav .ch`).forEach(b => { was[b.dataset.k] = { r: b.getBoundingClientRect(), fs: parseFloat(getComputedStyle(b).fontSize), o: +getComputedStyle(b).opacity }; });
       setState(f, st);
-      const to = f.el.dataset.ch;
-      if (+from && +to && from !== to && !matchMedia('(prefers-reduced-motion: reduce)').matches) passage(f.el.querySelector(`.tx.c${from}`), f.el.querySelector(`.tx.c${to}`), was);
+      const to = f.el.dataset.ch, changed = +from && +to && from !== to;
+      // restart the moment's fill each time a Work state is shown (6 s); after a chapter change it arrives empty and waits 0.45 s (#89)
+      f.el.querySelectorAll('.wf').forEach(x => { x.style.animationDelay = changed && x.closest(`.tx.c${to}`) ? '.45s' : '0s'; x.getAnimations().forEach(a => { a.cancel(); a.play(); }); });
+      if (changed && !matchMedia('(prefers-reduced-motion: reduce)').matches) passage(f.el.querySelector(`.tx.c${from}`), f.el.querySelector(`.tx.c${to}`), was);
     });
   }
   (window.SB ||= {}).main = { show, STATES };
@@ -2009,3 +2071,5 @@ window.mirrorFrame = (selector, host, cls) => {
   const alignAll = () => document.querySelectorAll('.frame, .afr, .qfr, .cfr').forEach(align);
   document.fonts.ready.then(alignAll); addEventListener('resize', alignAll); setInterval(alignAll, 700); })();
 </script>
+
+</body></html>

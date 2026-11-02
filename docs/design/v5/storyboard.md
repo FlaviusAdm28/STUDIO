@@ -2,10 +2,10 @@
 
 *Aprovado pelo owner a 25 de outubro de 2026 (README #19–#56). Este documento é a **especificação estado a
 estado** da página única. Prevalece sobre as descrições mais antigas em `pages.md` e `interactions.md` onde
-divergirem; os dois foram atualizados para apontar para aqui. Atualizado a 1 de novembro de 2026 com o que o site faz e o
-owner aprovou até à README #87.*
+divergirem; os dois foram atualizados para apontar para aqui. Atualizado a 2 de novembro de 2026 com o que o site faz e o
+owner aprovou até à README #91 (M5, o Work, commitado como 47ca753).*
 
-**Referência visual (privada, do owner):** https://claude.ai/artifact/9vkDx379vuwuiaXre62cxz (no topo, as decisões de 1/11, que prevalecem sobre os frames) — entrada (E1–E4),
+**Referência visual (privada, do owner):** https://claude.ai/artifact/9vkDx379vuwuiaXre62cxz (no topo, o painel "O que o site faz hoje", atualizado a 2/11, que prevalece sobre os frames) — entrada (E1–E4),
 estados 1–21, menu, as quatro luzes do estúdio. Com controlos para a hora de chegada, o nome, *já cá esteve* e o
 capítulo escolhido na entrada. **Fontes locais** (HTML + imagens pequenas, fora do Git):
 `media-src/storyboards-2026-10-25/` (`work-method-storyboard.html` é o principal; `about/`, `questions/`,
@@ -53,6 +53,8 @@ capítulo escolhido na entrada. **Fontes locais** (HTML + imagens pequenas, fora
    - `html` e `body` sempre da mesma cor, escrita diretamente nos dois. Sem `viewport-fit=cover`, sem faixas fixas nas bordas, sem desfoque ao vivo.
    - No topo, o filme nasce da cor da hora em 130 px, só cor, e essa rampa só sai depois do filme. Tinta do fundo do filme 0,32 (0,55 no resto).
    - Ao mudar de capítulo, o fundo entra em 0,45 s, para chegar com a cor da ilha.
+   - **No Android (Chrome)** a barra de endereço fica em cima e empurra a página ao subir e descer: é do browser e fica assim
+     (owner, 2/11). O palco usa `100lvh` e não muda de tamanho com ela.
 
 ---
 
@@ -83,8 +85,8 @@ capítulo escolhido na entrada. **Fontes locais** (HTML + imagens pequenas, fora
 |---|---|---|
 | **2** | **A lâmina leva ao Work** (owner, 31/10, README #81; substitui a moldura do vídeo a encolher): as palavras e as outras lâminas saem, o filme apaga-se até ao fundo do Work, que não muda, e **a lâmina de Weddings cresce até ser o arco** do palco. É a mesma fotografia, sem troca; o texto do Work entra ao lado | ligada ao scroll, no compositor (`ScrollTimeline`), só `transform` e `opacity`, 1,4 ecrãs; o vídeo pausa quando deixa de se ver |
 | **3** | **I · Weddings**, momento *Before*: palco preso; fotografias em camadas com **aura da própria fotografia**; **sem separadores debaixo da barra: o título é a navegação** (README #62) — o capítulo atual grande, sempre à esquerda, numeral do tamanho da palavra; os outros a seguir, pequenos (telemóvel: à direita do título, o seguinte maior e o único tocável, I → II → III → I); momentos *Before · On the day · After*: **a palavra do momento enche-se com o tom das fotografias do capítulo** e, cheia, passa à seguinte (os já passados ficam apagados); lista das peças com filetes, **a peça mostrada em primeiro** e a linha de cada peça (README #60, #61) | palco `sticky`; aura = imagem minúscula desfocada pré-gerada, esticada com máscara radial; palavra que enche = cópia na cor aberta com `clip-path` |
-| **4** | **O momento mostra a sua peça:** depois da foto (~1,2 s), a peça principal do momento anima sobre a fotografia inteira (~4,8 s) — o momento dura **6 s**, o tempo da palavra a encher (owner, 29/10). **Ao entrar no Work a palavra chega vazia e só depois enche** (README #87); na lista, a peça é a primeira, com um círculo e *on the photograph* | uma demonstração de cada vez, `transform`/`opacity` |
-| **5** | **II · Artists** — ao descer muda o capítulo: luz e fotografias de Artists; momentos *Always · For a moment · On record* | a atmosfera nova sobe pelo palco (~1 s); moldura retângulo |
+| **4** | **O momento mostra a sua peça:** depois da foto (~1,2 s), a peça principal do momento anima sobre a fotografia inteira (~4,8 s) — o momento dura **6 s**, o tempo da palavra a encher (owner, 29/10). **Ao entrar no Work a palavra chega vazia e só depois enche** (README #87); **ao mudar de capítulo também: começa a encher 0,45 s depois, quando o texto já se vê, e os 6 s contam daí** (README #89). **As fotografias são uma pilha de cartões sempre à vista** (README #82): cartões opacos com película; ao mudar de momento, o da frente recua em diagonal a apagar-se e reaparece atrás, com mola, e a peça sai com ele; na lista, a peça é a primeira, com um círculo e *on the photograph* | uma demonstração de cada vez, `transform`/`opacity` |
+| **5** | **II · Artists** — ao descer muda o capítulo: luz e fotografias de Artists; momentos *Always · For a moment · On record* | a atmosfera nova sobe pelo palco (~1 s); a pilha que chega sobe e a que sai desce com Web Animations, 1,1 s, a partir de onde estão (README #91: no Safari as transições CSS eram cortadas); moldura retângulo |
 | **6** | **III · Experiences**, momento *During*: o *On-site guide* mostra-se sozinho — é a ponte para o Method | recorte oblíquo; fundo azul-noite |
 
 **As nove peças demonstradas** (README #43): Weddings — *Wedding website* (a foto sobe como página e aparecem as
@@ -93,14 +95,18 @@ Artists — *Portfolio* (as obras deslizam), *Digital exhibition* (entra-se na s
 works* (índice numerado); Experiences — *Invitation & RSVP* (o convite sobe, *Accept* escolhido), *On-site guide* (o
 programa com a hora de quem visita), *Thank-you page* (*Thank you for coming*).
 
-- **Regra única:** o scroll muda o capítulo; o tempo muda o momento; cada momento mostra uma peça. Tocar num
-  momento fixa-o; pausa com rato/foco sobre o palco; reduced motion: sem rotação. **Depois do último momento volta ao
+- **Regra única:** o scroll muda o capítulo; o tempo muda o momento; cada momento mostra uma peça. Tocar noutro
+  momento muda para ele; tocar no atual pausa-o (README #82); pausa com rato/foco sobre o palco; reduced motion: sem rotação. **Depois do último momento volta ao
   primeiro, no mesmo capítulo** — o tempo nunca muda o capítulo (README #61).
 - **Capítulos (README #62):** o Work começa sempre em *I Weddings*, salvo se a pessoa escolheu outra lâmina na entrada.
   Ao mudar de capítulo, o que chega cresce e desliza para a esquerda; os outros apagam-se e voltam pequenos nos seus
   lugares; o texto que sai apaga-se em 0,22 s e o novo entra 0,24 s depois, sem se sobreporem (README #83) (FLIP, só `transform`/`opacity`; reduced motion: sem
-  passagem). **A passagem está em aberto** (README aberta #28). No
-  telemóvel o capítulo seguinte tem área de toque de 44 px; o outro é só texto.
+  passagem). A passagem é esta (fechada na #73). **O título voa com Web Animations** (1,2 s), e se o visitante voltar a meio
+  continua de onde está (README #90). No telemóvel o capítulo seguinte tem área de toque de 44 px; o outro é só texto.
+- **Scroll de cada capítulo (README #88):** cada capítulo tem um ecrã de scroll; o passo de Weddings e o de Experiences têm
+  1,5 ecrãs, porque a troca se dá a meio do ecrã. O Work tem 5,4 ecrãs com a passagem da entrada.
+- **Margem na troca (README #90):** o capítulo só muda quando o passo seguinte passa o meio do ecrã por 12 % da altura; para
+  voltar, o atual tem de sair dessa margem. Um dedo a oscilar perto da troca já não faz recomeçar tudo.
 - **Linhas no ecrã (README #61):** só os filetes entre as peças de cada momento; nem sublinhado nos capítulos nem
   linha por baixo dos momentos.
 - Os capítulos no título, as lâminas da entrada e as ligações das Questions levam à posição de scroll do capítulo.

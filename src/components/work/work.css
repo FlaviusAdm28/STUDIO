@@ -596,6 +596,12 @@
 :root[data-js] .w-dm.on {
   opacity: 1;
 }
+/* The piece is its own layer over the card, cut to the same shape: at the soft edge both cuts let half of each through, and a
+   thread of bare photograph showed around the veil, a light rim clearest on the Weddings arch (owner, 2 Nov). One pixel
+   larger, the veil covers the photograph's edge; outside it lies on the dark ground. */
+:root[data-js] .w-dm {
+  inset: -1px;
+}
 .w-dm:not(.on) {
   transition-duration: 0.4s;
 }

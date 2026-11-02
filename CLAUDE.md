@@ -32,15 +32,21 @@ state by state with every approved line of copy, is **`docs/design/v5/storyboard
 - **Entrance ("Through the letters")** — the visitor's local date and time; the video seen through the
   letters of CHAPTER ONE; the camera enters through the O; three oblique blades lead to the chapters.
   A tap or key completes it; scroll does nothing until the camera is through (README #85).
-- **Work** — one stage, three chapters (Weddings, Artists, Experiences), same structure, three moments
-  each, presented by layers; every piece explained in one line; "the made and its drawing". **Scroll
-  moves the chapters** (pinned stage), **touch or a timer moves the moments** (the word fills with colour);
-  the drawing is always visible, never behind a button.
-- **Method** — "Made for whoever arrives" (approved 25 Oct; storyboard v3.1): the Work's last drawing
-  multiplies into identical template screens under the **sky of the visitor's hour**; *No templates. No
-  copies.* + **Make it yours** (name, optional); the templates become **live web experiences** composed
-  from the visitor's arrival; they gather into the cover of their chapter, fade into points of light, and
-  one line stays: *Made once, for one moment.* `interactions.md` §3.
+- **Work** (built, M5, README #43, #81–#92) — the Weddings blade grows into the stage's arch; one pinned stage,
+  three chapters (Weddings, Artists, Experiences), three moments each; **scroll moves the chapters** (one screen
+  each, a 12 % dead band), **time moves the moments** (6 s; the word fills with the chapter's tone and arrives
+  empty), and **each moment shows one piece working** over the whole photograph, in a pile of cards always in
+  view; every piece explained in one line. Tapping another moment goes to it, tapping the current one pauses it.
+- **Method** — "Made for whoever arrives" (README #30, #35–#39, #45, #47–#49; storyboard states 7–11): the
+  Work's last piece (the *On-site guide*) multiplies into **six identical template screens** while **the
+  studio lights up with the visitor's hour** (a paper sweep, light from the hour's side: four prepared images);
+  *No templates. No copies.* + **Make it yours** (name, optional, shown first the same on every template);
+  step by step each template sheet lifts and a **live web experience** composed from the visitor's arrival
+  appears beneath (desktop two by two, phone a deck of three); the featured screen is the chapter chosen at
+  the entrance (Weddings by default; on the phone it opens full screen); they gather into **the cover of the
+  visitor's chapter** (the name as its title); then **the studio light goes down**: on the desktop the screens
+  move aside (~60 %), on the phone they leave, and one calm round light stays on *Made once, for one moment.*
+  (+ *For Ana.*), the four steps and **Talk to us**. `interactions.md` §3.
 - **Navigation** — the same bar and menu on every screen (README #56, #67, #69): the bar is **two islands of dark
   live glass** (iOS-style `backdrop-filter`, blur 8 px on the phone × 1.6 on the desktop, a lens at each island's rim,
   always linen ink, darkness adapting to what is really behind each island) — left *Chapter One | 03 About*, right the

@@ -797,3 +797,11 @@ Relatório completo em `docs/development/v5-auditoria-entrada-work.md`: sete tam
 - **Não verificado:** iPhone (a causa do corte no Safari não está provada; a correção é a mesma que resolveu o título na #90); Xiaomi (bloqueado).
 
 - **Owner, iPhone, 2/11:** "ficou corrigido, parece-me tudo bem agora". #88–#91 aprovadas no iPhone. Por medir no Xiaomi: #90 e #91, porque o telemóvel estava bloqueado.
+
+### Rebordo branco nos cartões do Work (2/11)
+- **Owner:** "o filtro que entra em todos os cartões, especialmente notável em Weddings, tem uma borda branca".
+- **Causa (captura a 1440, 2×, ampliada):** a peça de cada momento (`.w-dm`, com o véu escuro) é uma camada sobre o cartão, com o mesmo recorte. Na borda suavizada, os dois recortes deixam passar metade cada um, e via-se um fio de fotografia sem véu. Não vinha da película dos cartões de trás: testado com `::after` a -2 px, sem mudança, e revertido.
+- **Correção:** `.w-dm` com `inset: -1px`. O véu cobre a borda da fotografia e o píxel de fora fica sobre o fundo escuro. Na mesma captura ampliada o fio desapareceu. Lint e build passam.
+- **Não verificado:** iPhone e Xiaomi.
+- **Vidro da barra:** a borda que o owner vê é o aro de luz aprovado (#69, #80). Página de comparação com quatro variantes (como está, aro suave, sem aro, sem aro e sem lente), feita com capturas do site: https://claude.ai/artifact/LXX3DjkKNWoExydD3dFMgg. Aguarda a escolha do owner.
+- **Owner, 2/11:** o rebordo branco dos cartões está corrigido (confirmado). O aro do vidro da barra e do menu fica como está (opção A).

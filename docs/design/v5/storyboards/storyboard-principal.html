@@ -1,6 +1,18 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Do Work ao Method</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<section aria-labelledby="nov3" style="max-width:1180px;margin:32px auto 0;padding:22px 24px;border:1px solid rgba(238,232,221,.32);border-radius:6px;color:#EEE8DD;background:#2C332D">
+<h2 id="nov3" style="font:italic 400 30px/1.1 'Cormorant Garamond',Georgia,serif;margin:0 0 6px">3 de novembro de 2026 · A saída de Experiences para o Method</h2>
+<p style="margin:0 0 12px;color:#B3AB9E;max-width:72ch">Prevalece sobre os quadros 6 → 7 e 8 e sobre o painel de 2/11 (README #101, #102). Os quadros e a animação já mostram isto. Storyboard da escolha: C2 em "A luz, os cartões e as palavras".</p>
+<ul style="margin:0;padding-left:20px;display:grid;gap:7px;max-width:82ch">
+<li><b>A luz primeiro, pela hora:</b> um gatilho de scroll e a passagem corre sozinha (~2,8 s). A fotografia do guia avança um pouco e uma aresta de luz oblíqua (12°) atravessa o ecrã <b>vinda do lado da hora</b> (manhã da esquerda, dia do meio para fora, fim de tarde e noite da direita) e deixa o estúdio aceso. A fenda em dois passos saiu.</li>
+<li><b>Os ecrãs já estavam no estúdio:</b> a luz encontra cada um no seu lugar. O guia já não se multiplica em desenho.</li>
+<li><b>As palavras chegam com a luz;</b> depois <i>No templates. No copies.</i> recua (0,86; opacidade 0,7, para manter 3 : 1 em todas as horas) e <b>Make it yours</b> vem à frente, maior (desktop 1,4, telemóvel 1,1), com o cursor a piscar uns 4 s e depois fixo.</li>
+<li><b>Scroll durante a passagem:</b> se o visitante continua a descer, a passagem acaba em 0,3 s e só depois o 8 responde. <b>Ao subir:</b> a luz recua pelo mesmo lado (0,8 s) e Experiences volta.</li>
+<li><b>Telemóvel:</b> a frase 3 vh mais abaixo; os cartões a 55 % (owner, 3/11, a partir de 58 / 55 / 52 lado a lado) e com a forma do ecrã de quem vê, por isso o 9 enche o ecrã (medido: 390 × 844 e 320 × 640, de ponta a ponta).</li>
+<li><b>No 8, a folha que se levanta fica mais abaixo</b> (24 % em vez de 36 %) e, no telemóvel, afasta-se para o lado: com os cartões maiores e <i>Make it yours</i> maior, a 36 % tapava a frase no telemóvel e o campo no desktop (medido). Consequência da #101/#102, por confirmar pelo owner.</li>
+</ul>
+</section>
 <section aria-labelledby="nov1" style="max-width:1180px;margin:32px auto 0;padding:22px 24px;border:1px solid rgba(238,232,221,.22);border-radius:6px;color:#EEE8DD;background:#2A2823">
 <h2 id="nov1" style="font:italic 400 30px/1.1 'Cormorant Garamond',Georgia,serif;margin:0 0 6px">O que o site faz hoje · 2 de novembro de 2026 · Entrada, barra e Work fechados</h2>
 <p style="margin:0 0 12px;color:#B3AB9E;max-width:72ch">A 2/11 os quadros e as animações da entrada, da passagem e do Work passaram a mostrar o que o site faz (tempos, pilha de cartões, a lâmina, a troca de capítulo). Se algum pormenor divergir, estas decisões prevalecem. Detalhe: README #80 a #91 e storyboard.md. O Method (estados 7–11) ainda não foi construído: os frames dele continuam a ser a referência.</p>
@@ -299,8 +311,14 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
 /* method */
 /* the studio backdrop: wall curving into the floor, a key light from the hour's side, a vignette */
 .sky { z-index: 1; transition: opacity 1.4s;
-  background: radial-gradient(55% 70% at var(--kx) var(--ky), var(--key), transparent 72%),
-    linear-gradient(180deg, var(--wall) 0%, var(--wall2) 58%, var(--floor) 70%, var(--floor2) 100%); }
+  background: linear-gradient(180deg, var(--wall) 0%, var(--wall2) 58%, var(--floor) 70%, var(--floor2) 100%); }
+/* the key light as its own layer (owner, 2 Nov): it follows the phases 7 → 10 from the hour's side toward the screens —
+   on the phone from behind the phrase (B) down behind the screens (C) — growing a little; at 11 the room goes dark */
+.keyl { position: absolute; z-index: 1; pointer-events: none; opacity: 0; background: radial-gradient(closest-side, var(--key), transparent 72%);
+  transform: translate(-50%, -50%); transition: left 1.6s var(--ease), top 1.6s var(--ease), width 1.6s var(--ease), height 1.6s var(--ease), opacity 1.4s; }
+.frame.sky-on .keyl { opacity: 1; }
+.frame.st11 .keyl { opacity: 0; transition-duration: 1.6s, 1.6s, 1.6s, 1.6s, 1.8s; }
+.skies .sw .keyl { opacity: 1; }
 .sky::before { content: ""; position: absolute; inset: 0; background: radial-gradient(160% 22% at 50% 66%, rgba(255,255,255,.14), transparent 70%); }
 .sky::after { content: ""; position: absolute; inset: 0; background: radial-gradient(130% 100% at var(--kx) 40%, transparent 50%, rgba(15,13,11,.38) 100%); }
 /* screens are objects in the room: a soft shadow towards the floor */
@@ -352,7 +370,31 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
 .card.asdraw .sheet .sk-l { background: currentColor; height: 1px; opacity: .55; }
 .card.asdraw .sheet .sk-btn { align-self: center; border-color: currentColor; }
 .card.asdraw .dev { opacity: 0; }
-.card.lift .sheet { transform: translate(10%, -36%) rotate(-10deg); opacity: .5; }
+.card.lift .sheet { transform: translate(10%, -24%) rotate(-10deg); opacity: .5; }
+/* 3 Nov (README #102, as built): the sheet lifting rests lower (24 %); on the phone it moves aside, so Make it yours stays seen */
+.frame.phone .card.lift .sheet { transform: translate(28%, -3%) rotate(5deg); }
+/* 3 Nov (README #102, as built): Experiences → 7. The studio comes as one oblique edge of light (12°) crossing the screen from the
+   hour's side — morning from the left, day from the middle outwards, evening and night from the right — over Experiences (which
+   stays seen until the light reaches it), in 1.5 s; going back it returns the way it came. Each screen is found in its place as
+   the light passes it; then No templates. No copies. steps back and Make it yours comes forward, its caret blinking a few seconds */
+.frame { --lean: 13%; --g0: polygon(160% 0%, 160% 0%, calc(160% - var(--lean)) 100%, calc(160% - var(--lean)) 100%); }
+.frame.phone { --lean: 46%; }
+:root[data-band="morning"] .frame { --g0: polygon(-60% 0%, -60% 0%, calc(-60% - var(--lean)) 100%, calc(-60% - var(--lean)) 100%); }
+:root[data-band="day"] .frame { --g0: polygon(calc(50% + var(--lean) / 2) 0%, calc(50% + var(--lean) / 2) 0%, calc(50% - var(--lean) / 2) 100%, calc(50% - var(--lean) / 2) 100%); }
+/* the Work goes under the studio while the light crosses it (the cards keep their own order above), and stays seen until covered */
+.sky { opacity: 1; clip-path: var(--g0); transition: clip-path .8s cubic-bezier(.55, 0, .25, 1); }
+.frame.sky-on .sky { clip-path: polygon(-60% 0%, 160% 0%, calc(160% - var(--lean)) 100%, calc(-60% - var(--lean)) 100%); transition: clip-path 1.5s cubic-bezier(.45, 0, .3, 1); }
+.work { transition: opacity 1s, z-index 0s .8s; }
+.frame.sky-on .work { z-index: 0; transition: opacity 1s 1.5s, z-index 0s; }
+.frame.sky-on .keyl { transition-delay: 0s, 0s, 0s, 0s, 1.2s; }
+.frame.sky-on :is(.stack, .tx) { transition: opacity 1.1s 1.5s, transform 1.1s 1.5s; }
+.frame.phone .phrase { top: 12%; }
+.frame.phone .mfield { top: 30%; }
+.frame.st7 .phrase, .frame.st8 .phrase { opacity: .7; transform: translateY(-6%) scale(.86); transform-origin: 50% 0; transition: opacity .5s .6s, transform .7s 1.85s, color 1s; }
+.frame.st7 .mfield, .frame.st8 .mfield { transform: translate(-50%, 0); transition: opacity .6s 2s, transform .6s 2s, color 1s; }
+.mfield .in.empty::before { content: ""; display: inline-block; width: 1px; height: .8em; margin-right: .2em; vertical-align: -.04em; background: currentColor; opacity: 0; }
+.frame.st7 .mfield .in.empty::before, .frame.st8 .mfield .in.empty::before { opacity: 1; animation: c1-caret 1.06s linear 2.6s 4; }
+@keyframes c1-caret { 0%, 50% { opacity: 1; } 50.01%, 100% { opacity: 0; } }
 .card.gone .sheet { transform: translate(16%, -130%) rotate(-14deg); opacity: 0; }
 .card.light .dev, .card.light .sheet { opacity: 0; }
 .card::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle, rgba(255,246,232,1) 0 30%, rgba(255,236,210,.35) 55%, transparent 72%); opacity: 0; transition: opacity 1.2s .3s; pointer-events: none; }
@@ -1358,7 +1400,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
     { part: '', t: 'O momento mostra a sua peça', d: 'Depois de a fotografia aparecer, <b>a peça principal do momento mostra-se sozinha</b> por cima dela. Em <i>Before</i> é o <i>Wedding website</i>: a fotografia sobe como uma página e aparecem as secções do site. Na lista, a peça mostrada é <b>a primeira</b>, marcada com um círculo, e cada peça tem a sua linha; no telemóvel, uma linha de cada vez, debaixo do nome escolhido (README #60).', s: 'Uma peça por momento, nove ao todo. As outras ficam escritas na lista. <b>A fotografia nunca é cortada.</b>' },
     { part: '', t: 'II · Artists', d: 'Ao descer, muda o capítulo: a luz e as fotografias passam a ser as de Artists, e os momentos a <i>Always · For a moment · On record</i>. Cada momento mostra a sua peça: portfolio, exposição digital, arquivo de obras.', s: 'O título mostra sempre onde se está. Ao mudar de capítulo, <b>cada nome do título voa de onde estava: o que chega cresce e desliza para a esquerda</b> (1,2 s); o texto antigo sai em 0,22 s e o novo entra 0,24 s depois; a pilha nova sobe e a antiga desce (1,1 s). <b>Cada capítulo tem um ecrã de scroll</b>, e só muda quando o seguinte passa o meio do ecrã por 12 %, para um dedo a oscilar não fazer recomeçar tudo (README #73, #83, #88, #90, #91).' },
     { part: '', t: 'III · Experiences', d: 'O último capítulo, no momento <i>During</i>: <b>o <i>On-site guide</i> mostra-se sobre a fotografia</b>, com o programa da noite e a hora de quem visita.', s: 'É esta a ponte: o guia é o último ecrã do Work e o primeiro a multiplicar-se.' },
-    { part: 'Work → Method', t: 'O ecrã multiplica-se', d: 'O guia solta-se da fotografia e <b>multiplica-se em ecrãs-template iguais</b>, enquanto <b>se acende o estúdio</b>: o papel de fundo, com a luz da hora de quem chega a vir do seu lado. Escreve-se <i>No templates. No copies.</i> e, logo por baixo, <b>Make it yours</b> (opcional).', s: '<b>Quem escreve o nome vê-o aparecer igual em todos os templates</b>, no lugar de <i>Your title</i>: pôr um nome num template continua a ser um template. É isso que a transformação desfaz. Experimenta o botão <b>Com nome · Ana</b> em cima.' },
+    { part: 'Work → Method', t: 'A luz da hora encontra os ecrãs', d: '<b>Um gatilho de scroll, uma passagem só (README #102, 3/11):</b> a fotografia do guia avança um pouco e <b>uma aresta de luz oblíqua atravessa o ecrã vinda do lado da hora</b> (manhã da esquerda, dia do meio para fora, fim de tarde e noite da direita), por cima de Experiences, e deixa <b>o estúdio aceso</b>. <b>Os ecrãs-template já lá estavam</b>: a luz encontra cada um no seu lugar, e as palavras quando passa por elas. Depois <i>No templates. No copies.</i> recua e <b>Make it yours</b> vem à frente, maior, com o cursor a piscar uns segundos. Muda a hora em cima para ver os três lados.', s: '<b>Quem escreve o nome vê-o aparecer igual em todos os templates</b>, no lugar de <i>Your title</i>: pôr um nome num template continua a ser um template. É isso que a transformação desfaz. Experimenta o botão <b>Com nome · Ana</b> em cima.' },
     { part: 'Method', t: 'A transformação', d: 'A cada passo de scroll, uma folha-template levanta-se e sai. Por baixo está <b>uma experiência web viva composta à volta do nome</b>: <i>Ana, will you join us?</i>, <i>Ana — Open since 21:14</i>, <i>Ana, you are here</i>. Sem nome, compõe-se com a data e a hora.', s: 'Desktop: duas a duas. Telemóvel: um baralho de três cartões sem moldura.' },
     { part: '', t: 'Todas diferentes', d: 'Seis experiências, nenhuma igual. <b>O ecrã em destaque é do capítulo escolhido na entrada</b>: Weddings dá o site do casamento, Artists a exposição, Experiences o guia. Quem só fez scroll fica com Weddings. <b>No telemóvel, esse ecrã abre-se até ocupar o ecrã inteiro.</b>', s: 'Experimenta <b>Na entrada</b> em cima. Só o ecrã em destaque mexe por dentro, para respeitar o limite de camadas no Xiaomi.' },
     { part: '', t: 'A tua primeira página', d: 'Os ecrãs juntam-se na <b>capa do capítulo de quem visita</b>. <b>Com nome, o nome é o título da capa</b>: <i>Chapter One · for</i>, <b>Ana</b>, <i>a first chapter, begun on…</i> Sem nome: <i>Your first chapter</i>.', s: 'Quem volta vê <i>second chapter</i>.' },
@@ -1370,8 +1412,9 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
   const RATIO = { desk: (16 / 10) * (19.5 / 9), phone: 1 };
   const DOT = { desk: 16 / 10, phone: 9 / 19.5 };
   const DRAW = { desk: [20, 53, 21, 0], phone: [41, 31, 38, 0] };
-  const T = { desk: [14, 28.4, 42.8, 57.2, 71.6, 86].map(x => [x, 69, 11, 0]), phone: [[50, 64, 46, -3], [50, 65, 46, 0], [50, 66, 46, 3]] };
-  const U = { desk: [[13, 60, 11.5, -3], [27, 67, 10, 2], [41.5, 59, 11, -1], [57, 62, 13, 0], [72.5, 66, 11, 2], [86.5, 59, 10.5, -2]], phone: [[26, 40, 34, -6], [52, 58, 36, 2], [74, 80, 34, 4]] };
+  // 3 Nov (README #101, #102, as built): the phone's deck at 58 % of the width, the cards in the screen's own shape; 8 and 9 grown alike
+  const T = { desk: [14, 28.4, 42.8, 57.2, 71.6, 86].map(x => [x, 69, 11, 0]), phone: [[50, 64, 55, -3], [50, 65, 55, 0], [50, 66, 55, 3]] };
+  const U = { desk: [[13, 60, 11.5, -3], [27, 67, 10, 2], [41.5, 59, 11, -1], [57, 62, 13, 0], [72.5, 66, 11, 2], [86.5, 59, 10.5, -2]], phone: [[26, 56, 40.8, -6], [52, 64, 42.7, 2], [74, 77, 40.8, 4]] };
   const LIGHTS = { desk: [[12, 18], [27, 30], [43, 13], [61, 24], [77, 15], [90, 29]], phone: [[20, 15], [76, 22], [56, 9]] };
   const SIDES = [[8, 46, 7.5, -4], [17, 62, 8, 2], [25, 42, 6.5, -2], [75, 60, 6.5, 2], [83, 42, 8, -2], [92, 58, 7.5, 3]];
   const FOCUS = { desk: [0, 3, 5], phone: [0, 1, 2] };
@@ -1380,10 +1423,20 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
 
   function cardLayout(kind, st, i) {
     const n = IDS[kind].length;
-    if (st <= 6) return { pos: DRAW[kind], o: 0, z: n - i, mode: 'asdraw' };
-    if (st === 7) return { pos: T[kind][i], o: 1, z: n - i, mode: 'on', delay: i * 80 };
+    // 3 Nov (README #102): the screens wait in the studio, in their places; the light finds each as it passes it
+    // when the light (1.5 s, cubic-bezier(.45,0,.3,1), from -60 % or 160 % of the width, leaning) has passed the whole card
+    const found = () => {
+      const [x, y, w] = T[kind][i], b = document.documentElement.dataset.band, lean = kind === 'phone' ? 46 : 13;
+      const far = (edge) => edge + lean * (y + w * (kind === 'phone' ? 0.5 : 1.73)) / 100;
+      const c = 50 + lean / 2, lo = x - w / 2, hi = x + w / 2;
+      const p = b === 'morning' ? (far(hi) + 60) / 220 : b === 'day' ? Math.max((far(hi) - c) / (160 - c), (c - lo) / (c + 60)) : (160 - lo) / 220;
+      const ease = (t) => { const k = (a, q, u) => 3 * a * u * (1 - u) ** 2 + 3 * q * u * u * (1 - u) + u ** 3; let u = 0; while (u < 1 && k(0, 1, u) < p) u += 0.005; return k(.45, .3, u); };
+      return Math.round(1500 * ease(Math.min(1, Math.max(0, p))));
+    };
+    if (st <= 6) return { pos: T[kind][i], o: 0, z: n - i, mode: 'on' };
+    if (st === 7) return { pos: T[kind][i], o: 1, z: n - i, mode: 'on', delay: found() };
     if (st === 8) {
-      if (kind === 'phone') return i === 0 ? { pos: [22, 50, 26, -6], o: 1, z: 9, mode: 'gone' } : i === 1 ? { pos: T.phone[1], o: 1, z: 8, mode: 'lift' } : { pos: T.phone[2], o: 1, z: 1, mode: 'on' };
+      if (kind === 'phone') return i === 0 ? { pos: U.phone[0], o: 1, z: 9, mode: 'gone' } : i === 1 ? { pos: T.phone[1], o: 1, z: 8, mode: 'lift' } : { pos: T.phone[2], o: 1, z: 1, mode: 'on' };
       return i < 2 ? { pos: U.desk[i], o: 1, z: 9, mode: 'gone' } : i < 4 ? { pos: T.desk[i], o: 1, z: 8, mode: 'lift' } : { pos: T.desk[i], o: 1, z: n - i, mode: 'on' };
     }
     if (st === 9) {
@@ -1409,7 +1462,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
     const txs = CH.map((c, k) => `<div class="tx c${k + 1}"></div>`).join('');
     el.innerHTML = `
       <div class="L g g1"></div><div class="L g g2"></div><div class="L g g3"></div>
-      <div class="L sky"></div><div class="L dusk"></div>
+      <div class="L sky"></div><div class="keyl"></div><div class="L dusk"></div>
       <div class="L work"><div class="idx"><i>01</i>Work</div>${stacks}${txs}</div>
       <div class="vid bg" style="background-image:url(${I(phone ? 'poster-tall' : 'poster-wide')})"><div class="tint"></div></div>
       <div class="bl" aria-hidden="true"><div class="bg" style="background-image:url(${I('w002')})"></div></div>
@@ -1429,6 +1482,22 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
     frames.push(f); setState(f, st); return f;
   }
 
+  // the key light per phase (7 → 10): k = how far it has gone from the hour's side toward the screens
+  const KEY_K = { 7: 0, 8: .45, 9: .85, 10: 1, 11: 1 };
+  function placeKey(f) {
+    const el = f.el.querySelector('.keyl'); if (!el) return;
+    const cs = getComputedStyle(document.documentElement);
+    const side = parseFloat(cs.getPropertyValue('--kx')) || 62, high = parseFloat(cs.getPropertyValue('--ky')) || 34;
+    const k = KEY_K[f.st] ?? 0, grow = .92 + .35 * k;
+    if (f.kind === 'phone') {
+      // measured by the width, never stretched (README #48): B high behind the phrase, down to C behind the screens
+      const x0 = Math.min(80, Math.max(20, side)), x = x0 + (50 - x0) * k * .55, y = 22 + 30 * k, w = 150 * grow;
+      Object.assign(el.style, { left: x + '%', top: y + '%', width: w + '%', height: (w * 9 / 19.5) + '%' });
+    } else {
+      const x = side + (50 - side) * k * .6, y = high + 12.8 * k;
+      Object.assign(el.style, { left: x + '%', top: y + '%', width: 110 * grow + '%', height: 140 * grow + '%' });
+    }
+  }
   const VID = { desk: { full: [0, 0, 100, 100], stage: [6, 16, 28, 74] }, phone: { full: [0, 0, 100, 100], stage: [8, 12, 66, 38] } };
   const BLADE = { desk: [15, 64, 22, 25], phone: [8, 54, 84, 11] };
   const BLADE_CUT = { desk: 'polygon(14% 0%, 100% 0%, 86% 100%, 0% 100%)', phone: 'polygon(6% 0%, 100% 0%, 94% 100%, 0% 100%)' };
@@ -1438,6 +1507,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
     el.dataset.ch = st <= 1 ? '0' : st <= 4 ? '1' : st === 5 ? '2' : st === 6 ? '3' : '0';
     el.classList.toggle('work-on', st >= 2 && st <= 6);
     el.classList.toggle('sky-on', st >= 7);
+    placeKey(f);
     el.querySelector('.ent').style.opacity = st === 1 ? 1 : 0;
     // README #81, as built: the film stays where it is and fades to the Work's ground; the words and the other blades leave;
     // the Weddings blade grows into the stage's arch — the same photograph, no exchange
@@ -1451,7 +1521,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
     CH.forEach((_, k) => setMoment(f, k, k === 2 ? 1 : 0, k === ci && demo));
     const ratio = RATIO[kind];
     f.cards.forEach((card, i) => {
-      const L = cardLayout(kind, st, i), [x, y, w, r] = L.pos, h = L.dot ? w * DOT[kind] : w * ratio;
+      const L = cardLayout(kind, st, i), [x, y, w, r] = L.pos, h = L.dot ? w * DOT[kind] : L.full ? w : w * ratio;
       Object.assign(card.style, { left: (x - w / 2) + '%', top: (y - h / 2) + '%', width: w + '%', height: h + '%', transform: `rotate(${r}deg)`, opacity: L.o, zIndex: L.z, transitionDelay: (L.delay || 0) + 'ms' });
       ['asdraw', 'lift', 'gone', 'light'].forEach(m => card.classList.toggle(m, L.mode === m));
       card.classList.toggle('live', !!L.live);
@@ -1463,6 +1533,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
   function paint() {
     const c = ctx();
     document.documentElement.dataset.band = band(state.h);
+    frames.forEach(placeKey);
     const msg = END + (c.name ? `<span class="for">For ${c.name}.</span>` : '');
     const nth = state.returning ? 'second' : 'first';
     const cover = c.name
@@ -1585,7 +1656,7 @@ figcaption { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; 
     root.dataset.band = b;
     const cs = getComputedStyle(root);
     const fig = document.createElement('figure');
-    fig.innerHTML = `<div class="sw" style="${['--wall', '--wall2', '--floor', '--floor2', '--key', '--kx', '--ky'].map(v => v + ':' + cs.getPropertyValue(v)).join(';')}"><div class="L sky"></div><div class="L grain" style="opacity:.07"></div></div><figcaption>${t} · ${r}</figcaption>`;
+    fig.innerHTML = `<div class="sw" style="${['--wall', '--wall2', '--floor', '--floor2', '--key', '--kx', '--ky'].map(v => v + ':' + cs.getPropertyValue(v)).join(';')}"><div class="L sky"></div><div class="keyl" style="left:var(--kx);top:var(--ky);width:110%;height:140%"></div><div class="L grain" style="opacity:.07"></div></div><figcaption>${t} · ${r}</figcaption>`;
     skiesEl.appendChild(fig);
   });
 

@@ -33,7 +33,7 @@ export const media: Record<string, { widths: readonly number[]; width: number; h
       { widths: [320, 640], width: 640, height: 958 },
     ]),
   ),
-  '/media/v5/method/screen-wedding': { widths: [640, 960], width: 960, height: 1438 },
+  '/media/v5/method/screen-wedding': { widths: [640, 960, 1280], width: 1280, height: 1917 },
   '/media/v5/about/portrait': photo,
   '/media/v5/about/workspace': ai,
 }

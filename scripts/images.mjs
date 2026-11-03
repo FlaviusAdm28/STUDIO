@@ -16,6 +16,7 @@
 //
 // Sources and roles: docs/design/v5/assets.md §5 and §7.
 
+import { writeSpillMasks } from './spill-mask.mjs'
 import { copyFileSync, existsSync, mkdirSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -97,8 +98,9 @@ const SOURCES = [
   { id: 'experiences-after-photo', group: 'work', file: 'stock/unsplash-5PNmURC73JQ.jpg', widths: [640, 960, 1280, 1600], aura: true, fine: true, calm: 0.8 },
   // the owner's own new studio image (ChatGPT, 30 Oct), for Always; the door frame at its left is cut. The blade keeps artists-always.
   { id: 'artists-always-photo', group: 'work', file: 'artists/always-studio.png', widths: [640, 960], aura: true, fine: true, calm: 0.8, crop: { left: 64, top: 0, width: 960, height: 1536 } },
-  // Method — the Wedding website screen (Solteiros 299, #49).
-  { id: 'screen-wedding', group: 'method', file: 'weddings/HelderCoutoPhoto_299.jpg', widths: [640, 960] },
+  // Method — the Wedding website screen: Solteiros 163, the couple face to face on the road, in colour (owner, 2/11, README #96;
+  // was 299, a woman alone, which read wrong under a man's name). Up to 1280: on a phone it opens to the whole screen.
+  { id: 'screen-wedding', group: 'method', file: 'weddings/HelderCoutoPhoto_163.jpg', widths: [640, 960, 1280], fine: true },
   // About — the portrait and the room, B&W derived from the colour frame, colour by gesture.
   { id: 'portrait', group: 'about', file: 'about/portrait-124.jpg', widths: [640, 960, 1440], reveal: true, aura: true },
   { id: 'workspace', group: 'about', file: 'about/workspace.png', widths: [640, 1024], reveal: true },
@@ -109,6 +111,17 @@ const VIDEOS = [
   { from: 'video/test-encodes/hero-1920.mp4', to: 'entrance/hero-1920.mp4' },
   { from: 'video/test-encodes/hero-720x1280.mp4', to: 'entrance/hero-720x1280.mp4' },
 ]
+
+/** The Method's studio, one room per hour and shape, without its light (README #93, #94). Made and measured for banding
+ *  by media-src/method/ (room.html + dither-all.cjs / bayer3.cjs): served exactly as they are, never re-encoded. */
+const STUDIO = ['morning', 'day', 'evening', 'night'].flatMap((band) =>
+  ['wide', 'tall'].flatMap((shape) =>
+    (band === 'night' ? ['png'] : ['avif', 'jpg']).map((ext) => ({
+      from: `method/final/room-${band}-${shape}.${ext}`,
+      to: `method/room-${band}-${shape}.${ext}`,
+    })),
+  ),
+)
 
 const args = new Map(
   process.argv.slice(2).map((a) => {
@@ -194,7 +207,7 @@ async function main() {
   if (!existsSync(SRC)) throw new Error(`No masters at ${SRC}. See docs/design/v5/assets.md.`)
 
   const list = SOURCES.filter((s) => !only || s.id === only)
-  if (!list.length && only !== 'video') throw new Error(`No source with id ${only}`)
+  if (!list.length && only !== 'video' && only !== 'studio') throw new Error(`No source with id ${only}`)
 
   for (const source of list) {
     const input = path.join(SRC, source.file)
@@ -226,6 +239,18 @@ async function main() {
       copyFileSync(path.join(SRC, video.from), target)
       console.log(`copied ${path.relative(root, target)}`)
     }
+  }
+
+  if (!only || only === 'studio') {
+    for (const file of STUDIO) {
+      const target = path.join(OUT, file.to)
+      if (!shouldWrite(target)) continue
+      copyFileSync(path.join(SRC, file.from), target)
+      console.log(`copied ${path.relative(root, target)}`)
+    }
+    // the light's spill on its moving edges (README #100): drawn, not derived from a master (scripts/spill-mask.mjs)
+    for (const file of writeSpillMasks(OUT, { dryRun }))
+      console.log(`${dryRun ? 'would write' : 'wrote '} ${path.relative(root, file)}`)
   }
 }
 

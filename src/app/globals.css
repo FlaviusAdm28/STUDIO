@@ -51,6 +51,11 @@ html {
   background: var(--charcoal);
 }
 
+/* no browser tap colour anywhere (Chrome's blue box, owner 3 Nov): the press is drawn by the site where it is wanted (lib/press.ts) */
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* html and body in one colour: Safari fills its status area from them. Body left charcoal, that area stayed charcoal over the hour's colour
    and the bar came out half way between the two (iPhone, 1 Nov). With both equal the whole screen is one colour (calibration page). */
 body {
@@ -102,7 +107,7 @@ a {
   top: 8px;
 }
 
-main > section:not(.entrance),
+main > section:not(.entrance, .method),
 .colophon {
   padding-inline: var(--gutter);
 }
@@ -117,12 +122,12 @@ main > section:not(.entrance),
   list-style: none;
 }
 
-main > section:not(.entrance) {
+main > section:not(.entrance, .method) {
   padding-block: 64px;
 }
 
-/* the sections not built yet (M6, M7): a plain size; the built ones size their own photographs */
-main section:not(.entrance, .work) picture {
+/* the sections not built yet (M7): a plain size; the built ones size their own photographs */
+main section:not(.entrance, .work, .method) picture {
   max-width: 420px;
   margin-block: 16px;
 }

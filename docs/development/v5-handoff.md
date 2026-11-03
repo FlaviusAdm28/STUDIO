@@ -1,6 +1,103 @@
 # Chapter One V5 — handoff
 
-## ▶ COMEÇAR AQUI · 1 de novembro de 2026, fim do dia — iPhone aprovado, ronda final feita, M5 por commitar
+## ▶ COMEÇAR AQUI · 3 de novembro de 2026, fim do dia — M6 com a saída C2 e as afinações do owner; por commitar (atualizado à noite)
+
+**Estado:** branch `v5`, último commit `6af5f71`. **Todo o M6 está por commitar.** Commit só quando o owner pedir. Decisões: README #102
+(a saída C2), #103 (afinações: ponte sem *During*, 9 a ecrã inteiro com as barras, ritmo do telemóvel, cursor, 10 → 11 pelo centro, bordas
+da página no Method em sincronia com a luz, bloqueio no 7, Work parado durante a luz, *Make it yours* recomposto), #104 (o toque: opção A só
+no menu e no submenu do Work). Testes: `v5-tests.md`, M6, passos 4 a 4j.
+
+**Depois (fim do dia):** owner viu no iPhone ("parece ok"); a folha do 8 aprovada ("gosto"). Feito a seguir (README #103, 12–14; testes 4k):
+refresh no 8 no iOS (cartões na forma da área visível), idas e voltas rápidas no Xiaomi 58 → 67–68 fps (transição de cor das bordas só no
+iOS, medidas escritas só quando mudam, Work preso por CSS: último passo 4 ecrãs, Method sobre os últimos 3,1). O 8a do desktop a 0,6 foi
+experimentado e desfeito (fica 1,15).
+
+Depois: os cartões 9 : 16 foram experimentados e desfeitos; ficaram os originais, que só descem se fossem tapar o campo (README #103, 12; testes 4m). O fling rápido fica para uma solução no
+site todo, mais tarde (#103, 16); o 8 com um só gatilho deixou de ser tema (#103, 17).
+
+**Por confirmar pelo owner:**
+1. **iPhone:** o refresh no 8 com os cartões originais e o empancar nas idas e voltas rápidas.
+2. **Para mais tarde:** uma solução para flings rápidos no site todo.
+3. (encerrado) (proposta B em https://claude.ai/artifact/RvZLvVX4QYbfSna9Cxuruf, secção 2) — em aberto desde 2/11.
+
+**Antes de publicar:** tirar `FpsMeter` de `page.tsx`; prender o scroll com o menu aberto; o proxy da rede e o HUD são só de teste.
+(As máscaras da luz já saem do `npm run images`, 3/11.)
+
+**Antes de dar o site como terminado — flings rápidos (owner, 3/11):** pensar uma solução para o site todo, não só para o Method. O que se sabe:
+- **Medido (Xiaomi):** fling rápido para cima entre o 9 e o fim do Method 33–38 fps (a versão da fenda dava 53 na mesma sessão); idas e voltas
+  rápidas na costura Work ↔ Method 67–68 fps, com frames de 50–110 ms nos recuos e ~200 ms na primeira passagem. Scripts: `phone2.mjs`
+  (gestos lento / normal / fling, nos dois sentidos), `phone-rapid.mjs` (idas e voltas), `phone-sweep.mjs` + `sheets.cjs` (o site todo,
+  gravado), `continuous.mjs` e `fuzz.mjs` (lógica).
+- **Causas encontradas e já tratadas:** a cor das bordas animada (repintava a página no Android), medidas reescritas a cada passagem, o Work
+  preso por script (layout), a fotografia com `composite: add` (fio principal), a passagem apressada a cada evento de scroll (bloqueio).
+- **Causas prováveis por tratar:** (1) cada mudança de fase lança voos para todos os cartões, e um fling atravessa várias fases em poucos
+  frames — cada uma começa voos que a seguinte cancela; (2) os cartões do telemóvel são grandes (55 % da largura, forma do palco) e o 9 é o
+  ecrã inteiro: muitos píxeis a enviar ao compositor; (3) a capa (9 → 10) e os ecrãs vivos fazem trabalho no fio principal na mudança.
+- **Ideias a experimentar (uma de cada vez, medidas no Xiaomi):** escolher a fase uma vez por frame (`requestAnimationFrame`) e não a cada
+  evento; com scroll rápido, saltar diretamente para a fase de destino sem tocar as intermédias (ou tocá-las em ~150 ms); adiar a capa e os
+  ecrãs vivos até o scroll assentar; `content-visibility`/`visibility: hidden` nos cartões fora de cena; no Work, a troca de capítulos com
+  fling (os títulos sobrepõem-se um instante). Critério: fling rápido para cima ≥ 50 fps no Xiaomi sem mudar o que se vê devagar.
+
+**Ferramentas de hoje** (`D:\STUDIO-tools\v5-m6\`): `passage.mjs`, `modes.mjs`, `phone-passage.mjs`, `phone-sweep.mjs` + `sheets.cjs`,
+`phone-bridge.mjs`, `phone-caret.mjs`, `phone-press.mjs` / `chrome-press.mjs`, `phone-head.mjs`, `fuzz.mjs` (aleatório, Chrome ou Xiaomi),
+`continuous.mjs` (scroll sem pausas). iPhone pela rede: `node D:\STUDIO-tools\v5-m5\ios\proxy.mjs 3130 3100`, `http://192.168.1.223:3130`.
+
+---
+
+## 3 de novembro de 2026, de manhã — a saída de Experiences (C2) construída; falta o Xiaomi
+
+**Estado:** branch `v5`, último commit `6af5f71`. **Todo o M6 continua por commitar** (o de 2/11 e o de hoje). Commit só quando o owner pedir.
+
+**Decidido hoje (README #102; storyboards: variante 5 em https://claude.ai/artifact/TvJ9UgwUZBHHWj4WeMPLBZ, cartões em
+https://claude.ai/artifact/Uwks3PpKx3F6nxFyKFTG3z, texto em https://claude.ai/artifact/795GFGRBnVJiVkooJQQqCS):** a luz da hora atravessa o ecrã
+vinda do lado da hora e encontra os ecrãs já no lugar (C); as palavras chegam com a luz e o fim é *Make it yours* (C2). Owner: continuar a
+descer acaba a passagem; ao subir a luz recua pelo mesmo lado; o cursor pisca e fica fixo; no telemóvel a frase mais abaixo.
+
+**Feito hoje:** C2 no site (`method-stage.ts`, `method.tsx`, `method.css`), com os cartões do telemóvel a 58 % e com a forma do ecrã
+(README #101). Storyboard principal (painel "3 de novembro", quadros 6 → 8, animação) e `storyboard.md` atualizados; artifact
+publicado. Testes: `v5-tests.md`, M6, "Passo 4" — 5 tamanhos, 4 horas, recuo, fim apressado, movimento reduzido, sem JS, teclado.
+
+**Por confirmar pelo owner:** a folha do 8 repousa mais abaixo (24 %) e no telemóvel afasta-se para o lado — sem isso, com os cartões maiores,
+tapava a frase e o campo (storyboard.md, "O que o site faz hoje de diferente").
+
+**A seguir:**
+1. **Owner, com o dedo no Xiaomi:** a passagem (83–87 fps) e o recuo (77–82) estão bem; **o fling rápido para cima piorou (53 → 33–38 fps), entre o 9 e o fim**, em parte pelos cartões a 58 % (v5-tests, Passo 4). Decidir; fling para
+   cima (era 61–66 fps).
+2. iPhone: a passagem e o recuo.
+3. Depois: o 8 com um só gatilho? (proposta B em https://claude.ai/artifact/RvZLvVX4QYbfSna9Cxuruf, secção 2).
+
+**Ferramentas novas:** `D:STUDIO-tools5-m6passage.mjs` (a passagem a tempo real; `node --experimental-websocket passage.mjs <out>
+<w>x<h>:<hora> …`) e `modes.mjs` (movimento reduzido, sem JS, teclado). O ambiente repõe-se como na secção de 2/11, em baixo.
+
+---
+
+## ▶ COMEÇAR AQUI · 2 de novembro de 2026, fim do dia — M6 (Method) em revisão; saída de Experiences por escolher
+
+**Estado:** branch `v5`, último commit `6af5f71` (M5 e o rebordo dos cartões). **Todo o M6 está por commitar** (working tree: `src/components/method/`, `work-client.tsx`, `work.css`, `bar-client.tsx`, `page.tsx`, `globals.css`, `scripts/images.mjs`, `scripts/spill-mask.mjs`, `public/media/v5/method/spill-*.png`, docs). Commit só quando o owner pedir.
+
+**Primeira coisa amanhã: o owner escolhe a saída de Experiences para o 7.**
+- Storyboard de avaliação: `docs/design/v5/storyboards/saida-experiences/index.html` (abrir no browser; imagens em `img/`) e https://claude.ai/artifact/TvJ9UgwUZBHHWj4WeMPLBZ.
+- Quatro saídas, todas num só movimento (um gatilho, sem paragem): 1 a lâmina tocada · 2 a janela abre-se (**recomendada**) · 3 entrar na fotografia · 4 um varrimento de luz.
+- Com a escolha, entram no site também os **cartões do telemóvel a 58 %** (aprovado, README #101) e o **passo 9 com a forma do ecrã** (no Xiaomi hoje tem 360 px num ecrã de 392).
+- A seguir: o 8 com um só gatilho? (proposta B em https://claude.ai/artifact/RvZLvVX4QYbfSna9Cxuruf, secção 2); o fling para cima no Xiaomi (61–66 fps, ver abaixo).
+
+**O que está no site agora (M6), em resumo** (decisões README #95–#101; o que difere do storyboard: `storyboard.md`, secção "O que o site faz hoje de diferente"; testes e números: `v5-tests.md`, M6, passos 2 a 3h):
+- Method: cena presa de 7 a 11 com as posições do storyboard v46; estúdio pelas quatro luzes (noite em PNG ditherizado); luz como camada que anda; 163 a cores no ecrã do casamento; 9 a ecrã inteiro no telemóvel; 10 = o ecrã do casamento torna-se a capa (um objeto); 11 a luz baixa.
+- Passagem: **a fenda em dois passos** (#99, o owner não gostou do passo intermédio — vai ser substituída). Fica dela: o desenho do guia medido da fotografia do Work, o vidro do desenho (30 %, liso, #100), a luz da fenda "B suave" (máscara ditherizada por hora, `scripts/spill-mask.mjs`), a fenda posta a partir do desenho no desktop.
+- O Method começa 2,1 telas antes do fim do Work (transparente; o palco já preso antes da cena, sem descer ao voltar), o Work passa a *During* meia tela antes; Method 6,2 telas, cena 4,7.
+- Work: refresh mostra o capítulo certo; o cartão do Accept só sobe; depois de escolher um momento a palavra e os 6 s esperam as cartas assentarem (1,12 s / 1,55 s).
+
+**Medições do fim do dia (Xiaomi):** passagens 82–90 fps com picos de primeira vez (55–133 ms, não são da luz nem do vidro: bisseção feita). Dedo: lento 80, normal 75–82, rápido a descer 84; **rápido a subir 61–66 fps (era 75)** por o Method estar mais curto. Não verificado: iPhone desde a fenda.
+
+**Ferramentas desta sessão:** `D:\STUDIO-tools\v5-m6\` (32 scripts: `raf.mjs`/`phone.mjs`/`phone2.mjs` Xiaomi; `phases.mjs`, `edges.mjs`, `static.mjs` rondas no Chrome; `rec7.mjs` gravação da passagem; `replay.mjs` reproduz uma fita do owner; `edgeshots*.mjs`, `nightshot.mjs` luz; `storyboards/` as três páginas de decisão). Corriam de `scratchpad/m6`; os caminhos de saída são relativos.
+
+**Atenção aos derivados:** `public/media/v5/` está no `.gitignore` (como todos os derivados). As máscaras da luz da fenda (`spill-<hora>-<l|r>.png`) não vêm do `npm run images`: geram-se com `node scripts/spill-mask.mjs`. Por integrar no `images.mjs` antes do lançamento.
+
+**Como repor o ambiente:** `npm run build`, `npx next start -p 3100`, `node D:\STUDIO-tools\v5-m5\ios\proxy.mjs 3130 3100` (iPhone e as fitas do owner, gravadas em `D:\STUDIO-tools\v5-m5\ios\out\`). Xiaomi: `adb -s c3e8fb35 reverse tcp:3100 tcp:3100` e `forward tcp:9555 localabstract:chrome_devtools_remote`; o Chrome tem de estar aberto (`adb shell am start -a android.intent.action.VIEW -d http://localhost:3100/ com.android.chrome`) e o ecrã acordado (não se acorda pelo adb). Chrome de testes: `D:\STUDIO-tools\v5-m5\screen2.ps1`, porta 9444. Fuso emulado (`Emulation.setTimezoneOverride`) dá as horas de luz verdadeiras; pôr `data-light` à mão deixa a barra com o vidro da hora em que a página abriu.
+
+---
+
+## 1 de novembro de 2026, fim do dia — iPhone aprovado, ronda final feita, M5 por commitar (já commitado a 2/11: `47ca753`, `6af5f71`)
 
 **Estado:** branch `v5`, último commit `c748c0b` (M4). **Todo o M5 e o trabalho de 31/10 e 1/11 estão por commitar.** Commit só quando o owner pedir. Não perder o working tree.
 

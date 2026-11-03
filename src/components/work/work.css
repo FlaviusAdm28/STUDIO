@@ -139,7 +139,8 @@
 
   :root[data-js] .e-hold + .work {
     z-index: 1;
-    height: calc(5.4 * var(--screen));
+    /* 7.9: the last step one screen longer (3 Nov, see .w-step:last-child) */
+    height: calc(7.9 * var(--screen));
     margin-top: calc(-2.4 * var(--screen));
   }
 
@@ -151,8 +152,13 @@
   }
   /* The same at the other end: Experiences starts at the middle of the screen and the stage lets go one screen after its
      step's top, so it was held ~365 px, 0.4 s on the iPhone (owner, 2 Nov, README #88). */
+  /* + 1.5 screens (README #98, #99): the Method lies over the Work's last 3.1 screens (its stage held half a screen before the light
+     comes over Experiences), so Experiences keeps its own held time before that. One more screen than before (3, with the Method over
+     2.1): the Work's stage stays held under the light while it crosses, however the wheel or a finger goes on — held only 0.6 screen
+     past the light's start, Experiences rose under its edge (owner, desktop, 3 Nov). Done here, not by fixing the stage from script:
+     that changed the layout at every crossing (Xiaomi, quick strokes over the seam) */
   :root[data-js] .w-step:last-child {
-    height: calc(1.5 * var(--screen));
+    height: calc(4 * var(--screen));
   }
 
   :root[data-js] .w-pass {
@@ -1051,7 +1057,9 @@
   text-align: center;
   color: var(--linen);
   opacity: 0;
-  transform: translate3d(0, 14%, 0) scale(0.96);
+  /* it only rises: grown from 96 % as well, the Accept pill's text was redrawn at every size for a second and read as the
+     button adjusting itself before the reply (owner, 2 Nov) */
+  transform: translate3d(0, 14%, 0);
   transition:
     transform 1s var(--ease) 0.2s,
     opacity 0.8s var(--ease) 0.2s;
@@ -1095,17 +1103,18 @@
   background: var(--linen);
   color: #1e1d1a;
   opacity: 0;
-  transform: scale(0.9);
 }
-/* the reply is chosen once the card has been read */
+/* the reply is chosen once the card has been read: Accept goes, then the confirmation comes, at its own size. Crossed while
+   it grew from 90 %, the two pills of different widths overlapped and read as the button adjusting itself (owner, 2 Nov) */
 .w-dm.on .dm-accept {
   opacity: 0;
+  transition-duration: 0.25s;
   transition-delay: 1.9s;
 }
 .w-dm.on .dm-accepted {
   opacity: 1;
-  transform: none;
-  transition-delay: 1.9s;
+  transition-duration: 0.45s;
+  transition-delay: 2.15s;
 }
 
 /* During — the guide */
@@ -1328,4 +1337,15 @@
     transition-delay: 0s !important;
     animation: none !important;
   }
+}
+
+/* The first chapter is put in place at once (WorkClient): until it is chosen the stage is not shown — a refresh on Experiences
+   showed the server's Weddings for a moment, then crossed (owner, 2 Nov) — and that one change runs with no transition. */
+:root[data-js] .work:not([data-ch]) .w-stage {
+  /* opacity, not visibility: a chapter's own visibility: visible would show through */
+  opacity: 0;
+}
+.w-now,
+.w-now * {
+  transition: none !important;
 }

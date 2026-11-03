@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { lensMap } from '@/lib/lens'
+import { press } from '@/lib/press'
 
 type Section = { readonly id: string; readonly number: string; readonly label: string }
 type Props = {
@@ -106,6 +107,8 @@ export function BarClient(props: Props) {
     tick()
     const clock = window.setInterval(tick, 15000)
     cleanups.push(() => clearInterval(clock))
+    // the press under a finger: the menu's button and the menu's own links (owner, 3 Nov, option A)
+    cleanups.push(press(document.body, '.bar-menu, .menu-list a, .menu-go, .menu-channels a'))
 
     // ---- each island's darkness: measured under its words only (README #71) ----
     // The brightness of every image is read once, on a 24 × 24 grid (sRGB luma); the film is read from its poster (the
@@ -165,7 +168,8 @@ export function BarClient(props: Props) {
           if (l !== null) return l * dim
           continue
         }
-        const section = el.closest<HTMLElement>('section[data-lum]')
+        // a section, or a part of one, that declares its own brightness (the Method's studio by the hour, its dark end)
+        const section = el.closest<HTMLElement>('[data-lum]')
         if (section) return +(section.dataset.lum ?? 0.1) * dim
       }
       return 0.1 * dim

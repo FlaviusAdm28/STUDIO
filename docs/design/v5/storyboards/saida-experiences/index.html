@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Saída de Experiences</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Schibsted+Grotesk:wght@400;500&display=swap">
+<style>
+  :root { --charcoal: #1E1D1A; --night: #171b22; --linen: #EEE8DD; --muted: #B3AB9E; --rule: rgba(238,232,221,.16);
+    --voice: "Cormorant Garamond", Georgia, serif; --read: "Schibsted Grotesk", system-ui, sans-serif; color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--charcoal); color: var(--linen); font: 15px/1.55 var(--read); }
+  main { max-width: 1320px; margin: 0 auto; padding: 40px 16px 96px; display: grid; gap: 52px; }
+  h1 { font: italic 400 38px/1.1 var(--voice); margin: 0; }
+  h2 { font: italic 400 30px/1.1 var(--voice); margin: 0; }
+  p, li { max-width: 80ch; color: var(--muted); }
+  p { margin: 0; }
+  b { color: var(--linen); font-weight: 500; }
+  section { display: grid; gap: 16px; border-top: 1px solid var(--rule); padding-top: 24px; }
+  .row { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 20px; align-items: start; }
+  .row.two { grid-template-columns: repeat(2, minmax(0, 250px)); }
+  @media (max-width: 820px) { .row { grid-template-columns: minmax(0, 1fr); } .row figure:last-child { max-width: 280px; } }
+  figure { margin: 0; display: grid; gap: 8px; }
+  figcaption { font-size: 12px; color: var(--muted); }
+  .ctl { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+  .ctl button { all: unset; cursor: pointer; padding: 7px 15px; border: 1px solid var(--rule); border-radius: 99px; font-size: 13px; color: var(--muted); }
+  .ctl button[aria-pressed="true"], .ctl button.main { color: var(--linen); border-color: var(--linen); }
+  .ctl button:focus-visible { outline: 1px solid var(--linen); outline-offset: 3px; }
+
+  .fr { position: relative; overflow: hidden; container-type: inline-size; background: var(--night); border-radius: 6px; isolation: isolate; }
+  .fr.d { aspect-ratio: 16 / 10; }
+  .fr.p { aspect-ratio: 390 / 844; border-radius: 18px; }
+  .bar { position: absolute; z-index: 50; left: 3%; right: 3%; top: 2%; height: 4.4%; display: flex; justify-content: space-between; pointer-events: none; }
+  .bar i { position: relative; display: flex; align-items: center; gap: .9cqw; padding: 0 1.4cqw; height: 100%; border-radius: 99px; background: rgba(22,21,19,.42);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.28), 0 0 0 1px rgba(255,255,255,.08); font: 400 1.25cqw var(--voice); color: var(--linen); white-space: nowrap; font-style: normal; }
+  .bar i small { font: 500 .78cqw var(--read); letter-spacing: .14em; text-transform: uppercase; }
+  .bar .sec { display: inline-grid; } .bar .sec > span { grid-area: 1 / 1; }
+  .p .bar { top: 1.4%; height: 5.4%; left: 4%; right: 4%; } .p .bar i { font-size: 4.4cqw; padding: 0 3.6cqw; gap: 2.4cqw; } .p .bar i small { font-size: 2.8cqw; }
+  .p .bar i:last-child { aspect-ratio: 1; padding: 0; justify-content: center; }
+
+  /* Experiences */
+  .tx { position: absolute; z-index: 2; left: 47.5%; right: 9%; top: 19%; }
+  .tx .h { font: 400 4.6cqw/1 var(--voice); display: flex; align-items: baseline; gap: 2cqw; }
+  .tx .h em { font-style: italic; }
+  .tx .h small { margin-left: auto; font: italic 400 1.5cqw var(--voice); color: var(--muted); display: flex; gap: 1.6cqw; }
+  .tx .mo { margin-top: 2cqw; display: flex; gap: 2.4cqw; font: 500 1.05cqw var(--read); letter-spacing: .16em; text-transform: uppercase; color: rgba(238,232,221,.42); }
+  .tx .mo span:nth-child(2) { color: var(--linen); }
+  .tx dl { margin: 2.6cqw 0 0; border-top: 1px solid var(--rule); }
+  .tx dt { margin-top: 1.6cqw; font: 500 1.3cqw var(--read); }
+  .tx dt.on::before { content: "●"; font-size: .9cqw; margin-right: .8cqw; vertical-align: .15em; }
+  .tx dd { margin: .5cqw 0 1.6cqw; font: 400 1.32cqw/1.35 var(--voice); color: rgba(238,232,221,.78); padding-bottom: 1.4cqw; border-bottom: 1px solid var(--rule); }
+  .p .tx { left: 8%; right: 8%; top: 53%; }
+  .p .tx .h { font-size: 11cqw; } .p .tx .h small { font-size: 4cqw; flex-direction: column; gap: 0; text-align: right; }
+  .p .tx .mo { font-size: 3cqw; margin-top: 4cqw; gap: 4cqw; }
+  .p .tx dt { font-size: 4cqw; margin-top: 3cqw; } .p .tx dt.on::before { font-size: 2.6cqw; margin-right: 2cqw; }
+  .p .tx dd { font-size: 4.1cqw; margin: 1.4cqw 0 3cqw; padding-bottom: 3cqw; } .p .tx dd.x { display: none; }
+
+  /* the photograph's window: the photo, the guide's words over it, and the studio behind them (variants 2 and 3) */
+  .win { position: absolute; z-index: 1; inset: 0; will-change: clip-path; }
+  .win .room, .room { position: absolute; top: 0; left: 0; height: 100%; background: center / cover; }
+  .win .room { width: 100%; opacity: 0; }
+  .room::after { content: ""; position: absolute; left: 62%; top: 40%; width: 120%; height: 150%; transform: translate(-50%, -50%); background: radial-gradient(closest-side, rgba(255,196,140,.5), transparent 72%); }
+  .p .room::after { left: 70%; top: 30%; width: 170%; height: auto; aspect-ratio: 1; }
+  .ph { position: absolute; transform-origin: 50% 50%; }
+  .ph img { width: 100%; height: 100%; object-fit: cover; display: block; filter: brightness(.62); }
+  .gd { position: absolute; z-index: 2; color: var(--linen); padding: 0 0 0 0; }
+  .gd .k { font: italic 400 2cqw var(--voice); }
+  .gd .lab { font: 500 .78cqw var(--read); letter-spacing: .14em; text-transform: uppercase; color: #c7d0e6; margin-top: 2.4cqw; }
+  .gd .t { font: italic 400 1.5cqw var(--voice); }
+  .p .gd .k { font-size: 5.4cqw; } .p .gd .lab { font-size: 2.3cqw; margin-top: 5cqw; } .p .gd .t { font-size: 4.2cqw; }
+
+  /* the blade (variants 1 and 4): two edges as clipping boxes, the room moved back by both */
+  .bA, .bB { position: absolute; top: 0; left: 0; height: 100%; overflow: hidden; transform-origin: 0 0; will-change: transform; }
+  .bA { z-index: 1; }
+  .bA .room { transform-origin: 0 0; }
+  .spill { position: absolute; z-index: 1; top: 0; left: 0; height: 100%; transform-origin: 0 0; opacity: 0; }
+  .spill.l { background: linear-gradient(270deg, rgba(255,190,130,.2), rgba(255,190,130,.08) 30%, transparent); }
+  .spill.r { background: linear-gradient(90deg, rgba(255,190,130,.2), rgba(255,190,130,.08) 30%, transparent); }
+
+  /* the templates: the guide's drawing (on dark glass), paper on the way */
+  .tpl { position: absolute; z-index: 6; left: 0; top: 0; aspect-ratio: 9 / 19.5; transform-origin: 50% 50%; will-change: transform; container-type: inline-size; opacity: 0; }
+  .tpl > div { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 5cqw; border-radius: 9cqw; }
+  .tpl > div > * { margin-inline: 10%; } .tpl > div > :first-child { margin-top: 14%; display: flex; justify-content: space-between; }
+  .tpl .pa { background: #E2DFD8; color: #8F8B83; box-shadow: 0 1.4cqw 3cqw rgba(0,0,0,.28); opacity: 0; }
+  .tpl .dr { border: .6px solid rgba(238,232,221,.8); color: rgba(238,232,221,.85); background: rgba(23,27,34,.3); box-shadow: inset 0 1px 0 rgba(255,255,255,.2); }
+  .tpl s { text-decoration: none; font: 500 6.4cqw var(--read); letter-spacing: .14em; }
+  .tpl b { display: block; height: 30%; border-radius: 6cqw; }
+  .tpl .pa b { background: repeating-linear-gradient(45deg, #CCC8C0 0 6px, #D6D2CB 6px 12px); }
+  .tpl .dr b { border: .6px solid currentColor; opacity: .75; }
+  .tpl em { font: 400 11cqw/1.1 var(--read); font-style: normal; }
+  .tpl .dr em { font: italic 400 13cqw/1 var(--voice); }
+  .tpl i { display: block; height: 2.4%; width: 80%; border-radius: 4px; background: #BDB9B1; } .tpl i + i { width: 55%; }
+  .tpl .dr i { height: 1px; background: currentColor; opacity: .6; }
+  .tpl u { text-decoration: none; margin-top: auto; margin-bottom: 12%; align-self: flex-start; padding: 2.6cqw 6cqw; border: .6px solid currentColor; border-radius: 99px; font-size: 6.6cqw; }
+
+  .th { position: absolute; z-index: 5; left: 0; right: 0; top: 11%; text-align: center; font: 400 5.6cqw/1.02 var(--voice); color: #2a2420; opacity: 0; }
+  .th i { display: block; }
+  .fd { position: absolute; z-index: 5; left: 0; right: 0; top: 33%; display: flex; justify-content: center; gap: 2cqw; align-items: baseline; font: 500 1.05cqw var(--read); letter-spacing: .16em; text-transform: uppercase; color: rgba(42,36,32,.85); opacity: 0; }
+  .fd span:last-child { font: italic 400 1.9cqw var(--voice); letter-spacing: 0; text-transform: none; border-bottom: 1px solid rgba(42,36,32,.6); padding: 0 6cqw .4cqw 0; color: rgba(42,36,32,.55); }
+  .p .th { font-size: 11.6cqw; top: 9%; } .p .fd { top: 24%; font-size: 3cqw; gap: 4cqw; } .p .fd span:last-child { font-size: 5cqw; padding-right: 14cqw; }
+  .now-label { position: absolute; z-index: 60; right: 2.4%; bottom: 2.4%; font: 500 10px var(--read); letter-spacing: .12em; text-transform: uppercase; color: rgba(238,232,221,.55); }
+  /* variant 5: the light first (from the hour's side), then one screen drawn around the guide's words, then dealt */
+  .fr { --key: rgba(255,196,140,.62); --kx: 84%; --ky: 46%; --ink: #2a2420; }
+  .lit { position: absolute; z-index: 3; inset: 0; background: center / cover; will-change: clip-path; }
+  .lit::after { content: ""; position: absolute; left: var(--kx); top: var(--ky); width: 120%; height: 150%; transform: translate(-50%, -50%); background: radial-gradient(closest-side, var(--key), transparent 72%); }
+  .p .lit::after { width: 170%; height: auto; aspect-ratio: 1; }
+  .glow { position: absolute; z-index: 3; top: 0; left: 0; height: 100%; transform-origin: 0 0; opacity: 0; will-change: transform; }
+  .gdw { position: absolute; z-index: 4; inset: 0; pointer-events: none; }
+  .tpl svg.ol { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .tpl svg.ol rect { fill: none; stroke: currentColor; stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .tpl.lead .dr { border: 0; box-shadow: none; background: none; }
+  .fr.light .th, .fr.light .fd { color: var(--ink); }
+  .fr.light .fd span:last-child { color: color-mix(in srgb, var(--ink) 65%, transparent); border-color: color-mix(in srgb, var(--ink) 60%, transparent); }
+  .static .tpl { opacity: 1; } .static .tpl .pa { opacity: 1; } .static .tpl .dr { opacity: 0; } .static .th, .static .fd { opacity: 1; }
+</style>
+</head>
+<body>
+<main>
+  <header style="display:grid;gap:12px">
+    <h1>De Experiences para o 7, sem paragem</h1>
+    <p>A fenda com um passo pelo meio não ficou bem (owner, 2/11). Aqui, quatro maneiras de sair de Experiences e chegar ao 7 <b>num só movimento</b>: um gatilho de scroll (quando o Method chega ao topo), e a passagem corre inteira, sozinha, sem parar a meio. Em todas, o <i>On-site guide</i> solta-se da fotografia como desenho e multiplica-se nos templates. Imagens do site, ao fim da tarde. No telemóvel os cartões já estão maiores (ver em baixo).</p>
+  </header>
+  <div id="variants"></div>
+
+  <section aria-labelledby="qc">
+    <h2 id="qc">Os cartões no telemóvel</h2>
+    <p><b>Maiores:</b> o baralho do 7 passa de 46 % para 58 % da largura do ecrã (os outros passos crescem na mesma proporção). <b>E com a forma do ecrã de quem vê:</b> hoje os cartões têm a forma de um telemóvel padrão (9 : 19,5); no Xiaomi, com a barra do Chrome, o ecrã é mais baixo e o ecrã inteiro do passo 9 ficava com 360 px num ecrã de 392 — uma faixa de noite de cada lado (medido). Com a forma do próprio ecrã, o passo 9 enche o ecrã em qualquer telemóvel e browser.</p>
+    <div class="row two">
+      <figure><div class="fr p static" data-size="46"></div><figcaption>Agora · 46 %</figcaption></figure>
+      <figure><div class="fr p static" data-size="58"></div><figcaption>Maiores · 58 %</figcaption></figure>
+    </div>
+  </section>
+
+  <section aria-labelledby="qr">
+    <h2 id="qr">A minha recomendação</h2>
+    <p><b>Atualizado a 3/11 · 5 · Primeiro a luz, depois o ecrã.</b> O owner gostou da 3 e da 4, mas não da forma como o template se formava. A 5 separa os dois momentos: primeiro muda a luz, e só depois nasce o ecrã, à volta das palavras do guia. Não aparece um desenho do nada sobre a fotografia. Em vez disso, o guia que estava a ser explicado torna-se, à nossa frente, o modelo vazio. Experimenta as quatro horas.</p>
+    <p style="opacity:.7">Antes (2/11):</p>
+    <p><b>2 · A janela abre-se.</b> É a única em que a própria fotografia de Experiences se torna o estúdio: a moldura oblíqua que já estava no ecrã abre-se até às margens, e por dentro dela a fotografia dá lugar à sala acesa. Não entra nada de novo (nem lâmina, nem zoom); o que se vê transforma-se. A 3 é a mais dramática (lembra a entrada pelo O) mas repete a entrada; a 1 e a 4 trazem uma lâmina que não estava lá.</p>
+    <p>Diz-me qual preferes (ou o que mudarias) e eu ponho-a no site, já com os cartões maiores no telemóvel e o passo 9 a encher o ecrã.</p>
+  </section>
+</main>
+<script>
+(() => {
+  const NOW = new Date()
+  const hm = (d) => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0')
+  const T = 3600
+  const EASE = 'cubic-bezier(0.2, 0.7, 0.2, 1)'
+  const IN_OUT = 'cubic-bezier(0.55, 0, 0.25, 1)'
+  const TAN = Math.tan((12 * Math.PI) / 180)
+  const END = {
+    d: [14, 28.4, 42.8, 57.2, 71.6, 86].map((x) => [x, 69, 11, 0]),
+    p: (s) => [[50, 64, s, -3], [50, 65, s, 0], [50, 66, s, 3]],
+  }
+  // the photograph's box and its oblique window (as the Work shows it)
+  const PH = { d: { l: 6, t: 15, w: 25, h: 75 }, p: { l: 8, t: 11, w: 76, h: 36 } }
+  const VARIANTS = [
+    ['1', 'A lâmina, tocada', 'A A + B do primeiro storyboard, sem paragem: uma lâmina de luz entra, mal toca o meio do ecrã já se abre até às margens; o desenho do guia sai da fotografia e multiplica-se. 3,6 s.', 'blade'],
+    ['2', 'A janela abre-se', 'A moldura oblíqua da fotografia é uma janela. O guia solta-se como desenho; por dentro da janela a fotografia dá lugar à sala acesa; depois a janela abre-se, aresta a aresta, até às margens do ecrã, e o desenho multiplica-se. Nada de novo entra: o que estava no ecrã transforma-se.', 'window'],
+    ['3', 'Entrar na fotografia', 'Como a entrada pelo O: a câmara avança para dentro da fotografia do guia, que cresce e se dissolve na sala; a janela abre-se com ela; o desenho fica e multiplica-se.', 'zoom'],
+    ['4', 'Um varrimento de luz', 'Uma só aresta de luz atravessa o ecrã da esquerda para a direita e deixa a sala acesa atrás; o desenho aparece quando a luz passa pela fotografia, e cada template sai quando a luz lhe chega.', 'sweep'],
+    ['5', 'Primeiro a luz, depois o ecrã', '<b>Nova (3 + 4, com outra ordem).</b> Primeiro só a luz: a câmara avança um pouco para a fotografia e a luz da hora atravessa o ecrã <b>vinda do lado da hora</b> (manhã da esquerda, dia do meio para fora, fim de tarde e noite da direita), apaga Experiences e deixa a sala acesa. Só as palavras do guia ficam, e a luz apanha-as. <b>Depois o ecrã:</b> um contorno de telemóvel desenha-se à volta delas, as palavras dão lugar ao modelo vazio (o guia torna-se template), a folha enche-se de papel e as outras saem de baixo dela, distribuídas como cartas. 5 s, sem paragem.', 'light'],
+  ]
+  const HOURS = {
+    morning: { name: 'Manhã', dir: 'ltr', key: 'rgba(232,240,248,.8)', kx: '18%', ky: '26%', ink: '#2a2823', lab: '#66737c', img: 'morning', ext: 'jpg' },
+    day: { name: 'Dia', dir: 'mid', key: 'rgba(255,253,248,.75)', kx: '50%', ky: '18%', ink: '#2a2823', lab: '#7a705f', img: 'day', ext: 'jpg' },
+    evening: { name: 'Fim de tarde', dir: 'rtl', key: 'rgba(255,196,140,.62)', kx: '84%', ky: '46%', ink: '#2a2420', lab: '#93664b', img: 'evening', ext: 'jpg' },
+    night: { name: 'Noite', dir: 'rtl', key: 'rgba(255,196,140,.26)', kx: '62%', ky: '34%', ink: '#eee8dd', lab: '#b89a7c', img: 'night', ext: 'png' },
+  }
+  // cubic-bezier: progress at time u, and the time at which a progress is reached (sampled; a storyboard needs no more)
+  const bez = (x1, y1, x2, y2) => {
+    const c = (a, b, t) => 3 * a * t * (1 - t) ** 2 + 3 * b * t * t * (1 - t) + t ** 3
+    const pts = Array.from({ length: 401 }, (_, i) => [c(x1, x2, i / 400), c(y1, y2, i / 400)])
+    return { timeOf: (p) => { const f = pts.find(([, y]) => y >= p); return f ? f[0] : 1 } }
+  }
+  const SWEEP_E = 'cubic-bezier(0.45, 0, 0.3, 1)', SWEEP_B = bez(0.45, 0, 0.3, 1)
+
+  function build5(fr, hour) {
+    fr.getAnimations({ subtree: true }).forEach((a) => a.cancel())
+    const L = HOURS[hour]
+    const k = fr.classList.contains('p') ? 'p' : 'd'
+    const T5 = 5000
+    const ends = k === 'd' ? END.d : END.p(58)
+    const lead = k === 'd' ? 0 : 1
+    for (const [n, v] of Object.entries({ '--key': L.key, '--kx': L.kx, '--ky': L.ky, '--ink': L.ink })) fr.style.setProperty(n, v)
+    fr.classList.add('light')
+    const room = `img/room-${L.img}-${k === 'd' ? 'wide' : 'tall'}.${L.ext}`
+    fr.innerHTML = expHTML(k) + `<div class="lit" style="background-image:url(${room})"></div><div class="glow a"></div><div class="glow b"></div><div class="gdw"></div>` +
+      `<div class="th">No templates.<i>No copies.</i></div><div class="fd"><span>Make it yours</span><span>Your name</span></div>` +
+      ends.map((_, i) => `<div class="tpl${i === lead ? ' lead' : ''}" style="z-index:${i === lead ? 7 : 6}">${i === lead ? `<svg class="ol" viewBox="0 0 100 216.67"><rect x="0" y="0" width="100" height="216.67" rx="9" pathLength="1" stroke-dasharray="1 2" stroke-dashoffset="1"/></svg>` : ''}${card()}</div>`).join('') +
+      `<div class="bar"><i>Chapter One <span style="opacity:.4">|</span> <span class="sec"><span class="s1">01 <small>Work</small></span><span class="s2">02 <small>Method</small></span></span></i><i>${k === 'd' ? `<small>${hm(NOW)}</small><small>Talk to us</small><small>≡ Menu</small>` : '≡'}</i></div><span class="now-label"></span>`
+    const q = (s) => fr.querySelector(s)
+    q('.gdw').appendChild(q('.gd'))
+    const W = fr.clientWidth, H = fr.clientHeight
+    const anims = []
+    const track = (el, prop, pts) => {
+      if (!el) return
+      const frames = pts.map(([ms, v, e]) => ({ offset: ms / T5, [prop]: v, easing: e || 'linear' }))
+      if (frames[0].offset > 0) frames.unshift({ ...frames[0], offset: 0 })
+      if (frames[frames.length - 1].offset < 1) frames.push({ ...frames[frames.length - 1], offset: 1 })
+      anims.push(el.animate(frames, { duration: T5, fill: 'both' }))
+    }
+    // 1 · the light first: the photo pushes in a little; one oblique edge (12°, as the blades) crosses from the hour's side
+    const p = PH[k]
+    q('.ph').style.transformOrigin = '50% 50%'
+    track(q('.ph'), 'transform', [[0, 'scale(1)', IN_OUT], [1800, 'scale(1.14)']])
+    const S = (TAN * H * 100) / W // the edge's lean, in % of the width
+    const SW0 = 150, SW1 = 1650
+    const poly = (a, b) => `polygon(${a}% 0%, ${b}% 0%, ${b - S}% 100%, ${a - S}% 100%)`
+    let A, B // [from, to] of the lit band's left (a) and right (b) top edges
+    if (L.dir === 'ltr') { A = [-30, -30]; B = [-2, 102 + S] }
+    else if (L.dir === 'rtl') { A = [102 + S, -2]; B = [130 + S, 130 + S] }
+    else { const c = 50 + S / 2; A = [c, -2]; B = [c, 102 + S] }
+    track(q('.lit'), 'clipPath', [[SW0, poly(A[0], B[0]), SWEEP_E], [SW1, poly(A[1], B[1])]])
+    // the light falling out of each moving edge onto what is still dark
+    const gw = 0.07 * W
+    const glow = (el, X, out) => {
+      el.style.width = gw + 'px'
+      el.style.background = `linear-gradient(${out > 0 ? 90 : 270}deg, ${L.key.replace(/[\d.]+\)$/, '.34)')}, transparent)`
+      const at = (e) => `translateX(${(e / 100) * W - (out > 0 ? 0 : gw)}px) skewX(-12deg)`
+      track(el, 'transform', [[SW0, at(X[0]), SWEEP_E], [SW1, at(X[1])]])
+      track(el, 'opacity', [[SW0, 0], [SW0 + 200, 1], [SW1 - 250, 1], [SW1 + 100, 0]])
+    }
+    if (L.dir !== 'rtl') glow(q('.glow.b'), B, 1)
+    if (L.dir !== 'ltr') glow(q('.glow.a'), A, -1)
+    // when the edge reaches a point (x, y in % of the frame): the guide's words take the room's ink then
+    const reach = (x, y) => {
+      const need = x + (S * y) / 100
+      const pick = L.dir === 'ltr' || (L.dir === 'mid' && need >= 50 + S / 2) ? B : A
+      const prog = Math.min(1, Math.max(0, (need - pick[0]) / (pick[1] - pick[0])))
+      return SW0 + (SW1 - SW0) * SWEEP_B.timeOf(prog)
+    }
+    const gd = q('.gd'), fb = fr.getBoundingClientRect(), gb = gd.getBoundingClientRect()
+    const gx = ((gb.left + gb.width / 2 - fb.left) / W) * 100, gy = ((gb.top + gb.height / 2 - fb.top) / H) * 100
+    const hit = reach(gx, gy)
+    track(gd, 'color', [[hit, '#EEE8DD', EASE], [hit + 450, L.ink]])
+    gd.querySelectorAll('.lab').forEach((l) => track(l, 'color', [[hit, '#c7d0e6', EASE], [hit + 450, L.lab]]))
+    track(q('.s1'), 'opacity', [[800, 1], [1100, 0]])
+    track(q('.s2'), 'opacity', [[800, 0], [1100, 1]])
+    // 2 · then the screen: an outline drawn around the words; the words give way to the empty model; paper fills it
+    const OL0 = 1800, OL1 = 2550, PAPER = 2800
+    const DEAL = 3200, STAG = 90
+    fr.querySelectorAll('.tpl').forEach((t, i) => {
+      const [x, y, w, r] = ends[i]
+      const wEnd = (w / 100) * W, hEnd = (wEnd * 19.5) / 9
+      t.style.width = wEnd + 'px'
+      t.style.color = L.ink
+      const at = (cx, cy, s, rot) => `translate(${cx - wEnd / 2}px, ${cy - hEnd / 2}px) rotate(${rot}deg) scale(${s})`
+      const s0 = Math.min(1.25, Math.max(0.5, (gb.height * 1.55) / hEnd, (gb.width * 1.3) / wEnd))
+      // the outline is drawn around the words, but kept clear of the bar and of the screen's foot
+      const half = (hEnd * s0) / 2, cy = Math.min(0.96 * H - half, Math.max(0.1 * H + half, gb.top + gb.height / 2 - fb.top))
+      const from = at(gb.left + gb.width / 2 - fb.left, cy, s0, 0)
+      const to = at((x / 100) * W, (y / 100) * H, 1, r)
+      const order = Math.abs(i - lead)
+      const go = DEAL + (order - (i < lead ? 0.5 : 0)) * STAG
+      track(t, 'transform', [[go, from, EASE], [go + 1250, to]])
+      if (i === lead) {
+        track(t, 'opacity', [[OL0 - 1, 0], [OL0, 1]])
+        track(t.querySelector('svg.ol rect'), 'strokeDashoffset', [[OL0, '1', IN_OUT], [OL1, '0']])
+        track(t.querySelector('svg.ol'), 'opacity', [[PAPER + 100, 1], [PAPER + 500, 0]])
+        const dr = t.querySelector('.dr')
+        dr.style.color = L.ink
+        track(dr, 'opacity', [[OL1 - 250, 0, EASE], [OL1 + 200, 1], [PAPER + 100, 1], [PAPER + 500, 0]])
+        track(t.querySelector('.pa'), 'opacity', [[PAPER, 0, EASE], [PAPER + 450, 1]])
+      } else {
+        t.querySelector('.dr').style.display = 'none'
+        t.querySelector('.pa').style.opacity = 1
+        track(t, 'opacity', [[DEAL - 20, 0], [DEAL, 1]])
+      }
+    })
+    track(gd, 'opacity', [[OL1 - 400, 1, EASE], [OL1, 0]])
+    const thAt = 3550
+    track(q('.th'), 'opacity', [[thAt, 0, EASE], [thAt + 900, 1]])
+    track(q('.th'), 'transform', [[thAt, 'translateY(14%)', EASE], [thAt + 900, 'none']])
+    track(q('.fd'), 'opacity', [[thAt + 400, 0, EASE], [thAt + 1200, 1]])
+    anims.forEach((a) => a.pause())
+    return anims
+  }
+  const expHTML = (k) => {
+    const p = PH[k]
+    const gd = `<div class="gd" style="left:${p.l + p.w * 0.14}%;top:${p.t + p.h * 0.1}%"><div class="k">Tonight</div><div class="lab">Now · ${hm(NOW)}</div><div class="t">Dinner in the courtyard</div><div class="lab">Next · in 24 min</div><div class="t">Music on the terrace</div></div>`
+    return `<div class="win"><div class="room" style="background-image:url(img/room-${k === 'd' ? 'wide' : 'tall'}.jpg)"></div>
+        <div class="ph" style="left:${p.l}%;top:${p.t}%;width:${p.w}%;height:${p.h}%"><img src="img/guide.jpg" alt=""></div>${gd}</div>
+      <div class="tx"><div class="h">III <em>Experiences</em><small><span>I <i>Weddings</i></span><span>II <i>Artists</i></span></small></div>
+        <div class="mo"><span>Before</span><span>During</span><span>After</span></div>
+        <dl><dt class="on">On-site guide</dt><dd>What is happening now, what comes next and where to find it, open on every guest's phone while they are there.</dd>
+        <dt>Digital programme</dt><dd class="x">Everything you would hand out on paper, made to be read on a phone and kept afterwards.</dd></dl></div>`
+  }
+  const card = () => `<div class="dr"><div><s>LOGO</s><s>≡</s></div><b></b><em>Your title</em><i></i><i></i><u>Button</u></div>
+      <div class="pa"><div><s>LOGO</s><s>≡</s></div><b></b><em>Your title</em><i></i><i></i><u>Button</u></div>`
+  // the window's polygon: the photo's oblique frame, or open past the screen's edges (same four points, so it interpolates)
+  const winOf = (k, open) => {
+    const p = PH[k]
+    if (open) return 'polygon(-8% -6%, 108% -6%, 104% 106%, -12% 106%)'
+    return `polygon(${p.l + p.w * 0.08}% ${p.t}%, ${p.l + p.w}% ${p.t}%, ${p.l + p.w * 0.92}% ${p.t + p.h}%, ${p.l}% ${p.t + p.h}%)`
+  }
+
+  function build(fr, mode, staticSize) {
+    fr.getAnimations({ subtree: true }).forEach((a) => a.cancel())
+    const k = fr.classList.contains('p') ? 'p' : 'd'
+    const size = staticSize || 58
+    const ends = k === 'd' ? END.d : END.p(size)
+    const room = `img/room-${k === 'd' ? 'wide' : 'tall'}.jpg`
+    fr.innerHTML = (staticSize ? `<div class="room" style="width:100%;background-image:url(${room})"></div>` : expHTML(k)) +
+      `<div class="bA"><div class="bB"><div class="room" style="background-image:url(${room})"></div></div></div><div class="spill l"></div><div class="spill r"></div>` +
+      `<div class="th">No templates.<i>No copies.</i></div><div class="fd"><span>Make it yours</span><span>Your name</span></div>` +
+      ends.map(() => `<div class="tpl">${card()}</div>`).join('') +
+      `<div class="bar"><i>Chapter One <span style="opacity:.4">|</span> <span class="sec"><span class="s1">01 <small>Work</small></span><span class="s2">02 <small>Method</small></span></span></i><i>${k === 'd' ? `<small>${hm(NOW)}</small><small>Talk to us</small><small>≡ Menu</small>` : '≡'}</i></div><span class="now-label"></span>`
+    const W = fr.clientWidth, H = fr.clientHeight, BIG = 3 * W
+    const q = (s) => fr.querySelector(s)
+    const anims = []
+    const track = (el, prop, pts) => {
+      if (!el) return
+      const frames = pts.map(([ms, v, e]) => ({ offset: ms / T, [prop]: v, easing: e || 'linear' }))
+      if (frames[0].offset > 0) frames.unshift({ ...frames[0], offset: 0 })
+      if (frames[frames.length - 1].offset < 1) frames.push({ ...frames[frames.length - 1], offset: 1 })
+      anims.push(el.animate(frames, { duration: T, fill: 'both' }))
+    }
+    // templates
+    const p = PH[k]
+    const hStart = (p.h / 100) * H
+    const cardsGo = []
+    fr.querySelectorAll('.tpl').forEach((t, i) => {
+      const [x, y, w, r] = ends[i]
+      const wEnd = (w / 100) * W, hEnd = (wEnd * 19.5) / 9
+      t.style.width = wEnd + 'px'
+      const at = (cx, cy, s, rot) => `translate(${cx - wEnd / 2}px, ${cy - hEnd / 2}px) rotate(${rot}deg) scale(${s})`
+      const from = at(((p.l + p.w / 2) / 100) * W, ((p.t + p.h / 2) / 100) * H, Math.min(1.6, hStart / hEnd), 0)
+      const to = at((x / 100) * W, (y / 100) * H, 1, r)
+      cardsGo.push([t, from, to, x])
+      if (staticSize) t.style.transform = to
+    })
+    const bA = q('.bA'), bB = q('.bB'), rm = q('.bA .room')
+    bA.style.width = bB.style.width = BIG + 'px'
+    rm.style.width = W + 'px'
+    if (staticSize) { anims.forEach((a) => a.pause()); return anims }
+    const blade = (pts) => {
+      track(bA, 'transform', pts.map(([ms, [a], e]) => [ms, `translateX(${a * W}px) skewX(-12deg)`, e]))
+      track(bB, 'transform', pts.map(([ms, [a, b], e]) => [ms, `translateX(${(b - a) * W - BIG}px)`, e]))
+      track(rm, 'transform', pts.map(([ms, [, b], e]) => [ms, `translateX(${BIG - b * W}px) skewX(12deg)`, e]))
+      const sw = 0.05 * W
+      track(q('.spill.l'), 'transform', pts.map(([ms, [a], e]) => [ms, `translateX(${a * W - sw}px) skewX(-12deg)`, e]))
+      track(q('.spill.r'), 'transform', pts.map(([ms, [, b], e]) => [ms, `translateX(${b * W}px) skewX(-12deg)`, e]))
+      fr.querySelectorAll('.spill').forEach((s) => (s.style.width = sw + 'px'))
+    }
+    const SHUT = [-0.3, -0.3], OPEN = [-0.04, 1.04 + (TAN * H) / W]
+    let drawAt = 150, goAt = 1200, stagger = 110, thAt = 1800
+    if (mode === 'blade') {
+      const slit = k === 'd' ? [0.4, 0.6] : [0.3, 0.58]
+      blade([[0, SHUT, IN_OUT], [900, slit], [1050, slit, IN_OUT], [2300, OPEN]])
+      fr.querySelectorAll('.spill').forEach((s) => track(s, 'opacity', [[0, 0], [300, 1], [1900, 1], [2400, 0]]))
+      track(q('.win'), 'opacity', [[150, 1, EASE], [1100, 0]])
+      goAt = 1050
+    } else if (mode === 'window' || mode === 'zoom') {
+      // the window: photo → studio inside it, then it opens to the screen's edges
+      const zoom = mode === 'zoom'
+      track(q('.win .room'), 'opacity', zoom ? [[700, 0, EASE], [1700, 1]] : [[350, 0, EASE], [1350, 1]])
+      track(q('.ph'), 'opacity', zoom ? [[800, 1, EASE], [1700, 0]] : [[350, 1, EASE], [1350, 0]])
+      if (zoom) track(q('.ph'), 'transform', [[200, 'scale(1)', IN_OUT], [1900, 'scale(2.6)']])
+      track(q('.win'), 'clipPath', zoom ? [[400, winOf(k, false), IN_OUT], [2000, winOf(k, true)]] : [[1000, winOf(k, false), IN_OUT], [2400, winOf(k, true)]])
+      goAt = zoom ? 1300 : 1600
+      thAt = zoom ? 1900 : 2200
+      bA.style.display = 'none'
+    } else if (mode === 'sweep') {
+      // one edge across: the left stays off the screen, the right sweeps to the far side
+      blade([[0, SHUT, IN_OUT], [2000, [-0.3, OPEN[1]]]])
+      fr.querySelectorAll('.spill.l').forEach((s) => (s.style.display = 'none'))
+      track(q('.spill.r'), 'opacity', [[0, 0], [200, 1], [1800, 1], [2100, 0]])
+      // the light reaches the photograph at ~ 45 % of its way: the drawing appears then
+      drawAt = 600
+      track(q('.win'), 'opacity', [[600, 1, EASE], [1100, 0]])
+      goAt = 900
+      stagger = 150
+      thAt = 1700
+    }
+    // the guide's words go; the drawing comes over the photograph; the chapter's words go
+    track(q('.gd'), 'opacity', [[drawAt - 150, 1, EASE], [drawAt + 350, 0]])
+    track(q('.tx'), 'opacity', mode === 'sweep' ? [[1000, 1, EASE], [1500, 0]] : [[100, 1, EASE], [900, 0]])
+    cardsGo.forEach(([t, from, to], i) => {
+      const go = goAt + i * stagger
+      track(t, 'transform', [[go, from, EASE], [go + 1300, to]])
+      track(t, 'opacity', [[drawAt, 0, EASE], [drawAt + 450, 1]])
+      track(t.querySelector('.dr'), 'opacity', [[go + 250, 1], [go + 850, 0]])
+      track(t.querySelector('.pa'), 'opacity', [[go + 250, 0], [go + 850, 1]])
+    })
+    track(q('.th'), 'opacity', [[thAt, 0, EASE], [thAt + 900, 1]])
+    track(q('.th'), 'transform', [[thAt, 'translateY(14%)', EASE], [thAt + 900, 'none']])
+    track(q('.fd'), 'opacity', [[thAt + 400, 0, EASE], [thAt + 1200, 1]])
+    track(q('.s1'), 'opacity', [[300, 1], [600, 0]])
+    track(q('.s2'), 'opacity', [[300, 0], [600, 1]])
+    anims.forEach((a) => a.pause())
+    return anims
+  }
+
+  const host = document.getElementById('variants')
+  host.innerHTML = VARIANTS.map(([n, title, text, mode]) => `<section aria-labelledby="v${n}"><h2 id="v${n}">${n} · ${title}</h2><p>${text}</p>
+    <div class="row" data-mode="${mode}"><figure><div class="fr d"></div><figcaption>Desktop</figcaption></figure><figure><div class="fr p"></div><figcaption>Telemóvel · cartões a 58 %</figcaption></figure></div>
+    <div class="ctl"><button type="button" class="main" data-act="replay">Reproduzir</button><button type="button" data-rate="1" aria-pressed="true">1×</button><button type="button" data-rate="0.5" aria-pressed="false">½×</button>${mode === 'light' ? `<span style="width:12px"></span>` + Object.entries(HOURS).map(([h, v]) => `<button type="button" data-hour="${h}" aria-pressed="${h === 'evening'}">${v.name}</button>`).join('') : ''}</div></section>`).join('')
+
+  const runners = []
+  host.querySelectorAll('.row').forEach((row) => {
+    const sec = row.closest('section')
+    const mode = row.dataset.mode
+    let rate = 1, set = [], hold = 0, raf = 0, hour = 'evening'
+    const play = () => {
+      clearTimeout(hold); cancelAnimationFrame(raf)
+      set = [...row.querySelectorAll('.fr')].flatMap((f) => (mode === 'light' ? build5(f, hour) : build(f, mode)))
+      const DUR = set[0]?.effect.getTiming().duration ?? T
+      set.forEach((a) => { a.currentTime = 0; a.playbackRate = rate })
+      row.querySelectorAll('.now-label').forEach((l) => (l.textContent = 'Experiences'))
+      hold = setTimeout(() => {
+        set.forEach((a) => a.play())
+        row.querySelectorAll('.now-label').forEach((l) => (l.textContent = 'a passagem'))
+        const tick = () => {
+          const ms = set[0]?.currentTime ?? 0
+          if (ms < DUR) raf = requestAnimationFrame(tick)
+          else { row.querySelectorAll('.now-label').forEach((l) => (l.textContent = '7')); hold = setTimeout(play, 2600) }
+        }
+        tick()
+      }, 1400)
+    }
+    sec.querySelector('[data-act="replay"]').addEventListener('click', play)
+    sec.querySelectorAll('[data-rate]').forEach((b) => b.addEventListener('click', () => {
+      rate = +b.dataset.rate
+      sec.querySelectorAll('[data-rate]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)))
+      play()
+    }))
+    sec.querySelectorAll('[data-hour]').forEach((b) => b.addEventListener('click', () => {
+      hour = b.dataset.hour
+      sec.querySelectorAll('[data-hour]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)))
+      play()
+    }))
+    runners.push(play)
+  })
+  const statics = () => document.querySelectorAll('.fr.static').forEach((f) => build(f, 'static', +f.dataset.size))
+  let rz = 0
+  const start = () => { runners.forEach((r) => r()); statics() }
+  addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(start, 200) })
+  ;(document.fonts?.ready ?? Promise.resolve()).then(start)
+})()
+</script>
+</body>
+</html>

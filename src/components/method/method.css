@@ -1,0 +1,1087 @@
+/*
+  02 Method — the final state (storyboard 7–11 at rest). The studio stays behind the whole section (a sticky room the
+  height of the screen); the thesis and Make it yours, the six live screens, the cover and, in the dark, the closing
+  line follow one another. Values from the approved storyboard (v46): sizes in cqw of each screen, the studio's four
+  lights (#47, #93), the light as a layer of its own (#94). With no JavaScript the hour is unknown: the day's light.
+*/
+
+/* ---- the hour: ink, accent and the light's colour and side (storyboard :root[data-band]) ---- */
+.method {
+  --m-ink: #2a2823;
+  --m-accent: #7a705f;
+  --m-key: rgba(255, 253, 248, 0.75);
+  --m-kx: 50%;
+  --m-ky: 18%;
+  --m-room: image-set(url('/media/v5/method/room-day-wide.avif') type('image/avif'), url('/media/v5/method/room-day-wide.jpg') type('image/jpeg'));
+  --m-room-tall: image-set(url('/media/v5/method/room-day-tall.avif') type('image/avif'), url('/media/v5/method/room-day-tall.jpg') type('image/jpeg'));
+  position: relative;
+  color: var(--m-ink);
+  background: #d3cec4;
+}
+:root[data-light='morning'] .method {
+  --m-accent: #66737c;
+  --m-key: rgba(232, 240, 248, 0.8);
+  --m-kx: 18%;
+  --m-ky: 26%;
+  --m-room: image-set(url('/media/v5/method/room-morning-wide.avif') type('image/avif'), url('/media/v5/method/room-morning-wide.jpg') type('image/jpeg'));
+  --m-room-tall: image-set(url('/media/v5/method/room-morning-tall.avif') type('image/avif'), url('/media/v5/method/room-morning-tall.jpg') type('image/jpeg'));
+  background: #c4c7c6;
+}
+:root[data-light='evening'] .method {
+  --m-ink: #2a2420;
+  --m-accent: #93664b;
+  --m-key: rgba(255, 196, 140, 0.62);
+  --m-kx: 84%;
+  --m-ky: 46%;
+  --m-room: image-set(url('/media/v5/method/room-evening-wide.avif') type('image/avif'), url('/media/v5/method/room-evening-wide.jpg') type('image/jpeg'));
+  --m-room-tall: image-set(url('/media/v5/method/room-evening-tall.avif') type('image/avif'), url('/media/v5/method/room-evening-tall.jpg') type('image/jpeg'));
+  background: #a8917e;
+}
+/* night: lossless, dithered (#93: the dark tones banded in any lossy file) */
+:root[data-light='night'] .method {
+  --m-ink: #eee8dd;
+  --m-accent: #b89a7c;
+  --m-key: rgba(255, 196, 140, 0.26);
+  --m-kx: 62%;
+  --m-ky: 34%;
+  --m-room: url('/media/v5/method/room-night-wide.png');
+  --m-room-tall: url('/media/v5/method/room-night-tall.png');
+  background: #181a20;
+}
+
+/* the bar's mark of where the Method starts (bar-client, data-starts): from its top at rest, half a screen in with the motion, to its
+   end. Tall, as the Work's mark: 1 px tall, a quick scroll stepped over it and the bar stayed on 01 Work in the scene (2 Nov) */
+.m-start {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  pointer-events: none;
+}
+
+/* ---- the studio: one room, held behind the section while it scrolls; its light a layer of its own ---- */
+.m-studio {
+  position: sticky;
+  top: 0;
+  z-index: 0;
+  height: var(--screen);
+  margin-bottom: calc(-1 * var(--screen));
+  overflow: hidden;
+  pointer-events: none;
+}
+.m-room {
+  position: absolute;
+  inset: 0;
+  background: var(--m-room) center / cover no-repeat;
+}
+/* the light: the storyboard's ellipse on a wide screen; on a phone round and measured by the width (#94), here at rest
+   behind the screens (C) */
+.m-key {
+  position: absolute;
+  left: var(--m-kx);
+  top: calc(var(--m-ky) + 12.8%);
+  width: 140%;
+  height: 178%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(closest-side, var(--m-key), transparent 72%);
+}
+@media (max-aspect-ratio: 3 / 4), (max-width: 899px) {
+  .m-room {
+    background-image: var(--m-room-tall);
+  }
+  .m-key {
+    left: clamp(20%, var(--m-kx), 80%);
+    top: 52%;
+    width: 190%;
+    height: auto;
+    aspect-ratio: 1;
+  }
+}
+
+.m-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---- the thesis and Make it yours ---- */
+.m-head {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: clamp(20px, 3.4vw, 44px);
+  padding: calc(64px + 9vh) var(--gutter) 0;
+  text-align: center;
+}
+.m-thesis {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(2.4rem, 5.6vw, 6.6rem);
+  line-height: 1;
+}
+.m-thesis i {
+  display: block;
+}
+.m-field {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(12px, 1.6vw, 22px);
+}
+:root:not([data-js]) .m-field {
+  display: none;
+}
+/* the field's measures (owner, 3 Nov: "aesthetic"): the label in small spaced capitals, the name in the serif's italic about twice its
+   height, on one baseline; the line under the name a little longer than "Your name" */
+.m-field {
+  /* the desktop a step larger (owner, 3 Nov: between 27 px and the earlier 46 at 1440): the invitation has some pull, never a second title */
+  --m-name: max(16px, clamp(1.3rem, 2.2vw, 2.3rem));
+}
+.m-field label {
+  font-family: var(--sans);
+  font-size: clamp(0.7rem, 0.92vw, 0.95rem);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+.m-field input {
+  width: 7em;
+  padding: 0 0.3em 0.12em;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-family: var(--serif);
+  font-style: italic;
+  /* never under 16 px: Safari zooms into a smaller field */
+  font-size: var(--m-name);
+}
+.m-field input::placeholder {
+  color: inherit;
+  opacity: 0.55;
+}
+.m-field input:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 6px;
+}
+
+/* ---- the six screens (desktop: framed as phones; phone: three cards, no frame, #38) ---- */
+.m-screens {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 2.2vw;
+  margin: clamp(48px, 9vh, 110px) 0 0;
+  padding: 0 var(--gutter);
+  list-style: none;
+}
+.m-card {
+  position: relative;
+  flex: none;
+  width: clamp(120px, 11vw, 210px);
+  aspect-ratio: 9 / 19.5;
+  container-type: inline-size;
+}
+.m-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.m-dev {
+  position: absolute;
+  inset: 0;
+  padding: 2.6cqw;
+  border-radius: 11cqw;
+  background: #121212;
+  box-shadow:
+    0 0.4cqw 0.6cqw rgba(0, 0, 0, 0.22),
+    0 6cqw 8cqw -3cqw rgba(20, 16, 12, 0.38);
+}
+.m-scr {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 8.6cqw;
+  font-family: var(--sans);
+  font-size: 5cqw;
+  line-height: 1.25;
+}
+.m-scr :is(picture, img) {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.m-scr .s-k {
+  font-size: 4.6cqw;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.m-scr .s-h {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  line-height: 0.98;
+}
+/* the template sheets only exist for the transformation */
+.m-sheet {
+  display: none;
+}
+
+/* Wedding website */
+.s-wed {
+  display: flex;
+  flex-direction: column;
+  background: #f2eee7;
+  color: #2a2823;
+}
+/* the photograph takes 60 % and no more: as a flex item its image's own height pushed the title off the screen. In colour, the
+   couple of Solteiros 163 (README #96); framed low, so the couple, not the sky, fill it */
+.s-wed-ph {
+  position: relative;
+  flex: none;
+  height: 60%;
+  overflow: hidden;
+}
+.s-wed-ph img {
+  object-position: 50% 74%;
+}
+.s-wed-ph picture {
+  position: absolute;
+  inset: 0;
+}
+.s-wed-nav {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 9cqw;
+  display: flex;
+  justify-content: center;
+  gap: 6cqw;
+  color: #fff;
+  font-size: 4.6cqw;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.s-wed-tx {
+  display: grid;
+  gap: 3cqw;
+  padding: 7cqw 8cqw;
+  text-align: center;
+}
+.s-wed .s-h {
+  font-size: 15cqw;
+}
+.s-wed-named {
+  font-family: var(--serif);
+  font-size: 9cqw;
+}
+.s-wed .s-k {
+  color: var(--m-accent);
+}
+
+/* RSVP */
+.s-rsvp {
+  display: flex;
+  flex-direction: column;
+  gap: 6cqw;
+  padding: 18cqw 9cqw 10cqw;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--m-accent) 16%, #f2eee7) 0%, #f2eee7 45%);
+  color: #2a2823;
+  text-align: center;
+}
+.s-rsvp .s-h {
+  font-size: 16cqw;
+}
+.s-cd {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2cqw;
+}
+.s-cd div {
+  display: grid;
+  padding-top: 2cqw;
+  border-top: 1px solid rgba(42, 40, 35, 0.25);
+}
+.s-cd b {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 13cqw;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.s-cd span {
+  font-size: 4.4cqw;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+.s-rsvp .s-line {
+  font-family: var(--serif);
+  font-size: 8cqw;
+}
+.s-yes,
+.s-no {
+  padding: 4cqw;
+  border-radius: 99px;
+  font-size: 6cqw;
+}
+.s-yes {
+  margin-top: auto;
+  background: #2a2823;
+  color: #eee8dd;
+}
+.s-no {
+  border: 1px solid rgba(42, 40, 35, 0.4);
+}
+
+/* Portfolio */
+.s-folio {
+  display: flex;
+  flex-direction: column;
+  gap: 6cqw;
+  padding: 14cqw 0 10cqw;
+  background: #2c332d;
+  color: #eee8dd;
+}
+.s-folio-top {
+  display: flex;
+  justify-content: space-between;
+  padding-inline: 9cqw;
+}
+.s-folio-i {
+  padding-inline: 8cqw;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 72cqw;
+  line-height: 0.72;
+}
+.s-folio-strip {
+  display: flex;
+  gap: 4cqw;
+  width: max-content;
+  padding-left: 9cqw;
+}
+.s-folio-strip picture {
+  width: 54cqw;
+  height: 72cqw;
+  overflow: hidden;
+  border-radius: 1cqw;
+}
+.s-folio-line {
+  padding-inline: 9cqw;
+  opacity: 0.7;
+}
+
+/* Digital exhibition and Event website: the photograph whole, the words over its foot */
+.s-expo,
+.s-event {
+  background: #15130f;
+  color: #eee8dd;
+}
+.s-expo > picture,
+.s-event > picture {
+  position: absolute;
+  inset: 0;
+}
+.s-ov {
+  position: absolute;
+  inset: auto 0 0;
+  display: grid;
+  gap: 3cqw;
+  padding: 30cqw 9cqw 10cqw;
+  background: linear-gradient(transparent, rgba(10, 9, 7, 0.85));
+}
+.s-expo .s-h {
+  font-size: 14cqw;
+}
+.s-dots {
+  display: flex;
+  gap: 3cqw;
+}
+.s-dots i {
+  width: 8cqw;
+  height: 1px;
+  background: rgba(238, 232, 221, 0.4);
+}
+.s-dots i:first-child {
+  background: #eee8dd;
+}
+.s-event .s-ov {
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 10cqw 9cqw;
+  background: linear-gradient(180deg, rgba(10, 9, 7, 0.15), rgba(10, 9, 7, 0.1) 40%, rgba(10, 9, 7, 0.8));
+}
+.s-event .s-h {
+  font-style: normal;
+  font-size: 22cqw;
+  line-height: 0.9;
+}
+.s-dim {
+  opacity: 0.8;
+}
+.s-btn {
+  align-self: flex-start;
+  margin-top: 4cqw;
+  padding: 3.4cqw 8cqw;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 99px;
+  font-size: 5.6cqw;
+}
+
+/* On-site guide */
+.s-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 6cqw;
+  padding: 16cqw 9cqw 9cqw;
+  background: #1a1d24;
+  color: #eee8dd;
+}
+.s-guide .s-h {
+  font-size: 15cqw;
+}
+.s-guide ol {
+  position: relative;
+  display: grid;
+  gap: 6cqw;
+  margin: 0;
+  padding: 0 0 0 7cqw;
+  list-style: none;
+}
+.s-guide ol::before {
+  content: '';
+  position: absolute;
+  left: 1.2cqw;
+  top: 2cqw;
+  bottom: 2cqw;
+  width: 1px;
+  background: rgba(238, 232, 221, 0.25);
+}
+.s-guide li {
+  position: relative;
+  display: grid;
+  gap: 0.5cqw;
+  font-size: 6cqw;
+  opacity: 0.6;
+}
+.s-guide li b {
+  font-weight: 500;
+  font-size: 5cqw;
+  letter-spacing: 0.1em;
+  font-variant-numeric: tabular-nums;
+}
+.s-guide li::before {
+  content: '';
+  position: absolute;
+  left: -7.6cqw;
+  top: 1.4cqw;
+  width: 2.6cqw;
+  height: 2.6cqw;
+  border: 1px solid rgba(238, 232, 221, 0.5);
+  border-radius: 50%;
+  background: #1a1d24;
+}
+.s-guide li.now {
+  opacity: 1;
+}
+.s-guide li.now::before {
+  border-color: var(--m-accent);
+  background: var(--m-accent);
+}
+
+/* ---- the cover of the visitor's chapter (state 10) ---- */
+.m-cover {
+  position: relative;
+  z-index: 1;
+  width: clamp(200px, 17vw, 300px);
+  aspect-ratio: 9 / 19.5;
+  margin: clamp(80px, 16vh, 180px) auto 0;
+  container-type: inline-size;
+}
+.m-cover-scr {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6cqw;
+  padding: 10cqw;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--m-accent) 14%, #f4f0e8), #f4f0e8 50%);
+  color: #2a2823;
+  text-align: center;
+}
+.m-cover-scr .s-k {
+  color: var(--m-accent);
+  font-size: 5.4cqw;
+}
+.m-cover-scr .s-h {
+  font-size: 17cqw;
+}
+.method[data-named] .m-cover-scr .s-h {
+  font-size: 26cqw;
+}
+.m-rule {
+  width: 24%;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.3;
+}
+.m-cover-date {
+  font-family: var(--serif);
+  font-size: 8.6cqw;
+  line-height: 1.3;
+}
+
+/* ---- the light goes down (state 11, #48): a dark room, one calm round light measured by the width ---- */
+.m-end {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: clamp(18px, 2.4vw, 34px);
+  min-height: var(--screen);
+  margin-top: clamp(80px, 14vh, 160px);
+  padding: 80px var(--gutter);
+  color: #eee8dd;
+  text-align: center;
+}
+.m-dark {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle 46vw at 50% 44%, rgba(255, 236, 206, 0.15), rgba(255, 236, 206, 0.05) 60%, transparent 100%),
+    #171816;
+}
+.m-close {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(2.2rem, 4.6vw, 5.4rem);
+  line-height: 1.08;
+}
+.m-close i {
+  display: block;
+}
+.m-for {
+  display: block;
+  margin-top: 0.7em;
+  font-size: 0.46em;
+  font-style: italic;
+  opacity: 0.9;
+}
+.m-steps {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4em 0;
+  max-width: 60ch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: clamp(0.72rem, 1.15vw, 0.95rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+.m-steps li + li::before {
+  content: '·';
+  margin: 0 0.7em;
+}
+.m-cta {
+  margin-top: clamp(4px, 1vw, 14px);
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid currentColor;
+  color: inherit;
+  font-size: clamp(0.8rem, 1.3vw, 1.05rem);
+  letter-spacing: 0.2em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+.m-cta:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 6px;
+}
+
+/* ---- phone: three cards without frames, larger; the cover and the light by the width ---- */
+@media (max-width: 899px) {
+  .m-head {
+    padding-top: calc(44px + 8vh);
+  }
+  /* the phone's measure, capped by the height: a tablet upright would get a phone's sizes at twice the width (2 Nov) */
+  .m-thesis {
+    font-size: min(11vw, 5.1svh);
+  }
+  .m-field {
+    --m-name: 1.2rem;
+  }
+  .m-field label {
+    font-size: 0.68rem;
+  }
+  .m-field input {
+    width: 7em;
+  }
+  .m-screens {
+    gap: 4vw;
+  }
+  .m-card:not([data-phone]) {
+    display: none;
+  }
+  .m-card {
+    width: 27vw;
+  }
+  .m-dev {
+    padding: 0;
+    background: none;
+  }
+  .m-scr {
+    border-radius: 5cqw;
+  }
+  .m-cover {
+    width: min(64vw, 29.5svh);
+  }
+  .m-cover .m-dev {
+    box-shadow: 0 1cqw 1.6cqw rgba(0, 0, 0, 0.22), 0 10cqw 12cqw -5cqw rgba(20, 16, 12, 0.38);
+  }
+  .m-dark {
+    background:
+      radial-gradient(circle 62vw at 50% 44%, rgba(255, 236, 206, 0.15), rgba(255, 236, 206, 0.05) 60%, transparent 100%),
+      #171816;
+  }
+  .m-steps {
+    flex-direction: column;
+    line-height: 1.7;
+  }
+  .m-steps li + li::before {
+    content: none;
+  }
+}
+
+.m-sk-bar {
+  display: flex;
+  justify-content: space-between;
+  font-size: 7cqw;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.m-sk-img {
+  height: 34%;
+  border: 1px solid transparent;
+  border-radius: 3cqw;
+  background: repeating-linear-gradient(45deg, #ccc8c0 0 3cqw, #d6d2cb 3cqw 6cqw);
+}
+.m-sk-t {
+  font-size: 11cqw;
+  line-height: 1;
+}
+.m-sk-l {
+  height: 3.4cqw;
+  border-radius: 2cqw;
+  background: #bdb9b1;
+}
+.m-sk-s {
+  width: 60%;
+}
+.m-sk-btn {
+  align-self: flex-start;
+  margin-top: auto;
+  padding: 3cqw 9cqw;
+  border: 1px solid #a9a59d;
+  border-radius: 99px;
+  font-size: 7cqw;
+}
+/* ---- the blade, the cover from the featured screen, the whole screen on a phone (README #96) ---- */
+.m-wipe,
+.m-wipe-b,
+.m-wipe-in {
+  display: contents;
+}
+.m-night,
+.m-spill,
+.m-cv {
+  display: none;
+}
+.m-cv-k {
+  font-size: 4.4cqw;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.m-cv-h {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15cqw;
+  line-height: 1;
+}
+.m-cv-d {
+  font-family: var(--serif);
+  font-size: 6.4cqw;
+  line-height: 1.3;
+}
+
+/* ================= the scene, held (only with JavaScript and motion; method-stage.ts) =================
+   On :root[data-js] from the server, so the held layout is there from the first paint: as a class set by the script, a refresh
+   in the Method showed the resting page for a moment and the page grew under the visitor (2 Nov). */
+@media (prefers-reduced-motion: no-preference) {
+/* ================= the scene, held (states 6 → 11; method-client, the motion) =================
+   Only with JavaScript and motion (.m-live, set by the client): the stage is held for the whole section and every layer
+   is placed by script — the cards by transform, the rest by opacity — and changed with Web Animations from where it
+   is seen (iOS cut CSS transitions, README #90, #91). Before the scene the stage is the Work's last ground, dark
+   (#171b22): the Work lets go onto the same colour, then the studio's lights come on. */
+:root[data-js] .method {
+  /* laid over the Work's last 1.6 screens (README #98): transparent until the scene, so Experiences stays seen beneath and the
+     blade opens the studio over it; until then the Work keeps the taps */
+  position: relative;
+  z-index: 2;
+  /* half a screen held before the scene (LEAD in method-stage.ts) + 4.7 screens of scene + the stage (README #99). The stage is
+     already held, transparent, when the light comes and goes: held only from the scene on, it slid down with the page when the
+     visitor scrolled back to Experiences (owner's recording, 2560 × 1305, 2 Nov) */
+  height: calc(var(--screen) * 6.2);
+  /* over the Work's last 3.1 screens (work.css: its last step holds Experiences one screen longer under the light, 3 Nov) */
+  margin-top: calc(var(--screen) * -3.1);
+  /* the hour's ground colour (above) would cover the Work: here the stage brings its own room */
+  background: transparent;
+  pointer-events: none;
+}
+:root[data-js] .method .m-start {
+  top: calc(var(--screen) * 0.5);
+}
+:root[data-js] .method:not([data-phase]) .m-stage,
+:root[data-js] .method[data-phase='pre'] .m-stage {
+  pointer-events: none;
+}
+:root[data-js] .method .m-stage,
+:root[data-js] .method .m-end {
+  pointer-events: auto;
+}
+:root[data-js] .method .m-stage {
+  position: sticky;
+  top: 0;
+  height: var(--screen);
+  overflow: hidden;
+}
+/* letting go, back above the scene: held where it was while the blade closes (method-stage.ts, holdWhileLeaving) */
+:root[data-js] .method.m-leaving .m-stage {
+  position: fixed;
+  left: 0;
+  right: 0;
+}
+:root[data-js] .method .m-studio {
+  position: absolute;
+  inset: 0;
+  height: auto;
+  margin: 0;
+  opacity: 0;
+}
+:root[data-js] .method .m-head {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  right: 0;
+  top: calc(64px + 5vh);
+  padding-top: 0;
+  /* the thesis steps back smaller from its top (#102): the field closer, so the two read as one group */
+  gap: clamp(14px, 2vw, 28px);
+  opacity: 0;
+}
+:root[data-js] .method .m-screens {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  display: block;
+}
+:root[data-js] .method .m-card {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--bw, 120px);
+  opacity: 0;
+  backface-visibility: hidden;
+}
+:root[data-js] .method .m-cover {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  top: 48%;
+  margin: 0;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.86);
+}
+:root[data-js] .method .m-end {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  margin: 0;
+  min-height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+:root[data-js] .method[data-phase='11'] .m-end {
+  pointer-events: auto;
+}
+/* the template sheet over each screen (state 7): the same six times */
+:root[data-js] .method .m-sheet {
+  position: absolute;
+  inset: 2.6cqw;
+  display: flex;
+  flex-direction: column;
+  gap: 5cqw;
+  padding: 12cqw 9cqw 9cqw;
+  border: 1px solid transparent;
+  border-radius: 8.6cqw;
+  background: #e2dfd8;
+  color: #8f8b83;
+  font-family: var(--sans);
+}
+/* the caret waiting in Make it yours (README #102): with the motion only; gone once the field is in use */
+:root[data-js] .method .m-in {
+  position: relative;
+  display: inline-block;
+}
+:root[data-js] .method .m-caret {
+  position: absolute;
+  /* where a caret stands before the first letter: from just under the text's baseline to about the capitals' height (the baseline sits
+     0.46 em above the field's foot in Cormorant's italic: 0.12 em of padding, the line, the descent) */
+  left: 0.22em;
+  bottom: 0.36em;
+  width: 1px;
+  height: 0.78em;
+  background: currentColor;
+  opacity: 0.85;
+  font-size: var(--m-name);
+  pointer-events: none;
+}
+:root[data-js] .method .m-in input:is(:focus, :not(:placeholder-shown)) + .m-caret {
+  display: none;
+}
+:root[data-js] .method .m-thesis span {
+  display: block;
+}
+:root[data-js] .method :is(.m-thesis, .m-thesis > *) {
+  transform-origin: 50% 0;
+}
+:root[data-js] .method .m-field {
+  transform-origin: 50% 50%;
+}
+@media (max-width: 899px) {
+  /* a longer scene on a phone: 6.2 screens, not 4.7, its steps evened out at ~0.8 screen (method-stage.ts STARTS_PHONE), so a
+     finger does not run through the phases (owner, Xiaomi, 3 Nov: "muito rápido") */
+  :root[data-js] .method {
+    height: calc(var(--screen) * 7.7);
+  }
+  /* 3 vh lower than before: room under the bar's islands (owner, 3 Nov, README #102) */
+  :root[data-js] .method .m-head {
+    top: calc(44px + 7vh);
+  }
+  /* the cards in the shape of the visitor's own screen (README #101), set by method-stage.ts */
+  :root[data-js] .method .m-card {
+    aspect-ratio: var(--m-ar, 9 / 19.5);
+  }
+  /* the whole screen of 9 in the held stage's shape, so it fills the screen to its foot (README #103) */
+  :root[data-js] .method .m-card.is-full {
+    aspect-ratio: var(--m-ar-full, var(--m-ar, 9 / 19.5));
+  }
+  :root[data-js] .method .m-sheet {
+    inset: 0;
+    border-radius: 5cqw;
+  }
+  :root[data-js] .method .m-cover {
+    top: 46%;
+  }
+  /* the featured screen opens to the whole screen: its corners go with it */
+  :root[data-js] .method .m-card.is-full .m-scr {
+    border-radius: 0;
+  }
+  /* the whole screen runs on under the browser's bars (on iOS under Safari's floating bar): its words sit at the top of the cream
+     panel, clear of them (owner, iPhone, 3 Nov: the date was under the bar) */
+  :root[data-js] .method .m-card.is-full .s-wed-tx {
+    align-content: start;
+  }
+}
+/* the Work's own ground, under the light once it covers the screen */
+:root[data-js] .method .m-night {
+  display: block;
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: #171b22;
+  opacity: 0;
+}
+/* the light (README #96, #102): two oblique edges, each a clipping box three screens wide moved by transform (the left edge,
+   .m-wipe; the right edge, .m-wipe-b inside it); the room inside is moved back by both, so it stays still while one edge crosses
+   the screen from the hour's side. Transforms only, no animated clip-path. --mw is the stage's width, set by method-stage.ts */
+:root[data-js] .method :is(.m-wipe, .m-wipe-b) {
+  display: block;
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: calc(var(--mw, 100vw) * 3);
+  overflow: hidden;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+:root[data-js] .method .m-wipe-in {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: var(--mw, 100vw);
+  transform-origin: 0 0;
+  will-change: transform;
+}
+/* the light's spill (README #100, "B suave"): no line at its edges; the room's light falls out of the moving edge on both sides,
+   in the colour of the hour, over a twentieth of the width. A lit line was the wrong colour by day and a hard stroke at night;
+   twice as wide and strong, it read as fog (owner, 2 Nov). Moved with the edges, by transform (method-stage.ts) */
+/* The colour is opaque; how much of it, across the width, is a dithered mask with the hour's strength in it (18 % morning, 16 %
+   day, 20 % evening, 11 % night; scripts/spill-mask.mjs). As a CSS gradient this faint light showed steps at night (2560, 2 Nov) */
+/* the studio's colour at the top of the screen at 7, by the hour (measured, 390 × 844, 3 Nov): the page's edges take it once the light
+   has covered the screen, so Safari's status area and the band under its bar are the studio's (README #103) */
+.method {
+  --m-edge: #e0ddd4;
+}
+:root[data-light='morning'] .method {
+  --m-edge: #d3d3d1;
+}
+:root[data-light='evening'] .method {
+  --m-edge: #c5b19e;
+}
+:root[data-light='night'] .method {
+  --m-edge: #22252d;
+}
+:root[data-js] .method {
+  --m-spill: rgb(255, 248, 232);
+  --m-spill-l: url('/media/v5/method/spill-day-l.png');
+  --m-spill-r: url('/media/v5/method/spill-day-r.png');
+}
+:root[data-js][data-light='morning'] .method {
+  --m-spill: rgb(214, 228, 244);
+  --m-spill-l: url('/media/v5/method/spill-morning-l.png');
+  --m-spill-r: url('/media/v5/method/spill-morning-r.png');
+}
+:root[data-js][data-light='evening'] .method {
+  --m-spill: rgb(255, 190, 130);
+  --m-spill-l: url('/media/v5/method/spill-evening-l.png');
+  --m-spill-r: url('/media/v5/method/spill-evening-r.png');
+}
+:root[data-js][data-light='night'] .method {
+  --m-spill: rgb(255, 178, 108);
+  --m-spill-l: url('/media/v5/method/spill-night-l.png');
+  --m-spill-r: url('/media/v5/method/spill-night-r.png');
+}
+:root[data-js] .method .m-spill {
+  display: block;
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: calc(var(--mw, 100vw) * 0.05);
+  transform-origin: 0 0;
+  background: var(--m-spill);
+  -webkit-mask-size: 100% 64px;
+  mask-size: 100% 64px;
+  -webkit-mask-repeat: repeat-y;
+  mask-repeat: repeat-y;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+:root[data-js] .method .m-spill-l {
+  -webkit-mask-image: var(--m-spill-l);
+  mask-image: var(--m-spill-l);
+}
+:root[data-js] .method .m-spill-r {
+  -webkit-mask-image: var(--m-spill-r);
+  mask-image: var(--m-spill-r);
+}
+/* the cover is the featured screen itself, its photograph under a veil and the cover's words over it */
+:root[data-js] .method .m-cover {
+  display: none;
+}
+:root[data-js] .method .m-cv {
+  display: grid;
+  position: absolute;
+  z-index: 3;
+  inset: 2.6cqw;
+  align-content: end;
+  justify-items: center;
+  gap: 2.6cqw;
+  padding: 0 8cqw 16cqw;
+  overflow: hidden;
+  border-radius: 8.6cqw;
+  background: linear-gradient(180deg, rgba(20, 18, 15, 0) 30%, rgba(20, 18, 15, 0.62));
+  color: #eee8dd;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+}
+:root[data-js] .method .m-cv > * {
+  opacity: 0;
+  transform: translateY(30%);
+}
+/* painted before they are needed: at 0 the first frame of the cover drew them (122 ms on the Xiaomi, 2 Nov) */
+:root[data-js] .method .m-cv {
+  opacity: 0.001;
+}
+@media (max-width: 899px) {
+  :root[data-js] .method .m-cv {
+    inset: 0;
+    padding-bottom: 14cqw;
+    border-radius: 5cqw;
+  }
+  /* the whole screen: the site's own menu comes down, clear of the bar's islands */
+  :root[data-js] .method .m-card.is-full .s-wed-nav {
+    top: 24cqw;
+  }
+  :root[data-js] .method .m-card.is-full .m-dev {
+    box-shadow: none;
+  }
+}
+/* With the motion the wedding screen is built in layers, so becoming the cover is transforms only: the photograph keeps its
+   frame (the top 60 %) and grows by scale to the whole card, the cream panel lies over the foot and sinks away. Animating the
+   photograph's height repainted the whole card on every frame — at the size of the screen at 9 → 10 (100–122 ms on the
+   Xiaomi, 2 Nov) */
+:root[data-js] .method .s-wed {
+  position: relative;
+}
+:root[data-js] .method .s-wed-ph {
+  position: absolute;
+  inset: 0;
+  height: auto;
+}
+:root[data-js] .method .s-wed-ph picture {
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 60%;
+  transform-origin: 50% 0;
+}
+:root[data-js] .method .s-wed-tx {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 40%;
+  background: #f2eee7;
+}
+}

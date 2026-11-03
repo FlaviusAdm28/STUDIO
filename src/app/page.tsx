@@ -1,7 +1,8 @@
-import { about, contact, method, nav, questions, sections } from '@content'
+import { about, contact, nav, questions, sections } from '@content'
 import { Bar } from '@/components/bar/bar'
 import { Entrance } from '@/components/entrance/entrance'
 import { Work } from '@/components/work/work'
+import { Method } from '@/components/method/method'
 import { Picture } from '@/components/picture'
 import { FpsMeter } from '@/components/fps-meter'
 
@@ -29,16 +30,7 @@ export default function Home() {
 
         <Work />
 
-        <section id="method" aria-labelledby="method-title">
-          <h2 id="method-title">02 Method</h2>
-          <p>{method.thesis}</p>
-          <ol>
-            {method.steps.map((s) => (
-              <li key={s}>{s}</li>
-            ))}
-          </ol>
-          <p>{method.close}</p>
-        </section>
+        <Method />
 
         <section id="about" aria-labelledby="about-title">
           <h2 id="about-title">03 About</h2>

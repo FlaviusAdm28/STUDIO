@@ -178,7 +178,7 @@ editar originais. O storyboard já os usa em versão pequena (`media-src/storybo
 | Artists ×3, Experiences ×3 (IA) | Work, ecrãs do Method | |
 | **Auras** (~48 px, desfocadas) de cada fotografia do Work e da 124 (P&B e cor) | atmosfera do Work e do About | < 1 KB cada; P&B com tom quente |
 | 124 a cores + **P&B derivado** | About | uma só fotografia |
-| **Quatro fundos do estúdio** (manhã · dia · fim de tarde · noite) + o estúdio da **pedra** (Questions) | Method, Questions | papel curvo + luz + vinheta + grão; ~40–60 KB; 2 tamanhos |
+| **Quatro fundos do estúdio** (manhã · dia · fim de tarde · noite) + o estúdio da **pedra** (Questions) | Method, Questions | papel curvo + luz + vinheta + grão; 2 tamanhos. **Feitos a 2/11 (README #93):** manhã, dia e fim de tarde em AVIF 21–36 KB; a noite em PNG Bayer sem perdas, 209–218 KB. Em `media-src/method/final/`. A pedra das Questions fica para o M7 |
 | Sombra de ecrã (pequena, transparente) | Method | uma imagem |
 | **Luz com furo** (camada escura com um círculo de luz) | fim do Method, entrada do About | uma imagem por proporção |
 | ~~Imagens desfocadas para o menu~~ | — | **já não são precisas**: o vidro é ao vivo (`backdrop-filter`, README #69) |
@@ -205,3 +205,9 @@ editar originais. O storyboard já os usa em versão pequena (`media-src/storybo
   335, 347 (convite) e as placas `art`, `method`, `image19aug26`; derivados em `public/media/v5/`.
 - **Sessão final 24/10**: vídeo avaliado e recodificado; Solteiros analisada (367); seleção Weddings
   002/154/343; 7 imagens IA entregues pelo owner.
+
+## Máscaras da luz da fenda (M6, 2/11)
+
+- `public/media/v5/method/spill-<morning|day|evening|night>-<l|r>.png`: 128 × 64 px, cinzento e alfa a 8 bits, com dither Bayer 8 × 8 e a força da hora no alfa (README #100). Ocupam 0,4 KB cada.
+- Geram-se com `node scripts/spill-mask.mjs`, **não** com `npm run images`.
+- Ficam fora do git, como os outros derivados (`.gitignore`: `/public/media/v5/`). Por integrar no `images.mjs`.

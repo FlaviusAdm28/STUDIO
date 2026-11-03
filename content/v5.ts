@@ -311,7 +311,51 @@ export const method = {
   steps: ['Conversation', 'Creative direction', 'Development with your feedback', 'Launch & aftercare'],
   screenWedding: {
     src: '/media/v5/method/screen-wedding',
-    alt: 'A bride in a hat stands on a road, a long white scarf lifting in the wind.',
+    alt: 'On an empty road under a wide pale sky, a man in black and a woman in a white suit and lace veil stand face to face.',
+  },
+  /** The template every screen starts as (state 7): the same six times, the name in place of the title once written. */
+  template: { logo: 'Logo', title: 'Your title', button: 'Button' },
+  /** The six live screens (states 8–9, README #35, #49; words as in the approved storyboard). {weekday} {day} {month}
+   *  {ordinal} {time} {timeInWords} {year} {name} are the visitor's own; without JavaScript the plain line is shown. */
+  screens: {
+    wedding: {
+      label: 'Wedding website',
+      nav: ['Our day', 'Story', 'RSVP'],
+      title: 'The {ordinal} of {month}',
+      named: '{name}',
+      namedLine: 'the {ordinal} of {month}',
+      plain: 'Our day',
+      line: '{weekday} · {time}',
+    },
+    rsvp: {
+      label: 'RSVP',
+      kicker: 'RSVP',
+      title: 'Will you join us?',
+      named: '{name}, will you join us?',
+      units: ['days', 'hrs', 'min', 'sec'],
+      line: '{weekday}, at {timeInWords}',
+      yes: 'Joyfully accept',
+      no: 'Sadly decline',
+    },
+    portfolio: { label: 'Portfolio', title: 'Portfolio', line: 'Selected works · {year}', namedLine: 'Works · {year}' },
+    exhibition: { label: 'Digital exhibition', kicker: 'Room I', title: 'Open since {time}', named: '{name} — Open since {time}', plain: 'Open now' },
+    event: {
+      label: 'Event website',
+      kicker: '{weekday} {day} {mon}',
+      title: 'Doors {time}',
+      plain: 'Doors open',
+      line: 'An evening of music',
+      named: 'An evening for {name}',
+      button: 'Get the guide',
+    },
+    guide: {
+      label: 'On-site guide',
+      kicker: 'Tonight',
+      title: 'You are here',
+      named: '{name}, you are here',
+      rows: ['Arrivals', 'Dinner in the courtyard', 'You arrive', 'Music on the terrace'],
+      arrives: '{name} arrives',
+    },
   },
 } as const
 

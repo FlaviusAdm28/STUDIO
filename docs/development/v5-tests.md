@@ -805,3 +805,456 @@ Relatório completo em `docs/development/v5-auditoria-entrada-work.md`: sete tam
 - **Não verificado:** iPhone e Xiaomi.
 - **Vidro da barra:** a borda que o owner vê é o aro de luz aprovado (#69, #80). Página de comparação com quatro variantes (como está, aro suave, sem aro, sem aro e sem lente), feita com capturas do site: https://claude.ai/artifact/LXX3DjkKNWoExydD3dFMgg. Aguarda a escolha do owner.
 - **Owner, 2/11:** o rebordo branco dos cartões está corrigido (confirmado). O aro do vidro da barra e do menu fica como está (opção A).
+
+## M6 — Method
+
+### Passo 2: o Method parado (2/11)
+- **O que é:** `src/components/method/` (`method.tsx`, `method.css`, `method-client.tsx`). O estado final de 7–11 em sequência, que é também a versão sem JavaScript e com movimento reduzido:
+  - o estúdio da hora, preso atrás da secção (uma imagem de sala sem luz, #94) e a luz como camada (no telemóvel, redonda e atrás dos ecrãs, C);
+  - *No templates. No copies.* e *Make it yours* (`<label>`, sem JS escondido);
+  - seis ecrãs vivos no desktop, três no telemóvel, com a data, a hora e o nome;
+  - a capa (*Your first/second chapter*, ou *Chapter One · for / Ana*);
+  - o fim no escuro, com uma luz redonda medida pela largura.
+- **Pipeline:** `npm run images -- --only=studio` copia as salas de `media-src/method/final/` sem as recodificar.
+- **Barra:** qualquer elemento com `data-lum` declara o seu brilho (antes só `section`). O Method declara o do estúdio por hora (manhã .84, dia .87, fim de tarde .70, noite .14) e o fim escuro .1. Sobre o papel claro as ilhas ficam a .47–.50.
+- **Bugs encontrados e corrigidos:**
+  1. As regras do esqueleto das secções por construir (margens, `picture` a 420 px) apanhavam o Method.
+  2. No ecrã do casamento, a fotografia (item flex) empurrava o título para fora.
+  3. Pintar as bordas da página com o papel do estúdio deixava o About, ainda sem fundo, sobre papel claro. Revertido: o estúdio cobre o ecrã.
+- **Chrome de testes, varrimento lento nos dois sentidos** (do fim do Work ao About, passos de 1/9 de ecrã): 1920×1080, 1440×900, 768×1024, 390×844, 320×640. 0 erros, 0 overflow, secção da barra certa, escuro das ilhas como acima.
+- **Nome:** escrito tecla a tecla, *Ana* aparece igual nos seis templates e compõe cada ecrã, a capa, *For Ana.*, *Talk to us, Ana* e *Hello, Ana.* no menu. Apagado, tudo volta ao texto de origem.
+- **Teclado:** do campo, o Tab vai para *Talk to us*, com foco visível.
+- **Sem JS:** o texto lê-se inteiro; o campo não aparece.
+- **Xiaomi (dedo sintetizado, toda a secção, dia):**
+
+| Scroll | Desce | Sobe |
+|---|---|---|
+| Lento, 600 px/s | 73 fps | 76 fps |
+| Normal, 1500 px/s | 70 fps | 72 fps |
+| Rápido, 3500 px/s | 62 fps | 65 fps |
+
+  Dentro do Method, só frames isolados de 44–55 ms. O maior (133 ms) cai antes, na saída do Work (já conhecido, #88).
+- **Ecrã do Xiaomi:** capturas em sete pontos; as ilhas leem-se sobre o estúdio; *Your second chapter* para quem volta.
+- **Não verificado:** iPhone (cor das bordas do Safari e camadas da luz no OLED); horas reais diferentes de dia no telemóvel (só forçadas no PC); leitor de ecrã.
+
+### Passo 3: a cena presa e a ponte do Work (2/11)
+- **O que é:** `method-stage.ts`. Com JavaScript e sem movimento reduzido, o Method é uma cena presa de 7,4 ecrãs:
+  - pré: o fundo escuro de Experiences (#171b22), para a costura com o Work não se ver;
+  - 7: o desenho do guia sai do lugar do palco do Work e multiplica-se em seis templates (três no telemóvel), enquanto o estúdio acende;
+  - 8a–8c: as folhas saem e revelam os ecrãs (desktop dois a dois, telemóvel um a um);
+  - 9: o ecrã em destaque é o do capítulo escolhido na entrada (no telemóvel, a ecrã inteiro);
+  - 10: a capa;
+  - 11: a luz baixa.
+- **Técnica:**
+  - fases por scroll, com margem de 2,5 %;
+  - cada passagem é uma Web Animation que parte do estado visível;
+  - as cartas são desenhadas no maior tamanho que vão ter e só reduzem (nunca ampliam);
+  - a luz anda por `transform`;
+  - a barra lê .12 no escuro (pré, 11) e o brilho do estúdio no resto.
+- **Posições:** as do storyboard v46, com duas exceções:
+  1. o primeiro ecrã revelado no telemóvel desce de 40 % para 47 % (a 40 % tapava *Make it yours*);
+  2. no desenho de telemóvel, a cena vive numa moldura de proporção de telemóvel (largura limitada pela altura). Num telemóvel não muda nada; num tablet ao alto (768 × 1024) os ecrãs, a capa e o destaque passavam do ecrã. A frase e a capa do telemóvel têm o mesmo limite pela altura.
+- **Chrome de testes, fase a fase, a descer e a subir em passos de 1/8 de ecrã:** 1920, 1440, 768, 390, 320, e também manhã (1440) e noite (390). A ordem das fases está certa nos dois sentidos; 0 erros; 0 overflow.
+- **Frames medidos na página (rAF), a 390 e a 1440, em 11 passagens** (incluindo 11 → 10, 10 → 9, 9 → 8c, 7 → pré): máximo 7–21 ms, 0 frames > 40 ms. A gravação de ecrã mostrava pausas de 201–264 ms em pré → 7 e 8c ↔ 9, mas eram da própria gravação; os rAF não as têm.
+- **Outros casos:**
+  - movimento reduzido: estado final, sem cena;
+  - por `#method`: chega à fase 7;
+  - focar o campo na fase 11 leva à 7 (o scroll vai no frame seguinte, porque o browser repunha o scroll depois do foco);
+  - *Talk to us* pelo teclado leva à 11;
+  - o nome compõe os templates na fase 7;
+  - mudar o tamanho a meio (1440 → 900 × 700 → 390) recoloca tudo, sem overflow.
+- **Fotografias:** os ecrãs em destaque no telemóvel pedem a fotografia à largura do ecrã (`100vw`), porque abrem a ecrã inteiro.
+- **Não verificado:** Xiaomi (bloqueado durante este passo); iPhone; a passagem da lâmina do Work para a cena no ecrã real.
+- **Xiaomi (2/11, ao fim do dia, fim de tarde), passagens medidas por rAF, scroll parado depois de cada salto:** 7 → 8a, 8a → 8b, 8b → 8c, 8c → 9, 9 → 10, 10 → 11 e os regressos correm a 88,7–90 fps, com máximo de 22–45 ms.
+- **pré → 7 (as luzes acendem):** começava com um frame de 182 ms.
+  - Correção 1: o estúdio e as fotografias das cartas são descodificados quando o Method está a um ecrã de distância → 132 ms.
+  - Correção 2: antes da cena, as cartas e o estúdio ficam a 0,1 % de opacidade, para já estarem desenhados → 55–100 ms (varia entre corridas).
+- **As folhas deixaram de animar a moldura, as margens e os cantos** (só as cores): cada frame refazia a disposição de três a seis cartas. Os cantos do ecrã a ecrã inteiro mudam de uma vez.
+- **Scroll de dedo sintetizado pela cena inteira (6178 px):**
+
+| Scroll | Desce | Sobe |
+|---|---|---|
+| Lento, 600 px/s | 80 fps, 11 frames > 40 ms | 82 fps, 8 > 40 ms |
+| Normal, 1500 px/s | 76 fps, 4 > 40 ms | 77 fps |
+| Rápido, 3500 px/s | 57 fps | 70 fps |
+
+  Antes das correções: lento a descer 75,5 fps com 22 frames > 40 ms. Os frames maiores (77–111 ms) caem na saída do Work (já conhecida) e no início da cena. No rápido, uma passagem atravessa várias fases e os voos sobrepõem-se.
+- **Ecrã do Xiaomi, fase a fase:** igual ao Chrome de testes; o campo à vista nas fases 8; o casamento a ecrã inteiro na 9.
+
+### Passo 3b: A + B, a 163, o ecrã inteiro e a capa feita do ecrã (2/11, README #96, #97)
+- **O que mudou:**
+  - Antes da cena vê-se o *On-site guide*, a última peça de Experiences, no lugar do palco do Work, sobre a noite.
+  - Na fase 7, uma cortina oblíqua de noite (#171b22), com o bordo iluminado, desliza e abre o estúdio, que já estava desenhado por baixo. O guia torna-se o primeiro template e os outros saem dele.
+  - Na fase 9 (telemóvel), o ecrã em destaque ocupa o ecrã inteiro, por baixo da barra; o menu do site desce para 24cqw.
+  - Na fase 10, o ecrã em destaque transforma-se na capa: a fotografia cresce por escala até à carta inteira, o painel creme desce e apaga-se, e o véu e as palavras da capa sobem uma a uma.
+  - O ecrã do casamento usa a Solteiros 163, a cores (SHA-1 76E916D6… igual na origem e em `media-src/weddings/`), em 640, 960 e 1280 px; o maior pesa 209 KB em AVIF.
+- **Primeira versão da lâmina: uma faixa a mover a própria sala.** Problemas encontrados:
+  1. no telemóvel, a 150 % de largura, o bordo inclinado atravessava o ecrã em baixo (390 × 844);
+  2. o Xiaomi só desenhava a sala quando a faixa abria (frames de 78–100 ms).
+  Trocada por uma cortina de cor lisa movida por `transform`: pré → 7 passou a 66–79 ms na mesma medição.
+- **A capa primeiro animava a altura da fotografia:** isso redesenhava a carta inteira em cada frame, ao tamanho do ecrã (100–122 ms). Passou a ser só `transform`: 55–66 ms.
+- **As folhas perderam a transição de cor;** as leituras de estilo de cada mudança de fase foram agrupadas antes das animações.
+- **Xiaomi, por rAF, com a página acabada de carregar (salto de scroll):**
+  - pré → 7: 79–144 ms (varia entre corridas);
+  - 9 → 10: 55–110 ms;
+  - todas as outras passagens: 88–90 fps, com máximo de 22–44 ms.
+  - Com traço de desempenho, o 9 → 10 não tem nenhuma tarefa acima de 14 ms. O pico é de primeira vez (descodificar e desenhar a fotografia grande); por indício, não provado.
+- **Xiaomi, scroll de dedo:**
+
+| Scroll | Desce | Sobe |
+|---|---|---|
+| Lento | 80 fps | 82 fps |
+| Normal | 75 fps | 73 fps |
+| Rápido | 70 fps | 64 fps |
+
+  Ainda há frames isolados de 110–122 ms no início da cena e ao formar a capa, e um de 243 ms numa passagem rápida para cima, na saída do Work.
+- **Chrome de testes, fase a fase nos dois sentidos, a 1920, 1440, 768, 390 e 320:** 0 erros, 0 overflow. Também passam: movimento reduzido, entrada por `#method`, mudança de tamanho a meio.
+- **Gravação frame a frame a 390:** a cortina varre o ecrã e o guia multiplica-se; 9 → 10 é um só objeto, nos dois sentidos.
+- **Não verificado:** iPhone. No tablet ao alto, o ecrã em destaque fica do tamanho da moldura de telemóvel (a altura toda, não a largura).
+
+### Passo 3c: revisão do owner — a lâmina sobre Experiences, fase 10, refresh, Accept (2/11, README #98)
+- **O que o owner viu:** no desktop o Method subia como um bloco escuro, com um template sozinho à esquerda, e só depois passava a lâmina; a fase 10 tinha dois ecrãs esbatidos de um lado e um do outro; um refresh em Artists ou Experiences mostrava Weddings e corria até ao capítulo; o botão Accept parecia ajustar-se antes da resposta.
+- **Causa do bloco escuro:** o Method por cima do Work tinha o fundo da hora (#181a20 à noite), e tapava o Experiences em vez de o deixar ver. Com o fundo transparente na cena presa:
+  - em −0,6 e −0,05 telas antes da cena vê-se o Experiences; em −0,05 já está em During, com o guia (1440 e 390, scroll em passos);
+  - na passagem gravada, a lâmina atravessa o próprio Experiences e o estúdio fica atrás dela; o guia torna-se o primeiro template e multiplica-se (1440 e 390).
+- **Fase 10, 1440:** a capa ao centro, dois ecrãs esbatidos de cada lado.
+- **Fase 10, 390:** em repouso a capa fica limpa. Durante a passagem vê-se uma faixa creme em baixo: é o fundo do ecrã enquanto a fotografia cresce. Faz parte do desenho e foi deixada como está.
+- **Refresh** (`reload.mjs`, amostra por frame desde o primeiro script):
+  - em Artists (1440) e Experiences (1440 e 390), o palco fica a opacidade 0 até ~135–147 ms;
+  - depois aparece já no capítulo certo, sem passar por Weddings.
+- **Accept** (`accept.mjs`, posição por frame): o cartão crescia de 96 % ao subir. Agora só sobe; durante todo o momento *Before* a pílula mantém a largura (83,8 px), e a troca para a confirmação é sequencial, sem as duas sobrepostas.
+- **Xiaomi, rAF, página acabada de carregar (salto de scroll):**
+  - pré → 7: 77 fps, com frames de 44–66 ms (antes 79–144 ms);
+  - 9 → 10: 84 fps, máximo de 77 ms;
+  - as outras passagens: 87–90 fps, máximo de 22–55 ms.
+- **Barra:** passa a *02 Method* só quando o topo do Method entra na faixa de cima (−0,05 telas); antes disso mostra *01 Work*.
+- **typecheck, lint e build:** passam.
+- **Chrome de testes, fase a fase nos dois sentidos, a 1920, 1440, 768, 390 e 320 (`phases.mjs`):** todas as fases em ordem, 0 erros. Também passam o teclado (campo e *Talk to us*) e a mudança de tamanho a meio (`edges.mjs`).
+- **Não verificado:**
+  - iPhone;
+  - scroll de dedo no Xiaomi depois desta mudança;
+
+### Timer depois de escolher um momento no Work (2/11)
+- **O que o owner viu:** ao tocar num momento (Before, During, After), o timer e o preenchimento da palavra começavam logo, com as cartas ainda a mexer.
+- **Agora:** a palavra e os 6 s do momento esperam que a pilha assente.
+  - Quando a carta vem do lugar seguinte da pilha, esperam 1,12 s (o fim da mola).
+  - Quando a carta vem de trás e atravessa a pilha, esperam 1,55 s.
+- **Medido** (`tap.mjs`, 1440, posição da carta e progresso do preenchimento por frame):
+  - carta do lugar seguinte: já está parada aos ~0,6 s; o preenchimento começa aos 1,2 s;
+  - carta de trás: fica a 2 px do lugar aos 1,55 s; o preenchimento começa aos ~1,5 s.
+- **typecheck, lint e build:** passam.
+- **Não verificado:** Xiaomi e iPhone.
+### Passo 3d: a passagem em dois passos (2/11, README #99)
+- **O que mudou:**
+  - Fase nova *slit* (a fenda), entre o *pre* e a 7. A 7 dispara meia tela depois e o Method passou a ter 7,9 telas.
+  - A lâmina tem duas arestas movidas por `transform`.
+  - O desenho do guia é medido a partir da fotografia do Work.
+  - O desenho e o papel são duas camadas, e os ecrãs vivos só aparecem debaixo do papel.
+  - Experiences apaga-se por baixo de uma camada com o fundo do Work.
+- **Gravação frame a frame** (`rec7.mjs`; fenda, abertura, volta à fenda, volta ao início):
+  - 1440 à noite, 2560 × 1305 à noite, 390 de dia (fuso emulado).
+  - O desenho fica da altura da fotografia, também a 2560.
+  - Na primeira gravação viam-se as fotografias dos ecrãs através do papel; corrigido.
+  - No telemóvel, de dia, a fenda clara passava por baixo da ilha esquerda da barra, que ficava clara. Na fenda, a barra passa a ler a luz da hora.
+- **Scroll rápido, um salto do *pre* para além dos dois gatilhos:** fenda aos 2 ms, 7 aos 1658–1666 ms (1150 + 500 de espera), nos três tamanhos.
+- **Xiaomi, rAF, duas corridas:**
+  - *pre* → fenda: 86 fps, máximo de 44 ms (89 ms uma vez);
+  - fenda → 7: 85 fps, máximo de 66 ms;
+  - todas as outras passagens: 86–90 fps;
+  - para trás, 7 → fenda e fenda → *pre*: 88 fps.
+- **Xiaomi, scroll de dedo:**
+
+| Scroll | Desce | Sobe |
+|---|---|---|
+| Lento | 83 fps | 84 fps |
+| Normal | 75 fps | 75 fps |
+| Rápido | 85 fps | 75 fps |
+
+  Frames isolados de 44–110 ms. 0 erros.
+- **Chrome de testes, fase a fase nos dois sentidos, a 1920, 1440, 2560 × 1305, 768, 390 e 320:** todas as fases em ordem, 0 erros.
+- **Teclado:** o campo, focado na fase 11, traz de volta a 7. Na ronda anterior o `edges.mjs` corria sem emulação de foco e dizia 11 → 11; o "passa" registado no passo 3c não estava verificado.
+- **Página parada (movimento reduzido), a cinco tamanhos:** 0 overflow, 6/6 imagens.
+- **typecheck, lint e build:** passam.
+- **Não verificado:** iPhone.
+### Passo 3e: voltar atrás da fenda, scroll mais curto, cor das bordas (2/11)
+- **O que o owner viu:** ao voltar da fenda para o Experiences, a borda da lâmina e o desenho do telemóvel desciam com a página.
+  - **Causa:** acima da cena o palco do Method deixa de estar preso, porque o topo da secção já está abaixo do ecrã. A lâmina a fechar e o desenho a apagar-se iam com o scroll.
+  - **Correção:** enquanto larga (1,1 s), o palco fica fixo no sítio exato onde estava e depois volta a sticky.
+  - **Medido** (`leave.mjs`, posição do desenho por frame enquanto se sobe 40 px por frame): a 390 fica nos 121 px e a 1440 nos 164 px durante todo o apagar. Antes descia; numa versão intermédia saltava 20 px no início.
+- **Scroll do Method:** passou de 7,9 para 5,7 telas. Do 7 ao 11 eram 5,2 telas e agora são 3,4.
+  - Chrome de testes, fase a fase nos dois sentidos, a 1920, 1440, 2560 × 1305, 768, 390 e 320: todas as fases em ordem, 0 erros.
+  - Teclado: o campo, focado na fase 11, traz de volta a 7.
+- **Cor das bordas da fenda:** fotografadas nas quatro luzes, como estão agora e com uma proposta (bordas na cor da luz da hora). A decisão é do owner: https://claude.ai/artifact/RvZLvVX4QYbfSna9Cxuruf
+- **typecheck, lint e build:** passam.
+- **Não verificado:**
+  - scroll de dedo no Xiaomi depois de encurtar, porque o ecrã do telemóvel estava desligado;
+  - iPhone.
+### Passo 3f: o palco preso antes da fenda; a barra; as bordas (2/11)
+- **O owner viu de novo o bug** (gravação no desktop, 2560 × 1305, scroll para trás e para a frente sobre a fenda): a borda e o ecrã do telemóvel ainda desciam.
+  - Reproduzido com a gravação dele (`replay.mjs`): antes de passar a *pre*, a secção já descia 37 px (a faixa morta, mais o scroll que chega antes do script) e o palco era fixado 37 px abaixo.
+  - **Causa de fundo:** o palco só ficava preso a partir da fenda.
+  - **Correção:** a secção do Method começa meia tela antes da cena, transparente sobre o Work (margem −2,1 telas, altura 6,2). O palco já está preso quando a fenda abre e fecha. O último passo do Work ganhou essa meia tela (3 telas; Work 6,9). A ponte para *During* fica meia tela antes da fenda.
+  - **Medido com a mesma gravação:** o palco fica em 0 em todos os 1055 frames visíveis; o desenho fica a 206–209 px (é medido de novo da fotografia em cada entrada).
+- **Barra:** a marca nova do início do Method tinha 1 px de altura e um scroll rápido saltava-a, por isso a barra ficava em *01 Work* na fenda. Agora a marca vai até ao fim do Method.
+  - Verificado com scroll lento e com saltos, nos dois sentidos, a 1440 e 390: *work* antes, *method* na fenda.
+- **Barra sobre a fenda clara no telemóvel, com uma hora de dia verdadeira** (fuso emulado): a ilha escurece e lê-se. Com a hora posta à mão a ilha fica com o vidro da hora em que a página abriu; é um artefacto do teste.
+- **Bordas:** acrescentada à página de decisão uma proposta B (sem linha, a luz da sala a derramar para os dois lados, na cor da hora), fotografada nas quatro luzes, desktop e telemóvel. Ainda não está no site.
+- **Chrome de testes:**
+  - fase a fase a 1440, 2560 e 390: em ordem, 0 erros;
+  - teclado: 11 → 7;
+  - página parada: 0 overflow, 6/6 imagens.
+- **typecheck, lint e build:** passam.
+- **Não verificado:**
+  - Xiaomi depois destas mudanças (o ecrã estava desligado);
+  - iPhone.
+### Passo 3g: a luz "B suave" e o vidro do desenho (2/11, README #100)
+- **No site:** as linhas das arestas foram substituídas por duas camadas de luz que andam com a lâmina (mesma duração e curva). O desenho tem um vidro a 30 %, sem `backdrop-filter`.
+- **Gravação frame a frame** (`rec7.mjs`):
+  - 1440 à noite;
+  - 390 de dia (fuso emulado): o desenho lê-se dentro da fenda clara.
+  - Abertura, volta à fenda, volta ao início: sem erros.
+  - Salto rápido: fenda aos 2 ms, 7 aos 1660 ms.
+- **typecheck, lint e build:** passam.
+- **Não verificado:**
+  - Xiaomi: o ecrã continua desligado e não se pode acordar pelo adb, por isso as medições das últimas quatro rondas estão em falta (3e a 3g);
+  - iPhone.
+### Xiaomi depois das rondas 3e a 3g (2/11, telemóvel acordado)
+- **rAF, página acabada de carregar (`raf.mjs`, posições da cena nova):**
+  - *pre* → fenda: 82–85 fps, um frame de 89–111 ms;
+  - fenda → 7: 82–84 fps, dois frames de 66–100 ms;
+  - 9 → 10: 83–86 fps, máximo de 55–68 ms;
+  - as restantes passagens: 87–90 fps;
+  - para trás, 7 → fenda e fenda → *pre*: 88 fps, máximo de 44–55 ms.
+- **Pré-pintar a luz a 0,1 %** não mudou os picos (99–111 ms).
+- **Bisseção dos picos com CSS injetado:** sem a luz, sem o vidro e sem os dois, os picos são os mesmos (55–133 ms, variam de corrida para corrida). São frames da primeira vez que a fenda e as cartas se desenham depois de a página carregar; a luz e o vidro não pesam.
+- **Scroll de dedo (`phone.mjs`), duas corridas:**
+
+| Scroll | Desce | Sobe | Na ronda 3d |
+|---|---|---|---|
+| Lento | 79–80 fps | 80 fps | 83 / 84 |
+| Normal | 80–82 fps | 75 fps | 75 / 75 |
+| Rápido | 83–84 fps | **61–66 fps** | 85 / 75 |
+
+- **Atirar para cima ficou pior** (61–66 contra 75 fps). Com a luz e o vidro desligados fica igual (62 fps), por isso a causa é o Method mais curto: o mesmo gesto atravessa mais fases por segundo, e cada fase começa as suas animações. Os frames acima de 40 ms são de 44–99 ms, cerca de 10 em 150.
+- **A julgar a olho no telemóvel** (owner).
+### Passo 3h: a fenda segue o desenho, vidro liso, luz sem degraus, segundo passo mais cedo (2/11)
+- **Fenda no desktop:**
+  - antes era uma parte fixa do ecrã (0,40–0,60). A 2560 × 1305 ficava 37 px à direita do desenho, sem lhe tocar (owner);
+  - agora é posta a partir do desenho medido: a aresta esquerda cruza o pé do desenho a 13 % da largura dele, e a fenda tem 0,93 larguras de desenho. Valores tirados de 1440, onde estava aprovada;
+  - a 1440 dá 0,401–0,602, igual ao que estava;
+  - no telemóvel fica a fenda original.
+- **Vidro do desenho:** sem o brilho diagonal (saía em degraus e parecia uma luz falsa). Liso a 30 %, com o rebordo de cima a 20 %.
+- **Luz da fenda sem degraus:** a queda é agora uma máscara PNG ditherizada (Bayer 8 × 8) por hora, com a força já dentro (`scripts/spill-mask.mjs`, 8 ficheiros de 0,4 KB); a cor é opaca no CSS.
+  - Medido na mesma linha de píxeis, de noite, a 2560: antes, patamares de 10–20 px por tom; agora, 41 → 23 um tom de cada vez, com dither.
+- **Segundo passo:** a fenda toca em 1,0 s (era 1,15), espera 0,25 s (era 0,5), e a 7 dispara a um terço de tela (era meia).
+  - Salto rápido: abre aos 1260 ms (era 1660), a 2560 e 390.
+- **Xiaomi, rAF:** *pre* → fenda 86 fps (máximo 44 ms); fenda → 7 85 fps (máximo 77 ms).
+- **Chrome de testes:** fase a fase a 1440, 2560 e 390, em ordem, 0 erros. A 2560, a subir, o passo do teste saltou da 7 para o *pre* sem passar pela fenda (a faixa da fenda tem agora 0,12 tela); o site fecha a lâmina a partir de aberta.
+- **typecheck, lint e build:** passam.
+- **Por decidir:** a fenda à noite, com o candeeiro dentro dela (página de decisão).
+- **Não verificado:**
+  - scroll de dedo no Xiaomi depois desta ronda;
+  - iPhone.
+### Fim do dia 2/11: o passo 9 no Xiaomi e a decisão em aberto
+- **Passo 9 no Xiaomi** (`phone9.mjs`, ecrã 392 × 779 com a barra do Chrome):
+  - o ecrã do casamento a "ecrã inteiro" tem 360 × 779 px, com 17 px de noite de cada lado;
+  - **causa:** os cartões do telemóvel têm a forma fixa 9 : 19,5 e o ecrã visível é mais baixo;
+  - **correção aprovada com os cartões a 58 % (README #101):** os cartões passam a ter a forma do ecrã de quem vê. Por fazer.
+- **Storyboard de avaliação da saída de Experiences** (quatro variantes, desktop e telemóvel, imagens do site): `docs/design/v5/storyboards/saida-experiences/`.
+  - Testado no Chrome de testes a 1440 e 390: 0 erros, 0 overflow.
+  - Corrigido antes de publicar: a janela não recortava porque a propriedade em Web Animations é `clipPath`, não `clip-path`.
+### Passo 4: a saída de Experiences pela luz da hora, C2 (3/11, README #101, #102)
+
+**O que mudou:** a fenda em dois passos saiu (fase `slit`, o desenho do guia, `measureDraw`, `.m-drawing`). Fases: `pre → 7 → 8a…11`, o 7 no
+instante em que o palco fica preso. A luz é a mesma caixa de recorte (`.m-wipe`, `.m-wipe-b`, `.m-wipe-in`), agora juntada no lado da hora
+(`data-light`: manhã → esquerda, dia → meio, fim de tarde e noite → direita) e aberta de uma vez (1,5 s, `cubic-bezier(.45,0,.3,1)`); de volta
+recua para o mesmo lado (0,8 s). A fotografia do guia no Work: `scale(1.14)` a partir do transform do Work (animação normal; ver Xiaomi). Cartões: à espera no lugar
+(opacidade 0,001) e cada um aparece quando a luz passou pelos quatro cantos; ao voltar, sai antes de o primeiro canto ficar descoberto.
+Frase: duas linhas, cada uma quando a luz lhe chega; depois recua (0,86, opacidade 0,7); *Make it yours* `scale(1.4)` / `1.1`; cursor
+`.m-caret` a piscar 8 × 530 ms e fixo (escondido com foco ou texto). Telemóvel: `--m-ar` = forma do ecrã (9:21 a 9:16), `F = min(W, H·ar)`;
+baralho a 58 %, 8 a × 1,26 e mais abaixo; frase a `44px + 7vh`. Folha do 8 a repousar mais abaixo (desktop −24 %, telemóvel ao lado).
+
+**Como:** `npm run typecheck`, `npm run lint`, `npm run build`, `next start -p 3100`; Chrome de testes (9444, 2.º monitor):
+`D:\STUDIO-tools\v5-m6\passage.mjs` (passagem a tempo real, 8a, 9, recuo, nova passagem, fim apressado) e `modes.mjs` (movimento
+reduzido, sem JS, teclado).
+
+**Números:**
+- typecheck, lint (0 avisos), build: passam.
+- Overflow horizontal: 0 em 1920×1080, 1440×900, 768×1024, 390×844, 320×640 (−15 no desktop = barra de scroll).
+- Sem erros de consola em nenhuma ronda.
+- Fim apressado (descer logo para o 8a): `7@13–50 ms`, `8a@327–373 ms` nos 5 tamanhos (alvo 300 ms + o frame seguinte).
+- 9 no telemóvel: 0,0 → 390×844 e 0,0 → 320×640 (ecrã inteiro); 768×1024: 96 → 672 (forma 9:16 centrada, como previsto).
+- Recuo: fase `pre`, a fotografia do Work volta a `matrix(1,0,0,1,0,0)`, frase a 0; descer outra vez repete a passagem.
+- Distâncias no 7: campo → cartões 53 px (390), 17 px (320), 82 px (1440), 88 px (1920); frase a 98 px do topo (390), 85 px (320).
+- Contraste da frase a 0,7 (contra a cor do fundo de cada hora): manhã 4,2, dia 4,4, fim de tarde 3,1, noite 7,5 : 1 (texto grande, ≥ 3).
+- Defeitos encontrados e corrigidos nesta ronda: cartões meio vistos sobre o escuro no recuo (tempo do recuo linear → curva real e cantos);
+  a folha do 8 sobre a frase (telemóvel) e sobre o campo (desktop, 320, 768); o cursor sobre o "Y"; o campo invisível ~2 s quando
+  alcançado pelo teclado (agora a passagem acaba logo).
+- Movimento reduzido e sem JS: o Method parado como antes (frase, campo, seis/três ecrãs, capa, fim); o cursor não existe (0 px).
+- Teclado: foco no campo desde cima → fase 7, campo visível, cursor escondido; "Ana" aparece nos templates.
+
+**Xiaomi (392 × 779, Chrome; `phone-passage.mjs` e `phone2.mjs` em `D:\STUDIO-tools\v5-m6\`):**
+- A fotografia do Work com `scale` **somado** (`composite: 'add'`) corria no fio principal: passagem a 73 fps e um primeiro frame de 376 ms
+  (82–87 fps sem ela). Passou a uma animação normal a partir do transform do Work: **passagem 83–87 fps**, primeiro frame 77–166 ms.
+- Ao voltar, a fotografia a encolher à vista custava ~20 fps (59–67); agora volta ao tamanho de uma vez, ainda debaixo da luz, e a animação
+  só sai quando nada mexe: **recuo 77–82 fps** (frames isolados de 66–166 ms, também no início da passagem; ontem os picos de primeira vez
+  eram 55–133 ms).
+- **Dedo (gestos sintéticos, mesma sessão, luz `day`):**
+
+  | | lento ↓ | normal ↓ | fling ↓ | lento ↑ | normal ↑ | fling ↑ |
+  |---|---|---|---|---|---|---|
+  | versão de ontem (fenda), medida hoje | 72 | 68 | 69 | 73 | 67 | 53 |
+  | C2 (hoje), duas rondas | 80–81 | 77–78 | 69–72 | 68 | 58–59 | 33–38 |
+  | C2 com os cartões do telemóvel de ontem (46 %, 9 : 19,5) | 80 | 78 | 68 | 69 | 62 | 44 |
+  | C2 sem o avanço da fotografia | 80 | 77 | 70 | 69 | 58 | 39 |
+
+  **A descer melhorou; a subir piorou**, sobretudo o fling rápido (53 → 33–38). Os frames lentos caem entre o 9 e o fim do Method
+  (3000–5100 px dentro do Method), não na passagem. Os cartões maiores (#101: ~1,8 × os píxeis de cada cartão) explicam parte (fling ↑
+  44 → 35); a fotografia não. O resto não se separou do ruído do aparelho. **Por decidir pelo owner, com o dedo** (CLAUDE.md: a
+  performance pesa-se, não é bloqueio).
+
+**Não verificado:** iPhone; leitor de ecrã; o fling para cima com o dedo do owner.
+
+### Passo 4b: o cursor, o 9 com a barra do Chrome escondida, a cena mais longa no telemóvel (3/11, owner no Xiaomi)
+
+**O que mudou:** (1) o cursor deixava de piscar quando um dedo ainda a fazer scroll apressava a passagem (o \`hurry\` cancelava-o): agora
+recomeça os seus ~4 s quando o campo chega, e também quando o campo volta (do 9 para o 8); (2) o 9 tinha a altura do ecrã com a barra do
+Chrome à vista (779 px) e deixava uma faixa do estúdio em baixo quando a barra se escondia (835 px): os cartões do telemóvel usam agora a
+altura \`100lvh\` (lida de um elemento de prova) e o ecrã inteiro começa no topo; (3) a cena do Method no telemóvel passou de 4,7 para 6
+ecrãs (secção \`7.5 × --screen\`, era 6,2): cada fase ~28 % mais scroll.
+
+**Números (Xiaomi, \`phone-fix.mjs\`):** cursor a piscar depois de uma passagem apressada (8a), parado e visível aos 5 s; 9 com a barra
+escondida: cartão 0,0 → 393 × 835 em 392 × 835 (\`lvh\` 835); cena: \`travel\` 5010 px (era ~3812). Chrome de testes: 1440, 390, 320 sem
+erros nem overflow, 9 de ponta a ponta (390, 320), fim apressado 339–357 ms, recuo limpo. Dedo: ↓ 82 / 80 / 74, ↑ 72 / 60 / 38 fps
+(o fling para cima continua por decidir).
+
+**Não verificado:** iPhone (no Safari \`lvh\` é o ecrã com as barras recolhidas: o 9 passa por baixo da barra de baixo quando esta aparece).
+
+### Passo 4c: o cursor a piscar de facto; o ritmo do Method no telemóvel (3/11, owner no Xiaomi)
+
+**O cursor:** a animação \`[{opacity:1},{opacity:0}]\` com \`steps(1, end)\` e \`direction: 'alternate'\` nunca mostrava a metade apagada (o
+degrau aplica-se ao progresso já invertido: na volta ficava aceso). O teste anterior só via a animação "a correr". Agora: fotogramas
+explícitos (aceso 530 ms, apagado 530 ms, × 4, depois fixo). Xiaomi (\`phone-caret.mjs\`): opacidade amostrada a cada 100 ms após a
+passagem — apagada a 3,3 s, 4,3–4,6, 5,3–5,7, 6,4–6,7 s, depois 1; capturas do ecrã inteiro com o traço visível e sem ele. O storyboard
+principal tinha o mesmo erro (CSS \`alternate\` + \`steps\`): corrigido da mesma maneira.
+
+**Todas as passagens, com o dedo, para a frente e para trás** (\`phone-sweep.mjs\`: traços de meio ecrã a 1100 px/s com pausas de 0,7 s,
+gravação do ecrã, folhas de contacto por passagem com \`sheets.cjs\`): entrada → Weddings → Artists → Experiences → 7 → 8a → 8b → 8c → 9 → 10 →
+11 → About, e de volta. Nenhum defeito visual nas duas direções (a luz de dia abre do meio e volta ao meio; a capa volta ao 9; os cartões
+voltam ao baralho; Experiences regressa). Sem erros.
+
+**Ritmo:** com a cena a 6 ecrãs, 8a → 8b → 8c ficavam a **0,57 ecrã** cada e um traço de dedo saltava duas fases. No telemóvel os passos ficaram
+iguais (\`STARTS_PHONE\`, cena 6,2 ecrãs, secção \`7.7 × --screen\`): medido no Xiaomi, de fase em fase **0,84–0,92 ecrã**, nos dois sentidos;
+do 7 ao 8a 1,58 (a passagem e o convite). Desktop sem alteração.
+
+### Passo 4d: iPhone e Xiaomi do owner — o 9 no iOS, a ponte sem *During*, o scroll rápido (3/11, README #103)
+
+**O que mudou:** o ecrã inteiro do 9 tem a altura do palco preso (\`stage.offsetHeight\`: Android \`100lvh\`, iOS \`100lvh + 130px\`); no iPhone
+do owner \`100lvh\` deixava ~60 px de estúdio em baixo, sob a barra flutuante do Safari (gravação 12:34, quadros a 13,5 / 15,5 / 17 s). A
+ponte do Work deixou de mudar o momento para *During*: segura o momento à vista (\`remaining\` como na pausa) e larga-o ao voltar.
+
+**Números:** Xiaomi (\`phone-bridge.mjs\`): duas rondas a entrar no Method a partir de *Before* — \`m=0\` do princípio ao 7 (1,46–1,61 s), sem
+salto; 9: cartão 0,0 → 393 × 835 com palco 835. Scroll rápido (\`phone-sweep.mjs\` 3000 px/s × 1 ecrã e 4000 px/s × 2 ecrãs, ida e volta):
+todas as fases por ordem, sem erros; nos flings, sobreposições transitórias de duas fases (cada uma parte de onde a anterior estava), nada
+fora do lugar no fim.
+
+**Não verificado:** o 9 no iPhone depois da correção (o owner vê); o toque (por escolher).
+
+### Passo 4e: o 9 no iOS (palavras), o 10 → 11 pelo centro, o cursor mais baixo (3/11, owner no iPhone)
+
+- 9: \`.m-card.is-full .s-wed-tx { align-content: start }\` — a data fica logo por baixo do título (390 × 844: ~670 px, longe do fundo).
+- 11 no telemóvel: a capa vai para \`[50, 44, 46]\` e apaga-se em 0,55 s (antes ia para o lugar do 8, ao lado, em 1,1 s). 390 × 844: aos 0,2 s
+  só um vestígio claro da capa atrás da frase, aos 0,45 s nada; as letras nunca se cruzam.
+- Cursor: \`0.85em\` (era 1,05): 17,9 px num campo de 29,6 (390), 39,4 px num de 63,4 (1440). O storyboard principal com o mesmo valor.
+- typecheck, lint, build: passam; sem erros de consola.
+
+**Não verificado:** o 9 no iPhone com a barra do Safari (o owner vê).
+
+### Passo 4f: as bordas da página no Method (3/11, owner no iPhone, gravação 13:46)
+
+**Defeito:** na passagem, uma faixa de ~80 px em baixo (sob a barra do Safari) em carvão #1f1d19 sobre a noite azul de Experiences
+(#171b22), e no estúdio a área da ilha escura. Causa: \`paintEdges\` (entrance/sequence.ts) dava carvão a toda a secção \`method\`.
+**Agora:** o Method escreve \`data-edge\` por fase e o script das bordas lê-o. Cores medidas no Chrome de testes (390 × 844, fila de cima
+do ecrã, PNG lido pelo ffmpeg). Amostragem (\`edges.mjs\`, fim de tarde): Experiences e passagem até 1,4 s rgb(23,27,34); 1,7 s em diante
+rgb(197,177,158); 9 rgb(161,178,187); 11 rgb(23,24,21); About rgb(30,29,26); de volta ao 7, ao 11 e a Experiences, as mesmas. Sem erros.
+
+**Não verificado:** no iPhone (o owner vê); a cor da área da ilha muda de uma vez quando a luz acaba (1,5 s), não com a aresta.
+
+### Passo 4g: o bloqueio no 7 e a cor da ilha em sincronia com a luz (3/11, owner no iPhone, gravação 14:11)
+
+**Bloqueio:** a gravação mostra a cena no 7 enquanto o owner percorre o Method até ao About e volta. Causa: \`hurry()\` corria a cada evento
+de scroll e punha \`passageEnds = agora + 300 ms\`; com eventos contínuos o fim nunca chegava (só se destrancava com 0,3 s sem scroll). Os
+testes anteriores tinham pausas. **Reproduzido** com \`continuous.mjs\` (scroll a cada frame, sem pausas, da passagem até 75 % da cena):
+versão antiga \`7@230ms … end 9\` (sem fases pelo meio); corrigida \`7 → 8a@2150 → 8b → 8c → 9\` (6 s), também a 3 s, 12 s e em 1440 × 900.
+\`fuzz.mjs\` (30 sequências aleatórias à volta da passagem, Chrome; 25 com gestos de toque no Xiaomi): 0 erradas. \`batch\` liberta a fila
+mesmo se uma fase falhar (\`try/finally\`).
+
+**Cor da ilha** (\`sync.mjs\`: pixel do topo ao centro contra a cor de \`html\`, 390 × 844): a transição de 0,3 s centra-se na passagem da
+aresta pelo centro do topo — ida: manhã 570–650 ms, dia 520–600, fim de tarde 760–850 (página 26 → 216/221/186, borda a meio); volta:
+a borda ficava escura logo (a secção passa a \`work\` acima da marca do Method): agora segura a cor do Method até a aresta sair (manhã
+447 ms, dia 487, fim de tarde 451, borda a meio da transição). Sequência completa (\`edges.mjs\`) igual à de 4f.
+
+**Não verificado:** no iPhone (o owner vê).
+
+### Passo 4h: o toque (README #104)
+
+Chrome de testes, 390 × 844, toque emulado (\`chrome-press.mjs\`; \`phone-press.mjs\` para o Xiaomi, que estava a dormir): cor de toque do
+browser \`rgba(0,0,0,0)\`; momento, nome do capítulo, botão do menu e link do menu, sob o dedo: \`scale 0.96\`, \`brightness(0.55)\`; em
+repouso \`none none\` (a animação sai). Cada um continua a funcionar: o momento passa a \`aria-pressed=true\`, o menu abre, o link do menu
+fecha-o e leva à secção. Sem erros. **Xiaomi** (toques reais, `phone-press.mjs`): os mesmos valores, os mesmos resultados, sem erros. **Não verificado:** no iPhone.
+
+### Passo 4i: o Work parado durante a luz; o cursor no desktop (3/11, owner no desktop)
+
+\`workmove.mjs\`: o palco do Work ficava preso só até 540 px depois do início da cena (1440 e 390), e depois subia — com a roda a continuar
+durante a luz, Experiences subia sob a aresta. Agora (\`workhold.mjs\`, roda +900 px em 0,5 s após o gatilho): topo do palco 0 até ~1,55 s,
+depois −380 (1440) / −413 (390), já debaixo da luz; altura da página igual antes e depois (13133 / 12707); de volta acima da cena, o palco
+no lugar (0) e a fase \`pre\`. Sem erros. Cursor no desktop: 26,9 px num campo de 63,4 (era 39,4).
+**Não verificado:** no iPhone (o palco do Work lá tem −70 px de topo; a cópia do lugar lê o retângulo real, por isso deve ficar igual).
+
+### Passo 4j: o campo Make it yours recomposto (3/11, owner)
+
+\`head.mjs\` (cinco tamanhos, dpr 2, cursor aceso, recortes): antes, a 1440 o nome tinha 46 px (33 × 1,4) contra 21 px da etiqueta e o cursor
+começava acima da linha de base. Agora: 1920 etiqueta 14 / nome 32 px; 1440 12,2 / 27,4; 768, 390, 320 10,9 / 19,2; mesma linha de base;
+cursor 0,78 em a começar logo abaixo da linha de base. Xiaomi (\`phone-head.mjs\`, noite): composição e um nome escrito ("Annabelle")
+dentro do sublinhado. Sem erros. **Não verificado:** iPhone.
+- Meio-termo no desktop (owner, 3/11): 1920 etiqueta 15,2 / nome 36,8 px; 1440 13,2 / 31,7 px; telemóvel sem alteração (10,9 / 19,2). Cursor e
+  sublinhado acompanham (em); mesma linha de base. Sem erros.
+
+### Passo 4k: refresh no 8 (iOS), o 8a no desktop, idas e voltas rápidas no Xiaomi (3/11, owner)
+
+- **Refresh no 8** (\`refresh8.mjs\`, 390 × 760, palco 890 como no iOS por \`--screen: 100lvh + 130px\`): depois do refresh em 8a, campo 216 /
+  cartões 254 (38 px livres); o 9 de 0 a 890. Sem o palco alto: igual. Antes, no iPhone do owner, os cartões subiam sobre o campo.
+- **Desktop 8a a 0,6 ecrã:** \`fuzz.mjs\` 1440 × 900, 25 sequências: 0 erradas; \`continuous.mjs\`: 7 → 8a → 8b → 8c → 9 → 10.
+- **Idas e voltas rápidas sobre a costura Work ↔ Method** (\`phone-rapid.mjs\`, Xiaomi, 8 idas e voltas de 650 px a 2600 px/s): antes 58,2 fps,
+  58 frames > 40 ms; sem a transição de cor das bordas 67,5 / 41; sem ela e sem o avanço da fotografia 68,7 / 36. Agora (transição só no iOS,
+  medidas escritas só quando mudam, Work preso por CSS em vez de script): **66,9 e 68,1 fps, 45 e 43 frames > 40 ms**; o maior (190–220 ms)
+  é a primeira passagem. Frames de 50–110 ms ainda nos recuos.
+- **Work preso por CSS:** último passo 4 ecrãs, secção 7,9, Method sobre os últimos 3,1. \`workhold.mjs\`: topo do palco 0 durante toda a
+  passagem com a roda a continuar (1440 e 390); altura da página igual à de antes (13133 / 12707); no Xiaomi os estados começam onde
+  começavam (Experiences 2940, 7 a 4471 px).
+- **8a no desktop reposto a 1,15 ecrãs** (owner, 3/11: a 0,6 não ficou bem).
+
+### Passo 4l: cartões do telemóvel 9 : 16, o baralho junto ao campo (3/11, owner)
+
+\`seven.mjs\` (palco como no iOS, 402 × 700, 390 × 844, 320 × 640): cartão do 7 226 × 402 (era 226 × 489 a 390); topo do baralho 16–19 px
+abaixo do campo nos três (era 33–60); 8a sem tocar no campo (17–30 px); \`refresh8.mjs\`: depois do refresh em 8a, 30 px livres; o 9 de 0 a
+890 (palco) e de 0 a 760. Sem erros. **Não verificado:** iPhone.
+
+### Passo 4m: desfeito o 9 : 16; os cartões originais com a salvaguarda do campo (3/11, owner no iPhone: "curtos, prefiro os originais")
+
+Cartões de novo na forma do palco e o baralho a 64–66 %; só descem se esse lugar os puser sobre o campo (topo do baralho 30 px abaixo do
+campo, primeiro cartão do 8 34 px). `refresh8.mjs` com o palco como no iOS, refresh em 8a a 402 × 640 / 700 / 790: cartões 26 / 25 / 26 px
+abaixo do campo; o 9 enche o palco (770 / 830 / 920). Xiaomi: 9 de 0 a 835. Sem erros. **Não verificado:** iPhone.
+
+### Passo 4n: o baralho do telemóvel a 55 % (3/11, owner)
+
+Lado a lado 58 / 55 / 52 (`sizes.mjs`, Android 392 × 779 e iOS-like 402 × 760): escolhido 55. Depois: `seven.mjs` cartão 214 × 536 (390),
+221 × 457 (402 × 700), 176 × 423 (320); topo 17–37 px abaixo do campo; `refresh8.mjs` 25 px depois do refresh em 8a; o 9 de 0 a 835 no
+Xiaomi; 10 → 11 sem erros. **Não verificado:** iPhone.
+
+### Validação final do M6 antes do commit (3/11, noite)
+
+typecheck, lint (0 avisos), build: passam. \`npm run images -- --only=studio\`: escreve as 8 máscaras da luz, idênticas às de antes (SHA-1).
+\`modes.mjs\` (1440, 390): movimento reduzido e sem JS sem overflow e sem cursor; teclado → 7, campo visível, "Ana" nos templates.
+\`passage.mjs\` 1920 × 1080 dia, 768 × 1024 noite, 320 × 640 fim de tarde: sem overflow, fim apressado 342–346 ms, sem erros.
+**Não verificado no conjunto final:** iPhone (o owner viu as rondas anteriores), leitor de ecrã, rede lenta, tablet real.

@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import type { work } from '@content'
 import { lensMap } from '@/lib/lens'
+import { press } from '@/lib/press'
 
 type Props = {
   /** One moment, in seconds: the word fills in this time (#73). */
@@ -22,6 +23,10 @@ type Props = {
 */
 // The arriving chapter's words wait 0.3 s and fade in over 1 s on a fast ease (work.css, #73): by 0.45 s they are mostly there.
 const CHAPTER_WORD_LEAD_MS = 450
+// A moment chosen by tap: the word and the moment's 6 s wait for the pile to settle; started at the tap, the word was filling while
+// the cards were still moving (owner, 2 Nov). The next card in the pile comes forward on its spring (170 ms + 950 ms, change());
+// a card from the back crosses the pile (1.7 s) and is within 2 px of its place at 1.55 s (measured, 1440, 2 Nov).
+const CHOSEN_LEAD_MS = { next: 1120, fromBack: 1550 }
 // where a card rests in the pile (work.css): shown, behind it, furthest back; and the spring of its change
 const PILE = [
   'translate3d(0, 0, 0) scale(1)',
@@ -61,6 +66,8 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
     const articles = [...section.querySelectorAll<HTMLElement>('.w-ch')]
     const steps = [...section.querySelectorAll<HTMLElement>('.w-step')]
     const cleanups: (() => void)[] = []
+    // the press under a finger: the chapter names and the moments (owner, 3 Nov, option A)
+    cleanups.push(press(section, '.w-nav-ch, .w-mom'))
     const listen = <T extends EventTarget>(t: T, k: string, f: EventListener, o?: AddEventListenerOptions) => {
       t.addEventListener(k, f, o)
       cleanups.push(() => t.removeEventListener(k, f, o))
@@ -366,8 +373,11 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
           show(true, true)
           return
         }
+        const fromBack = (j - m + 3) % 3 === 2
         change(j)
+        lead = fromBack ? CHOSEN_LEAD_MS.fromBack : CHOSEN_LEAD_MS.next
         run()
+        lead = 0
         // the keyboard's focus pauses the stage: run does nothing then, and the chosen moment must still show
         if (paused) show(true, true)
         return
@@ -384,6 +394,27 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
         run(true)
       }
     }
+    // The bridge to the Method (README #98, #102): at the end of Experiences the moment seen is held — the Method's light passes over
+    // it. It no longer turns to During first: that was for the guide coming loose from the photograph (the slit, #99), and with the
+    // light finding the screens in the studio it read as a jump (owner, iPhone, 3 Nov). It starts once the Method, laid over the
+    // Work's last screens, is half a screen from being held; scrolling back lets go and time goes on.
+    let bridged = false
+    const methodEl = document.getElementById('method')
+    const bridge = (on: boolean) => {
+      if (on === bridged || reduce) return
+      bridged = on
+      if (on) {
+        held = true
+        remaining = Math.max(0, phaseEnd - performance.now())
+        stop()
+      } else {
+        held = false
+        run(true)
+      }
+    }
+    // half a screen before the slit opens: the Method's section starts half a screen before its scene (README #99)
+    const checkBridge = () => bridge(ch === articles.length - 1 && !!methodEl && methodEl.getBoundingClientRect().top < 0)
+    listen(window, 'scroll', checkBridge, { passive: true })
     articles.forEach((a) =>
       a
         .querySelectorAll<HTMLButtonElement>('.w-mom')
@@ -445,9 +476,22 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       })
     }
     // ---- the chapter: the step under the middle of the screen ----
+    // The page's first chapter, and any correction while the browser restores the scroll after a refresh, are put in place at once:
+    // a refresh on Experiences showed Weddings (the server's page) and then crossed to Experiences over 1.1 s (owner, 2 Nov).
+    const born = performance.now()
+    let settled = false
+    const settle = () => (settled = true)
+    ;['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach((k) => listen(window, k, settle, { once: true, passive: true }))
     const setChapter = (next: number) => {
       if (next === ch) return
-      const from = ch
+      const quiet = !settled && performance.now() - born < 700
+      if (quiet) {
+        section.classList.add('w-now')
+        requestAnimationFrame(() => requestAnimationFrame(() => section.classList.remove('w-now')))
+      }
+      // in place at once: the chapter that was there rests now, and nothing flies (no passage, the word not held back)
+      if (quiet && ch >= 0) rest(articles[ch])
+      const from = quiet ? -1 : ch
       landed()
       // once it has faded (the chapter's own 1.2 s), unless the visitor is back
       if (from >= 0) window.setTimeout(() => from !== ch && rest(articles[from]), 1300)
@@ -533,8 +577,9 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       const bottom = steps.length ? steps[steps.length - 1].getBoundingClientRect().bottom : 0
       let k = -1
       tops.forEach((t, i) => t <= mid && (k = i))
+      // the first call places a chapter even above the first step (Weddings, under the entrance) or past the last (Experiences)
+      if (ch < 0) return setChapter(k < 0 ? 0 : bottom <= mid ? steps.length - 1 : k)
       if (k < 0 || bottom <= mid) return // above the first step or past the last: as the observer did, nothing changes
-      if (ch < 0) return setChapter(k)
       if (k > ch) {
         let far = ch
         tops.forEach((t, i) => i > ch && t <= mid - band && (far = i))

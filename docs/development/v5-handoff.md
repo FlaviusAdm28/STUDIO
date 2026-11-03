@@ -1,8 +1,8 @@
 # Chapter One V5 — handoff
 
-## ▶ COMEÇAR AQUI · 3 de novembro de 2026, fim do dia — M6 com a saída C2 e as afinações do owner; por commitar (atualizado à noite)
+## ▶ COMEÇAR AQUI · 3 de novembro de 2026, fim do dia — M6 (Method) commitado e enviado: `55f6e53`
 
-**Estado:** branch `v5`, último commit `6af5f71`. **Todo o M6 está por commitar.** Commit só quando o owner pedir. Decisões: README #102
+**Estado:** branch `v5`, M6 commitado e enviado a pedido do owner (`55f6e53`, 3/11, noite). Próximo módulo: About / Questions / Contact (README #75). Decisões: README #102
 (a saída C2), #103 (afinações: ponte sem *During*, 9 a ecrã inteiro com as barras, ritmo do telemóvel, cursor, 10 → 11 pelo centro, bordas
 da página no Method em sincronia com a luz, bloqueio no 7, Work parado durante a luz, *Make it yours* recomposto), #104 (o toque: opção A só
 no menu e no submenu do Work). Testes: `v5-tests.md`, M6, passos 4 a 4j.

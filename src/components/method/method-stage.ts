@@ -17,6 +17,8 @@
   11   the light goes down: on the desktop the screens move aside, quiet; on a phone they leave; one sentence stays
   The positions are the storyboard's (v46, cardLayout): [centre x %, centre y %, width % of the stage width, turn].
 */
+import { bandColour, hex, over, parseColour } from '@/lib/top-colour'
+
 type Pos = readonly [number, number, number, number]
 type Mode = 'on' | 'lift' | 'gone'
 type Layout = { pos: Pos; o: number; z: number; mode: Mode; full?: boolean; cover?: boolean }
@@ -562,27 +564,100 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     passageEnds = Math.min(passageEnds, performance.now() + HURRY_MS)
   }
 
-  // the page's edges (html and body: Safari's status area and the band under its bar): read by the entrance script (README #103)
+  // The page's edges (html, body, theme-color: what Safari shows around the Dynamic Island, Chrome's bar on Android), read by the entrance
+  // script (README #103): the colour of what is really at the top of the screen, read from the picture drawn there (src/lib/top-colour.ts),
+  // at the moment it is there. Fixed values measured in Chrome at 390 × 844 were wrong on the iPhone (its scenes 130 px taller, the studio
+  // cut otherwise), and the 9's came before its picture (owner, iPhone, 4 Nov)
   let edgeLater = 0
-  // 9 on a phone is the featured screen itself, to the edges: its own top (measured, 390 × 844, 3 Nov)
+  // only if a picture cannot be read: the values measured on 3 Nov (390 × 844)
   const FULL_EDGE: Record<string, string> = { weddings: '#a1b2bb', artists: '#a7a49c', experiences: '#191d24' }
+  // the band the island sees, across its middle: elsewhere the screen's top; on iOS the 70 px above it (the lift), which in the studio
+  // is its own top's reflection (method.css: -webkit-box-reflect), so the studio's first 70 px; the 9's photograph runs up there itself
+  const band = (left: number, top: number, above = false) =>
+    lift && !above
+      ? { x0: W * 0.3 - left, x1: W * 0.7 - left, y0: -top, y1: lift - top }
+      : { x0: W * 0.3 - left, x1: W * 0.7 - left, y0: -lift - top, y1: 4 - top }
+  let roomImg: HTMLImageElement | null = null
+  // the studio's top: its room as cover-drawn in the studio's box, and the hour's light (.m-key) over it at the top's middle
+  const studioTop = (ph: Phase) => {
+    const cs = getComputedStyle(section)
+    const fallback = cs.getPropertyValue('--m-edge').trim()
+    const room = roomImg ? bandColour(roomImg, { w: W, h: stage.offsetHeight - lift }, band(0, 0)) : null
+    if (!room) return fallback
+    const kc = parseColour(cs.getPropertyValue('--m-key'))
+    if (!kc) return hex(room)
+    const k = KEY_K[ph]
+    const { side, high } = keyBase()
+    const grow = (0.92 + 0.35 * k) / 0.92
+    let d: number
+    if (kind === 'phone') {
+      const kx = Math.min(80, Math.max(20, side))
+      const r = ((1.5 * 0.92 * F) / 2) * grow
+      const cx = ox + (kx * F) / 100 + (((50 - kx) * k * 0.55) / 100) * F
+      const cy = 0.22 * H + 0.3 * k * H
+      d = Math.hypot(W / 2 - cx, (lift ? lift / 2 : 8) - cy) / r
+    } else {
+      const rx = ((1.1 * 0.92 * W) / 2) * grow
+      const ry = ((1.4 * 0.92 * H) / 2) * grow
+      const cx = (side * W) / 100 + (((50 - side) * k * 0.6) / 100) * W
+      const cy = (high * H) / 100 + (12.8 * k * H) / 100
+      d = Math.hypot((W / 2 - cx) / rx, ((lift ? lift / 2 : 8) - cy) / ry)
+    }
+    // closest-side, the light's colour to transparent at 72 %; at the light's own opacity now (it goes out at 11, comes back from it)
+    const a = kc[3] * Math.max(0, 1 - d / 0.72) * (parseFloat(getComputedStyle(key).opacity) || 0)
+    return hex(over(room, [kc[0], kc[1], kc[2]], a))
+  }
+  // the dark of 11 (.m-end and its .m-dark) over the studio, at its opacity now: it comes in over 1.8 s and goes in 0.7 s back, and the
+  // edge set to it at once was dark over the still-lit studio for a second and a half (audit, 390 × 844, 4 Nov)
+  const DARK_11: [number, number, number] = [23, 24, 22]
+  const studioOrDark = (ph: Phase) => {
+    const base = studioTop(ph)
+    const a = parseFloat(getComputedStyle(end).opacity) || 0
+    if (a >= 0.99) return hex(DARK_11)
+    const b = parseColour(base)
+    return a <= 0.01 || !b ? base : hex(over([b[0], b[1], b[2]], DARK_11, a))
+  }
+  // 9 on a phone: the featured screen to the edges — its own photograph at the top, or its ground where it has none
+  const featuredTop = () => {
+    const card = cards[featured]
+    if (!card) return ''
+    for (const img of card.querySelectorAll<HTMLImageElement>('img')) {
+      const r = img.getBoundingClientRect()
+      if (r.left > W / 2 || r.right < W / 2 || r.top > 1 || r.bottom < 4) continue
+      const [px, py] = getComputedStyle(img)
+        .objectPosition.split(' ')
+        .map((v) => (v.endsWith('%') ? parseFloat(v) / 100 : 0.5))
+      const c = bandColour(img, { w: r.width, h: r.height }, band(r.left, r.top, true), 'cover', [px, py])
+      if (c) return hex(c)
+    }
+    const ground = getComputedStyle(card.querySelector('.m-scr') ?? card).backgroundColor
+    return ground && !ground.startsWith('rgba(0, 0, 0, 0') ? ground : (FULL_EDGE[card.dataset.chapter ?? ''] ?? '')
+  }
   const edgeOf = (ph: Phase) =>
-    ph === 'pre'
-      ? ''
-      : ph === '11'
-        ? '#171815'
-        : ph === '9' && kind === 'phone'
-          ? (FULL_EDGE[cards[featured]?.dataset.chapter ?? ''] ?? '')
-          : getComputedStyle(section).getPropertyValue('--m-edge').trim()
-  const setEdge = (ph: Phase, delay = 0) => {
+    ph === 'pre' ? '' : ph === '9' && kind === 'phone' ? featuredTop() : studioOrDark(ph)
+  // followed for a while where what is at the top changes slowly (the dark of 11, the light going out): read again every 100 ms
+  let edgeFollow = 0
+  const setEdge = (ph: Phase, delay = 0, follow = 0) => {
     clearTimeout(edgeLater)
+    clearInterval(edgeFollow)
+    edgeLater = 0
     const put = () => {
       const v = edgeOf(ph)
       if (v) section.dataset.edge = v
       else delete section.dataset.edge
     }
-    if (delay) edgeLater = window.setTimeout(put, delay)
-    else put()
+    const go = () => {
+      edgeLater = 0
+      put()
+      if (!follow) return
+      const until = performance.now() + follow
+      edgeFollow = window.setInterval(() => {
+        put()
+        if (performance.now() > until) clearInterval(edgeFollow)
+      }, 100)
+    }
+    if (delay) edgeLater = window.setTimeout(go, delay)
+    else go()
   }
 
   const show = (next: Phase, instant = false) => {
@@ -631,7 +706,12 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     // middle of the screen's top, in a short cross-fade centred there (EDGE_FADE, entrance/sequence.ts) — at the end of the sweep they
     // came late, the island dark beside the lit studio (owner, iPhone, 3 Nov). Back, as the edge leaves it.
     const island = (t: number) => Math.max(0, t - EDGE_FADE / 2)
-    setEdge(next, passage ? island(reachAt(W / 2, 0)) : goingBack ? island(leaveAt(W / 2, 0)) : 0)
+    // the whole screen of 9 reaches the top only as its flight ends: its colour then, not before its picture is there (owner, iPhone, 4 Nov)
+    const landing = next === '9' && kind === 'phone' && !instant ? MOVE + 60 : 0
+    // and then followed while the light (1.6 s) and the dark of 11 (1.8 s) settle: set once, the edge kept the light as it was at that
+    // moment, and changed again when something else read it (owner, iPhone, 4 Nov: "a cor de cima da ilha muda e fica errada")
+    const settling = instant || goingBack || landing ? 0 : 1900
+    setEdge(next, passage ? island(reachAt(W / 2, 0)) : goingBack ? island(leaveAt(W / 2, 0)) : landing, settling)
     // the photograph moves in with the light, and back out with it
     if (passage) pushPhoto(true)
     else if (goingBack) pushPhoto(false)
@@ -728,7 +808,15 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
       const light = document.documentElement.dataset.light ?? 'day'
       const room = new Image()
       room.src = `/media/v5/method/room-${light}-${kind === 'phone' ? 'tall' : 'wide'}.${light === 'night' ? 'png' : 'avif'}`
-      room.decode().catch(() => {})
+      room
+        .decode()
+        .then(() => {
+          // the studio's colour can now be read from its own picture
+          roomImg = room
+          // not over an edge still to come (the passage's, as the light reaches the island)
+          if (phase && phase !== 'pre' && phase !== '11' && !edgeLater) setEdge(phase)
+        })
+        .catch(() => {})
       cards.forEach((card) =>
         card.querySelectorAll('img').forEach((img) => {
           img.loading = 'eager'
@@ -780,6 +868,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     clearTimeout(wake)
     clearTimeout(letGo)
     clearTimeout(edgeLater)
+    clearInterval(edgeFollow)
     delete section.dataset.edge
     cleanups.forEach((c) => c())
     flights.forEach((a) => a.cancel())

@@ -123,21 +123,24 @@ export function entranceSequence(c: EntranceConfig) {
       const work = document.querySelector<HTMLElement>('.work') // parsed after this script
       const ch = Number(work?.dataset.ch ?? 0)
       const ground = ch > 0 && d.pass === 'done' && work?.querySelectorAll('.w-ground')[ch]
-      const past = d.section && d.section !== 'top' && d.section !== 'work' && d.section !== 'method'
-      // the Method says its own (README #103): the Work's ground until the light has covered the screen, then the studio's top at the
-      // hour, then the dark of 11 — as the charcoal of the sections after it, the band under Safari's bar and the Dynamic Island's
-      // surround were charcoal over Experiences' night and over the lit studio (owner, iPhone, 3 Nov)
-      // back above the Method the section is the Work's at once, but the light is still going back: its edge holds until it has gone
-      const edge = d.section === 'method' || d.section === 'work' ? document.getElementById('method')?.dataset.edge : ''
-      // in the Method the edges cross-fade (0.3 s, as the light's edge passes the island), and so does the change that ends it;
-      // elsewhere they change at once, as before
+      const past = d.section && d.section !== 'top' && d.section !== 'work' && d.section !== 'method' && d.section !== 'about'
+      // The Method and the About say their own (data-edge): the colour of what is really at the top of the screen, read from the picture
+      // drawn there when it is there (src/lib/top-colour.ts; owner, iPhone, 4 Nov) — the Work's ground until the light has covered the
+      // screen, then the studio's top, the 9's own page, the dark of 11; the About's dark at 12, the portrait's sky (or the room) at 13.
+      // Back above the Method the section is the Work's at once, but the light is still going back: its edge holds until it has gone.
+      // Just into the About, before its passage has started, its section is already the About's but what is seen is still the Method's 11.
+      const methodEdge = document.getElementById('method')?.dataset.edge ?? ''
+      const aboutEdge = document.getElementById('about')?.dataset.edge ?? ''
+      const edge = d.section === 'about' ? aboutEdge || methodEdge : d.section === 'method' || d.section === 'work' ? methodEdge : ''
+      // in the Method and the About the edges cross-fade (0.3 s, as the light's edge passes the island), and so does the change that ends
+      // it; elsewhere they change at once, as before
       // only where the edges are seen (iOS Safari: its status area and the band under its bar); on Android a cross-fade of the page's
       // background repainted the whole page on every frame (Xiaomi, quick strokes over the seam: 58 fps with it, 67.5 without, 3 Nov)
-      const fade = ios && (d.section === 'method' || edge || viaMethod) ? 'background-color .3s linear' : ''
+      const fade = ios && (d.section === 'method' || d.section === 'about' || edge || viaMethod) ? 'background-color .3s linear' : ''
       viaMethod = !!edge
       root.style.transition = fade
       document.body.style.transition = fade
-      paintEdges(past ? '#1e1d1a' : edge || (ground ? getComputedStyle(ground).backgroundColor : frame))
+      paintEdges(edge || (past || d.section === 'about' ? '#1e1d1a' : ground ? getComputedStyle(ground).backgroundColor : frame))
     }
     const watch = new MutationObserver(scene)
     watch.observe(root, { attributes: true, attributeFilter: ['data-pass', 'data-section'] })
@@ -146,6 +149,8 @@ export function entranceSequence(c: EntranceConfig) {
       if (work) watch.observe(work, { attributes: true, attributeFilter: ['data-ch'] })
       const method = document.getElementById('method')
       if (method) watch.observe(method, { attributes: true, attributeFilter: ['data-edge'] })
+      const about = document.getElementById('about')
+      if (about) watch.observe(about, { attributes: true, attributeFilter: ['data-edge'] })
     })
   }
   const dedication = section.querySelector('.e-ded')

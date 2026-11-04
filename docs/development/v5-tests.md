@@ -1561,3 +1561,70 @@ porque as do Method não vêm no repositório):**
 **Não verificado:** tudo no iPhone — o tremor (agora sem `clip-path` nem `overflow-x: clip`, como o Work), o reflexo no Safari, os cartões a
 passar atrás da ilha (o 8 no telemóvel afasta as folhas para o lado; só as que saem para cima a passam), a imagem do 9 atrás da ilha.
 O código das cores (`data-edge`) continua, mas fica tapado pelo palco: só se veria no topo da página e no elástico.
+
+## As cores do topo (ilha do iPhone, barra do Chrome) lidas da imagem desenhada — 4/11, owner
+
+**Bugs do owner (iPhone e Android):** (1) Work → Method: no 7 a aresta de luz certa, mas ao aterrar a cor de cima da ilha mudava e ficava
+errada; (2) 11 → 12: a imagem saltava outra vez; (3) a voltar ao 10 a cor da ilha mudava para uma cor errada; no Chrome do Android as cores
+também não ficavam bem, sobretudo a voltar para trás. Pedido: ver se era código antigo das cores da barra de topo.
+
+**O que era (código antigo, sim):**
+- As bordas do Method (`data-edge`, lidas pelo `entrance/sequence.ts`) eram **valores fixos medidos no Chrome a 390 × 844** (`--m-edge` por
+  hora em `method.css`, `FULL_EDGE` para o 9, `#171815` para o 11). No iPhone as cenas presas têm mais 130 px (`--screen`), o estúdio em
+  `cover` é cortado de outra maneira e o seu topo é outra cor: certo durante a aresta, errado ao assentar.
+- O escuro do 11 entra em 1,8 s (e sai em 0,7 s), mas a borda passava a escura **de uma vez**: escuro sobre o estúdio ainda aceso a ir para o
+  11, e claro sobre o escuro a voltar ao 10 (bug 3).
+- O 9 do telemóvel recebia a cor antes da imagem lá estar; o `decode` do estúdio, ao acabar, repunha a borda **por cima** da que esperava a
+  luz chegar à ilha.
+- No About: a borda do 13 → 12 ficava escura sobre o céu do retrato ainda aberto; no fim do About (o palco solto, a subir com a página) ficava
+  a cor do céu sobre o que vinha a seguir; numa entrada rápida no 13 a borda era lida antes de o retrato chegar ao topo e ficava escura.
+- O salto do 11 → 12 no iPhone: o lugar da frase do 11 era medido contra o palco do Method, que no iPhone começa 70 px acima do ecrã
+  (`--m-lift`): o retrato nascia 70 px fora da frase.
+
+**Feito (lógica):**
+- `src/lib/top-colour.ts` (novo): `bandColour(img, caixa, faixa, fit, posição)` — a cor média de uma faixa da imagem **tal como está desenhada
+  neste ecrã** (`cover` com `object-position`, ou `fill`), por um canvas de 8 × 2; `over`, `parseColour`, `hex`. Só imagens da mesma origem;
+  falha → `null` e fica a cor de reserva.
+- Method (`method-stage.ts`): `studioTop` lê o topo do estúdio da própria imagem da sala (a do `decode`, em `cover` no palco), mais a luz da
+  hora (`--m-key`, a sua geometria e a **opacidade dela agora**); `studioOrDark` põe por cima o escuro do 11 **à opacidade que tem agora**;
+  `featuredTop` lê o 9 da fotografia do ecrã em destaque (ou o seu fundo). No iPhone a faixa é a dos 70 px que a ilha vê: no estúdio o seu
+  próprio reflexo (as primeiras 70 linhas); no 9 a fotografia que lá sobe. Depois de cada mudança a borda **segue** 1,9 s (lida a cada 100 ms)
+  enquanto a luz e o escuro assentam; o 9 do telemóvel espera o fim do voo (`MOVE` + 60 ms); o `decode` não passa por cima de uma borda à
+  espera. Os valores fixos (`--m-edge`, `FULL_EDGE`) ficam só como reserva se a imagem não se puder ler.
+- About (`about-stage.ts`): `data-edge` próprio, composto como o topo é desenhado: o escuro do 12 (`#171816`); por cima a sala acesa
+  (`.a-lit`, lida da imagem, à opacidade que tem agora); por cima, no telemóvel, o retrato **na medida em que se vê no topo** — pelo círculo
+  de luz enquanto abre (a máscara do `.a-open`: sólida até 58 % do lado mais curto, transparente a 100 %, escalada por k) e todo, aberto;
+  nada, quando subiu com a página. Ao ir para o 13/14 e ao voltar ao 12 a borda é relida a cada 100 ms durante 1,8 s; com a cor (hover,
+  segurar) durante 1,4 s; solta no fim, a cada frame em que o palco se mexe (fora do topo → o escuro da secção `#1b1c1a`). Por relógio
+  (1,2–1,5 s ao 13, 0,3/0,5 s ao 12) ficava sempre adiantada num ecrã e atrasada noutro. A frase do 11 medida no ecrã por baixo da subida do
+  Method (o salto do 11 → 12).
+- `entrance/sequence.ts`: na secção About usa a borda do About (ou a do Method enquanto o 11 ainda é o que se vê); a transição de 0,3 s no
+  iOS também no About; vigia o `data-edge` do About. No Android continua sem transição (custo medido no Xiaomi a 3/11).
+
+**Como se testou (Chromium sem ecrã, telemóvel; as regras do iOS forçadas com todos os blocos `@supports (-webkit-touch-callout)` do site,
+incluindo `--screen` = lvh + 130 px):**
+- `audit.cjs`: do primeiro passo do Work ao fim do About e de volta, de 70 em 70 px, com pausas de 2,2 s a cada ecrã; compara o fundo do
+  `<html>` (= a cor da ilha / da barra) com os 6 px de cima do ecrã, e conta séries de 3+ amostras com Δ > 18 níveis. Android 390 × 844
+  (fuso local e Tóquio), iOS 402 × 874 (local e Chicago: noite e dia).
+- `tl2.cjs`: linha do tempo de uma mudança (borda contra topo a cada ~80 ms) — 10 → 11, 11 → 10, Work → 7, 9 → 10, 12 → 13, 13 → 12.
+- `birth.cjs`: 11 → 12 no telemóvel — a frase no 11, a mesma na cópia, o centro onde o retrato nasce.
+
+**Números:**
+- Antes (Android): 4 séries erradas — 10 → 11 (Δ152), fim do About (Δ155, nos dois sentidos), 13 → 12 (Δ164).
+- 10 → 11 no iOS: a borda segue o escuro (Δ 37–41 nos primeiros 250 ms, ≤ 21 depois, 0 assente); 11 → 10: Δ78 → 4 em 330 ms (antes ficava
+  escura). Work → 7: a borda muda 150–250 ms antes de a aresta chegar ao topo (o centro da transição de 0,3 s, como desenhado), depois Δ ≤ 13.
+- 11 → 12: a frase no 11, na cópia e o centro do retrato a nascer no mesmo píxel — Android 344 / 344 / 344, iOS forçado 424 / 424 / 424.
+- 12 → 13 no iOS forçado: a borda acompanha a sala a acender (Δ 8–13) e o retrato a chegar ao topo (Δ86 numa amostra, ~100 ms de atraso,
+  depois ≤ 11); 13 → 12: Δ ≤ 9 até ao retrato sair do topo, Δ71 em duas amostras na queda, depois ≤ 2.
+- **Depois (auditoria completa, a mesma de antes):** Android 390 × 844 local e Tóquio: **0 séries erradas** (eram 4). iOS forçado 402 × 874
+  local e Chicago: séries de 3 amostras (~0,3 s com a página sempre a andar) no 10 ↔ 11 (Δ 43–63, o atraso de uma leitura de 100 ms) e no
+  9 ao voltar do 10 (Δ35, o voo do cartão); no fim do About e no 7 de dia (Δ19) a faixa que a ilha vê (acima do ecrã) não é a que o teste
+  vê (o topo do ecrã) — o retrato a subir mostra o corpo escuro no ecrã enquanto o céu continua acima dele. 0 erros de página.
+- Regressão: ida e volta 1440 e 390 (só as diferenças das bandas mortas do Method, como antes), menu 1440 e 390 certos (um "chegar com
+  #about" falhou uma vez com quatro browsers em paralelo; repetido 5 vezes sozinho, certo), reduzido e sem JS 1440/390/320 sem sobreposição
+  nem scroll lateral, walk 390 e 1440 sem erros, hover/segurar certos, costura 11 → 12 máx. 6–7 níveis.
+
+**Não verificado:** o iPhone verdadeiro (a faixa acima do ecrã não se vê no Chromium: o teste compara com o topo do ecrã, e no 7 e no fim do
+About a faixa que a ilha vê é outra — diferenças de até ~20 níveis no estúdio e no retrato a sair são isso); o Xiaomi (a borda relida a cada
+100 ms durante 1,9 s no Method: 19 mudanças do fundo da página; antes era 1). As imagens do estúdio usadas aqui são provisórias (as reais
+não estão no repositório): as cores exatas no iPhone só com as verdadeiras.

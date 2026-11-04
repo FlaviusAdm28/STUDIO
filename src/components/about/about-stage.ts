@@ -19,6 +19,8 @@
   around the photograph (a dead band just above the trigger where the stage was no longer held); the light cheap, in layers, at a low
   resolution (a dark layer with a hole, scaled ×3). Hence the copy, the stage held before the trigger, and the light as below.
 */
+import { bandColour, hex, over, type Rgb } from '@/lib/top-colour'
+
 export type Phase = 'pre' | '12' | '13' | '14'
 const ORDER = ['12', '13', '14'] as const
 
@@ -120,7 +122,10 @@ export function runStage(about: HTMLElement, release: () => void) {
       if (!c || !st) return PHONE.centre
       const cr = c.getBoundingClientRect()
       const r = st.getBoundingClientRect()
-      return r.height ? (cr.top - r.top + cr.height / 2) / r.height : PHONE.centre
+      // the Method's held stage reaches 70 px above the screen on iOS (method.css --m-lift): the sentence's place is of the screen under
+      // it — measured from the stage's own top, the portrait was born 70 px off the sentence and jumped (owner, iPhone, 4 Nov)
+      const mlift = parseFloat(getComputedStyle(document.getElementById('method') ?? st).getPropertyValue('--m-lift')) || 0
+      return r.height ? (cr.top - (r.top + mlift) + cr.height / 2) / (r.height - mlift) : PHONE.centre
     })()
     const wantY = kind === 'desk' ? ly : phrase * H - pr.height / 2
     const dx = Math.round(wantX) - lx
@@ -333,11 +338,109 @@ export function runStage(about: HTMLElement, release: () => void) {
     run([...opening(ONE, ONE, 0, 0)], true)
   }
 
+  // ---- the page's edges (html, body, theme-color: around Safari's Dynamic Island, Chrome's bar on Android), read by the entrance script:
+  // the colour of what is really at the top of the screen, from its picture (src/lib/top-colour.ts), when it is there. They were the
+  // charcoal of the sections after the About, an artificial colour over the portrait's sky at 13 (owner, iPhone, 4 Nov) ----
+  let edgeLater = 0
+  const DARK_RGB: Rgb = [23, 24, 22] // the dark of 12 as seen (--a-dark and the grain), the Method's 11
+  // the section's own dark, once the stage has gone up with the page
+  const GONE: Rgb = [27, 28, 26]
+  // the band the island sees: on iOS the 70 px above the screen (the lift), elsewhere the screen's top; across its middle
+  const band = (r: DOMRect) => ({ x0: innerWidth * 0.3 - r.left, x1: innerWidth * 0.7 - r.left, y0: -lift() - r.top, y1: 4 - r.top })
+  const posOf = (img: HTMLImageElement) =>
+    getComputedStyle(img)
+      .objectPosition.split(' ')
+      .map((v) => (v.endsWith('%') ? parseFloat(v) / 100 : 0.5)) as [number, number]
+  // a phone at 13 and 14: the portrait across the top, as much of it as is seen there — through the circle of light while it opens
+  // (.a-open's mask: solid to 58 % of its closest side, clear at 100 %, scaled by k), all of it once open; none once it has gone up
+  const portraitTop = (): [Rgb, number] | null => {
+    if (kind !== 'phone') return null
+    const im = pt.querySelector<HTMLImageElement>(`${about.dataset.colour === 'on' ? '.a-col' : '.a-mono'} img`)
+    if (!im) return null
+    const r = im.getBoundingClientRect()
+    if (r.bottom < 4 || r.top > 1) return null
+    const c = bandColour(im, { w: r.width, h: r.height }, band(r), 'cover', posOf(im))
+    if (!c) return null
+    let seen = 1
+    if (!pt.hasAttribute('data-open')) {
+      const k = currentK()
+      const ob = open.getBoundingClientRect()
+      const rad = Math.min(open.offsetWidth, open.offsetHeight) / 2
+      const y = lift() ? -lift() / 2 : 8
+      const d = Math.hypot((innerWidth / 2 - (ob.left + ob.width / 2)) / (rad * k.x), (y - (ob.top + ob.height / 2)) / (rad * k.y))
+      seen = Math.min(1, Math.max(0, (1 - d) / (1 - SOLID)))
+    }
+    seen *= parseFloat(getComputedStyle(frame).opacity) || 0
+    return [c, seen]
+  }
+  // under it the lit room (.a-lit, drawn with fill), at its opacity now over the dark: it comes up over 1.2 s before the portrait
+  // reaches the top (the edge stayed the dark of 12 under a room already grey, audit 402 × 874, 4 Nov)
+  const roomTop = (): Rgb | null => {
+    const im = lit.querySelector<HTMLImageElement>(`${about.dataset.colour === 'on' ? '.a-room-col' : '.a-room-mono'} img`)
+    if (!im) return null
+    const r = im.getBoundingClientRect()
+    if (r.bottom < 4) return null
+    const c = bandColour(im, { w: r.width, h: r.height }, band(r), 'fill', posOf(im))
+    return c ? over(DARK_RGB, c, parseFloat(getComputedStyle(lit).opacity) || 0) : null
+  }
+  const edgeOf = (ph: Phase) => {
+    if (ph === 'pre') return ''
+    const ground = roomTop() ?? (ph === '12' ? DARK_RGB : GONE)
+    const p = portraitTop()
+    return hex(p ? over(ground, p[0], p[1]) : ground)
+  }
+  // set after a delay, then read again every 100 ms for a while where the top changes slowly
+  let edgeFollow = 0
+  const setEdge = (ph: Phase, delay = 0, follow = 0) => {
+    clearTimeout(edgeLater)
+    clearInterval(edgeFollow)
+    edgeLater = 0
+    edgeFollow = 0
+    const put = () => {
+      const e = edgeOf(ph)
+      if (e) about.dataset.edge = e
+      else delete about.dataset.edge
+    }
+    const go = () => {
+      edgeLater = 0
+      put()
+      if (!follow) return
+      const until = performance.now() + follow
+      edgeFollow = window.setInterval(() => {
+        put()
+        if (performance.now() < until) return
+        clearInterval(edgeFollow)
+        edgeFollow = 0
+      }, 100)
+    }
+    if (delay) edgeLater = window.setTimeout(go, delay)
+    else go()
+  }
+  // the portrait's colour changes the top too (its sky, the room): once it is mostly there
+  const colourWatch = new MutationObserver(() => phase && phase !== 'pre' && phase !== '12' && setEdge(phase, 0, 1400))
+  // let go at the end of the hold, the stage goes up with the page and the top is what follows it: read again as it moves (only then:
+  // held, nothing at the top moves with the scroll)
+  let edgeAt = NaN
+  const edgeOnScroll = () => {
+    if ((phase !== '13' && phase !== '14') || edgeLater || edgeFollow) return
+    const t = Math.round(stage.getBoundingClientRect().top)
+    if (t === edgeAt) return
+    const moved = !Number.isNaN(edgeAt)
+    edgeAt = t
+    if (moved) setEdge(phase)
+  }
+  colourWatch.observe(about, { attributes: true, attributeFilter: ['data-colour'] })
+
   const show = (to: Phase, instant = false) => {
     const was = phase
     phase = to
     about.dataset.phase = to
     clearTimeout(wake)
+    // the top's colour as the top changes: followed while the room comes up and the photograph opens over the top (to 13, 14), and
+    // while it closes off it (back to 12). By the clock alone it was early or late on one screen or the other: the photograph reaches the
+    // top between 1.2 and 1.5 s at 390 × 844, and leaves it by 0.4 s, by 0.65 s on the iPhone's taller portrait (timed, 4 Nov)
+    const moving = !instant && (((to === '13' || to === '14') && (was === '12' || was === 'pre')) || (to === '12' && (was === '13' || was === '14')))
+    setEdge(to, 0, moving ? 1800 : 0)
 
     if (to === 'pre') {
       release()
@@ -528,6 +631,7 @@ export function runStage(about: HTMLElement, release: () => void) {
       ORDER.forEach((ph, i) => i > cur && p >= STARTS[ph] + BAND && (far = i))
       if (far !== cur) show(ORDER[far])
     } else if (nxt < cur && p < STARTS[ORDER[cur]] - BAND) show(at)
+    edgeOnScroll()
   }
   let raf = 0
   const frameChoose = () => {
@@ -569,6 +673,10 @@ export function runStage(about: HTMLElement, release: () => void) {
 
   return () => {
     clearTimeout(wake)
+    clearTimeout(edgeLater)
+    clearInterval(edgeFollow)
+    colourWatch.disconnect()
+    delete about.dataset.edge
     clearTimeout(letGo)
     clearTimeout(openLater)
     clearTimeout(dropTimer)

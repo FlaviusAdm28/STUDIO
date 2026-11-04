@@ -25,6 +25,32 @@ valida no PC, no Xiaomi e no iPhone antes de integrar. Testes e números: `v5-te
 6. **Xiaomi:** o 11 → 12 (o *spot* a escalar), o 12 → 13, o segurar para a cor. iPhone: as bordas no About (carvão `#1e1d1a` contra a
    sala `#171816`/`#1b1c1a`).
 
+### Tudo o que esta sessão mudou na lógica (4/11, `ffeec33` → este branch), por ordem
+
+Pormenores, medições e o que não foi verificado: `v5-tests.md`, "M7a — About" (passos 1–9), "O Method em ecrã inteiro no iPhone" e
+"As cores do topo … lidas da imagem desenhada".
+
+1. **About construído** (`src/components/about/`: `about.tsx` servidor, `about.css`, `about-client.tsx`, `about-stage.ts`, `portrait.ts`;
+   `page.tsx` usa `<About />`; `globals.css` tira o About das regras de secção provisória). O palco preso sobre os últimos 1,6 ecrãs do
+   Method; fases `pre` / 12 / 13 / 14 por scroll (13 a 1,0 ecrã, 14 a 1,7, solto a 2,3; banda morta 0,025; preso 0,3 ecrã antes).
+2. **A passagem 11 → 12** corre inteira (~3 s) sobre uma **cópia inerte do 11** (o `.m-stage` clonado no `.a-from`, com o que ainda se mexe
+   copiado onde está); a luz desliza até ao retrato; o círculo abre-se em oval por `transform` (escala e escala inversa amostradas), sem
+   camada escura; só perto do fim do segurar se apressa. Um salto (menu, endereço, `data-jump`) põe tudo no lugar de uma vez.
+3. **A sala do 13 como imagens acabadas** (`scripts/about-room.mjs`, chamado por `npm run images`: P&B cinzenta e a cor, 16 bits, sem
+   anéis), grão por dithering; a cor no hover só com o rato a mexer-se, por toque a segurar, Enter/Espaço (`portrait.ts`).
+4. **Navegação** (`src/lib/address.ts`, chamado pela barra): o menu, o índice, os endereços e voltar/avançar levam o Method e o About ao
+   sítio onde realmente começam (`data-starts`), num salto marcado com `data-jump` (600 ms).
+5. **iPhone, ecrã inteiro à maneira do Work** (`method.css` bloco iOS + `method-stage.ts`; `about.css` bloco iOS): os palcos do Method e do
+   About começam 70 px acima do ecrã (`--m-lift`, `--a-lift`); o que se vê desce 70 px; o estúdio reflete o seu topo para cima; o 9 e o
+   retrato do 13 sobem atrás da ilha. O script desconta a subida onde mede. (A tentativa com `clip-path` foi desfeita: fazia tremer.)
+6. **As cores do topo lidas da imagem desenhada** (este commit): `src/lib/top-colour.ts`; o Method deixa os valores fixos medidos no Chrome
+   (só reserva) e lê o estúdio, a luz da hora e o escuro do 11 à opacidade de cada momento, seguindo as mudanças 1,9 s; o About tem a sua
+   borda (escuro no 12, céu do retrato ou sala no 13/14, seguida quando o palco sai); o `sequence.ts` junta as duas. A frase do 11 medida
+   sem a subida do Method (o salto do 11 → 12 no iPhone).
+
+**Por ver no iPhone (owner):** a cor à volta da ilha a aterrar no 7, a ir e vir entre o 10 e o 11, no 13 e a sair do About; o 11 → 12 sem
+salto. **No Xiaomi:** as idas e voltas 10 ↔ 11 (a borda relida a cada 100 ms durante 1,9 s; no Android sem transição).
+
 ---
 
 ## ▶ COMEÇAR AQUI · 3 de novembro de 2026, fim do dia — M6 (Method) commitado e enviado: `55f6e53`

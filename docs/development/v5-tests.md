@@ -1525,3 +1525,39 @@ pendurada do seu topo (`object-position: 50% 0`): a ilha mostra as primeiras lin
 mesmos píxeis; com o palco baixado 70 px (para ver a faixa) o céu da fotografia continua para cima no 13 e no 14, e no 12 fica a sala
 escura (a máscara). **Não reproduzível aqui:** a diferença entre `svh` e `lvh` (o Chromium emulado não tem as barras do Safari) — só o
 iPhone mostra o enquadramento novo.
+
+---
+
+## O Method em ecrã inteiro no iPhone, à maneira do Work (4/11, owner)
+
+**Pedido do owner:** no iPhone o Method como se o ecrã fosse inteiro, a ilha por cima do site: a luz do 7 enche o ecrã todo; os cartões a sair
+para cima passam por trás da ilha; o 9 estica no comprimento do ecrã todo, a sua imagem atrás da ilha, sem uma cor a replicar; nenhuma cor
+programada no Method. Sem mudar o ecrã visível. (A primeira tentativa, `a0f2eec`, desenhava acima de um palco preso com `clip-path` e
+fazia tremer o Method no iPhone; desfeita em `08d0d81`.)
+
+**Feito (só iOS, telemóvel, com movimento — `method.css`, `method-stage.ts`):** como o palco do Work: o palco começa 70 px acima do ecrã e é
+70 px mais alto (`top`/`margin-top` −70, `--m-lift`); o que se vê desce 70 px dentro dele (`translate` independente na cabeça e nos cartões,
+o 11 a partir dos 70 px) — no ecrã fica onde estava; o chão do Work, a luz e o transbordo da luz enchem o palco todo, as três caixas da luz a
+rodar à volta do topo do ecrã como antes; o estúdio no seu lugar e, por cima, o seu próprio reflexo (`-webkit-box-reflect`, só WebKit:
+a parede continua com a luz da hora, sem costura e sem cor medida); o escuro do 11 sobe (a luz redonda no mesmo sítio); no 9 o ecrã inteiro
+fica 70 px mais alto, do topo físico do ecrã para cima, a fotografia leva os 70 px, o painel creme e o menu da página ficam onde estavam.
+O script desconta a subida onde mede contra o palco: a altura do ecrã (`LVH`), a forma e o lugar do ecrã inteiro do 9, onde a luz encontra as
+palavras, o segurar ao recuar, o comprimento da cena. No About, a cópia do 11 fica sem subida (está no próprio ecrã). Desktop, iPad e Android
+não mudam (a subida é 0 e as fórmulas são as de antes).
+
+**Medido com a regra forçada no Chromium (402 × 874, 390 × 844; noite e dia; estúdio provisório — imagens de teste geradas aqui, fora do Git,
+porque as do Method não vêm no repositório):**
+- A luz do 7 parada em 6 instantes (300–2500 ms): igual com e sem a regra sem as imagens (máx. 2–4 níveis); com o estúdio provisório, orlas
+  de 1 px na margem esquerda e uma diagonal ténue ao ângulo da luz (Δ ≤ 53 em píxeis soltos) — da reamostragem das caixas inclinadas e do
+  reflexo no Chromium; o site sem a regra já tem uma coluna pontilhada nessa margem. Visto ampliado: não se nota a tamanho real. No Safari
+  pode ser diferente.
+- Fases assentes: antes da luz, 7, 8a, 10, 11 iguais (o 7 só o cursor a piscar); o 9 muda como pedido (o ecrã inteiro sobe; título e data no
+  mesmo sítio; o menu da página desceu 70 px para ficar abaixo da barra — encontrado e corrigido no teste).
+- A passagem 11 → 12 com as duas subidas (Method e About): o ecrã inteiro do 11 contra o primeiro frame do 12, máx. 6–7 níveis.
+- A faixa acima do ecrã (palco baixado no teste): antes da luz o Experiences; no 7 a aresta a atravessar; 8 e 10 a parede refletida; 9 a
+  fotografia da página; 11 o escuro. Scroll lateral 0. Regressão: 1440 e 390 (About), menu → Method / About certos, 0 erros.
+- Um engano do teste corrigido: media o palco com a subida incluída e parava uma fase antes.
+
+**Não verificado:** tudo no iPhone — o tremor (agora sem `clip-path` nem `overflow-x: clip`, como o Work), o reflexo no Safari, os cartões a
+passar atrás da ilha (o 8 no telemóvel afasta as folhas para o lado; só as que saem para cima a passam), a imagem do 9 atrás da ilha.
+O código das cores (`data-edge`) continua, mas fica tapado pelo palco: só se veria no topo da página e no elástico.

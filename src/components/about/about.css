@@ -468,6 +468,8 @@
     pointer-events: none;
   }
   :root[data-js] .about .a-from > .method {
+    /* the copy is laid on the screen itself: none of the Method's own lift on iOS */
+    --m-lift: 0px;
     position: absolute;
     inset: 0;
     height: auto;

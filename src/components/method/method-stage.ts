@@ -212,6 +212,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   let AR = 9 / 19.5
   let ARF = 9 / 19.5
   let LVH = 0
+  let lift = 0
   let F = 0
   let ox = 0
   // the side the hour's light comes from (README #102): the light's own side in method.css (--m-kx)
@@ -274,11 +275,14 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     // The whole screen of 9 is as tall as the held stage (--screen): on Android 100lvh, so it still fills the screen once Chrome's
     // address bar has gone (owner, Xiaomi, 3 Nov); on iOS 100lvh + 130 px, as every held scene, so it runs on under Safari's floating
     // bar to the screen's foot (100lvh alone left a band of the studio at the foot, owner, iPhone, 3 Nov)
-    LVH = Math.max(H, stage.offsetHeight)
+    // on iOS the stage reaches 70 px above the screen (method.css --m-lift): every measure against it is of the screen under that
+    lift = parseFloat(getComputedStyle(section).getPropertyValue('--m-lift')) || 0
+    LVH = Math.max(H, stage.offsetHeight - lift)
     // the cards in the stage's shape, as before; the whole screen of 9 fills it (README #101, #103). A 9 : 16 card was tried and turned back
     // (owner, iPhone, 3 Nov: too short)
     AR = kind === 'phone' ? Math.min(9 / 16, Math.max(9 / 23, W / LVH)) : 9 / 19.5
-    ARF = AR
+    // the whole screen of 9 runs up behind Safari's island too (iOS): its shape is the screen's and the lift's
+    ARF = kind === 'phone' && lift ? W / (LVH + lift) : AR
     F = kind === 'phone' ? Math.min(W, LVH * AR) : W
     // The deck of 7 where it was (64–66 % of the screen) — unless that puts it over Make it yours: after a refresh in 8 on iOS the screen
     // was measured shorter and the cards rose over the field (owner, iPhone, 3 Nov). Then it goes down just enough: its top 30 px under
@@ -379,7 +383,8 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   const midOf = (el: HTMLElement) => {
     const r = el.getBoundingClientRect()
     const s = stage.getBoundingClientRect()
-    return [r.left + r.width / 2 - s.left, r.top + r.height / 2 - s.top] as const
+    // of the screen: on iOS the stage's top is 70 px above it (the lift)
+    return [r.left + r.width / 2 - s.left, r.top + r.height / 2 - s.top - lift] as const
   }
 
   // The Work's photograph of the guide moves in a little under the light, from the transform the Work gave it (it rests while the
@@ -449,7 +454,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   const holdWhileLeaving = (on: boolean) => {
     clearTimeout(letGo)
     // fixed exactly where it is (the change comes ~2 % of a screen below the top, the dead band)
-    stage.style.top = on ? `${Math.max(0, section.getBoundingClientRect().top).toFixed(1)}px` : ''
+    stage.style.top = on ? `${(Math.max(0, section.getBoundingClientRect().top) - lift).toFixed(1)}px` : ''
     section.classList.toggle('m-leaving', on)
     if (on)
       letGo = window.setTimeout(() => {
@@ -598,7 +603,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
       card.style.zIndex = String(L.z)
       card.classList.toggle('is-full', !!L.full)
       // the whole screen: from the top, as tall as the screen with the bars away
-      const pos: Pos = L.full ? [L.pos[0], (50 * LVH) / H, L.pos[2], L.pos[3]] : L.pos
+      const pos: Pos = L.full ? [L.pos[0], (100 * ((LVH + lift) / 2 - lift)) / H, L.pos[2], L.pos[3]] : L.pos
       const to = { transform: cardTransform(card, pos, !!L.full), opacity: String(L.o) }
       // the light finds each screen in its place once it has passed the whole of it (never seen over what is still unlit); going
       // back, each is gone before the edge uncovers its first corner
@@ -678,7 +683,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   const mark = section.querySelector<HTMLElement>('.m-start')
   const lead = () => mark?.offsetTop ?? LEAD * H
   const sceneTop = () => section.getBoundingClientRect().top + lead()
-  const sceneTravel = () => section.offsetHeight - stage.offsetHeight - lead()
+  const sceneTravel = () => section.offsetHeight - (stage.offsetHeight - lift) - lead()
   const starts = () => (kind === 'phone' ? STARTS_PHONE : STARTS)
   const choose = (): void => {
     const STARTS = starts()

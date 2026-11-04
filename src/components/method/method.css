@@ -1085,3 +1085,64 @@
   background: #f2eee7;
 }
 }
+
+/* ================= iOS: the Method full screen, the Dynamic Island over it (owner, 4 Nov) =================
+   With the page scrolled, Safari shows behind the island what lies just above the screen (README #86). As the Work's stage (the way the
+   iPhone has shown it does well) the stage starts 70 px above the screen and is 70 px taller; what it shows on the screen goes down 70 px
+   inside it, so the screen is as before, and its ground fills the 70 px: the edge of light of 7 crosses behind the island to the screen's
+   top, the cards leaving upward pass under it, the whole screen of 9 runs up behind it, the dark of 11 goes on up. No colour stands in for
+   the site there. (Drawn above a held stage with clip-path instead, the Method shook on the iPhone and the strip took another colour, 4 Nov.)
+   method-stage.ts reads --m-lift where it measures against the stage. */
+@media (prefers-reduced-motion: no-preference) and (max-width: 899px) {
+  @supports (-webkit-touch-callout: none) {
+    :root[data-js] .method {
+      --m-lift: 70px;
+    }
+    :root[data-js] .method .m-stage {
+      top: calc(-1 * var(--m-lift));
+      margin-top: calc(-1 * var(--m-lift));
+      height: calc(var(--screen) + var(--m-lift));
+    }
+    /* what is seen goes down by the lift (an independent translate: the cards and the words keep their own transforms) */
+    :root[data-js] .method :is(.m-title, .m-head, .m-screens) {
+      translate: 0 var(--m-lift);
+    }
+    :root[data-js] .method .m-end {
+      top: var(--m-lift);
+    }
+    /* the ground, the light and its spill already fill the stage, now 70 px taller; the light's three boxes turn about the screen's
+       top, as before (else its edge would move ~15 px across) */
+    :root[data-js] .method :is(.m-wipe, .m-wipe-b, .m-wipe-in, .m-spill) {
+      transform-origin: 0 var(--m-lift);
+    }
+    :root[data-js] .method .m-spill {
+      -webkit-mask-position: 0 var(--m-lift);
+      mask-position: 0 var(--m-lift);
+    }
+    /* the room stays where it was; above it, its own reflection: the wall's top goes on, with the hour's light in it, without seam and
+       with no colour measured for it (WebKit's own, where this applies) */
+    :root[data-js] .method .m-wipe-in .m-studio {
+      top: var(--m-lift);
+      -webkit-box-reflect: above;
+    }
+    /* 11: the dark room up to the screen's top, its round light where it was (44 % of the screen) */
+    :root[data-js] .method .m-end .m-dark {
+      top: calc(-1 * var(--m-lift));
+      background:
+        radial-gradient(circle 62vw at 50% calc(var(--m-lift) + 0.44 * (100% - var(--m-lift))), rgba(255, 236, 206, 0.15), rgba(255, 236, 206, 0.05) 60%, transparent 100%),
+        #171816;
+    }
+    /* 9: the whole screen runs up behind the island (method-stage.ts makes it 70 px taller, from the screen's top up); its photograph takes
+       the 70 px, its cream panel stays where it was */
+    :root[data-js] .method .m-card.is-full .s-wed-ph picture {
+      height: calc(60% + 0.4 * var(--m-lift));
+    }
+    :root[data-js] .method .m-card.is-full .s-wed-tx {
+      height: calc(40% - 0.4 * var(--m-lift));
+    }
+    /* the page's own menu, hung from the photograph's top, stays where it was: under the island it would be lost */
+    :root[data-js] .method .m-card.is-full .s-wed-nav {
+      top: calc(24cqw + var(--m-lift));
+    }
+  }
+}

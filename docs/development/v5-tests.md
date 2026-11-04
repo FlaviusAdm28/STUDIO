@@ -1505,3 +1505,23 @@ fotografia acima, a 402 × 874) — fica para a decisão do ecrã inteiro no sit
 (medido a 1/11, também com `viewport-fit=cover`): o vídeo da entrada não pode ir para trás dela. Com scroll, a ilha mostra a página logo acima
 do ecrã: cada cena presa pode lá pôr a sua imagem em vez de uma cor. Proposta, por decidir: só a entrada parada com cor; o resto com a
 imagem de cada cena (mexe na Entrada, no Work e no Method). **Não verificado:** tudo no iPhone.
+
+### Passo 9: iPhone do owner — o Method desfeito; o retrato no 13 (4/11)
+
+**Owner, iPhone:** (1) o Method a tremer; (2) a faixa da ilha no Method com outra cor; (3) no 9 do Method a cor da ilha programada, a chegar
+antes da imagem; (4) no 13 do About a ilha com uma cor de fundo, não a imagem; (5) no 13 a fotografia mal enquadrada, só o cimo do corpo.
+
+**(1)(2) Desfeito** (`08d0d81`, revert de `a0f2eec`): o Method desenhava a sua faixa acima de um palco preso com `clip-path` e a secção
+cortada com `overflow-x: clip` — o que o Safari nunca tinha mostrado fazer bem (o teste de riscas de 1/11 só provou o fluxo normal e o palco do
+Work, que sobe como caixa). O Method volta ao estado aprovado no iPhone. **A refazer à maneira do Work** (o palco sobe 70 px, o conteúdo
+desce 70 px dentro dele), o que resolve também (3) — o 9 levaria a própria página em destaque para trás da ilha. Por fazer, a decidir.
+
+**(4)(5) Corrigido no About, só iOS e telemóvel:** o retrato mede 48 % da altura do ecrã durante o scroll (`lvh`), não do ecrã pequeno
+(`svh`, com as barras do Safari, bem mais baixo no iPhone do que em qualquer outro aparelho); a fotografia estende-se 70 px para cima,
+pendurada do seu topo (`object-position: 50% 0`): a ilha mostra as primeiras linhas da fotografia (o céu), e o ecrã mostra-a daí para baixo
+(402 × 874: linhas 70–490 de 602, contra 59–464 nos outros). No 12 fica por baixo da máscara da luz.
+
+**Medido com a regra forçada (402 × 874):** 12 / 13 / 14 nas fases certas; palco a −70, fotografia a −70 no 13 e no 14, retrato e nome nos
+mesmos píxeis; com o palco baixado 70 px (para ver a faixa) o céu da fotografia continua para cima no 13 e no 14, e no 12 fica a sala
+escura (a máscara). **Não reproduzível aqui:** a diferença entre `svh` e `lvh` (o Chromium emulado não tem as barras do Safari) — só o
+iPhone mostra o enquadramento novo.

@@ -375,8 +375,23 @@
         --a-lift: 70px;
       }
     }
-    /* (the photograph itself behind the island is left for the decision on the whole site full screen: stretched 70 px up it changed the
-       portrait's framing on the screen — only 59 px of photograph lie above it at 402 × 874) */
+    @media (max-width: 899px) {
+      /* the portrait 48 % of the screen as it is seen while scrolling (lvh): measured on the small viewport (svh), with Safari's bars
+         out, it came out far shorter on the iPhone than anywhere else and showed only the top of the body (owner, iPhone, 4 Nov) */
+      :root[data-js] .about .a-pt {
+        height: round(48lvh, 1px);
+      }
+      /* and the photograph itself goes on behind the island, its sky (owner, iPhone, 4 Nov: at 13 the island showed the room's colour over
+         the photograph). Hung from its top: the 70 px above are its first rows, the screen shows it from there down — at 402 × 874, rows
+         70–490 of 602, as rows 59–464 elsewhere. Under the mask until the light has opened (12) */
+      :root[data-js] .about .a-frame picture {
+        top: calc(-1 * var(--a-lift));
+        height: calc(100% + var(--a-lift));
+      }
+      :root[data-js] .about .a-frame img {
+        object-position: 50% 0;
+      }
+    }
   }
   :root[data-js] .about[data-phase]:not([data-phase='pre']) .a-stage {
     pointer-events: auto;

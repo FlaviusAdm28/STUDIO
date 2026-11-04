@@ -18,6 +18,8 @@ const next = sections.find((s) => s.id === 'questions')
 export function About() {
   return (
     <section id="about" className="about" aria-labelledby="about-title">
+      {/* where the About really starts, for the bar: with the motion, a little into the section (its stage is held before the passage) */}
+      <span className="a-start" data-starts="about" aria-hidden="true" />
       {/* held while the passage runs (about-stage.ts); at rest a plain screen */}
       <div className="a-stage" data-lum="0.1">
         {/* the room lit: its ground and the portrait's own atmosphere, B&W while the portrait is, its colours while it shows them */}
@@ -28,6 +30,9 @@ export function About() {
           <img className="a-aura a-aura-col" src={`${about.portrait.src}-aura.jpg`} alt="" width={48} height={72} decoding="async" />
         </div>
 
+        {/* the light of the Method's 11 (method.css .m-dark), which finds the portrait at 12: with the motion only */}
+        <div className="a-glow" aria-hidden="true" />
+
         <h2 id="about-title" className="a-title">
           03 About
         </h2>
@@ -35,13 +40,13 @@ export function About() {
         <div className="a-box">
           {/* the portrait: B&W by default; the colour (the same photograph) over it, only while hovered, held or chosen */}
           <div className="a-pt" data-colour="off">
+            {/* the photograph's rectangle; inside it, with the motion, the circle of light that opens to the whole of it (about.css) */}
             <div className="a-frame">
-              <Picture className="a-mono" src={about.portrait.src} alt={about.portrait.alt} mono sizes="(min-width: 900px) 34vw, 100vw" />
-              <Picture className="a-col" src={about.portrait.src} alt="" sizes="(min-width: 900px) 34vw, 100vw" />
-              {/* the dark of 12 around the light (about-stage.ts): with the motion only */}
-              <div className="a-dark" aria-hidden="true">
-                <div className="a-edge" />
-                <div className="a-spot" />
+              <div className="a-open">
+                <div className="a-img">
+                  <Picture className="a-mono" src={about.portrait.src} alt={about.portrait.alt} mono sizes="(min-width: 900px) 34vw, 100vw" />
+                  <Picture className="a-col" src={about.portrait.src} alt="" sizes="(min-width: 900px) 34vw, 100vw" />
+                </div>
               </div>
             </div>
           </div>
@@ -68,6 +73,8 @@ export function About() {
             </a>
           )}
         </div>
+        {/* the Method's 11, copied here as the passage starts, so it leaves at its own pace whatever the scroll does (#65) */}
+        <div className="a-from" aria-hidden="true" />
       </div>
 
       <AboutClient />

@@ -5,136 +5,140 @@
 
   pre  the Method's 11 is seen: the dark room, one round light on "Made once, for one moment.", the steps and Talk to us. The About is
        laid over it, held and unseen
-  12   the light finds you (transition B): the Method's words leave, Talk to us first, then the steps, the sentence last (#65); in the
-       same light, at the centre, the portrait appears in black and white — it was already in the dark room; the light, as large as the
-       sentence's, glides down onto it — and "I'm Flávio." small beneath it. On a phone the light comes up to the portrait (~2.3 s)
-  13   the room comes up: the portrait goes to its place, the name rises and becomes the title (one element, a measured transform), the
-       room takes the portrait's atmosphere; the sentence comes after
+  12   the light finds you (transition B). The passage starts on a copy of the Method's 11, exactly as it is (#65), so it plays whole at
+       its own pace whatever the scroll does: Talk to us leaves first, then the steps and (desktop) the screens, the sentence last; the
+       light that was on the sentence glides down onto the portrait and gathers on it, and in it the portrait appears in black and white,
+       fading to its edges in a circle; "I'm Flávio." small beneath it (~3.2 s)
+  13   the room comes up: the circle of light opens to the whole photograph as it goes to its place, the name rises and becomes the title
+       (one element, a measured transform), the room takes the portrait's atmosphere; the sentence comes after
   14   your story: the rule, the paragraph, the credit, 04 Questions ↓. Then the section lets go: the About is not a long held scene
-  Back above 12, the light leaves the portrait for the sentence first; only then does the Method's room come back (storyboard, 4 Nov).
+  Back above 12, the light leaves the portrait for the sentence first; only then does the Method's 11 come back (storyboard, 4 Nov).
+
+  Owner, 4 Nov, on the first build: the passage "super rápido", with no sense of a transformation (it was hurried after 0.18 screen of
+  scroll, because it was played on the Method's own words and the Method lets its 11 go 0.3 screen after the trigger); the page could move
+  around the photograph (a dead band just above the trigger where the stage was no longer held); the light cheap, in layers, at a low
+  resolution (a dark layer with a hole, scaled ×3). Hence the copy, the stage held before the trigger, and the light as below.
 */
 export type Phase = 'pre' | '12' | '13' | '14'
 const ORDER = ['12', '13', '14'] as const
 
-// The section lies over the Method's last OVERLAP screens (about.css): its top reaches the top of the screen 0.3 screen before the
-// Method lets its 11 go, so the passage covers the Method while it is still held.
-// Where each phase starts, in screens of scroll from there (held for HELD screens, about.css): one stroke of a finger is ~0.8 screen
-// (the Method's phone steps, owner 3 Nov), so 13 and 14 are a stroke apart, not two in one.
-const STARTS: Record<(typeof ORDER)[number], number> = { '12': 0, '13': 0.5, '14': 0.95 }
+// The section lies over the Method's last 1.6 screens (about.css). Its stage is held LEAD screens before the passage starts, so the dead
+// band around the start never lets it move with the page; the passage starts half a screen after the Method shows its 11.
+const LEAD = 0.3
+// where each phase starts, in screens of scroll from the passage's start; let go at RELEASE (about.css: the section's height). A stroke of
+// a finger is ~0.8 screen (the Method's phone steps, owner 3 Nov): one stroke never runs through two phases
+const STARTS: Record<(typeof ORDER)[number], number> = { '12': 0, '13': 1, '14': 1.7 }
+const RELEASE = 2.3
 const BAND = 0.025
-// scrolled this far into 12 before its passage ends, it ends quickly (the Method lets go at 0.3)
-const HURRY_AT = 0.18
-const HURRY_MS = 300
+// 12 is played whole: reached, 13 waits for it; only this close to the end of the hold does it hurry, so it is never let go unfinished
+const HURRY_AT = RELEASE - 0.25
+const HURRY_MS = 400
 
 const EASE = 'cubic-bezier(0.2, 0.7, 0.2, 1)'
-const GLIDE = 'cubic-bezier(0.45, 0, 0.25, 1)'
+const GLIDE: Curve = [0.45, 0, 0.25, 1]
+const GLIDE_EASE = `cubic-bezier(${GLIDE.join(', ')})`
+type Curve = readonly [number, number, number, number]
 
 // the storyboard's geometry (About v5, B; main storyboard, 4 Nov)
-const DESK = {
-  // the name in the light: centred under the portrait, 70 % down the frame, at 0.41 of its size
-  nameY: 0.7,
-  nameScale: 0.41,
-  // the light at 12 is the frame's centre; it starts on the sentence's light (method.css .m-dark: 46vw at 50 % 44 %), a little larger
-  pool: { r: 0.46, y: 0.44 },
-  grow: 1.13,
+const DESK = { nameY: 0.7, nameScale: 0.41 }
+const PHONE = { nameY: 0.545, nameScale: 0.6, ptY: 0.09 }
+// the light gathered on the portrait at 12: this much larger than the circle the portrait fades to
+const GATHER = 1.45
+// the mask's solid part (about.css: #000 58 %)
+const SOLID = 0.58
+
+// an easing sampled: the circle opening is two scales, one the inverse of the other at every moment, so they are written as keyframes
+const sampled = ([x1, y1, x2, y2]: Curve) => {
+  const c = (a: number, b: number, t: number) => 3 * a * t * (1 - t) ** 2 + 3 * b * t * t * (1 - t) + t ** 3
+  const pts = Array.from({ length: 401 }, (_, i) => [c(x1, x2, i / 400), c(y1, y2, i / 400)] as const)
+  return (x: number) => (pts.find(([px]) => px >= x) ?? pts[400])[1]
 }
-const PHONE = {
-  nameY: 0.545,
-  nameScale: 0.6,
-  // the portrait in the light: 9 % down the screen, so the light comes up to it from the sentence's
-  ptY: 0.09,
-  pool: { r: 0.62, y: 0.44 },
-  grow: 1.08,
-}
+const glide = sampled(GLIDE)
 
 export function runStage(about: HTMLElement, release: () => void) {
-  const stage = about.querySelector<HTMLElement>('.a-stage')
-  const box = about.querySelector<HTMLElement>('.a-box')
-  const pt = about.querySelector<HTMLElement>('.a-pt')
-  const frame = about.querySelector<HTMLElement>('.a-frame')
-  const dark = about.querySelector<HTMLElement>('.a-dark')
-  const spot = about.querySelector<HTMLElement>('.a-spot')
-  const lit = about.querySelector<HTMLElement>('.a-lit')
-  const name = about.querySelector<HTMLElement>('.a-name')
-  const q = (s: string) => about.querySelector<HTMLElement>(s)
+  const q = (s: string, root: ParentNode = about) => root.querySelector<HTMLElement>(s)
+  const stage = q('.a-stage')
+  const box = q('.a-box')
+  const pt = q('.a-pt')
+  const frame = q('.a-frame')
+  const open = q('.a-open')
+  const img = q('.a-img')
+  const glow = q('.a-glow')
+  const from = q('.a-from')
+  const lit = q('.a-lit')
+  const name = q('.a-name')
   const role = q('.a-role')
   const say = q('.a-say')
   const rule = q('.a-rule')
   const para = q('.a-para')
   const credit = q('.a-credit')
   const next = q('.a-next')
-  // the Method's 11, which the passage starts on exactly as approved (#65): its own words leave, in order
   const method = document.getElementById('method')
-  const close = method?.querySelector<HTMLElement>('.m-close')
-  const steps = method?.querySelector<HTMLElement>('.m-steps')
-  const cta = method?.querySelector<HTMLElement>('.m-cta')
-  if (!stage || !box || !pt || !frame || !dark || !spot || !lit || !name || !role || !say || !rule || !para || !credit || !next)
+  if (!stage || !box || !pt || !frame || !open || !img || !glow || !from || !lit || !name || !role || !say || !rule || !para || !credit || !next)
     return () => {}
 
   let phase: Phase | null = null
   let kind: 'desk' | 'phone' = innerWidth >= 900 ? 'desk' : 'phone'
   let H = stage.offsetHeight || innerHeight
 
-  // ---- the places, measured: the name's flight from under the portrait, the portrait in the light, the light on the sentence ----
+  // ---- the places, measured: the portrait and the name in the light, the light on the portrait, how far the circle opens ----
   let nameFrom = 'none'
   let ptAt12 = 'none'
-  let spotFrom = 'none'
-  // the screen's small height (svh): the phone's measure is capped by it (about.css --p)
-  const probe = document.createElement('div')
-  probe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:100svh;visibility:hidden;pointer-events:none'
+  let glowAt12 = 'none'
+  // how far the light opens, across and down: an oval in the photograph's own proportion
+  let K = { x: 3, y: 3 }
   const measure = () => {
     kind = innerWidth >= 900 ? 'desk' : 'phone'
     H = stage.offsetHeight || innerHeight
-    const g = kind === 'desk' ? DESK : PHONE
     const bw = box.offsetWidth
     const bh = box.offsetHeight
-    // the box in the stage, and the portrait in the box (offsets: no transform is read)
-    const bx = box.offsetLeft
-    const by = box.offsetTop
-    // the portrait at 12: at the centre on the desktop (at its left at rest), lower on a phone
-    const dx = kind === 'desk' ? bw / 2 - (pt.offsetLeft + pt.offsetWidth / 2) : 0
+    const pw = pt.offsetWidth
+    const ph = pt.offsetHeight
+    // the portrait at 12: at the centre on the desktop (at its left at rest), lower on a phone (offsets: no transform is read)
+    const dx = kind === 'desk' ? bw / 2 - (pt.offsetLeft + pw / 2) : 0
     const dy = kind === 'desk' ? 0 : PHONE.ptY * bh
     ptAt12 = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`
-    // the name, small, centred beneath the portrait (its own size and place, measured: exact at any size)
-    const s = g.nameScale
-    const nx = bw / 2 - (name.offsetWidth * s) / 2 - name.offsetLeft
+    // the name, small, centred beneath the portrait (its own size and place: exact at any size)
+    const g = kind === 'desk' ? DESK : PHONE
+    const nx = bw / 2 - (name.offsetWidth * g.nameScale) / 2 - name.offsetLeft
     const ny = g.nameY * bh - name.offsetTop
-    nameFrom = `translate(${nx.toFixed(1)}px, ${ny.toFixed(1)}px) scale(${s})`
-    // the hole of the light: 17 % of the storyboard's frame on the desktop (1 --u = the box's width / 100), 42 % of the phone's
-    document.body.appendChild(probe)
-    const svh = probe.offsetHeight || innerHeight
-    probe.remove()
-    const unit = kind === 'desk' ? bw / 100 : Math.min(innerWidth / 100, (0.4615 * svh) / 100)
-    const hole = (kind === 'desk' ? 17 : 42) * unit
-    spot.style.setProperty('--a-hole', `${hole.toFixed(1)}px`)
-    // the light: from the sentence's (its centre and size on the stage, a little larger) onto the portrait's centre at 12
-    const cx = bx + pt.offsetLeft + dx + pt.offsetWidth / 2
-    const cy = by + pt.offsetTop + dy + pt.offsetHeight / 2
-    const r = g.pool.r * innerWidth * g.grow
-    spotFrom = `translate(${(stage.offsetWidth / 2 - cx).toFixed(1)}px, ${(g.pool.y * H - cy).toFixed(1)}px) scale(${(r / hole).toFixed(3)})`
+    nameFrom = `translate(${nx.toFixed(1)}px, ${ny.toFixed(1)}px) scale(${g.nameScale})`
+    // the circle the portrait fades to (closest side), and how far it opens: as an oval in the photograph's proportion, its solid
+    // part reaching the four corners together. Opened evenly, a circle in a tall photograph hardened its sides long before its top and
+    // bottom (a tube of light, 1440 × 900, 4 Nov)
+    const r = Math.min(pw, ph) / 2
+    K = { x: (Math.SQRT2 * pw) / 2 / (SOLID * r) + 0.04, y: (Math.SQRT2 * ph) / 2 / (SOLID * r) + 0.04 }
+    // the light: from the sentence's (the layer's own place) to the portrait's centre at 12, gathered on it; never larger than it was
+    const cx = box.offsetLeft + pt.offsetLeft + dx + pw / 2
+    const cy = box.offsetTop + pt.offsetTop + dy + ph / 2
+    const gr = glow.offsetWidth / 2
+    const gx = glow.offsetLeft + gr
+    const gy = glow.offsetTop + gr
+    const s = Math.min(1, (GATHER * r) / gr)
+    glowAt12 = `translate(${(cx - gx).toFixed(1)}px, ${(cy - gy).toFixed(1)}px) scale(${s.toFixed(3)})`
   }
 
   // ---- flights: from where each layer is seen to where the phase wants it; kept on the element when they end ----
   const flights = new Map<Element, Animation>()
-  const extra: Animation[] = []
   const settle = (el: HTMLElement, to: Keyframe) => Object.entries(to).forEach(([p, v]) => el.style.setProperty(p, String(v)))
-  type Flight = { el: HTMLElement; to: Keyframe; ms: number; delay: number; easing: string }
-  const fly = (el: HTMLElement, to: Keyframe, ms: number, delay = 0, easing = EASE, instant = false) => ({ el, to, ms, delay, easing, instant })
+  type Flight = { el: HTMLElement; to: Keyframe; ms: number; delay: number; easing: string; instant: boolean; frames?: Keyframe[] }
+  const fly = (el: HTMLElement, to: Keyframe, ms: number, delay = 0, easing = EASE): Flight => ({ el, to, ms, delay, easing, instant: false })
   // every starting point is read first, then every flight starts (reads between new animations made the browser recompute the page
   // between them: the Method's 122 ms frame, 2 Nov)
-  const run = (list: (Flight & { instant: boolean })[]) => {
-    const from = list.map(({ el, to, instant }) => {
-      if (instant) return null
+  const run = (list: Flight[], instant = false) => {
+    const starts = list.map(({ el, to, frames }) => {
+      if (instant || frames) return null
       const cs = getComputedStyle(el)
       const f: Keyframe = {}
       for (const p of Object.keys(to)) f[p] = p === 'transform' ? (cs.transform === 'none' ? 'none' : cs.transform) : cs.getPropertyValue(p)
       return f
     })
-    list.forEach(({ el, to, ms, delay, easing, instant }, i) => {
+    list.forEach((f, i) => {
+      const { el, to, ms, delay, easing } = f
       flights.get(el)?.cancel()
       flights.delete(el)
-      if (instant) return settle(el, to)
-      const a = el.animate([from[i] ?? {}, to], { duration: ms, delay, easing, fill: 'both' })
+      if (instant || f.instant) return settle(el, to)
+      const a = el.animate(f.frames ?? [starts[i] ?? {}, to], { duration: ms, delay, easing: f.frames ? 'linear' : easing, fill: 'both' })
       flights.set(el, a)
       a.onfinish = () => {
         settle(el, to)
@@ -146,144 +150,252 @@ export function runStage(about: HTMLElement, release: () => void) {
     })
   }
   const hurry = (ms = HURRY_MS) =>
-    [...flights.values(), ...extra].forEach((a) => {
+    [...flights.values(), ...copyAnims].forEach((a) => {
       const t = a.effect?.getComputedTiming()
       const left = Number(t?.endTime ?? 0) - Number(a.currentTime ?? 0)
       if (left > ms) a.updatePlaybackRate(left / ms)
     })
-  let passageEnds = 0
 
-  // ---- the Method's words: they leave in order and come back, as the About's own flights; nothing of the Method is kept ----
-  const methodWords: [HTMLElement | null | undefined, string, number, number][] = [
-    [cta, 'translateY(60%)', 450, 0],
-    [steps, 'translateY(40%)', 550, 100],
-    [close, 'translateY(-6%)', 700, 350],
-  ]
-  const wordsOut = () =>
-    methodWords.forEach(([el, t, ms, delay]) => {
-      if (!el) return
-      const a = el.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: t }], { duration: ms, delay, easing: EASE, fill: 'both' })
-      extra.push(a)
-    })
-  const wordsBack = (delay: number) => {
-    extra.forEach((a) => {
-      a.updatePlaybackRate(1)
-      const el = (a.effect as KeyframeEffect | null)?.target as HTMLElement | null
-      if (!el) return a.cancel()
-      // from where they are seen, back to rest
-      const cs = getComputedStyle(el)
-      const b = el.animate([{ opacity: cs.opacity, transform: cs.transform }, { opacity: 1, transform: 'none' }], { duration: 900, delay, easing: EASE })
-      a.cancel()
-      b.onfinish = () => b.cancel()
-    })
-    extra.length = 0
+  // ---- the circle of light opening (or closing): .a-open scales by k, .a-img by 1 / k at every moment, so the photograph stays still
+  type Scale = { x: number; y: number }
+  const ONE: Scale = { x: 1, y: 1 }
+  const sc = (k: Scale) => `scale(${k.x.toFixed(4)}, ${k.y.toFixed(4)})`
+  const inv = (k: Scale) => `scale(${(1 / k.x).toFixed(4)}, ${(1 / k.y).toFixed(4)})`
+  const opening = (k0: Scale, k1: Scale, ms: number, delay: number): Flight[] => {
+    const n = 24
+    const a: Keyframe[] = []
+    const b: Keyframe[] = []
+    for (let i = 0; i <= n; i++) {
+      const e = glide(i / n)
+      const k = { x: k0.x + (k1.x - k0.x) * e, y: k0.y + (k1.y - k0.y) * e }
+      a.push({ offset: i / n, transform: sc(k) })
+      b.push({ offset: i / n, transform: inv(k) })
+    }
+    return [
+      { el: open, to: { transform: sc(k1) }, ms, delay, easing: 'linear', instant: false, frames: a },
+      { el: img, to: { transform: inv(k1) }, ms, delay, easing: 'linear', instant: false, frames: b },
+    ]
+  }
+  let openLater = 0
+  const setOpen = (on: boolean, after = 0) => {
+    clearTimeout(openLater)
+    if (!on) return pt.removeAttribute('data-open')
+    // once fully open the mask and the two scales go: the photograph is drawn as it is (about.css)
+    openLater = window.setTimeout(() => {
+      pt.setAttribute('data-open', '')
+      open.style.transform = 'none'
+      img.style.transform = 'none'
+    }, after)
+  }
+  const closeFromOpen = () => {
+    // back from the open photograph: the same picture as scales, then the mask comes back (seen the same)
+    setOpen(false)
+    open.style.transform = sc(K)
+    img.style.transform = inv(K)
   }
 
-  // ---- holding the stage where it was while the light goes back (above 12 the section moves down with the page) ----
+  // ---- the copy of the Method's 11 (#65): its markup and its rules, out of its scroll, so the passage plays whatever the scroll does ----
+  let copyAnims: Animation[] = []
+  const copy = () => {
+    from.replaceChildren()
+    const src = method?.querySelector<HTMLElement>('.m-stage')
+    if (!method || !src) return null
+    const wrap = document.createElement('div')
+    wrap.className = [...method.classList].filter((c) => c !== 'm-leaving').join(' ')
+    for (const a of [...method.attributes]) if (a.name.startsWith('data-') && a.name !== 'data-edge') wrap.setAttribute(a.name, a.value)
+    const clone = src.cloneNode(true) as HTMLElement
+    // what is still moving in the Method is copied where it is seen now
+    const all = [src, ...src.querySelectorAll<HTMLElement>('*')]
+    const mine = [clone, ...clone.querySelectorAll<HTMLElement>('*')]
+    src.getAnimations({ subtree: true }).forEach((a) => {
+      const t = (a.effect as KeyframeEffect | null)?.target as HTMLElement | null
+      const i = t ? all.indexOf(t) : -1
+      if (i < 0) return
+      const cs = getComputedStyle(t as HTMLElement)
+      mine[i].style.opacity = cs.opacity
+      mine[i].style.transform = cs.transform
+    })
+    mine.forEach((el) => {
+      el.removeAttribute('id')
+      el.removeAttribute('for')
+    })
+    clone.querySelectorAll('input, a, button').forEach((el) => el.setAttribute('tabindex', '-1'))
+    wrap.append(clone)
+    wrap.inert = true
+    from.append(wrap)
+    return clone
+  }
+  // the copy's words, and (desktop) its screens as one layer: [selector, gone, ms, delay out, delay back]
+  const LEAVE: [string, string, number, number, number][] = [
+    ['.m-cta', 'translateY(60%)', 600, 0, 300],
+    ['.m-steps', 'translateY(40%)', 700, 150, 200],
+    ['.m-screens', 'scale(1.04)', 1100, 150, 0],
+    ['.m-close', 'translateY(-6%)', 900, 500, 0],
+  ]
+  // each leaves from, and comes back to, the opacity it rests at in the Method (the steps rest at 0.75: started from 1 they brightened for
+  // a frame at the handover, 4 Nov)
+  const rest = (el: HTMLElement) => getComputedStyle(el).opacity
+  const wordsOut = (clone: HTMLElement) => {
+    copyAnims.forEach((a) => a.cancel())
+    copyAnims = LEAVE.flatMap(([sel, gone, ms, delay]) => {
+      const el = q(sel, clone)
+      return el ? [el.animate([{ opacity: rest(el), transform: 'none' }, { opacity: 0, transform: gone }], { duration: ms, delay, easing: EASE, fill: 'both' })] : []
+    })
+  }
+  const wordsBack = (clone: HTMLElement, at: number) => {
+    copyAnims.forEach((a) => a.cancel())
+    copyAnims = LEAVE.flatMap(([sel, gone, ms, , back]) => {
+      const el = q(sel, clone)
+      return el ? [el.animate([{ opacity: 0, transform: gone }, { opacity: rest(el), transform: 'none' }], { duration: ms, delay: at + back, easing: EASE, fill: 'both' })] : []
+    })
+  }
+  const dropCopy = () => {
+    copyAnims.forEach((a) => a.cancel())
+    copyAnims = []
+    from.replaceChildren()
+  }
+
+  // ---- holding the stage where it is while the light goes back (the scroll may already have carried the section below its hold) ----
   let letGo = 0
   const holdWhileLeaving = (ms: number) => {
     clearTimeout(letGo)
     about.classList.add('a-leaving')
-    letGo = window.setTimeout(() => about.classList.remove('a-leaving'), ms)
+    letGo = window.setTimeout(() => {
+      about.classList.remove('a-leaving')
+      dropCopy()
+    }, ms)
+  }
+  let passageEnds = 0
+
+  // every layer at the start of the passage: the room of 11 (its light on the sentence), the portrait unseen in its place in the dark
+  const START: [HTMLElement, Keyframe][] = [
+    [pt, { transform: ptAt12 }],
+    [frame, { opacity: '0' }],
+    [glow, { transform: 'none', opacity: '1' }],
+    [name, { transform: nameFrom, opacity: '0' }],
+    [lit, { opacity: '0' }],
+    [role, { opacity: '0' }],
+    [say, { opacity: '0', transform: 'translateY(5%)' }],
+    [rule, { transform: 'scaleX(0)' }],
+    [para, { opacity: '0' }],
+    [credit, { opacity: '0' }],
+    [next, { opacity: '0' }],
+  ]
+  const atStart = () => {
+    run(START.map(([el, to]) => ({ ...fly(el, to, 0), instant: true })), true)
+    // START uses the measures of now
+    pt.style.transform = ptAt12
+    name.style.transform = nameFrom
+    setOpen(false)
+    run([...opening(ONE, ONE, 0, 0)], true)
   }
 
   const show = (to: Phase, instant = false) => {
-    const from = phase
+    const was = phase
     phase = to
     about.dataset.phase = to
-    const L: ReturnType<typeof fly>[] = []
-    const add = (...f: ReturnType<typeof fly>[]) => L.push(...f.map((x) => ({ ...x, instant })))
-    const k = ORDER.indexOf(to as (typeof ORDER)[number])
+    clearTimeout(wake)
 
     if (to === 'pre') {
-      if (from === null || instant) {
-        add(fly(stage, { opacity: '0' }, 0))
-      } else {
-        // back to the Method: the light leaves the portrait for the sentence first, then the room hands back to the Method's
-        add(
-          fly(spot, { transform: spotFrom }, 1600, 0, GLIDE),
-          fly(frame, { opacity: '0' }, 900, 150),
-          fly(name, { opacity: '0' }, 500),
-          fly(stage, { opacity: '0' }, 900, 550),
-        )
-        holdWhileLeaving(1500)
-        wordsBack(550)
-      }
       release()
-      return run(L)
+      if (was === null || instant) {
+        dropCopy()
+        return
+      }
+      // back to the Method: the light leaves the portrait for the sentence first, then the Method's 11 comes back
+      if (pt.hasAttribute('data-open')) closeFromOpen()
+      const clone = copy()
+      if (clone) {
+        clone.style.opacity = '1'
+        wordsBack(clone, 900)
+      }
+      run([
+        fly(name, { opacity: '0' }, 400),
+        fly(role, { opacity: '0' }, 400),
+        fly(say, { opacity: '0' }, 400),
+        fly(credit, { opacity: '0' }, 400),
+        fly(para, { opacity: '0' }, 400),
+        fly(next, { opacity: '0' }, 400),
+        fly(rule, { transform: 'scaleX(0)' }, 400),
+        fly(lit, { opacity: '0' }, 900),
+        fly(frame, { opacity: '0' }, 900, 100),
+        fly(pt, { transform: ptAt12 }, 1000, 0, GLIDE_EASE),
+        fly(glow, { transform: 'none', opacity: '1' }, 1500, 0, GLIDE_EASE),
+        ...opening(currentK(), ONE, 900, 0),
+      ])
+      // the stage is unseen again only once all of it is back (about.css: clipped at pre, unless leaving), held where it is meanwhile
+      holdWhileLeaving(2000)
+      return
     }
 
-    // the layers of 12 — set where the passage starts when it comes from the Method
-    const fromMethod = from === 'pre' && !instant
-    if (fromMethod) {
+    // 12, from the Method: the passage
+    if (to === '12' && (was === 'pre' || was === null) && !instant) {
       clearTimeout(letGo)
       about.classList.remove('a-leaving')
-      // where the passage starts, at once: the portrait in its place in the dark, the light as large as the sentence's
+      atStart()
+      const clone = copy()
+      if (clone) wordsOut(clone)
       run([
-        fly(pt, { transform: ptAt12 }, 0, 0, EASE, true),
-        fly(frame, { opacity: '1' }, 0, 0, EASE, true),
-        fly(dark, { opacity: '1' }, 0, 0, EASE, true),
-        fly(spot, { transform: spotFrom }, 0, 0, EASE, true),
-        fly(name, { transform: nameFrom, opacity: '0' }, 0, 0, EASE, true),
-        fly(lit, { opacity: '0' }, 0, 0, EASE, true),
-        // back up from 13 or 14 in one stroke, the story is still there: it goes at once, under the Method's room
-        fly(role, { opacity: '0' }, 0, 0, EASE, true),
-        fly(say, { opacity: '0', transform: 'translateY(5%)' }, 0, 0, EASE, true),
-        fly(rule, { transform: 'scaleX(0)' }, 0, 0, EASE, true),
-        fly(para, { opacity: '0' }, 0, 0, EASE, true),
-        fly(credit, { opacity: '0' }, 0, 0, EASE, true),
-        fly(next, { opacity: '0' }, 0, 0, EASE, true),
+        // the light leaves the sentence as it starts to go, and the portrait appears in it while the sentence is still leaving: the
+        // room is never empty between them (storyboard rule 1; at 1.4 s it was, 4 Nov)
+        fly(glow, { transform: glowAt12, opacity: '1' }, 2400, 300, GLIDE_EASE),
+        fly(frame, { opacity: '1' }, 1700, 700, 'cubic-bezier(0.33, 0, 0.2, 1)'),
+        fly(name, { opacity: '0.92' }, 1000, 2000),
       ])
-      wordsOut()
-      passageEnds = performance.now() + 2300
+      passageEnds = performance.now() + 3000
+      dropLater(3100)
+      return
     }
-
-    if (k === 0) {
-      if (fromMethod) {
-        add(
-          fly(stage, { opacity: '1' }, 800, 900),
-          fly(spot, { transform: 'none' }, 1800, 200, GLIDE),
-          fly(name, { opacity: '0.92' }, 1000, 1300),
-        )
-      } else {
-        // back from 13: the words go first, then the portrait returns to the light
-        add(
-          fly(stage, { opacity: '1' }, 0),
+    if (to === '12') {
+      // back from 13 (or a refresh here): the story goes first, then the photograph closes into the light at the centre
+      if (pt.hasAttribute('data-open') || instant) closeFromOpen()
+      run(
+        [
           fly(role, { opacity: '0' }, 450),
           fly(say, { opacity: '0', transform: 'translateY(5%)' }, 450),
           fly(credit, { opacity: '0' }, 450),
           fly(rule, { transform: 'scaleX(0)' }, 450),
           fly(para, { opacity: '0' }, 450),
           fly(next, { opacity: '0' }, 450),
-          fly(lit, { opacity: '0' }, 1200, 200),
-          fly(dark, { opacity: '1' }, 1200, 200),
           fly(frame, { opacity: '1' }, 300),
-          fly(spot, { transform: 'none' }, 0),
-          fly(pt, { transform: ptAt12 }, 1300, 200, GLIDE),
-          fly(name, { transform: nameFrom, opacity: '0.92' }, 1300, 200, GLIDE),
-        )
-      }
-      return run(L)
+          fly(lit, { opacity: '0' }, 1400, 200),
+          fly(glow, { transform: glowAt12, opacity: '1' }, 1400, 300),
+          fly(pt, { transform: ptAt12 }, 1500, 200, GLIDE_EASE),
+          fly(name, { transform: nameFrom, opacity: '0.92' }, 1500, 200, GLIDE_EASE),
+          ...opening(instant ? ONE : currentK(), ONE, 1500, 200),
+        ],
+        instant,
+      )
+      if (instant) dropCopy()
+      return
     }
 
-    // 13 and 14: the room comes up (when arriving at 13 from 12, or straight to 14 from a jump)
-    if (instant || from === null || from === 'pre' || from === '12') {
-      const rush = from === 'pre' && !instant // reached 13 while 12 had not been seen: no delays
-      add(
-        fly(stage, { opacity: '1' }, rush ? 500 : 0),
-        fly(frame, { opacity: '1' }, 0),
-        fly(lit, { opacity: '1' }, 1600),
-        fly(dark, { opacity: '0' }, 1400),
-        fly(pt, { transform: 'none' }, 1400, 0, GLIDE),
-        fly(name, { transform: 'none', opacity: '1' }, 1500, 0, GLIDE),
-        fly(role, { opacity: '0.7' }, 1000, rush ? 400 : 1300),
-        fly(say, { opacity: '1', transform: 'none' }, 1100, rush ? 400 : 1300),
+    // 13 and 14: the room comes up (from 12, from the Method in one stroke, or at once)
+    const list: Flight[] = []
+    if (was === null || was === 'pre' || was === '12' || instant) {
+      const rush = was === 'pre' && !instant
+      if (rush) {
+        // straight from the Method, past 12: the copy goes at once, the room comes up
+        atStart()
+        dropCopy()
+      }
+      list.push(
+        fly(frame, { opacity: '1' }, rush ? 700 : 300),
+        fly(lit, { opacity: '1' }, 1800),
+        fly(glow, { opacity: '0' }, 1600),
+        fly(pt, { transform: 'none' }, 1600, 0, GLIDE_EASE),
+        ...opening(instant ? K : currentK(), K, 1700, 0),
+        fly(name, { transform: 'none', opacity: '1' }, 1600, 0, GLIDE_EASE),
+        fly(role, { opacity: '0.7' }, 1100, rush ? 500 : 1200),
+        fly(say, { opacity: '1', transform: 'none' }, 1100, rush ? 500 : 1200),
         // on a phone the credit sits under the portrait and comes with the room (storyboard 13); on the desktop with the story (14)
-        ...(kind === 'phone' ? [fly(credit, { opacity: '0.6' }, 1000, 400)] : []),
+        ...(kind === 'phone' ? [fly(credit, { opacity: '0.6' }, 1000, 500)] : []),
       )
+      setOpen(true, instant ? 0 : 1750)
+      if (instant) dropCopy()
     }
-    if (to === '13' && from === '14') {
-      add(
+    if (to === '13' && was === '14') {
+      list.push(
         fly(rule, { transform: 'scaleX(0)' }, 450),
         fly(para, { opacity: '0' }, 450),
         fly(next, { opacity: '0' }, 450),
@@ -291,20 +403,32 @@ export function runStage(about: HTMLElement, release: () => void) {
       )
     }
     if (to === '14') {
-      const after = from === '13' ? 0 : 900 // straight from 12: the story waits for the room
-      add(
+      const after = was === '13' ? 0 : 1000 // straight from 12: the story waits for the room
+      list.push(
         fly(rule, { transform: 'none' }, 1200, after + 300),
         fly(para, { opacity: '1' }, 1000, after + 200),
         fly(credit, { opacity: '0.6' }, 1000, after + (kind === 'desk' ? 500 : 400)),
         fly(next, { opacity: '0.7' }, 1000, after + 600),
       )
     }
-    run(L)
+    run(list, instant)
+  }
+  // how far the circle is open now (read from the transform it is seen with)
+  const currentK = (): Scale => {
+    if (pt.hasAttribute('data-open')) return K
+    const t = getComputedStyle(open).transform
+    const m = new DOMMatrixReadOnly(t === 'none' ? undefined : t)
+    return { x: m.a || 1, y: m.d || 1 }
+  }
+  let dropTimer = 0
+  const dropLater = (ms: number) => {
+    clearTimeout(dropTimer)
+    dropTimer = window.setTimeout(() => phase !== 'pre' && dropCopy(), ms)
   }
 
-  // ---- the phase under the scroll, once a frame, with the dead band; 12's passage is played whole, or hurried ----
+  // ---- the phase under the scroll, once a frame, with the dead band; 12's passage is played whole ----
   let wake = 0
-  const progress = () => -about.getBoundingClientRect().top / H
+  const progress = () => (-about.getBoundingClientRect().top - LEAD * H) / H
   const choose = () => {
     const p = progress()
     if (p < 0) {
@@ -314,17 +438,17 @@ export function runStage(about: HTMLElement, release: () => void) {
     let at: (typeof ORDER)[number] = '12'
     ORDER.forEach((ph) => p >= STARTS[ph] && (at = ph))
     if (phase === null) return show(at, true)
-    if (phase === 'pre') return show(at)
+    if (phase === 'pre') return show(at === '12' ? '12' : at)
     const cur = ORDER.indexOf(phase as (typeof ORDER)[number])
     const nxt = ORDER.indexOf(at)
-    // scrolled on before the passage has covered the Method, or towards 13 while it plays: it ends quickly, and only then does 13 answer
-    if (phase === '12' && performance.now() < passageEnds && (p >= HURRY_AT || nxt > cur)) {
-      hurry()
-      passageEnds = Math.min(passageEnds, performance.now() + HURRY_MS)
-      if (nxt > cur) {
-        clearTimeout(wake)
-        wake = window.setTimeout(frameChoose, HURRY_MS + 20)
+    if (phase === '12' && nxt > cur && performance.now() < passageEnds) {
+      // the passage first: 13 answers once it has ended; only near the end of the hold is it hurried
+      if (p >= HURRY_AT) {
+        hurry()
+        passageEnds = Math.min(passageEnds, performance.now() + HURRY_MS)
       }
+      clearTimeout(wake)
+      wake = window.setTimeout(frameChoose, passageEnds - performance.now() + 30)
       return
     }
     if (nxt > cur) {
@@ -345,7 +469,9 @@ export function runStage(about: HTMLElement, release: () => void) {
   // ---- the keyboard: reaching the portrait or 04 Questions ↓ before 14 brings 14 (the browser scrolls after focus: next frame) ----
   const onFocus = () => {
     if (phase === '14') return
-    requestAnimationFrame(() => scrollTo({ top: scrollY + about.getBoundingClientRect().top + (STARTS['14'] + 0.08) * H, behavior: 'auto' }))
+    requestAnimationFrame(() =>
+      scrollTo({ top: scrollY + about.getBoundingClientRect().top + (LEAD + STARTS['14'] + 0.08) * H, behavior: 'auto' }),
+    )
   }
   stage.addEventListener('focusin', onFocus)
 
@@ -355,7 +481,7 @@ export function runStage(about: HTMLElement, release: () => void) {
     if (innerWidth === sized && Math.abs((stage.offsetHeight || innerHeight) - H) < 120) return
     sized = innerWidth
     measure()
-    if (phase) show(phase, true)
+    if (phase && phase !== 'pre') show(phase, true)
   }
 
   measure()
@@ -366,18 +492,20 @@ export function runStage(about: HTMLElement, release: () => void) {
   // the face changes the name's width: measured again once it is there
   document.fonts?.ready.then(() => {
     measure()
-    if (phase) show(phase, true)
+    if (phase && phase !== 'pre' && !flights.size) show(phase, true)
   })
 
   return () => {
     clearTimeout(wake)
     clearTimeout(letGo)
+    clearTimeout(openLater)
+    clearTimeout(dropTimer)
     cancelAnimationFrame(raf)
     removeEventListener('scroll', frameChoose)
     removeEventListener('resize', onResize)
     stage.removeEventListener('focusin', onFocus)
     flights.forEach((a) => a.cancel())
-    extra.forEach((a) => a.cancel())
+    dropCopy()
     about.classList.remove('a-live', 'a-leaving')
   }
 }

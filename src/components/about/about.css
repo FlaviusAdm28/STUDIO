@@ -86,9 +86,14 @@
   outline: 2px solid var(--linen);
   outline-offset: 4px;
 }
-.a-frame {
+.a-frame,
+.a-open,
+.a-img {
   position: absolute;
   inset: 0;
+}
+.a-frame {
+  overflow: hidden;
 }
 .a-frame picture,
 .a-frame img {
@@ -114,7 +119,9 @@
     opacity: 1;
   }
 }
-.a-dark {
+.a-glow,
+.a-from,
+.a-start {
   display: none;
 }
 
@@ -315,17 +322,30 @@
 }
 
 /* ================= the passage, held (states 11 → 14; about-stage.ts) =================
-   Only with JavaScript and motion. Laid over the Method's last screens: the stage is held, transparent, while the Method's 11 is seen
-   beneath, and the passage plays when the section reaches the top. Every layer below is then placed by script, with Web Animations
-   from where it is seen (iOS cut CSS transitions, README #90, #91). Transform and opacity only. */
+   Only with JavaScript and motion. Laid over the Method's last screens, the stage is held (and unseen) a little before the passage, so
+   nothing moves with the page around it; when the passage starts it shows a copy of the Method's 11 and plays from it at its own pace.
+   Every layer below is then placed by script, with Web Animations from where it is seen (iOS cut CSS transitions, README #90, #91).
+   Transform and opacity only: no dark layer with a hole any more (scaled ×3 it was drawn at a low resolution, banded in the dark and
+   showed its rectangle over the room as it lit; owner, 4 Nov). */
 @media (prefers-reduced-motion: no-preference) {
   :root[data-js] .about {
     z-index: 3;
-    /* over the Method's last 1.3 screens (OVERLAP in about-stage.ts): the passage plays while the Method still holds its 11 */
-    margin-top: calc(var(--screen) * -1.3);
-    /* held for 1.3 screens (12 → 13 → 14), then let go: the About is not a long held scene (storyboard 12–14) */
-    height: calc(var(--screen) * 2.3);
+    /* over the Method's last 1.6 screens (about-stage.ts): held 0.3 screen before the passage, which starts half a screen after the
+       Method has shown its 11 (and 0.3 screen before the Method lets it go) */
+    margin-top: calc(var(--screen) * -1.6);
+    /* 0.3 held before + 2.3 of passage (12 → 13 at 1.0 → 14 at 1.7, let go at 2.3) + the stage */
+    height: calc(var(--screen) * 3.6);
     background: transparent;
+    pointer-events: none;
+  }
+  /* the bar's mark: the About starts where the passage does */
+  :root[data-js] .about .a-start {
+    display: block;
+    position: absolute;
+    top: calc(var(--screen) * 0.3);
+    bottom: 0;
+    left: 0;
+    width: 1px;
     pointer-events: none;
   }
   :root[data-js] .about .a-stage {
@@ -333,66 +353,86 @@
     top: 0;
     height: var(--screen);
     min-height: 0;
-    opacity: 0;
   }
   :root[data-js] .about[data-phase]:not([data-phase='pre']) .a-stage {
     pointer-events: auto;
   }
-  /* unseen before 12 (and once the way back has ended): clipped away, so no screen-sized layer waits at opacity 0 over the Method
-     (left composited, the area under it went unpainted in Chrome, 4 Nov). A clip, not visibility: the portrait and 04 Questions stay
-     in the keyboard's order, and reaching them brings 14 (about-stage.ts) */
+  /* unseen before 12 (and once the way back has ended): clipped away, so no screen-sized layer waits over the Method (left composited at
+     opacity 0, the area under it went unpainted in Chrome, 4 Nov). A clip, not visibility: the portrait and 04 Questions stay in the
+     keyboard's order, and reaching them brings 14 (about-stage.ts) */
   :root[data-js] .about:not([data-phase]) .a-stage,
   :root[data-js] .about[data-phase='pre']:not(.a-leaving) .a-stage {
     clip-path: inset(0 0 100% 0);
   }
-  /* back above the passage: held where it was while the light goes back to the sentence (about-stage.ts, holdWhileLeaving) */
+  /* scrolled back above the held part while the light goes back: held where it was until it has */
   :root[data-js] .about.a-leaving .a-stage {
     position: fixed;
     left: 0;
     right: 0;
   }
-  :root[data-js] .about .a-dark {
+
+  /* the light of 11: the Method's own (method.css .m-dark: 46vw — 62vw on a phone — at 50 % 44 %), as a layer of its size, so it can
+     glide onto the portrait by transform at its full resolution (it only ever gets smaller) */
+  :root[data-js] .about .a-glow {
+    --a-r: 46vw;
+    display: block;
+    position: absolute;
+    left: calc(50% - var(--a-r));
+    top: calc(44% - var(--a-r));
+    width: calc(2 * var(--a-r));
+    height: calc(2 * var(--a-r));
+    background: radial-gradient(circle closest-side, rgba(255, 236, 206, 0.15), rgba(255, 236, 206, 0.05) 60%, transparent 100%);
+    pointer-events: none;
+  }
+  @media (max-width: 899px) {
+    :root[data-js] .about .a-glow {
+      --a-r: 62vw;
+    }
+  }
+
+  /* the portrait in the light: it fades to its edges in a circle (the storyboard's mask, 4 Nov: "não está bem redonda"), so the light
+     never meets the photograph's straight edges. The circle opens by scaling .a-open while .a-img is scaled back by as much, so the
+     photograph stays still and only the light grows (about-stage.ts); once open, the mask goes (data-open) */
+  :root[data-js] .about .a-open {
+    -webkit-mask: radial-gradient(circle closest-side, #000 58%, transparent 100%) center / 100% 100% no-repeat;
+    mask: radial-gradient(circle closest-side, #000 58%, transparent 100%) center / 100% 100% no-repeat;
+  }
+  :root[data-js] .about .a-pt[data-open] .a-open {
+    -webkit-mask: none;
+    mask: none;
+  }
+
+  /* the copy of the Method's 11: the Method's own markup and rules, out of its scroll (about-stage.ts) */
+  :root[data-js] .about .a-from {
     display: block;
     position: absolute;
     inset: 0;
+    z-index: 5;
     pointer-events: none;
   }
-  /* the light never meets the photograph's straight edges: it fades to them, in a circle (owner, 4 Nov: "não está bem redonda") —
-     the storyboard's mask, drawn here as the room's dark over the portrait's edge, so it leaves by opacity, not by mask-size */
-  /* 2 px past the photograph: at its fractional edge a hairline of it showed through (1440 × 900, 4 Nov) */
-  :root[data-js] .about .a-edge {
+  :root[data-js] .about .a-from > .method {
     position: absolute;
-    inset: -2px;
-    background: radial-gradient(circle closest-side, rgba(23, 24, 22, 0) 58%, var(--a-dark) 100%);
+    inset: 0;
+    height: auto;
+    margin: 0;
+    z-index: auto;
+    background: transparent;
+    pointer-events: none;
   }
-  /* the light: a dark layer with a hole, twice the portrait's size around it, moved by transform (storyboard 12, B; the 4 Nov edge,
-     softer: "o corte da luz") */
-  :root[data-js] .about .a-spot {
+  :root[data-js] .about .a-from > .method .m-stage {
     position: absolute;
-    left: -50%;
-    top: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(
-      circle var(--a-hole) at 50% 50%,
-      rgba(23, 24, 22, 0) 0,
-      rgba(23, 24, 22, 0) 24%,
-      rgba(23, 24, 22, 0.45) 58%,
-      rgba(23, 24, 22, 0.85) 82%,
-      var(--a-dark) 100%
-    );
-    --a-hole: calc(17 * var(--u));
+    inset: 0;
+    height: 100%;
   }
-  @media (max-width: 899px) {
-    :root[data-js] .about .a-spot {
-      --a-hole: calc(42 * var(--p));
-    }
+  /* only the 11's words and screens are copied into view: its room is the About's own beneath (the same dark, the same light), so the
+     portrait can appear under the words while they leave. With the copy's dark kept, the room stood empty at 1.4 s (4 Nov) */
+  :root[data-js] .about .a-from > .method .m-stage > :not(.m-end, .m-screens),
+  :root[data-js] .about .a-from > .method .m-dark {
+    display: none;
   }
+
   /* the starting state of what the passage brings (12); the script takes it from here */
-  :root[data-js] .about :is(.a-lit, .a-role, .a-say, .a-para, .a-credit, .a-next) {
-    opacity: 0;
-  }
-  :root[data-js] .about .a-name {
+  :root[data-js] .about :is(.a-lit, .a-role, .a-say, .a-para, .a-credit, .a-next, .a-name, .a-frame) {
     opacity: 0;
   }
   :root[data-js] .about .a-rule {

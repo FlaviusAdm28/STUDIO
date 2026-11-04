@@ -1304,3 +1304,39 @@ do retrato carregadas (P&B e cor, ~2 pedidos).
 **Não verificado:** Xiaomi (sem acesso daqui), iPhone/Safari (as bordas da página no About ficam no carvão `#1e1d1a` pelo `sequence.ts`,
 a sala é `#171816`/`#1b1c1a`; não mexi na entrada), o retrato real (enquadramento `object-position: 50% 30%` nos dois formatos, a aura,
 o brilho por trás das ilhas da barra), leitor de ecrã, rede lenta, tablet real.
+
+### Passo 2: o que o owner viu (4/11) — a passagem rápida, a página a mexer, a luz às camadas
+
+**Owner, no PC:** (1) *Made once, for one moment* → *I'm Flávio.* "super rápido, não há sensação de transformação"; (2) na fase da foto a
+página mexia para cima e para baixo; (3) a foto redonda → o *I'm Flávio* completo: "a luz aparece baratada e bugada, cheia de camadas, com
+má resolução".
+
+**Causas:** (1) a passagem corria sobre as palavras do próprio Method, que larga o 11 0,3 ecrã depois do gatilho, por isso era apressada (0,3 s)
+logo aos 0,18 ecrã de scroll — qualquer gesto normal; (2) acima do gatilho havia uma banda morta em que a fase continuava no 12 mas o palco
+já não estava preso e descia com a página; (3) a luz era uma camada escura com um furo, do dobro do retrato, escalada até ×3: desenhada pelo
+Chrome em baixa resolução, com faixas nos tons escuros, e o seu retângulo via-se sobre a sala a acender.
+
+**Corrigido:**
+- **Uma cópia do 11** (`about-stage.ts`, `copy()`: o `.m-stage` do Method clonado, inerte, com as regras do Method; o que ainda se mexia é
+  copiado onde se vê): a passagem corre inteira, ~3 s, ao seu ritmo, faça o scroll o que fizer. Só as palavras e os ecrãs da cópia ficam à
+  vista; a sala é a do About (o mesmo escuro, a mesma luz), por isso o retrato aparece por baixo das palavras enquanto elas saem (antes, a
+  1,4 s, a sala ficava vazia). 13 espera pelo fim do 12; só é apressado a 0,25 ecrã de o palco se soltar. Nenhum ficheiro do Method mudou.
+- **Ritmo:** 12 no gatilho, 13 a 1,0 ecrã, 14 a 1,7, solto a 2,3 (era 0,5 / 0,95 / 1,3): um gesto do dedo (~0,8 ecrã) nunca atravessa duas fases.
+- **Palco preso antes do gatilho** (0,3 ecrã; a secção sobre os últimos 1,6 ecrãs do Method, 3,6 de altura; marca da barra `.a-start`).
+- **A luz, sem camada escura:** a luz do 11 (o mesmo gradiente do `.m-dark`, numa camada do seu tamanho) desliza da frase até ao retrato e
+  junta-se nele, só a encolher (nunca desenhada acima da sua resolução); o retrato desvanece para as arestas num círculo (a máscara do
+  storyboard, fixa); no 13 **o círculo abre-se** escalando `.a-open` enquanto `.a-img` escala o inverso em cada instante (24 keyframes da
+  mesma curva), por isso a fotografia fica parada e só a luz cresce — **em oval na proporção da fotografia**, para os quatro lados ficarem
+  nítidos juntos (aberto por igual, os lados endureciam muito antes do topo: um "tubo" de luz). Aberto, a máscara e as escalas saem.
+
+**Medido** (Chromium headless, `next start`):
+- Filmagem 1440 × 900 e 390 × 844 (0,5–3,2 s do 12, 0,25–2,6 s do 13), gatilho por um gesto normal (0,75 ecrã) que continua: a passagem
+  corre inteira; a 1 s a frase ainda sai e o retrato já aparece; sem retângulos nem faixas no 13 (visto a tamanho real).
+- Palco parado: cinco scrolls de −0,35 a +0,25 ecrã à volta do gatilho → topo do palco 0 px em todos (1440 e 390).
+- Costura 11 → 12, primeiro frame contra o 11 (chegada pela roda, Method assente): 1440 diferença máxima 3 níveis; 1920 317 canais > 8 (os
+  números vivos dos ecrãs); 390 máximo 13. Corrigido pelo caminho: os passos repousam a 0,75 e saíam de 1 (um frame mais claros).
+- Regressão: 5 tamanhos (fases, 0 overflow, 0 erros), gestos e teclado, movimento reduzido e sem JS: como no passo 1.
+- Desempenho indicativo (CPU × 4): 11 → 12 1440 185 frames, 8 > 25 ms, um de ~100 ms no gatilho (provavelmente a cópia feita nesse frame:
+  se o Xiaomi o mostrar, fazê-la durante os 0,3 ecrã presos antes); 12 → 13 150 frames, 5 > 25 ms; 390: 3 e 1.
+
+**Por ver pelo owner:** se o ritmo (≈3 s, 1,0 / 1,7 ecrãs) e a luz a abrir em oval são o que esperava; Xiaomi e iPhone.

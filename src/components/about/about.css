@@ -8,9 +8,11 @@
 */
 
 .about {
-  /* the dark of 12 (the Method's 11, method.css .m-dark) and the room once lit (storyboard: #1B1C1A) */
-  --a-dark: #171816;
-  --a-room: #1b1c1a;
+  /* the dark of 12 (the Method's 11, method.css .m-dark: #171816) and the room once lit (storyboard: #1B1C1A), each two levels lower: the
+     grain (.a-grain) adds 2.2 on average in the dark, so what is seen is the approved colour, and the handover from the Method's 11 stays
+     within half a level (measured, 1440 and 390, 4 Nov) */
+  --a-dark: #151614;
+  --a-room: #191a18;
   --u: min(1vw, 1.6svh);
   --a-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   position: relative;
@@ -32,6 +34,18 @@
   min-height: 100svh;
   overflow: hidden;
   background: var(--a-dark);
+}
+
+/* the room's grain: a dither. The browser draws the dark gradients — the light, the aura's edge — without dithering, in steps of one
+   level that read as rings (owner, 4 Nov: "consigo ver claramente camadas"). The storyboard's grain (overlay at 0.1) was measured here
+   at ±0.05 of a level in the dark: overlay scales with the dark, so it did nothing. This is light noise at a very low alpha in normal
+   blending, per CSS pixel (an SVG noise tile, drawn once): it adds 1–3 levels at random over the room and its light, under the portrait
+   and the words, so no step has an edge. No blend mode, so no extra blending pass */
+.a-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192'%3E%3Cfilter id='n' x='0' y='0' width='1' height='1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0.06 0 0 0 -0.018'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 /* ---- the room: its ground and the portrait's atmosphere (#40's aura: the photograph's 48 px copy, stretched and masked) ---- */
@@ -393,7 +407,11 @@
   /* the portrait in the light: it fades to its edges in a circle (the storyboard's mask, 4 Nov: "não está bem redonda"), so the light
      never meets the photograph's straight edges. The circle opens by scaling .a-open while .a-img is scaled back by as much, so the
      photograph stays still and only the light grows (about-stage.ts); once open, the mask goes (data-open) */
+  /* 2 px past the photograph's clip: while the colour fades in, Chrome draws it as a layer of its own under the mask, the mask's bounds
+     round down from the portrait's fractional width (33 --u: 475.2 px at 1440) and the last column of the photograph escaped it — a
+     line at the right edge, only while the colour was coming (owner, 4 Nov). Out here that column is cut by the clip */
   :root[data-js] .about .a-open {
+    inset: -2px;
     -webkit-mask: radial-gradient(circle closest-side, #000 58%, transparent 100%) center / 100% 100% no-repeat;
     mask: radial-gradient(circle closest-side, #000 58%, transparent 100%) center / 100% 100% no-repeat;
   }

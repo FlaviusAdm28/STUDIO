@@ -1340,3 +1340,32 @@ Chrome em baixa resolução, com faixas nos tons escuros, e o seu retângulo via
   se o Xiaomi o mostrar, fazê-la durante os 0,3 ecrã presos antes); 12 → 13 150 frames, 5 > 25 ms; 390: 3 e 1.
 
 **Por ver pelo owner:** se o ritmo (≈3 s, 1,0 / 1,7 ecrãs) e a luz a abrir em oval são o que esperava; Xiaomi e iPhone.
+
+### Passo 3: o risco no hover do 12 e as camadas da luz no 13 (4/11, owner no PC)
+
+**Owner:** (1) em hover no 12 via-se um risco à direita, "que na verdade é a imagem a revelar-se"; (2) "o efeito de luz no momento 13 tá
+fraco, consigo ver claramente camadas".
+
+**Causas:** (1) o retrato tem 33 --u de largura (475,2 px a 1440, fracionário); enquanto a cor aparece o Chrome desenha-a numa camada sua
+por baixo da máscara circular, a máscara arredonda os limites para baixo e a última coluna da fotografia escapa-lhe: uma linha clara na
+aresta direita, só durante a revelação. Não reproduzível aqui (composição por CPU), causa deduzida da geometria. (2) Duas coisas: a
+atmosfera era a aura de 48 px do Work esticada mais de 30× (o browser desenha-a em facetas), e os gradientes escuros (a luz, a máscara da
+aura) são desenhados sem dithering — degraus de um nível em centenas de píxeis, que se veem como anéis. Medido: a ×4–×5 de contraste os
+anéis eram claros na luz do 12 e na borda da aura do 13.
+
+**Corrigido:**
+- `.a-open` (o elemento com a máscara) passa 2 px para fora do recorte da fotografia: a coluna que escapa à máscara fica fora do recorte.
+- `npm run images` escreve também `portrait-aura-lg.jpg` e `portrait-mono-aura-lg.jpg` (192 × 288, desfoque 16, JPEG 82, ~2,5 KB), opção
+  `auraLarge`; o About usa-as. A aura de 48 px do Work não muda. **No PC: `npm run images -- --only=portrait`** (ficheiros novos, sem `--force`).
+- **O grão da sala** (`.a-grain`): o do storyboard (overlay a 0,1) foi medido aqui a ±0,05 de nível no escuro — o overlay escala com o escuro,
+  não fazia nada. Passou a ser um dithering: ruído claro (um mosaico SVG `feTurbulence`, desenhado uma vez) com alpha muito baixo, em
+  mistura normal (sem `mix-blend-mode`), por cima da sala e da luz, por baixo do retrato e das palavras. Medido: ruído de alta frequência
+  ±1,3–1,5 níveis na sala (era 0–0,3); a ×4 os anéis desfazem-se; a tamanho real não se vê textura.
+- O grão soma +2,2 níveis em média no escuro: as cores de fundo do About descem 2 (`#151614`, `#191a18`), para se ver o aprovado
+  (`#171816`, `#1b1c1a`). Costura 11 → 12 medida (chegada pela roda): escuro 23,0 → 23,2, luz 76,6 → 76,1 (1440); 70,1 → 70,1 (390).
+
+**Regressão:** 5 tamanhos (fases, 0 overflow, 0 erros), gestos (rato parado, hover, segurar, arrastar), teclado, movimento reduzido e
+sem JS: como antes. Indicativo, CPU × 4: 11 → 12 1440 192 frames, 5 > 25 ms (máx. 50); 12 → 13 153, 2; 390: 3 e 1.
+
+**Por ver pelo owner:** o risco do hover no 12 no PC (não reproduzível aqui); a luz do 13 com o retrato real; o grão no Xiaomi (custo: uma
+camada de ecrã inteiro em mistura normal, estática).

@@ -24,14 +24,16 @@ export function About() {
       <div className="a-stage" data-lum="0.1">
         {/* the room lit: its ground and the portrait's own atmosphere, B&W while the portrait is, its colours while it shows them */}
         <div className="a-lit" aria-hidden="true">
-          {/* eslint-disable-next-line @next/next/no-img-element -- a 48 px pre-made blur, stretched: nothing to optimise */}
-          <img className="a-aura a-aura-mono" src={`${about.portrait.src}-mono-aura.jpg`} alt="" width={48} height={72} decoding="async" />
+          {/* eslint-disable-next-line @next/next/no-img-element -- a 192 px pre-made blur, stretched: nothing to optimise */}
+          <img className="a-aura a-aura-mono" src={`${about.portrait.src}-mono-aura-lg.jpg`} alt="" width={192} height={288} decoding="async" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="a-aura a-aura-col" src={`${about.portrait.src}-aura.jpg`} alt="" width={48} height={72} decoding="async" />
+          <img className="a-aura a-aura-col" src={`${about.portrait.src}-aura-lg.jpg`} alt="" width={192} height={288} decoding="async" />
         </div>
 
         {/* the light of the Method's 11 (method.css .m-dark), which finds the portrait at 12: with the motion only */}
         <div className="a-glow" aria-hidden="true" />
+        {/* the room's grain (the storyboard's): it also breaks the dark gradients' steps, which the browser draws undithered */}
+        <div className="a-grain" aria-hidden="true" />
 
         <h2 id="about-title" className="a-title">
           03 About

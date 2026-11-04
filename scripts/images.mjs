@@ -58,12 +58,15 @@ const MONO_TINT = [0.012, 0.004, -0.01]
 const AURA_WIDTH = 48
 const AURA_BLUR = 4
 const AURA_WARM = '#b8936a'
+// The About's room spreads its aura over the whole screen: 48 px stretched 30× was drawn by the browser in facets (owner, 4 Nov: "consigo ver
+// claramente camadas"). `auraLarge` also writes `-aura-lg.jpg`, four times wider, the blur in proportion.
+const AURA_LARGE = { width: 192, blur: 16, quality: 82 }
 
 /**
  * id → master, group and role. `widths` are the widths written (the AI masters are 1024 px wide, so
  * they stop there). `reveal`: colour master used for hold-to-colour. `mono`: also writes the derived
  * monochrome, with no reveal (the entrance's blades are B&W). `aura`: adds the aura (and,
- * for a reveal, the aura of its monochrome too). `warm`: the master is B&W; its aura is tinted.
+ * for a reveal, the aura of its monochrome too); `auraLarge` also a 192 px one (the About's room). `warm`: the master is B&W; its aura is tinted.
  * `fine`: a real photograph, encoded to keep its grain. `calm`: the calm grade, with this saturation.
  * `crop`: the part of the master used.
  */
@@ -102,7 +105,7 @@ const SOURCES = [
   // was 299, a woman alone, which read wrong under a man's name). Up to 1280: on a phone it opens to the whole screen.
   { id: 'screen-wedding', group: 'method', file: 'weddings/HelderCoutoPhoto_163.jpg', widths: [640, 960, 1280], fine: true },
   // About — the portrait and the room, B&W derived from the colour frame, colour by gesture.
-  { id: 'portrait', group: 'about', file: 'about/portrait-124.jpg', widths: [640, 960, 1440], reveal: true, aura: true },
+  { id: 'portrait', group: 'about', file: 'about/portrait-124.jpg', widths: [640, 960, 1440], reveal: true, aura: true, auraLarge: true },
   { id: 'workspace', group: 'about', file: 'about/workspace.png', widths: [640, 1024], reveal: true },
 ]
 
@@ -190,16 +193,17 @@ async function write(input, width, base, grade, { fine, calm: calmed, crop } = {
   }
 }
 
-async function writeAura(input, base, { grade, warm, calm: calmed, crop }) {
-  const target = `${base}-aura.jpg`
+async function writeAura(input, base, { grade, warm, calm: calmed, crop, large = false }) {
+  const size = large ? AURA_LARGE : { width: AURA_WIDTH, blur: AURA_BLUR, quality: 70 }
+  const target = `${base}-aura${large ? '-lg' : ''}.jpg`
   if (!shouldWrite(target)) return
   let p = sharp(input).rotate()
   if (crop) p = p.extract(crop)
-  p = p.resize({ width: AURA_WIDTH }).toColourspace('srgb')
+  p = p.resize({ width: size.width }).toColourspace('srgb')
   if (grade) p = mono(p)
   if (calmed) p = calm(p, calmed)
   if (warm) p = p.tint(AURA_WARM)
-  const info = await p.blur(AURA_BLUR).jpeg({ quality: 70 }).toFile(target)
+  const info = await p.blur(size.blur).jpeg({ quality: size.quality }).toFile(target)
   console.log(`wrote  ${path.relative(root, target)}  ${info.width}×${info.height}  ${info.size} B`)
 }
 
@@ -229,6 +233,10 @@ async function main() {
     if (source.aura) {
       await writeAura(input, base, { grade: false, warm: source.warm, calm: source.calm, crop: source.crop })
       if (source.reveal) await writeAura(input, `${base}-mono`, { grade: true, warm: true })
+    }
+    if (source.auraLarge) {
+      await writeAura(input, base, { grade: false, warm: source.warm, calm: source.calm, crop: source.crop, large: true })
+      if (source.reveal) await writeAura(input, `${base}-mono`, { grade: true, warm: true, large: true })
     }
   }
 

@@ -1505,3 +1505,35 @@ fotografia acima, a 402 × 874) — fica para a decisão do ecrã inteiro no sit
 (medido a 1/11, também com `viewport-fit=cover`): o vídeo da entrada não pode ir para trás dela. Com scroll, a ilha mostra a página logo acima
 do ecrã: cada cena presa pode lá pôr a sua imagem em vez de uma cor. Proposta, por decidir: só a entrada parada com cor; o resto com a
 imagem de cada cena (mexe na Entrada, no Work e no Method). **Não verificado:** tudo no iPhone.
+
+---
+
+## Ecrã inteiro no iOS: o Method atrás da ilha dinâmica (4/11, owner) — branch `v5-cloud-about`
+
+**Decisão do owner (4/11):** o primeiro ecrã fica como está (parado no topo, a faixa da ilha é do Safari e toma a cor da hora); no resto, o
+que aparece atrás da ilha é o próprio site — o fundo da cena no ecrã a continuar para cima, nunca texto, cartões nem outra secção — sem
+mudar a estética: nada do ecrã visível muda. "A aresta de luz do 7 pode ser full screen." Contexto: com scroll, o Safari mostra atrás da ilha
+a página logo acima do ecrã (teste de riscas de 1/11, README #86); o Work já o fazia (palco 70 px acima, o chão do capítulo), o About desde
+hoje (passo 8 do M7a); o Method não — o palco preso no topo exato, a aresta da luz parava ao pé da ilha.
+
+**Feito (`method.css`, só iOS, telemóvel, com movimento):** o palco desenha 70 px acima de si (`clip-path: inset(-70px 0 0 0)` em vez de
+`overflow: hidden`; a secção corta o excesso na horizontal, `overflow-x: clip`, para as caixas de três ecrãs da luz não darem scroll
+lateral); a caixa de fora da luz sobe 70 px e as três rodam à volta do mesmo ponto de antes (`transform-origin: 0 70px`: a aresta segue em
+linha reta para cima); o estúdio fica onde estava e, por cima, a cor da sua parede no topo do ecrã à hora (`--m-edge`, já medida), só nos
+70 px; a luz que transborda das arestas sobe com o padrão alinhado; o chão do Work por baixo da luz e o escuro do 11 sobem (a luz redonda no
+mesmo sítio). No 9 do telemóvel (a página em destaque a ecrã inteiro) não se desenha nada acima: fica como antes. O desktop e o iPad não mudam.
+
+**Medido com a regra forçada no Chromium** (não corresponde a `-webkit-touch-callout`):
+- Ecrã com e sem a regra, estados assentes antes da luz, 7, 8a, 9, 10, 11: 402 × 874 (noite) máx. 0–7 níveis, 0 canais > 12; 390 × 844 e
+  320 × 640 (dia) iguais exceto a primeira linha de píxeis no 7/8a (390 × 3 e 320 × 3 canais): a faixa nova a tocar o topo do ecrã — aqui
+  faltam as imagens do estúdio (`public/media/v5/method/` não vem no Git), no site a imagem opaca do estúdio cobre essa linha. No 9 real
+  (verificado na fase), 0 diferenças.
+- A aresta de luz parada em 6 instantes (300–2500 ms do 7): igual com e sem a regra (máx. 3–4 níveis, noite).
+- Scroll lateral 0 em todos. Dois erros encontrados e corrigidos pelo caminho: as três caixas da luz estão encaixadas e subiam 70 px cada
+  (o estúdio e a luz da hora saíam do sítio); a cor da parede enchia toda a caixa (via-se onde a imagem do estúdio faltava).
+- **A faixa acima do ecrã** (o palco baixado 70 px só no teste): antes da luz o chão do Experiences; no 7 a parede clara a entrar pelo meio
+  (dia) com a aresta oblíqua a atravessar; 8–10 a parede; 11 o escuro.
+
+**Não verificado:** tudo no iPhone (se o Safari mostra o que o palco desenha acima de si — o teste de riscas de 1/11 só provou o fluxo
+normal e o palco do Work, que sobe como caixa; "sticky com filho a sangrar" não chegou a ser visto), o custo no Xiaomi (não se aplica no
+Android). O código que sincroniza a cor da ilha continua: só se vê onde não há nada acima (o topo, o elástico, o 9 do telemóvel).

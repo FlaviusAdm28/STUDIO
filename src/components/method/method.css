@@ -1085,3 +1085,65 @@
   background: #f2eee7;
 }
 }
+
+/* ================= iOS: the studio behind the Dynamic Island (owner, 4 Nov) =================
+   With the page scrolled, Safari shows behind the island what lies just above the screen (README #86, the stripes test). The stage is
+   held at the screen's top, so there it showed whatever was under the section — and the light of 7 stopped at the island's foot. On a
+   phone the studio's own ground goes on 70 px above the screen, as the Work's stage does and the About's: the edge of light crosses
+   behind the island too, the room and the dark of 11 continue up. Nothing on the screen moves (checked pixel by pixel, the rule forced
+   in Chromium): only what is drawn above it. The screens, the words, the field and the cover stay where they are. At 9 the whole
+   screen of the featured page keeps the page's own colour there (method-stage.ts, --m-edge of 9), as before. */
+@media (prefers-reduced-motion: no-preference) and (max-width: 899px) {
+  @supports (-webkit-touch-callout: none) {
+    :root[data-js] .method {
+      --m-lift: 70px;
+      /* the light's boxes are three screens wide: once the stage no longer hides its overflow, the section cuts it across */
+      overflow-x: clip;
+    }
+    /* the stage draws its ground above itself; its sides and foot are cut as before */
+    :root[data-js] .method .m-stage {
+      overflow: visible;
+      clip-path: inset(calc(-1 * var(--m-lift)) 0 0 0);
+    }
+    :root[data-js] .method[data-phase='9'] .m-stage {
+      clip-path: inset(0);
+    }
+    /* and the wall's band not drawn at all: composited, its foot bled one pixel row into the screen's top, a line over the page */
+    :root[data-js] .method[data-phase='9'] .m-wipe-in {
+      background: none;
+    }
+    :root[data-js] .method .m-night {
+      top: calc(-1 * var(--m-lift));
+    }
+    /* the light: its outer box reaches up (the two inside it, nested, reach up with it), and the three turn about the same point as
+       before (else the edge would move ~15 px across) */
+    :root[data-js] .method .m-wipe {
+      top: calc(-1 * var(--m-lift));
+      height: calc(100% + var(--m-lift));
+    }
+    :root[data-js] .method :is(.m-wipe, .m-wipe-b, .m-wipe-in) {
+      transform-origin: 0 var(--m-lift);
+    }
+    /* the room where it was; above it, its wall's own colour at the screen's top, by the hour (--m-edge, measured) */
+    :root[data-js] .method .m-wipe-in {
+      background: linear-gradient(var(--m-edge), var(--m-edge)) top / 100% var(--m-lift) no-repeat;
+    }
+    :root[data-js] .method .m-wipe-in .m-studio {
+      top: var(--m-lift);
+    }
+    :root[data-js] .method .m-spill {
+      top: calc(-1 * var(--m-lift));
+      height: calc(100% + var(--m-lift));
+      transform-origin: 0 var(--m-lift);
+      -webkit-mask-position: 0 var(--m-lift);
+      mask-position: 0 var(--m-lift);
+    }
+    /* 11: the dark room and its round light, the light where it was (44 % of the screen) */
+    :root[data-js] .method .m-dark {
+      top: calc(-1 * var(--m-lift));
+      background:
+        radial-gradient(circle 62vw at 50% calc(70px + 0.44 * (100% - 70px)), rgba(255, 236, 206, 0.15), rgba(255, 236, 206, 0.05) 60%, transparent 100%),
+        #171816;
+    }
+  }
+}

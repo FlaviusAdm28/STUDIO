@@ -1,5 +1,27 @@
 # Chapter One V5 — handoff
 
+## 4 de novembro de 2026 — About construído numa sessão na nuvem, branch `v5-cloud-about` (não integrado no `v5`)
+
+**Estado:** o About (estados 12–14) está no branch `v5-cloud-about`, a partir de `ffeec33`; o `v5` não mudou. O owner puxa o branch e
+valida no PC, no Xiaomi e no iPhone antes de integrar. Testes e números: `v5-tests.md`, secção "M7a — About". Código:
+`src/components/about/`.
+
+**O que o owner tem de ver / decidir:**
+1. **A saída 11 → 12 da README #65** (Talk to us, depois os passos, a frase por último; os ecrãs do desktop apagam-se com a sala) está
+   construída como no painel "About em movimento", mas no README continua "proposta, a aprovar". O About anima as três palavras do fim do
+   Method (só `opacity`/`transform`, desfeito ao voltar); nenhum ficheiro do Method mudou.
+2. **Ritmo:** 12 no gatilho, 13 a 0,5 ecrã, 14 a 0,95, solto a 1,3 (`about-stage.ts`, STARTS) — valores de partida (aberta #13).
+3. **Diferenças em relação ao storyboard, por técnica:** a máscara do retrato no 12 é desenhada como o escuro da sala por cima das
+   arestas e sai por opacidade (não `mask-size` animado); sem o grão do storyboard (seria uma camada `mix-blend` de ecrã inteiro); a cor
+   só responde a um rato que se mexe.
+4. **About → Questions:** nada foi feito (a passagem 14 → 15 da #65 pertence às Questions, README #75; a #25 diz "sem passagem").
+5. **Retrato real:** correr `npm run images -- --only=portrait` com o `media-src/about/portrait-124.jpg` verdadeiro e ver o enquadramento
+   (`object-position 50% 30%`), a aura e o contraste. No contentor foi usado um substituto sintético.
+6. **Xiaomi:** o 11 → 12 (o *spot* a escalar), o 12 → 13, o segurar para a cor. iPhone: as bordas no About (carvão `#1e1d1a` contra a
+   sala `#171816`/`#1b1c1a`).
+
+---
+
 ## ▶ COMEÇAR AQUI · 3 de novembro de 2026, fim do dia — M6 (Method) commitado e enviado: `55f6e53`
 
 **Estado:** branch `v5`, M6 commitado e enviado a pedido do owner (`55f6e53`, 3/11, noite). Próximo módulo: About / Questions / Contact (README #75). Decisões: README #102

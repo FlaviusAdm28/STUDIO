@@ -107,7 +107,7 @@ a {
   top: 8px;
 }
 
-main > section:not(.entrance, .method),
+main > section:not(.entrance, .method, .about),
 .colophon {
   padding-inline: var(--gutter);
 }
@@ -122,12 +122,12 @@ main > section:not(.entrance, .method),
   list-style: none;
 }
 
-main > section:not(.entrance, .method) {
+main > section:not(.entrance, .method, .about) {
   padding-block: 64px;
 }
 
 /* the sections not built yet (M7): a plain size; the built ones size their own photographs */
-main section:not(.entrance, .work, .method) picture {
+main section:not(.entrance, .work, .method, .about) picture {
   max-width: 420px;
   margin-block: 16px;
 }

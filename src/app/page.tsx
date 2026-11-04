@@ -1,9 +1,9 @@
-import { about, contact, nav, questions, sections } from '@content'
+import { contact, nav, questions, sections } from '@content'
 import { Bar } from '@/components/bar/bar'
 import { Entrance } from '@/components/entrance/entrance'
 import { Work } from '@/components/work/work'
 import { Method } from '@/components/method/method'
-import { Picture } from '@/components/picture'
+import { About } from '@/components/about/about'
 import { FpsMeter } from '@/components/fps-meter'
 
 /*
@@ -32,16 +32,7 @@ export default function Home() {
 
         <Method />
 
-        <section id="about" aria-labelledby="about-title">
-          <h2 id="about-title">03 About</h2>
-          <Picture src={about.portrait.src} alt={about.portrait.alt} mono sizes="(min-width: 900px) 40vw, 100vw" />
-          <p>{about.role}</p>
-          <p>{about.greeting}</p>
-          {about.paragraphs.map((p) => (
-            <p key={p}>{p}</p>
-          ))}
-          <p>{about.credit}</p>
-        </section>
+        <About />
 
         <section id="questions" aria-labelledby="questions-title">
           <h2 id="questions-title">04 Questions</h2>

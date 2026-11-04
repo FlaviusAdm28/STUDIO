@@ -1258,3 +1258,49 @@ typecheck, lint (0 avisos), build: passam. \`npm run images -- --only=studio\`: 
 \`modes.mjs\` (1440, 390): movimento reduzido e sem JS sem overflow e sem cursor; teclado → 7, campo visível, "Ana" nos templates.
 \`passage.mjs\` 1920 × 1080 dia, 768 × 1024 noite, 320 × 640 fim de tarde: sem overflow, fim apressado 342–346 ms, sem erros.
 **Não verificado no conjunto final:** iPhone (o owner viu as rondas anteriores), leitor de ecrã, rede lenta, tablet real.
+
+---
+
+## M7a — About (estados 12–14), sessão na nuvem, 4/11 — branch `v5-cloud-about`, por validar pelo owner
+
+**O que foi construído** (`src/components/about/`: `about.tsx`, `about.css`, `about-stage.ts`, `portrait.ts`, `about-client.tsx`;
+`page.tsx`, `globals.css`): o estado 14 em HTML (sem JS e com movimento reduzido lê-se assim); com JS e movimento, a secção fica
+1,3 ecrãs por cima do fim do Method, presa e invisível, e a passagem corre quando o topo do About chega ao topo do ecrã (0,3 ecrã antes de o
+Method largar o 11): 12 a 0, 13 a 0,5, 14 a 0,95 ecrãs, banda morta 0,025, solta-se a 1,3. Fonte: storyboard About v5 (B) e o painel
+"About em movimento" do storyboard principal (com as afinações de 4/11). A saída 11 → 12 segue a proposta da README #65 (Talk to us,
+passos, frase por último), que no README ainda está marcada "a aprovar".
+
+**Ambiente:** contentor na nuvem, Chromium headless do Playwright (render por CPU), `next start -p 3100`. **Sem as fotografias:**
+`media-src/` e `public/media/v5/` não estão no Git; para testar foi feito um **retrato substituto sintético** (`media-src/about/portrait-124.jpg`,
+um desenho com o texto "TEST STAND-IN — NOT THE PORTRAIT", não commitado) e corrido `npm run images -- --only=portrait` (saturação 0,427,
+cor + P&B derivado + as duas auras). As outras imagens do site deram 404 nestes testes (filtradas na contagem de erros).
+
+**Testado (scripts no scratchpad da sessão, não guardados no repositório: `walk.cjs`, `wheel.cjs`, `back.cjs`, `gest.cjs`, `centre.cjs`,
+`modes.cjs`, `perf*.cjs`):**
+- `typecheck`, `lint` (0 avisos), `build`: bem.
+- **Cinco tamanhos** (1920×1080, 1440×900, 768×1024, 390×844, 320×640): fases 12 → 13 → 14 → (volta) 12 → pre corretas em todos; 0 px de
+  scroll horizontal; 0 erros de consola (além dos 404 das imagens ausentes). Nome a 12 centrado sob o retrato em todos (medido: centro do
+  nome = centro do retrato ± 0 px); no telemóvel o nome a 54,5 % (460 px em 844).
+- **Roda do rato, passo a passo (1440×900):** o Method está no 11 antes do gatilho; 12 cobre-o; ao voltar, o 11 reaparece com as palavras
+  (opacidade 1, sem animações deixadas). Dois defeitos encontrados e corrigidos: (1) a zona por baixo do palco invisível ficava por
+  pintar → o palco antes do 12 é recortado (`clip-path`), não `opacity: 0`; (2) um fio vertical nas arestas do retrato no 12 → o escuro
+  passa 2 px para fora da fotografia.
+- **Gestos:** rato parado onde o retrato chega no 13 → fica P&B (antes ficava a cores: o Chrome dá um `pointerenter` sem movimento;
+  agora só um rato que se mexe); hover → cor, sair → P&B; toque e segurar (CDP) → cor, largar → P&B; arrastar a começar no retrato →
+  P&B. Teclado: Tab a partir do *Talk to us* do Method chega ao retrato e leva ao 14 (antes saltava o About inteiro, com `visibility`);
+  Enter → `aria-pressed="true"`; Tab seguinte → *04 Questions ↓* e a cor volta ao P&B. O retrato é um `role="button"` com o nome do alt.
+- **Movimento reduzido e sem JavaScript** (contra `next start`; 1440, 390, 320): o 14 em fluxo depois do Method, sem sobreposição, tudo
+  visível; a 320×640 a secção tem 648 px.
+- **Contraste** (linho sobre o fundo): crédito a 0,6 → 5,8 : 1 na sala, 4,7 : 1 sobre uma aura cinza média; *04 Questions* e a etiqueta a
+  0,7 → 7,5 : 1; parágrafo 0,82 → 9,8 : 1. **A refazer com o retrato real** (a aura dele é outra).
+- **Desempenho, indicativo apenas** (headless, render por CPU, CPU × 4): 11 → 12 a partir do 11 assente 149 frames, 7 > 25 ms; 12 → 13 156
+  frames, 1 > 25 ms; telemóvel 390: 1–2 > 25 ms por passagem. No mesmo ambiente o próprio 10 → 11 do Method dá 37 > 25 ms em 98: o custo
+  está no que o Method desenha por baixo (bisseção: sem o palco do Method 9–16 lentos; sem o *spot*, a aura, o retrato ou o nome, igual).
+
+**Riscos de desempenho a medir no Xiaomi** (README #68): o *spot* do 12 (camada de 2 × o retrato, `scale` até ~3 no desktop); o
+recorte por `clip-path` estático do palco antes do 12 (não animado); as duas auras esticadas com máscara (como no Work); as duas fotografias
+do retrato carregadas (P&B e cor, ~2 pedidos).
+
+**Não verificado:** Xiaomi (sem acesso daqui), iPhone/Safari (as bordas da página no About ficam no carvão `#1e1d1a` pelo `sequence.ts`,
+a sala é `#171816`/`#1b1c1a`; não mexi na entrada), o retrato real (enquadramento `object-position: 50% 30%` nos dois formatos, a aura,
+o brilho por trás das ilhas da barra), leitor de ecrã, rede lenta, tablet real.

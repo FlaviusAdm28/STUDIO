@@ -1,0 +1,401 @@
+/*
+  03 About — the final state (storyboard 14 at rest; README #50–#52). The room lit with the portrait's own atmosphere, the
+  portrait in black and white, "I'm Flávio." as the title, the sentence as a quote, a rule, the paragraph and the credit's column.
+  Desktop: the storyboard's editorial grid, placed in a box of the storyboard's 16 : 10 frame (1 --u = 1 % of its width), the
+  largest that fits the screen, so the composition is the approved one at every desktop size. Phone and tablet upright (< 900 px, as
+  the bar and the Method): one column, the portrait across the top. Values from the approved storyboard (About v5, B; main storyboard,
+  "About em movimento", 4 Nov); the passage (12 → 14) is played by about-stage.ts.
+*/
+
+.about {
+  /* the dark of 12 (the Method's 11, method.css .m-dark) and the room once lit (storyboard: #1B1C1A) */
+  --a-dark: #171816;
+  --a-room: #1b1c1a;
+  --u: min(1vw, 1.6svh);
+  --a-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  position: relative;
+  color: var(--linen);
+  background: var(--a-room);
+}
+
+.a-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.a-stage {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  background: var(--a-dark);
+}
+
+/* ---- the room: its ground and the portrait's atmosphere (#40's aura: the photograph's 48 px copy, stretched and masked) ---- */
+.a-lit {
+  position: absolute;
+  inset: 0;
+  background: var(--a-room);
+  pointer-events: none;
+}
+.a-aura {
+  position: absolute;
+  /* the storyboard's place: around the portrait, at its left */
+  left: -22%;
+  top: -30%;
+  width: 112%;
+  height: 160%;
+  max-width: none;
+  -webkit-mask: radial-gradient(closest-side, #000 20%, transparent 100%);
+  mask: radial-gradient(closest-side, #000 20%, transparent 100%);
+  transition: opacity 2.4s var(--a-ease);
+}
+.a-aura-mono {
+  opacity: 0.9;
+}
+.a-aura-col {
+  opacity: 0;
+}
+.about[data-colour='on'] .a-aura-mono {
+  opacity: 0;
+}
+.about[data-colour='on'] .a-aura-col {
+  opacity: 0.95;
+}
+
+/* ---- the composition ---- */
+.a-box {
+  position: relative;
+  z-index: 1;
+}
+
+.a-pt {
+  position: relative;
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.a-pt[role='button'] {
+  cursor: pointer;
+}
+.a-pt:focus-visible {
+  outline: 2px solid var(--linen);
+  outline-offset: 4px;
+}
+.a-frame {
+  position: absolute;
+  inset: 0;
+}
+.a-frame picture,
+.a-frame img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 30%;
+  -webkit-user-drag: none;
+}
+/* the colour: the same photograph over its B&W, slowly (~2 s, README #52), and back */
+.a-col {
+  opacity: 0;
+  transition: opacity 1.8s cubic-bezier(0.33, 0, 0.2, 1);
+}
+.a-pt[data-colour='on'] .a-col {
+  opacity: 1;
+}
+/* without JavaScript a mouse still shows the colour */
+@media (hover: hover) and (pointer: fine) {
+  :root:not([data-js]) .a-pt:hover .a-col {
+    opacity: 1;
+  }
+}
+.a-dark {
+  display: none;
+}
+
+.a-role {
+  display: flex;
+  align-items: center;
+  gap: 1.4em;
+  margin: 0;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.a-role::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(238, 232, 221, 0.25);
+}
+.a-name {
+  margin: 0;
+  font-family: var(--serif);
+  line-height: 1;
+  white-space: nowrap;
+  transform-origin: 0 0;
+}
+.a-say {
+  margin: 0;
+  font-family: var(--serif);
+  font-style: italic;
+  line-height: 1.12;
+  text-wrap: balance;
+}
+.a-rule {
+  height: 1px;
+  background: rgba(238, 232, 221, 0.22);
+  transform-origin: left;
+}
+.a-para {
+  margin: 0;
+  line-height: 1.65;
+  color: rgba(238, 232, 221, 0.82);
+}
+.a-credit {
+  margin: 0;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+.a-hint {
+  white-space: nowrap;
+}
+.a-hint-hold {
+  display: none;
+}
+/* a finger holds (a phone, a tablet): the hint says so */
+@media (hover: none), (pointer: coarse) {
+  .a-hint-hover {
+    display: none;
+  }
+  .a-hint-hold {
+    display: inline;
+  }
+}
+.a-next {
+  justify-self: start;
+  letter-spacing: 0.16em;
+  text-decoration: none;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.a-next:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 6px;
+}
+
+/* ---- desktop: the editorial grid, in the storyboard's frame (100 × 62.5 --u) ---- */
+@media (min-width: 900px) {
+  .a-stage {
+    display: grid;
+    place-items: center;
+  }
+  .a-box {
+    width: calc(100 * var(--u));
+    height: calc(62.5 * var(--u));
+  }
+  .a-box > * {
+    position: absolute;
+  }
+  .a-pt {
+    left: calc(7 * var(--u));
+    top: 11.5%;
+    width: calc(33 * var(--u));
+    height: 80%;
+  }
+  .a-role {
+    left: calc(46 * var(--u));
+    right: calc(8 * var(--u));
+    top: 11.5%;
+    font-size: max(11px, 1 * var(--u));
+  }
+  .a-name {
+    left: calc(46 * var(--u));
+    top: 17%;
+    font-size: calc(6.4 * var(--u));
+  }
+  .a-say {
+    left: calc(46 * var(--u));
+    right: calc(8 * var(--u));
+    top: 31%;
+    font-size: calc(3.1 * var(--u));
+  }
+  .a-rule {
+    left: calc(46 * var(--u));
+    right: calc(8 * var(--u));
+    top: 58%;
+  }
+  .a-para {
+    left: calc(46 * var(--u));
+    width: calc(24 * var(--u));
+    top: 61.5%;
+    font-size: max(15px, 1.25 * var(--u));
+  }
+  /* the credit's column, beside the paragraph: two lines */
+  .a-credit {
+    left: calc(74 * var(--u));
+    right: calc(8 * var(--u));
+    top: 61.5%;
+    font-size: max(11px, 0.95 * var(--u));
+    line-height: 1.9;
+  }
+  .a-credit > span {
+    display: block;
+  }
+  .a-credit .a-sep {
+    display: none;
+  }
+  .a-next {
+    left: calc(46 * var(--u));
+    top: 89.5%;
+    font-size: max(12px, 1.05 * var(--u));
+  }
+}
+
+/* ---- phone and tablet upright: one column, the portrait across the top under the bar ---- */
+@media (max-width: 899px) {
+  .about {
+    /* 1 % of the width of the storyboard's phone (9 : 19.5), capped by the height: a tablet upright keeps a phone's measure */
+    --p: min(1vw, 0.4615svh);
+  }
+  .a-aura {
+    left: -40%;
+    top: -24%;
+    width: 180%;
+    height: 112%;
+  }
+  .a-box {
+    display: flex;
+    flex-direction: column;
+    min-height: 100svh;
+    padding-bottom: 3svh;
+  }
+  .a-pt {
+    flex: none;
+    height: 48svh;
+  }
+  .a-role,
+  .a-rule {
+    display: none;
+  }
+  .a-credit {
+    order: -1;
+    margin: 1.2svh 6vw 0;
+    font-size: max(10px, 2.6 * var(--p));
+  }
+  .a-pt {
+    order: -2;
+  }
+  .a-name {
+    /* its own width, not the column's: the flight to 12 centres it by its measured width */
+    align-self: flex-start;
+    margin: 2.4svh 7vw 0;
+    font-size: calc(11 * var(--p));
+  }
+  .a-say {
+    margin: 2svh 7vw 0;
+    font-size: calc(6.4 * var(--p));
+  }
+  .a-para {
+    margin: 2.6svh 7vw 0;
+    font-size: max(14px, 3.5 * var(--p));
+    line-height: 1.55;
+  }
+  .a-next {
+    margin: auto 7vw 0;
+    padding-top: 2.4svh;
+    font-size: max(12px, 3 * var(--p));
+  }
+}
+
+/* ================= the passage, held (states 11 → 14; about-stage.ts) =================
+   Only with JavaScript and motion. Laid over the Method's last screens: the stage is held, transparent, while the Method's 11 is seen
+   beneath, and the passage plays when the section reaches the top. Every layer below is then placed by script, with Web Animations
+   from where it is seen (iOS cut CSS transitions, README #90, #91). Transform and opacity only. */
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-js] .about {
+    z-index: 3;
+    /* over the Method's last 1.3 screens (OVERLAP in about-stage.ts): the passage plays while the Method still holds its 11 */
+    margin-top: calc(var(--screen) * -1.3);
+    /* held for 1.3 screens (12 → 13 → 14), then let go: the About is not a long held scene (storyboard 12–14) */
+    height: calc(var(--screen) * 2.3);
+    background: transparent;
+    pointer-events: none;
+  }
+  :root[data-js] .about .a-stage {
+    position: sticky;
+    top: 0;
+    height: var(--screen);
+    min-height: 0;
+    opacity: 0;
+  }
+  :root[data-js] .about[data-phase]:not([data-phase='pre']) .a-stage {
+    pointer-events: auto;
+  }
+  /* unseen before 12 (and once the way back has ended): clipped away, so no screen-sized layer waits at opacity 0 over the Method
+     (left composited, the area under it went unpainted in Chrome, 4 Nov). A clip, not visibility: the portrait and 04 Questions stay
+     in the keyboard's order, and reaching them brings 14 (about-stage.ts) */
+  :root[data-js] .about:not([data-phase]) .a-stage,
+  :root[data-js] .about[data-phase='pre']:not(.a-leaving) .a-stage {
+    clip-path: inset(0 0 100% 0);
+  }
+  /* back above the passage: held where it was while the light goes back to the sentence (about-stage.ts, holdWhileLeaving) */
+  :root[data-js] .about.a-leaving .a-stage {
+    position: fixed;
+    left: 0;
+    right: 0;
+  }
+  :root[data-js] .about .a-dark {
+    display: block;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  /* the light never meets the photograph's straight edges: it fades to them, in a circle (owner, 4 Nov: "não está bem redonda") —
+     the storyboard's mask, drawn here as the room's dark over the portrait's edge, so it leaves by opacity, not by mask-size */
+  /* 2 px past the photograph: at its fractional edge a hairline of it showed through (1440 × 900, 4 Nov) */
+  :root[data-js] .about .a-edge {
+    position: absolute;
+    inset: -2px;
+    background: radial-gradient(circle closest-side, rgba(23, 24, 22, 0) 58%, var(--a-dark) 100%);
+  }
+  /* the light: a dark layer with a hole, twice the portrait's size around it, moved by transform (storyboard 12, B; the 4 Nov edge,
+     softer: "o corte da luz") */
+  :root[data-js] .about .a-spot {
+    position: absolute;
+    left: -50%;
+    top: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+      circle var(--a-hole) at 50% 50%,
+      rgba(23, 24, 22, 0) 0,
+      rgba(23, 24, 22, 0) 24%,
+      rgba(23, 24, 22, 0.45) 58%,
+      rgba(23, 24, 22, 0.85) 82%,
+      var(--a-dark) 100%
+    );
+    --a-hole: calc(17 * var(--u));
+  }
+  @media (max-width: 899px) {
+    :root[data-js] .about .a-spot {
+      --a-hole: calc(42 * var(--p));
+    }
+  }
+  /* the starting state of what the passage brings (12); the script takes it from here */
+  :root[data-js] .about :is(.a-lit, .a-role, .a-say, .a-para, .a-credit, .a-next) {
+    opacity: 0;
+  }
+  :root[data-js] .about .a-name {
+    opacity: 0;
+  }
+  :root[data-js] .about .a-rule {
+    transform: scaleX(0);
+  }
+}

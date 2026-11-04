@@ -344,7 +344,7 @@ export function runStage(about: HTMLElement, release: () => void) {
       }
       // back to the Method: the light leaves the portrait for the sentence first, then the Method's 11 comes back
       if (pt.hasAttribute('data-open')) closeFromOpen()
-      const clone = copy()
+      const clone = method?.dataset.phase === '11' ? copy() : null
       if (clone) {
         clone.style.opacity = '1'
         wordsBack(clone, 900)
@@ -373,8 +373,11 @@ export function runStage(about: HTMLElement, release: () => void) {
       clearTimeout(letGo)
       about.classList.remove('a-leaving')
       atStart()
-      const clone = copy()
+      // the copy only when the Method's 11 is what is seen: reached by a jump (the menu, an address) the Method is elsewhere or still on its
+      // way — from its 9 the copy caught its screens in mid-flight, 4 Nov — and the passage starts from the dark room and its light alone
+      const clone = !viaJump && method?.dataset.phase === '11' ? copy() : null
       if (clone) wordsOut(clone)
+      else dropCopy()
       run([
         // the light leaves the sentence as it starts to go, and the portrait appears in it while the sentence is still leaving: the
         // room is never empty between them (storyboard rule 1; at 1.4 s it was, 4 Nov)
@@ -469,15 +472,41 @@ export function runStage(about: HTMLElement, release: () => void) {
   // ---- the phase under the scroll, once a frame, with the dead band; 12's passage is played whole ----
   let wake = 0
   const progress = () => (-about.getBoundingClientRect().top - LEAD * H) / H
+  // A jump (the menu, an address, the bar's name) is not a scroll: what it leaves or passes over is put in place at once. Played, the
+  // way back from 14 held the About over the Method for 2 s after the menu had gone to 02 Method; only a landing on 12 plays its passage
+  let lastP: number | null = null
+  let viaJump = false
+  let jumpAt = -1e9
   const choose = () => {
     const p = progress()
+    const jumped = lastP !== null && Math.abs(p - lastP) > 1.2
+    lastP = p
+    // a jump can arrive in two frames (just short of the start, then on it): it counts for a moment after it is seen (the copy of 11 was
+    // still made on the second frame, from the Method's 9, 4 Nov)
+    if (jumped) jumpAt = performance.now()
+    viaJump = performance.now() - jumpAt < 400 || document.documentElement.dataset.jump !== undefined
     if (p < 0) {
+      // the way back is held where it was only while the section is near: carried far up (the Work's smooth scroll to a chapter, a fling)
+      // it covered the Work, dark, for its 2 s (menu, About → 01 Work, 4 Nov)
+      if (about.classList.contains('a-leaving') && p < -1.2) {
+        clearTimeout(letGo)
+        about.classList.remove('a-leaving')
+        dropCopy()
+      }
+      if (jumped && phase !== 'pre') {
+        clearTimeout(letGo)
+        about.classList.remove('a-leaving')
+        show('pre', true)
+        dropCopy()
+        return
+      }
       if (phase === null || (phase !== 'pre' && p < -BAND)) show('pre', phase === null)
       return
     }
     let at: (typeof ORDER)[number] = '12'
     ORDER.forEach((ph) => p >= STARTS[ph] && (at = ph))
     if (phase === null) return show(at, true)
+    if (jumped && at !== '12') return at !== phase && show(at, true)
     if (phase === 'pre') return show(at === '12' ? '12' : at)
     const cur = ORDER.indexOf(phase as (typeof ORDER)[number])
     const nxt = ORDER.indexOf(at)

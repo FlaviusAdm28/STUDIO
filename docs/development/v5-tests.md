@@ -1451,3 +1451,38 @@ registado); 12 → 13 155, 2.
 
 **No PC:** `npm run images -- --only=portrait` escreve os quatro `room-*.png` (ficheiros novos); `portrait-aura-lg.jpg` e
 `portrait-mono-aura-lg.jpg` já não são usados e podem ser apagados de `public/media/v5/about/`.
+
+### Passo 7: o scroll do início ao About e de volta; a navegação pelo menu até ao About (4/11, pedido do owner)
+
+**Como:** Chromium headless, `next start`, retrato real como mestre local. `roundtrip.cjs`: do topo ao fim do About e de volta, a passo de
+visitante (roda no desktop, `scrollBy` no telemóvel), a cada meio ecrã a página assenta 3,2 s e guarda-se o estado (secção da barra,
+capítulo do Work, fase do Method e do About, palco do About visível) e uma imagem pequena; a ida e a volta comparam-se no mesmo ponto; depois
+uma passagem rápida (saltos de 2 ecrãs) comparada com a lenta. `menu.cjs`: de quatro sítios (topo, Work, Method no 9, About no 14) abrir o
+menu e escolher 01 Work, 02 Method, 03 About — onde aterra, o que se vê a 0,4 s e a 3,5 s, a barra, o menu fechado — e ainda o nome da barra
+(→ topo), recuar e avançar no browser, o índice do colofão, *04 Questions ↓*, e chegar com `/#method` e `/#about`. 1440 × 900 e 390 × 844.
+
+**Scroll ida e volta:** 27 (desktop) e 30 (telemóvel) pontos e a passagem rápida, sem erros de consola. Onde a ida e a volta diferem é sempre
+dentro de uma banda morta (desenho, não defeito): a margem de 12 % entre capítulos do Work (README #90) e a banda de 2,5 % entre fases do
+Method (verificado ponto a ponto contra os inícios das fases). O About igual nos dois sentidos e na passagem rápida em todos os pontos.
+Um ponto do Method (y 6750, 8b/8c) era do teste: a roda do Chrome é animada e o teste parava antes do ponto; corrigido o teste.
+
+**Menu — encontrado e corrigido:**
+1. **02 Method** aterrava no topo da secção (y 4320 a 1440), que ainda é o Experiences do Work, com *01 Work* na barra; **03 About** no topo
+   da sua (y 8460), que ainda é o 11 do Method, com *02 Method*. O Method e o About começam por cima do fim da secção anterior. Agora
+   (`src/lib/address.ts`, chamado pela barra) o endereço aterra onde a secção começa de facto a ver-se — a marca `data-starts` que a barra já
+   lê — de uma vez: o menu, o índice, recuar/avançar e um endereço com que se chega. Medido: 02 Method → y 4771 (o 7 a correr, *02 Method*);
+   03 About → y 8731 (o 12, *03 About*); igual no telemóvel (4474 / 9454). Com movimento reduzido ou sem JS as marcas não se mostram e fica o
+   salto do browser (as secções não se sobrepõem).
+2. Chegado ao About por um salto, o 12 copiava o "11" do Method, que nunca tinha sido visto (do 9 apanhava os ecrãs a meio do voo: um cartão
+   fantasma no centro). Agora, num salto (o endereço marca `data-jump` em `<html>`; o About lê também um salto grande entre frames) a passagem
+   começa do quarto escuro e da sua luz, sem cópia; a descer pelo scroll a cópia continua (costura medida igual: ±0,5 nível).
+3. A volta do About (14 → 11) ficava presa sobre o ecrã 2 s mesmo quando o scroll a levava para longe (o scroll suave do Work até a um
+   capítulo; um fling): agora solta-se logo que a secção passa um ecrã acima.
+4. Saltos que passam ou deixam o About põem-no no lugar de uma vez (só a chegada ao 12 corre a passagem).
+
+**Resultado (os dois tamanhos):** as 12 combinações origem → destino, o nome → topo, recuar → About, avançar → Method, o índice → About,
+*04 Questions ↓* → Questions (14, a barra *04 Questions*), `/#method` e `/#about` — todos no sítio certo, a barra certa, o menu fechado, 0 erros.
+O 01 Work usa o scroll suave do próprio Work (não mudou): pelo caminho atravessa o Method e o About; aterra certo.
+
+**Não verificado:** iPhone (o recuo e o avanço do Safari, a barra do Safari), Xiaomi com o dedo; a gota do menu aparece por cima nos
+primeiros 0,4 s de cada navegação (é o fecho do próprio menu, M4).

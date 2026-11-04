@@ -16,6 +16,8 @@ valida no PC, no Xiaomi e no iPhone antes de integrar. Testes e números: `v5-te
    em oval, não por `mask-size` animado; o grão do storyboard passou a ser um dithering em mistura normal (o overlay não fazia nada no
    escuro, medido; `v5-tests.md` M7a passo 3) e as cores de fundo descem 2 níveis para o compensar; a cor
    só responde a um rato que se mexe.
+4a. **Navegação (4/11, `v5-tests.md` M7a passo 7):** o menu, o índice e os endereços levam o Method e o About onde se veem (`src/lib/address.ts`,
+   chamado pela barra — uma linha em `bar-client.tsx`); o scroll do topo ao About e de volta testado sem defeitos fora das bandas mortas.
 4. **About → Questions:** nada foi feito (a passagem 14 → 15 da #65 pertence às Questions, README #75; a #25 diz "sem passagem").
 5. **Retrato real:** correr `npm run images -- --only=portrait --force`: escreve também a sala acabada do About (`room-{mono,col}-{wide,tall}.png`,
    `scripts/about-room.mjs`, 4/11: P&B cinzenta como no storyboard, sem anéis; `v5-tests.md` M7a passos 5 e 6) com o `media-src/about/portrait-124.jpg` verdadeiro e ver o enquadramento

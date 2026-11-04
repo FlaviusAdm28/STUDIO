@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { lensMap } from '@/lib/lens'
 import { press } from '@/lib/press'
+import { landOnAddresses } from '@/lib/address'
 
 type Section = { readonly id: string; readonly number: string; readonly label: string }
 type Props = {
@@ -109,6 +110,8 @@ export function BarClient(props: Props) {
     cleanups.push(() => clearInterval(clock))
     // the press under a finger: the menu's button and the menu's own links (owner, 3 Nov, option A)
     cleanups.push(press(document.body, '.bar-menu, .menu-list a, .menu-go, .menu-channels a'))
+    // the Method's and the About's addresses land where they are seen, not on their top (src/lib/address.ts)
+    cleanups.push(landOnAddresses())
 
     // ---- each island's darkness: measured under its words only (README #71) ----
     // The brightness of every image is read once, on a 24 × 24 grid (sRGB luma); the film is read from its poster (the

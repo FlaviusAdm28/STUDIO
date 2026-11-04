@@ -41,7 +41,12 @@ type Curve = readonly [number, number, number, number]
 
 // the storyboard's geometry (About v5, B; main storyboard, 4 Nov)
 const DESK = { nameY: 0.7, nameScale: 0.41 }
-const PHONE = { nameY: 0.545, nameScale: 0.6, ptY: 0.09 }
+// On a phone the portrait is born on the sentence it replaces: centred on "Made once, for one moment." as the Method's 11 shows it on this
+// screen (measured; 40.8 % of the height at 390 × 844, 37.8 % at 320 × 640), and the name under it at the storyboard's distance (54.5 % under
+// a centre at 33 %). At the storyboard's 9 % from the top (centre 33 %) it was born 8 % above the sentence and 11 % above its light, and the
+// two did not read as one (owner, 4 Nov: "a foto devia nascer mais centrada com o texto Made once"). The desktop's portrait, 80 % of the
+// height, keeps its place.
+const PHONE = { nameBelow: 0.545 - 0.33, nameScale: 0.6, centre: 0.41 }
 // the light gathered on the portrait at 12: this much larger than the circle the portrait fades to
 const GATHER = 1.45
 // the mask's solid part (about.css: #000 58 %)
@@ -105,15 +110,24 @@ export function runStage(about: HTMLElement, release: () => void) {
     const lx = pr.left - now.e - sr.left
     const ly = pr.top - now.f - sr.top
     const wantX = kind === 'desk' ? sr.width / 2 - pr.width / 2 : lx
-    const wantY = kind === 'desk' ? ly : ly + PHONE.ptY * bh
+    // the sentence's centre in the Method's 11, as a share of its held screen (the same height as this one)
+    const phrase = (() => {
+      const c = document.querySelector('#method .m-close')
+      const st = document.querySelector('#method .m-stage')
+      if (!c || !st) return PHONE.centre
+      const cr = c.getBoundingClientRect()
+      const r = st.getBoundingClientRect()
+      return r.height ? (cr.top - r.top + cr.height / 2) / r.height : PHONE.centre
+    })()
+    const wantY = kind === 'desk' ? ly : phrase * H - pr.height / 2
     const dx = Math.round(wantX) - lx
     const dy = Math.round(wantY) - ly
     ptAt12 = `translate(${dx.toFixed(3)}px, ${dy.toFixed(3)}px)`
     // the name, small, centred beneath the portrait (its own size and place: exact at any size)
-    const g = kind === 'desk' ? DESK : PHONE
-    const nx = bw / 2 - (name.offsetWidth * g.nameScale) / 2 - name.offsetLeft
-    const ny = g.nameY * bh - name.offsetTop
-    nameFrom = `translate(${nx.toFixed(1)}px, ${ny.toFixed(1)}px) scale(${g.nameScale})`
+    const scale = kind === 'desk' ? DESK.nameScale : PHONE.nameScale
+    const nx = bw / 2 - (name.offsetWidth * scale) / 2 - name.offsetLeft
+    const ny = (kind === 'desk' ? DESK.nameY * bh : (phrase + PHONE.nameBelow) * H) - name.offsetTop
+    nameFrom = `translate(${nx.toFixed(1)}px, ${ny.toFixed(1)}px) scale(${scale})`
     // the circle the portrait fades to (closest side), and how far it opens: as an oval in the photograph's proportion, its solid
     // part reaching the four corners together. Opened evenly, a circle in a tall photograph hardened its sides long before its top and
     // bottom (a tube of light, 1440 × 900, 4 Nov)

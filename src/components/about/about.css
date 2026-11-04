@@ -48,36 +48,32 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192'%3E%3Cfilter id='n' x='0' y='0' width='1' height='1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0.06 0 0 0 -0.018'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* ---- the room: its ground and the portrait's atmosphere (#40's aura: the photograph's 48 px copy, stretched and masked) ---- */
+/* ---- the room: its ground and the portrait's atmosphere, finished as images (scripts/about-room.mjs: the storyboard's aura, its mask and
+   its opacity, rounded once — put together here, the dark fall-off showed rings, owner 4 Nov). Each file is stretched to the screen, as the
+   aura's box was, so the composition holds at any shape; the colour one over the B&W one while the portrait shows its colour ---- */
 .a-lit {
   position: absolute;
   inset: 0;
   background: var(--a-room);
   pointer-events: none;
 }
-.a-aura {
+.a-room,
+.a-room img {
   position: absolute;
-  /* the storyboard's place: around the portrait, at its left */
-  left: -22%;
-  top: -30%;
-  width: 112%;
-  height: 160%;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   max-width: none;
-  -webkit-mask: radial-gradient(closest-side, #000 20%, transparent 100%);
-  mask: radial-gradient(closest-side, #000 20%, transparent 100%);
+}
+.a-room img {
+  object-fit: fill;
+}
+.a-room-col {
+  opacity: 0;
   transition: opacity 2.4s var(--a-ease);
 }
-.a-aura-mono {
-  opacity: 0.9;
-}
-.a-aura-col {
-  opacity: 0;
-}
-.about[data-colour='on'] .a-aura-mono {
-  opacity: 0;
-}
-.about[data-colour='on'] .a-aura-col {
-  opacity: 0.95;
+.about[data-colour='on'] .a-room-col {
+  opacity: 1;
 }
 
 /* ---- the composition ---- */
@@ -286,12 +282,6 @@
   .about {
     /* 1 % of the width of the storyboard's phone (9 : 19.5), capped by the height: a tablet upright keeps a phone's measure */
     --p: min(1vw, 0.4615svh);
-  }
-  .a-aura {
-    left: -40%;
-    top: -24%;
-    width: 180%;
-    height: 112%;
   }
   .a-box {
     display: flex;

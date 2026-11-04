@@ -373,8 +373,9 @@ export const about = {
     src: '/media/v5/about/portrait',
     alt: 'Flávio, the founder of Chapter One, stands on a hillside in the sun.',
   },
+  // the lit room behind the portrait (scripts/about-room.mjs): `-mono|col-wide|tall.png`. The AI workspace image is not used (README #50)
   room: {
-    src: '/media/v5/about/workspace',
+    src: '/media/v5/about/room',
     alt: '', // decorative: the room behind the portrait
   },
 } as const

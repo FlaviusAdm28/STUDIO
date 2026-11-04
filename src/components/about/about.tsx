@@ -22,12 +22,16 @@ export function About() {
       <span className="a-start" data-starts="about" aria-hidden="true" />
       {/* held while the passage runs (about-stage.ts); at rest a plain screen */}
       <div className="a-stage" data-lum="0.1">
-        {/* the room lit: its ground and the portrait's own atmosphere, B&W while the portrait is, its colours while it shows them */}
+        {/* the room lit: its ground and the portrait's own atmosphere, B&W while the portrait is, its colours while it shows them —
+            each finished whole by `npm run images` (scripts/about-room.mjs), wide for the desktop and tall for a phone */}
         <div className="a-lit" aria-hidden="true">
-          {/* eslint-disable-next-line @next/next/no-img-element -- a 192 px pre-made blur, stretched: nothing to optimise */}
-          <img className="a-aura a-aura-mono" src={`${about.portrait.src}-mono-aura-lg.jpg`} alt="" width={192} height={288} decoding="async" />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="a-aura a-aura-col" src={`${about.portrait.src}-aura-lg.jpg`} alt="" width={192} height={288} decoding="async" />
+          {(['mono', 'col'] as const).map((kind) => (
+            <picture key={kind} className={`a-room a-room-${kind}`}>
+              <source media="(min-width: 900px)" srcSet={`${about.room.src}-${kind}-wide.png`} width={1280} height={800} />
+              {/* light without detail, already the right file: nothing to optimise (inside <picture>, the lint does not ask) */}
+              <img src={`${about.room.src}-${kind}-tall.png`} alt="" width={600} height={1300} loading="lazy" decoding="async" />
+            </picture>
+          ))}
         </div>
 
         {/* the light of the Method's 11 (method.css .m-dark), which finds the portrait at 12: with the motion only */}

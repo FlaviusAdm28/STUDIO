@@ -10,15 +10,15 @@ valida no PC, no Xiaomi e no iPhone antes de integrar. Testes e números: `v5-te
 1. **A saída 11 → 12 da README #65** (Talk to us, depois os passos, a frase por último; os ecrãs do desktop apagam-se com a sala) está
    construída como no painel "About em movimento", mas no README continua "proposta, a aprovar". O About anima uma cópia inerte do 11
    (o `.m-stage` clonado); nenhum ficheiro do Method mudou.
-2. **Ritmo (revisto a 4/11 depois do owner ver no PC, `v5-tests.md` M7a passo 2):** a passagem corre inteira (~3 s) sobre uma cópia do 11;
+2. **No telemóvel o retrato do 12 nasce centrado na frase do 11** (medida em cada ecrã; passo 6). **Ritmo (revisto a 4/11, passo 2):** a passagem corre inteira (~3 s) sobre uma cópia do 11;
    13 a 1,0 ecrã, 14 a 1,7, solto a 2,3; a luz desliza até ao retrato e o círculo abre-se em oval (sem camada escura). Por confirmar.
 3. **Diferenças em relação ao storyboard, por técnica:** a máscara do retrato é fixa e abre-se por `transform` (escala e escala inversa),
    em oval, não por `mask-size` animado; o grão do storyboard passou a ser um dithering em mistura normal (o overlay não fazia nada no
    escuro, medido; `v5-tests.md` M7a passo 3) e as cores de fundo descem 2 níveis para o compensar; a cor
    só responde a um rato que se mexe.
 4. **About → Questions:** nada foi feito (a passagem 14 → 15 da #65 pertence às Questions, README #75; a #25 diz "sem passagem").
-5. **Retrato real:** correr `npm run images -- --only=portrait --force` (as auras grandes do About, `-aura-lg.jpg`, mudaram a 4/11: P&B
-   cinzenta como no storyboard, sem o tom quente do Work; `v5-tests.md` M7a passo 5) com o `media-src/about/portrait-124.jpg` verdadeiro e ver o enquadramento
+5. **Retrato real:** correr `npm run images -- --only=portrait --force`: escreve também a sala acabada do About (`room-{mono,col}-{wide,tall}.png`,
+   `scripts/about-room.mjs`, 4/11: P&B cinzenta como no storyboard, sem anéis; `v5-tests.md` M7a passos 5 e 6) com o `media-src/about/portrait-124.jpg` verdadeiro e ver o enquadramento
    (`object-position 50% 30%`), a aura e o contraste. No contentor foi usado um substituto sintético.
 6. **Xiaomi:** o 11 → 12 (o *spot* a escalar), o 12 → 13, o segurar para a cor. iPhone: as bordas no About (carvão `#1e1d1a` contra a
    sala `#171816`/`#1b1c1a`).

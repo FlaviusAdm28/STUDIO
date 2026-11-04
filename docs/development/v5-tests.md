@@ -1423,3 +1423,31 @@ retrato real (1440 e 390): em repouso a sala é cinzenta à volta do retrato P&B
 da encosta, com o retrato.
 
 **No PC:** as `-aura-lg.jpg` já existem do passo 3 — **`npm run images -- --only=portrait --force`**.
+
+### Passo 6: a sala do 13 sem anéis (imagem acabada); no telemóvel o retrato nasce na frase (4/11, owner)
+
+**Owner:** (1) "a luz de fundo na 13 · A sala acende-se nota-se muito camadas, má qualidade, principalmente desktop"; (2) "em mobile a
+transição 11 para 12 a foto devia nascer mais centrada com o texto Made once … não ficou aplicado".
+
+**(1) Causa:** a sala era montada pelo browser — uma aura JPEG de 8 bits, esticada, debaixo de uma máscara CSS e de uma opacidade, sobre o
+fundo: quatro arredondamentos, e a queda lenta e escura voltava a ter anéis mesmo com o grão (×3 de contraste, 1440, retrato real).
+Como no Method (`spill-mask.mjs`): uma queda só fica lisa se o ficheiro tiver o valor final. **Corrigido:** `scripts/about-room.mjs`
+(chamado pelo `npm run images`, fonte `room`) faz a sala inteira — a aura desfocada a 16 bits, a máscara e a opacidade do storyboard em
+vírgula flutuante sobre o fundo, um só arredondamento — em PNG sem perdas: `about/room-{mono,col}-{wide,tall}.png` (1280 × 800 e
+600 × 1300; 110 / 155 KB e 87 / 122 KB; o de cor só é preciso no gesto). A página só os estica ao ecrã (a mesma geometria, a qualquer forma
+de ecrã); o grão continua por cima. As auras grandes do passo 3 (`-aura-lg.jpg`) saíram. Verificado: o PNG sem anéis a ×3; no site a ×3
+os anéis do lado direito desapareceram (fica o grão e a forma da própria aura). Cores como no passo 5 (P&B cinzenta, cor do storyboard).
+**Custo:** ~110 KB a mais no desktop (~87 KB no telemóvel) quando o About se aproxima, e outro tanto a cores; antes ~2,5 KB.
+
+**(2) Medido:** a geometria seguia o storyboard de 4/11 (retrato do 12 com o centro a 33 %, frase do Method a 35 % / centro 40,8 %), mas o
+retrato nascia 8 % acima da frase e 11 % acima da luz. **Corrigido:** no telemóvel o retrato do 12 centra-se na frase do 11 medida em cada
+ecrã, e o nome fica por baixo à distância do storyboard (21,5 %). Medido: centro do retrato = centro da frase a 390 × 844 (40,8 %),
+392 × 851 (40,8 %), 320 × 640 (37,8 %), 768 × 1024 (42,1 %); filmado: a 1 s o retrato aparece onde a frase está a sair. O desktop não muda
+(o retrato tem 80 % da altura).
+
+**Regressão:** 5 tamanhos, gestos, teclado, movimento reduzido, sem JS, costura com o 11 (±0,5 nível), linhas com GPU (100 % e 2,75): bem;
+ilha da barra sobre o céu do retrato 0,47. Indicativo, CPU × 4: 11 → 12 192 frames, 3 > 25 ms (um de ~100 ms no gatilho, a cópia do 11 — já
+registado); 12 → 13 155, 2.
+
+**No PC:** `npm run images -- --only=portrait` escreve os quatro `room-*.png` (ficheiros novos); `portrait-aura-lg.jpg` e
+`portrait-mono-aura-lg.jpg` já não são usados e podem ser apagados de `public/media/v5/about/`.

@@ -224,11 +224,13 @@
   .a-box > * {
     position: absolute;
   }
+  /* in whole pixels: at a fractional edge (33 --u = 475.2 px at 1440) the GPU drew the portrait's last column outside its mask whenever the
+     colour was a layer of its own — a line down the right edge while it faded in (owner, 4 Nov; reproduced with GPU compositing) */
   .a-pt {
-    left: calc(7 * var(--u));
-    top: 11.5%;
-    width: calc(33 * var(--u));
-    height: 80%;
+    left: round(calc(7 * var(--u)), 1px);
+    top: round(calc(7.1875 * var(--u)), 1px);
+    width: round(calc(33 * var(--u)), 1px);
+    height: round(calc(50 * var(--u)), 1px);
   }
   .a-role {
     left: calc(46 * var(--u));
@@ -299,7 +301,7 @@
   }
   .a-pt {
     flex: none;
-    height: 48svh;
+    height: round(48svh, 1px);
   }
   .a-role,
   .a-rule {
@@ -407,11 +409,24 @@
   /* the portrait in the light: it fades to its edges in a circle (the storyboard's mask, 4 Nov: "não está bem redonda"), so the light
      never meets the photograph's straight edges. The circle opens by scaling .a-open while .a-img is scaled back by as much, so the
      photograph stays still and only the light grows (about-stage.ts); once open, the mask goes (data-open) */
-  /* 2 px past the photograph's clip: while the colour fades in, Chrome draws it as a layer of its own under the mask, the mask's bounds
-     round down from the portrait's fractional width (33 --u: 475.2 px at 1440) and the last column of the photograph escaped it — a
-     line at the right edge, only while the colour was coming (owner, 4 Nov). Out here that column is cut by the clip */
+  /* No clip around the masked photograph: Chrome rounded the clip outwards and the mask's surface inwards, and whenever the colour was a
+     layer of its own the strip between them was drawn unmasked — a line down the portrait's edge while the colour faded in (owner, 4 Nov;
+     reproduced with GPU compositing at 100, 125 and 150 % and gone without the clip, also with the colour kept as a layer). The clip is
+     not needed: the mask is clear at the edges, and while the light opens the photograph is held at its own size by the inverse scale */
+  :root[data-js] .about .a-frame {
+    overflow: visible;
+  }
+  /* and so what the light's scale makes large never catches the pointer: the portrait answers by its own rectangle (scaled to open,
+     the masked layer covered half the screen, the words too, and the colour stayed on after the mouse had left, 4 Nov) */
   :root[data-js] .about .a-open {
-    inset: -2px;
+    pointer-events: none;
+  }
+  /* the photographs themselves stay hit (held at the portrait's size by the inverse scale): the bar reads its islands' darkness from the
+     image under them */
+  :root[data-js] .about .a-open :is(picture, img) {
+    pointer-events: auto;
+  }
+  :root[data-js] .about .a-open {
     -webkit-mask: radial-gradient(circle closest-side, #000 58%, transparent 100%) center / 100% 100% no-repeat;
     mask: radial-gradient(circle closest-side, #000 58%, transparent 100%) center / 100% 100% no-repeat;
   }

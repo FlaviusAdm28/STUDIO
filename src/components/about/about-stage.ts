@@ -87,6 +87,8 @@ export function runStage(about: HTMLElement, release: () => void) {
   let glowAt12 = 'none'
   // how far the light opens, across and down: an oval in the photograph's own proportion
   let K = { x: 3, y: 3 }
+  // the photograph's half sides over the circle's radius (one of them is 1): the shape the light takes on its way (see opening)
+  let A = { x: 1, y: 1.5 }
   const measure = () => {
     kind = innerWidth >= 900 ? 'desk' : 'phone'
     H = stage.offsetHeight || innerHeight
@@ -95,9 +97,18 @@ export function runStage(about: HTMLElement, release: () => void) {
     const pw = pt.offsetWidth
     const ph = pt.offsetHeight
     // the portrait at 12: at the centre on the desktop (at its left at rest), lower on a phone (offsets: no transform is read)
-    const dx = kind === 'desk' ? bw / 2 - (pt.offsetLeft + pw / 2) : 0
-    const dy = kind === 'desk' ? 0 : PHONE.ptY * bh
-    ptAt12 = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`
+    // landing on whole pixels: the box is centred on the stage at a fractional place, and offsets are rounded, so the exact place is read
+    // (the transform the portrait has now taken out) and the move made to end on a whole pixel (see about.css .a-pt: the line at the edge)
+    const pr = pt.getBoundingClientRect()
+    const sr = stage.getBoundingClientRect()
+    const now = new DOMMatrixReadOnly(getComputedStyle(pt).transform === 'none' ? undefined : getComputedStyle(pt).transform)
+    const lx = pr.left - now.e - sr.left
+    const ly = pr.top - now.f - sr.top
+    const wantX = kind === 'desk' ? sr.width / 2 - pr.width / 2 : lx
+    const wantY = kind === 'desk' ? ly : ly + PHONE.ptY * bh
+    const dx = Math.round(wantX) - lx
+    const dy = Math.round(wantY) - ly
+    ptAt12 = `translate(${dx.toFixed(3)}px, ${dy.toFixed(3)}px)`
     // the name, small, centred beneath the portrait (its own size and place: exact at any size)
     const g = kind === 'desk' ? DESK : PHONE
     const nx = bw / 2 - (name.offsetWidth * g.nameScale) / 2 - name.offsetLeft
@@ -107,10 +118,12 @@ export function runStage(about: HTMLElement, release: () => void) {
     // part reaching the four corners together. Opened evenly, a circle in a tall photograph hardened its sides long before its top and
     // bottom (a tube of light, 1440 × 900, 4 Nov)
     const r = Math.min(pw, ph) / 2
-    K = { x: (Math.SQRT2 * pw) / 2 / (SOLID * r) + 0.04, y: (Math.SQRT2 * ph) / 2 / (SOLID * r) + 0.04 }
+    A = { x: pw / 2 / r, y: ph / 2 / r }
+    const end = (Math.SQRT2 / SOLID) * 1.02
+    K = { x: end * A.x, y: end * A.y }
     // the light: from the sentence's (the layer's own place) to the portrait's centre at 12, gathered on it; never larger than it was
-    const cx = box.offsetLeft + pt.offsetLeft + dx + pw / 2
-    const cy = box.offsetTop + pt.offsetTop + dy + ph / 2
+    const cx = lx + dx + pr.width / 2
+    const cy = ly + dy + pr.height / 2
     const gr = glow.offsetWidth / 2
     const gx = glow.offsetLeft + gr
     const gy = glow.offsetTop + gr
@@ -161,13 +174,21 @@ export function runStage(about: HTMLElement, release: () => void) {
   const ONE: Scale = { x: 1, y: 1 }
   const sc = (k: Scale) => `scale(${k.x.toFixed(4)}, ${k.y.toFixed(4)})`
   const inv = (k: Scale) => `scale(${(1 / k.x).toFixed(4)}, ${(1 / k.y).toFixed(4)})`
+  // The way the light opens: first it stretches along the photograph's long side into the oval inscribed in it (its short sides still
+  // soft), then it opens evenly to the corners, so the four edges harden together. Opened straight to an oval, the circle of 12 —
+  // which already touches the short sides — hardened them first: straight sides under a round top (GPU, 1440 at 125 %, 4 Nov).
+  // A point on the way is one number, L: the scale is L × A on each side, never less than 1.
+  const along = (L: number): Scale => ({ x: Math.max(1, L * A.x), y: Math.max(1, L * A.y) })
+  const where = (k: Scale) => Math.max(k.x > 1.0001 ? k.x / A.x : 0, k.y > 1.0001 ? k.y / A.y : 0, 1 / Math.max(A.x, A.y))
   const opening = (k0: Scale, k1: Scale, ms: number, delay: number): Flight[] => {
-    const n = 24
+    const n = 32
     const a: Keyframe[] = []
     const b: Keyframe[] = []
+    const L0 = where(k0)
+    const L1 = where(k1)
     for (let i = 0; i <= n; i++) {
       const e = glide(i / n)
-      const k = { x: k0.x + (k1.x - k0.x) * e, y: k0.y + (k1.y - k0.y) * e }
+      const k = i === n ? k1 : along(L0 + (L1 - L0) * e)
       a.push({ offset: i / n, transform: sc(k) })
       b.push({ offset: i / n, transform: inv(k) })
     }
@@ -182,9 +203,14 @@ export function runStage(about: HTMLElement, release: () => void) {
     if (!on) return pt.removeAttribute('data-open')
     // once fully open the mask and the two scales go: the photograph is drawn as it is (about.css)
     openLater = window.setTimeout(() => {
+      // the opening's own end must not write its scales back over this (it ended a frame later and did: the masked layer stayed
+      // scaled ×2.5 × 3.8 over half the screen, 4 Nov)
+      ;[open, img].forEach((el) => {
+        flights.get(el)?.cancel()
+        flights.delete(el)
+        el.style.transform = 'none'
+      })
       pt.setAttribute('data-open', '')
-      open.style.transform = 'none'
-      img.style.transform = 'none'
     }, after)
   }
   const closeFromOpen = () => {

@@ -1369,3 +1369,33 @@ sem JS: como antes. Indicativo, CPU × 4: 11 → 12 1440 192 frames, 5 > 25 ms (
 
 **Por ver pelo owner:** o risco do hover no 12 no PC (não reproduzível aqui); a luz do 13 com o retrato real; o grão no Xiaomi (custo: uma
 camada de ecrã inteiro em mistura normal, estática).
+
+### Passo 4: os riscos no 12 com o hover — reproduzidos com composição por GPU (4/11, owner no PC)
+
+**Owner:** "na transição 12 ainda consigo ver riscos na imagem, especialmente se fizer hover com o rato" (depois do passo 3).
+
+**Reproduzido:** os testes anteriores eram com composição por CPU e a 100 %, onde o defeito não aparece. Com `--use-angle=swiftshader
+--enable-gpu-rasterization` (composição por GPU) e escalas de portátil Windows (100 / 125 / 150 %), `lines.cjs`/`lines3.cjs` procuram
+colunas e linhas retas da altura (ou largura) do retrato: **a 100 %, no primeiro frame do hover, uma linha clara de altura inteira nas
+colunas 956–958** (a aresta direita, em 957,49 px). Com a cor sempre numa camada própria (`will-change`) a linha ficava **permanente** —
+a causa é a cor como camada da GPU debaixo da máscara: o recorte (`overflow: hidden` do retrato) arredondado para fora e a superfície da
+máscara para dentro, a tira entre os dois desenhada sem máscara. A margem de 2 px do passo 3 não chegava; píxeis CSS inteiros resolviam a
+100 e a 150 %, não a 125 % (483 px CSS = 603,75 px de ecrã).
+
+**Corrigido:**
+- Sem recorte à volta da fotografia mascarada (com movimento): a máscara já é transparente nas arestas e, enquanto a luz abre, a escala
+  inversa mantém a fotografia do seu tamanho. A margem de 2 px saiu. Verificado: sem linhas a 100 / 125 / 150 / 200 % e a 2,75 (telemóvel),
+  também com a cor sempre em camada própria, em 9 instantes do 11 → 12 com a cor a entrar.
+- O retrato em píxeis inteiros (`round()` no CSS; o movimento até ao centro do 12 calculado da posição exata para acabar num píxel inteiro).
+- Sem recorte, a camada escalada para abrir a luz (até ×2,5 × 3,8) apanhava o rato por cima de meio ecrã e das palavras, e a cor não
+  voltava ao P&B ao sair (encontrado na regressão): `.a-open` sem eventos, as fotografias com eles (a barra lê o brilho da imagem por baixo
+  das ilhas: medido 0,43 sobre o céu do retrato no telemóvel). E o fim da abertura reescrevia as escalas por cima do estado aberto: agora o
+  estado aberto cancela a animação antes de se aplicar.
+- **A abertura da luz:** primeiro estica ao longo do lado comprido até à oval inscrita na fotografia (os lados curtos ainda suaves), depois
+  abre-se por igual até aos cantos — as quatro arestas chegam juntas. Antes, o círculo do 12, que já toca nos lados, endurecia-os primeiro
+  (lados retos sob um topo redondo, GPU a 125 %).
+
+**Regressão:** 5 tamanhos, gestos (rato parado, hover, sair, segurar, arrastar), teclado, movimento reduzido, sem JS, costura com o 11
+(±0,5 nível): bem. Indicativo, CPU × 4: 11 → 12 194 frames, 3 > 25 ms; 12 → 13 156, 1 (1440 e 390).
+
+**Ferramenta para o PC:** os mesmos scripts correm contra o Chrome real com GPU; o que aqui é SwiftShader é uma aproximação da GPU.

@@ -17,7 +17,8 @@ valida no PC, no Xiaomi e no iPhone antes de integrar. Testes e números: `v5-te
    escuro, medido; `v5-tests.md` M7a passo 3) e as cores de fundo descem 2 níveis para o compensar; a cor
    só responde a um rato que se mexe.
 4. **About → Questions:** nada foi feito (a passagem 14 → 15 da #65 pertence às Questions, README #75; a #25 diz "sem passagem").
-5. **Retrato real:** correr `npm run images -- --only=portrait` (escreve também as auras grandes do About, `-aura-lg.jpg`, 4/11) com o `media-src/about/portrait-124.jpg` verdadeiro e ver o enquadramento
+5. **Retrato real:** correr `npm run images -- --only=portrait --force` (as auras grandes do About, `-aura-lg.jpg`, mudaram a 4/11: P&B
+   cinzenta como no storyboard, sem o tom quente do Work; `v5-tests.md` M7a passo 5) com o `media-src/about/portrait-124.jpg` verdadeiro e ver o enquadramento
    (`object-position 50% 30%`), a aura e o contraste. No contentor foi usado um substituto sintético.
 6. **Xiaomi:** o 11 → 12 (o *spot* a escalar), o 12 → 13, o segurar para a cor. iPhone: as bordas no About (carvão `#1e1d1a` contra a
    sala `#171816`/`#1b1c1a`).

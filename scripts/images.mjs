@@ -59,8 +59,13 @@ const AURA_WIDTH = 48
 const AURA_BLUR = 4
 const AURA_WARM = '#b8936a'
 // The About's room spreads its aura over the whole screen: 48 px stretched 30× was drawn by the browser in facets (owner, 4 Nov: "consigo ver
-// claramente camadas"). `auraLarge` also writes `-aura-lg.jpg`, four times wider, the blur in proportion.
-const AURA_LARGE = { width: 192, blur: 16, quality: 82 }
+// claramente camadas"). `auraLarge` also writes `-aura-lg.jpg`, four times wider, the blur in proportion. As the approved About storyboard's
+// own atmospheres (img/a-124-mono.jpg, a-124.jpg, measured 4 Nov): the B&W one a grey (saturation 0.00, only the mono grade's faint tone —
+// "cinzento quente"), never the Work's warm tint, and both about 0.6 of the photograph's light (storyboard means 71 and 80; the site's were
+// 144 and 131). With the tint the room was more coloured at rest (0.42) than with the colour (0.27): the hover seemed to take the colour
+// away (owner, 4 Nov: "não está na ordem inversa?")
+// The colour one's saturation is brought back to the storyboard's (the larger blur mixes the colours more: 0.27 against its 0.36).
+const AURA_LARGE = { width: 192, blur: 16, quality: 82, dim: 0.6, saturation: 1.35 }
 
 /**
  * id → master, group and role. `widths` are the widths written (the AI masters are 1024 px wide, so
@@ -203,6 +208,8 @@ async function writeAura(input, base, { grade, warm, calm: calmed, crop, large =
   if (grade) p = mono(p)
   if (calmed) p = calm(p, calmed)
   if (warm) p = p.tint(AURA_WARM)
+  if (large) p = p.linear(AURA_LARGE.dim, 0)
+  if (large && !grade) p = p.modulate({ saturation: AURA_LARGE.saturation })
   const info = await p.blur(size.blur).jpeg({ quality: size.quality }).toFile(target)
   console.log(`wrote  ${path.relative(root, target)}  ${info.width}×${info.height}  ${info.size} B`)
 }
@@ -236,7 +243,7 @@ async function main() {
     }
     if (source.auraLarge) {
       await writeAura(input, base, { grade: false, warm: source.warm, calm: source.calm, crop: source.crop, large: true })
-      if (source.reveal) await writeAura(input, `${base}-mono`, { grade: true, warm: true, large: true })
+      if (source.reveal) await writeAura(input, `${base}-mono`, { grade: true, warm: false, large: true })
     }
   }
 

@@ -1399,3 +1399,27 @@ máscara para dentro, a tira entre os dois desenhada sem máscara. A margem de 2
 (±0,5 nível): bem. Indicativo, CPU × 4: 11 → 12 194 frames, 3 > 25 ms; 12 → 13 156, 1 (1440 e 390).
 
 **Ferramenta para o PC:** os mesmos scripts correm contra o Chrome real com GPU; o que aqui é SwiftShader é uma aproximação da GPU.
+
+### Passo 5: a cor da sala no hover estava ao contrário do storyboard (4/11, owner)
+
+**Owner:** "a cor da luz no hover na posição 13 — storyboard não está na ordem inversa no site?"
+
+**Medido** contra as atmosferas do próprio storyboard (artifact principal, `img/a-124-mono.jpg` e `img/a-124.jpg`), e as que o
+`images.mjs` fazia do mesmo retrato (`img/p124.jpg`, 640 px, usado a partir daqui como mestre local de teste, fora do Git):
+
+| | repouso (P&B) | hover (cor) |
+|---|---|---|
+| storyboard | cinzento, saturação 0,000, média 71 | saturação 0,361, média 80 |
+| site, antes | sépia, **0,423**, média 144 | **0,269**, média 131 |
+| site, agora | cinzento, 0,000, média 78 | 0,356, média 78 |
+
+Causa: a aura P&B levava o tom quente `#b8936a` — aceite para as fotografias P&B do **Work** (README #75, 3: ponto de partida), não para o
+About, cujo storyboard tem um cinzento; com ele a sala tinha mais cor em repouso do que com a cor, e o hover parecia tirá-la. E as auras do
+site eram ~2 × mais claras do que as do storyboard.
+
+**Corrigido (só as auras grandes do About, `auraLarge`; as do Work não mudam):** a P&B sem o tom quente (só o tom leve do próprio P&B), as
+duas a 0,6 da luz da fotografia, a de cor com a saturação reposta (× 1,35: o desfoque maior mistura mais as cores). Visto no site com o
+retrato real (1440 e 390): em repouso a sala é cinzenta à volta do retrato P&B; no hover ganha os azuis do céu e os verdes e castanhos
+da encosta, com o retrato.
+
+**No PC:** as `-aura-lg.jpg` já existem do passo 3 — **`npm run images -- --only=portrait --force`**.

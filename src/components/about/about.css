@@ -356,9 +356,27 @@
   }
   :root[data-js] .about .a-stage {
     position: sticky;
-    top: 0;
-    height: var(--screen);
+    top: calc(-1 * var(--a-lift));
+    margin-top: calc(-1 * var(--a-lift));
+    height: calc(var(--screen) + var(--a-lift));
     min-height: 0;
+    padding-top: var(--a-lift);
+  }
+  :root[data-js] .about {
+    --a-lift: 0px;
+  }
+  /* iOS (as the Work's stage, README #86): with the page scrolled, Safari shows behind the Dynamic Island what lies just above the screen.
+     Held at the top, the About showed there the Method passing under it, from 12 to 13 (owner, iPhone, 4 Nov). The stage reaches 70 px
+     above the screen, its room in them; the words stay where they were (the padding) */
+  /* on a phone: an iPad (no island, the desktop's grid) keeps its composition — stretched over a taller stage, the room moved under the words */
+  @supports (-webkit-touch-callout: none) {
+    @media (max-width: 899px) {
+      :root[data-js] .about {
+        --a-lift: 70px;
+      }
+    }
+    /* (the photograph itself behind the island is left for the decision on the whole site full screen: stretched 70 px up it changed the
+       portrait's framing on the screen — only 59 px of photograph lie above it at 402 × 874) */
   }
   :root[data-js] .about[data-phase]:not([data-phase='pre']) .a-stage {
     pointer-events: auto;
@@ -384,7 +402,8 @@
     display: block;
     position: absolute;
     left: calc(50% - var(--a-r));
-    top: calc(44% - var(--a-r));
+    /* the Method's light at 44 % of its held screen: of the screen, under the About's lift (iOS) */
+    top: calc(var(--a-lift) + 0.44 * var(--screen) - var(--a-r));
     width: calc(2 * var(--a-r));
     height: calc(2 * var(--a-r));
     background: radial-gradient(circle closest-side, rgba(255, 236, 206, 0.15), rgba(255, 236, 206, 0.05) 60%, transparent 100%);
@@ -429,7 +448,7 @@
   :root[data-js] .about .a-from {
     display: block;
     position: absolute;
-    inset: 0;
+    inset: var(--a-lift) 0 0;
     z-index: 5;
     pointer-events: none;
   }

@@ -1486,3 +1486,22 @@ O 01 Work usa o scroll suave do próprio Work (não mudou): pelo caminho atraves
 
 **Não verificado:** iPhone (o recuo e o avanço do Safari, a barra do Safari), Xiaomi com o dedo; a gota do menu aparece por cima nos
 primeiros 0,4 s de cada navegação (é o fecho do próprio menu, M4).
+
+### Passo 8: no iPhone, o Method a passar atrás da ilha no 12 → 13 (4/11, owner)
+
+**Owner, iPhone:** do 12 para o 13 via-se na faixa da ilha dinâmica a secção anterior a correr, com texto.
+
+**Causa:** com scroll, o Safari mostra atrás da ilha a página que está logo acima do ecrã (teste de riscas de 1/11, README #86). O palco do
+About ficava preso no topo exato do ecrã; acima dele a secção é transparente (sobrepõe-se ao fim do Method) e passava por baixo o Method.
+**Corrigido, só no iOS e no telemóvel** (como o palco do Work): o palco sobe 70 px acima do ecrã (`--a-lift`), com a sala do About nesses 70
+px; o resto fica no mesmo sítio (padding). Num iPad (layout de desktop, sem ilha) não se aplica.
+
+**Medido com a regra forçada no Chromium** (não corresponde a `-webkit-touch-callout`): 402 × 874 e 390 × 844, 12 / 13 / 14 — o ecrã igual a
+sem ela (máx. 9–11 níveis, 0 canais > 12: o grão), palco a −70 px, sala a −70 px, conteúdo a 0; costura com o 11 igual (luz 70,1 → 70,1).
+A fotografia a continuar por trás da ilha foi experimentada e retirada: esticada 70 px mudava o enquadramento do retrato (só há 59 px de
+fotografia acima, a 402 × 874) — fica para a decisão do ecrã inteiro no site todo.
+
+**Sobre o ecrã inteiro (resposta ao owner):** no primeiro ecrã, parado no topo, a faixa da ilha é do Safari e pinta uma cor lida da página
+(medido a 1/11, também com `viewport-fit=cover`): o vídeo da entrada não pode ir para trás dela. Com scroll, a ilha mostra a página logo acima
+do ecrã: cada cena presa pode lá pôr a sua imagem em vez de uma cor. Proposta, por decidir: só a entrada parada com cor; o resto com a
+imagem de cada cena (mexe na Entrada, no Work e no Method). **Não verificado:** tudo no iPhone.

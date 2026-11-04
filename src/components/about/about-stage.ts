@@ -84,7 +84,9 @@ export function runStage(about: HTMLElement, release: () => void) {
 
   let phase: Phase | null = null
   let kind: 'desk' | 'phone' = innerWidth >= 900 ? 'desk' : 'phone'
-  let H = stage.offsetHeight || innerHeight
+  // the stage's own screen: on iOS it reaches 70 px above it (about.css --a-lift), and everything is placed under that
+  const lift = () => parseFloat(getComputedStyle(stage).paddingTop) || 0
+  let H = stage.offsetHeight - lift() || innerHeight
 
   // ---- the places, measured: the portrait and the name in the light, the light on the portrait, how far the circle opens ----
   let nameFrom = 'none'
@@ -96,7 +98,8 @@ export function runStage(about: HTMLElement, release: () => void) {
   let A = { x: 1, y: 1.5 }
   const measure = () => {
     kind = innerWidth >= 900 ? 'desk' : 'phone'
-    H = stage.offsetHeight || innerHeight
+    const pad = lift()
+    H = stage.offsetHeight - pad || innerHeight
     const bw = box.offsetWidth
     const bh = box.offsetHeight
     const pw = pt.offsetWidth
@@ -108,7 +111,7 @@ export function runStage(about: HTMLElement, release: () => void) {
     const sr = stage.getBoundingClientRect()
     const now = new DOMMatrixReadOnly(getComputedStyle(pt).transform === 'none' ? undefined : getComputedStyle(pt).transform)
     const lx = pr.left - now.e - sr.left
-    const ly = pr.top - now.f - sr.top
+    const ly = pr.top - now.f - (sr.top + pad)
     const wantX = kind === 'desk' ? sr.width / 2 - pr.width / 2 : lx
     // the sentence's centre in the Method's 11, as a share of its held screen (the same height as this one)
     const phrase = (() => {
@@ -140,7 +143,7 @@ export function runStage(about: HTMLElement, release: () => void) {
     const cy = ly + dy + pr.height / 2
     const gr = glow.offsetWidth / 2
     const gx = glow.offsetLeft + gr
-    const gy = glow.offsetTop + gr
+    const gy = glow.offsetTop + gr - pad
     const s = Math.min(1, (GATHER * r) / gr)
     glowAt12 = `translate(${(cx - gx).toFixed(1)}px, ${(cy - gy).toFixed(1)}px) scale(${s.toFixed(3)})`
   }
@@ -547,7 +550,7 @@ export function runStage(about: HTMLElement, release: () => void) {
   // a real change of size measures again and puts everything in place at once (the address bar alone does not)
   let sized = innerWidth
   const onResize = () => {
-    if (innerWidth === sized && Math.abs((stage.offsetHeight || innerHeight) - H) < 120) return
+    if (innerWidth === sized && Math.abs((stage.offsetHeight - lift() || innerHeight) - H) < 120) return
     sized = innerWidth
     measure()
     if (phase && phase !== 'pre') show(phase, true)

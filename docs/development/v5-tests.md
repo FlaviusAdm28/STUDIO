@@ -1752,3 +1752,6 @@ era o 9 → 10 com o ritmo novo: as palavras do ecrã saíam e as da capa só en
 Experiences (sem fotografia). Agora cruzam-se (`becomeCover`: saída 450 ms, capa a partir de 250 ms em vez de 600). Simulador, gravado
 com Experiences e Weddings escolhidos: o vazio passa a ~0,1 s; o *Your first chapter* entra enquanto o ecrã sai. Escolha do owner:
 manter o ritmo e a paragem, tirar o vazio.
+**E depois (owner, 7/11):** "o correto é o card com as pessoas" — o ecrã em destaque passa a ser sempre o do casamento (README #105).
+Comparado antes (`830d3de`) e agora em 1440 × 900 e 390 × 844 (Chrome, CDP): sem lâmina escolhida, 8c/9/10 iguais; com a lâmina
+Experiences tocada na entrada, o 9 (telemóvel: ecrã inteiro) e o 10 (capa) são o do casamento, no telemóvel e no desktop.

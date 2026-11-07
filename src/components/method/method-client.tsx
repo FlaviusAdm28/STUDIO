@@ -86,8 +86,10 @@ export function MethodClient() {
     const lum = String({ morning: 0.84, day: 0.87, evening: 0.7, night: 0.14 }[light] ?? 0.87)
     section.dataset.lum = lum
 
-    // the featured screen: the chapter chosen at the entrance, Weddings by default (#45)
-    const chosen = c1.chapter ?? 'weddings'
+    // the featured screen: always the wedding website, the screen with the couple (owner, 7 Nov). It was the chapter chosen at the
+    // entrance (#45), but the blades are also the way to a chapter, and a visitor going to Experiences saw its dark guide open to the whole
+    // screen at 9 and become the cover at 10 — "não é o card correto"
+    const chosen = 'weddings'
     section.querySelectorAll<HTMLElement>('.m-card').forEach((card) => {
       card.toggleAttribute('data-featured', card.dataset.chapter === chosen)
     })
@@ -140,7 +142,7 @@ export function MethodClient() {
 
     // the held scene; with reduced motion the final state stays as it is, read by scrolling
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
-    const stopStage = reduce ? () => {} : runStage(section, () => c1.chapter ?? 'weddings', (ph) => (ph === 'pre' || ph === '11' ? '0.12' : lum))
+    const stopStage = reduce ? () => {} : runStage(section, () => chosen, (ph) => (ph === 'pre' || ph === '11' ? '0.12' : lum))
 
     return () => {
       stopStage()

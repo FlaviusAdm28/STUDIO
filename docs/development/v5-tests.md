@@ -1696,3 +1696,27 @@ testar no Simulador (houve leituras trocadas nesta sessão).
 passo — o palco no mesmo pixel ao fixar (0 → 0); 12, 13, 14 como antes (a foto só sobe no iPhone); Questions, Contact e colofão carvão;
 sem overflow.
 **Não verificado:** o bug 12 (topo do 14 instável) não se reproduz no Simulador; o owner não o voltou a referir.
+
+## Revisão dos bugs de 6/11 em todas as plataformas; a etiqueta da barra; as palavras do 7 no 8 → 9 — 7/11, MacBook
+
+**Método:** um percurso automático igual em todo o lado (Work → 7 → 8a–c → 9 → 10 → 11 → 12 → 13 → 14 e de volta ao Work, fase a fase por
+scroll suave), com fita por fotograma (etiqueta da barra, fases, saídas) e gravação do ecrã sincronizada para ver cada bug no seu momento.
+Simulador iOS 27.3 (17 Pro), Xiaomi (Chrome 156, CDP + `screenrecord`), Chrome 157 a 1440 × 900 e 1920 × 1080, Safari 27.2 (1324 × 888).
+
+**Encontrado e corrigido:**
+- **Bug 1 (etiqueta antes da cena):** a etiqueta seguia só a posição: *02 Method* sobre o Work 0,2 s na ida, *02 Method* sobre o retrato
+  1,9 s a voltar do 12, *02 Method* sobre Experiences 2,4 s a voltar do 7 (iPhone). Agora cada cena diz quando é vista (`data-seen`): o
+  Method quando a luz passa o meio do topo (e até a deixar ao voltar), o About quando o retrato está a meio (1,55 s; ao voltar 0,55 s);
+  `bar-client.tsx` decide entre Work/Method/About por isso enquanto há cenas, e pela posição no resto e sem movimento. O `data-section`
+  do html continua a posição (as cores das bordas leem-no). Gravação: a etiqueta muda no mesmo fotograma em que a cena passa.
+- **Bug 3 (palavras do 7 fantasma no 8 → 9):** ainda acontecia (Simulador e Xiaomi): as palavras (camada 4) por cima do ecrã a crescer
+  (camada 2), a desaparecer em 1 s. Agora saem em 0,25 s e no 9 ficam por baixo dos ecrãs (`method.css`, `[data-phase='9'] .m-head`).
+
+**Verificado sem mudança (resolvidos pelas correções de hoje):** 2 (retângulo no Work → 7: a passagem limpa nos dois telemóveis);
+7, 8 (retrato a voltar do 14/13 para o 12: fecha-se no círculo, *I'm Flávio.* no lugar); 9 (frase do 11 ao voltar: aparece no sítio, sem
+descer); 10 (13 → 14: crédito na faixa de baixo da foto, sem retângulo); 12 (topo do 14 estável). 6 (escuro do 11 até ao topo) já
+confirmado antes.
+
+**Medido (percurso inteiro):** etiqueta ≠ cena só nos primeiros 5–14 ms (antes de a barra ter texto) — Simulador, Xiaomi, Chrome 1440 e
+1920, Safari. fps: Simulador 57 (Mac a desenhar), Xiaomi 84,6–86,2, Chrome 118,5–119,5, Safari 59,7. typecheck, lint, build: passam.
+**Não verificado:** o iPhone do owner com dedo depois destas duas correções.

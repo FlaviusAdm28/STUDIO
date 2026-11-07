@@ -29,7 +29,7 @@ http.createServer(async (req, res) => {
   }
   if (req.url.startsWith('/__diag/run') && req.method === 'POST') {
     const id = ++seq; waiting.set(id, res); queue.push({ id, js: await body(req) }); send()
-    setTimeout(() => { if (waiting.delete(id)) { res.writeHead(504); res.end('no page answered in 30 s\n') } }, 30000); return
+    setTimeout(() => { if (waiting.delete(id)) { res.writeHead(504); res.end('no page answered in 150 s\n') } }, 150000); return
   }
   if (req.url.startsWith('/__diag/hud.js')) { res.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8', 'cache-control': 'no-store' }); return res.end(readFileSync(`${HERE}/hud.js`)) }
   // the test pages (/__diag/lab*) keep the screen on while open and visible (Screen Wake Lock; needs a secure context, so it works on

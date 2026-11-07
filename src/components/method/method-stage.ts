@@ -218,6 +218,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   // iOS: the held stage is drawn behind Safari's island and under its bar (method.css, the iOS block), so the edges' colour shows there
   // only over the Work, where the light has not come yet (setEdge's moments below)
   let reaches = false
+  let seenLater = 0
   let F = 0
   let ox = 0
   // the side the hour's light comes from (README #102): the light's own side in method.css (--m-kx)
@@ -676,6 +677,13 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     // the passage, and its way back (README #102)
     const passage = from === 'pre' && next === '7' && !instant
     const goingBack = next === 'pre' && from !== null && from !== 'pre' && !instant
+    // for the bar's words (bar-client.tsx): the Method is seen once the light has crossed the middle of the screen's top, and until it
+    // leaves it going back — at phase 7 alone the bar said 02 Method over the whole Work for half a second (Simulator, 7 Nov)
+    clearTimeout(seenLater)
+    if (passage) seenLater = window.setTimeout(() => (section.dataset.seen = ''), reachAt(W / 2, 0))
+    else if (goingBack) seenLater = window.setTimeout(() => delete section.dataset.seen, leaveAt(W / 2, 0))
+    else if (next === 'pre') delete section.dataset.seen
+    else section.dataset.seen = ''
     const n = cards.length
     cards.forEach((card, i) => {
       const L = layout(kind, next, i, n, featured)
@@ -744,10 +752,13 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
       wordsSet(false, 400)
       blink?.cancel()
     } else {
-      fly(head, { opacity: said ? '1' : '0' }, 1000, 0, instant)
+      const wasSaid = from === '7' || !!from?.startsWith('8')
+      // leaving the words for 9 they go before the featured screen grows over them (a quarter of a second; it reaches the field in
+      // under 0.2 s), and under it (method.css): in a second, over the screen, they stayed as ghosts on its photograph (owner, 6 Nov,
+      // bug 3; Simulator and Xiaomi, 7 Nov)
+      fly(head, { opacity: said ? '1' : '0' }, wasSaid && !said ? 250 : 1000, 0, instant)
       if (said) wordsSet(true, 0, true)
       // the field coming back into view (back from 9, or arriving there): the caret blinks its few seconds again
-      const wasSaid = from === '7' || !!from?.startsWith('8')
       if (said && !wasSaid) blinkCaret(instant ? 0 : 900)
       else if (next === 'pre') wordsSet(false, 0, true)
     }
@@ -881,7 +892,9 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     clearTimeout(letGo)
     clearTimeout(edgeLater)
     clearInterval(edgeFollow)
+    clearTimeout(seenLater)
     delete section.dataset.edge
+    delete section.dataset.seen
     cleanups.forEach((c) => c())
     flights.forEach((a) => a.cancel())
     spillAnims.forEach((a) => a.cancel())

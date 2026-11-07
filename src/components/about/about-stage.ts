@@ -444,11 +444,23 @@ export function runStage(about: HTMLElement, release: () => void) {
   }
   colourWatch.observe(about, { attributes: true, attributeFilter: ['data-colour'] })
 
+  // for the bar's words (bar-client.tsx): the About is seen once its portrait is half there, and until it is half gone going back — by
+  // the phase alone the bar said 03 About over the Method's 11 coming, and 02 Method over the portrait going (owner, iPhone, 6 Nov)
+  let seenLater = 0
+  const seen = (on: boolean, after = 0) => {
+    clearTimeout(seenLater)
+    const put = () => (on ? (about.dataset.seen = '') : delete about.dataset.seen)
+    if (after) seenLater = window.setTimeout(put, after)
+    else put()
+  }
   const show = (to: Phase, instant = false) => {
     const was = phase
     phase = to
     about.dataset.phase = to
     clearTimeout(wake)
+    // the portrait: in from 0.7 s over 1.7 s at the passage (half at 1.55 s), out from 0.1 s over 0.9 s going back (half at 0.55 s)
+    if (to === 'pre') seen(false, instant || was === null ? 0 : 550)
+    else seen(true, !instant && (was === 'pre' || was === null) && to === '12' ? 1550 : 0)
     // the top's colour as the top changes: followed while the room comes up and the photograph opens over the top (to 13, 14), and
     // while it closes off it (back to 12). By the clock alone it was early or late on one screen or the other: the photograph reaches the
     // top between 1.2 and 1.5 s at 390 × 844, and leaves it by 0.4 s, by 0.65 s on the iPhone's taller portrait (timed, 4 Nov)
@@ -685,8 +697,10 @@ export function runStage(about: HTMLElement, release: () => void) {
     clearTimeout(wake)
     clearTimeout(edgeLater)
     clearInterval(edgeFollow)
+    clearTimeout(seenLater)
     colourWatch.disconnect()
     delete about.dataset.edge
+    delete about.dataset.seen
     clearTimeout(letGo)
     clearTimeout(openLater)
     clearTimeout(dropTimer)

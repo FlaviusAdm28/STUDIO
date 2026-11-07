@@ -44,9 +44,26 @@ export function BarClient(props: Props) {
 
     // ---- the section under the bar: a band at the top of the screen, watched by an observer (no scroll handler) ----
     const byId = Object.fromEntries(props.sections.map((s) => [s.id, s]))
-    const setSection = (id: string) => {
-      if (root.dataset.section === id) return
-      root.dataset.section = id
+    // The words follow the scene that is seen, not only the line the page has crossed: the Method and the About change scene by their
+    // own phases (a dead band, a passage, a way back held while the light goes), and by position alone the bar said 02 Method over the
+    // whole Work for 0.2 s, 02 Method over the About's portrait for 1.9 s going back, 02 Method over Experiences for 2.4 s (owner,
+    // iPhone, 6 Nov; Simulator journey, 7 Nov). While a scene runs (data-phase) it decides, by what each scene says is seen (data-seen:
+    // the Method once its light has crossed the top's middle, the About once its portrait is half there); elsewhere, and without the
+    // motion, the position. html's data-section stays the position (the edges' colours read it, sequence.ts).
+    const method = document.getElementById('method')
+    const about = document.getElementById('about')
+    const seen = (id: string) => {
+      if (id !== 'work' && id !== 'method' && id !== 'about') return id
+      if (!method?.dataset.phase && !about?.dataset.phase) return id
+      if (about?.dataset.seen !== undefined) return 'about'
+      if (method?.dataset.seen !== undefined) return 'method'
+      return 'work'
+    }
+    let shown = ''
+    const render = () => {
+      const id = seen(root.dataset.section ?? '')
+      if (id === shown) return
+      shown = id
       const s = byId[id]
       // Leaving for the top the last words stay while the island fades: emptied here, 01 Work vanished at once and the name went
       // on alone (owner, iPhone, 1 Nov).
@@ -54,8 +71,17 @@ export function BarClient(props: Props) {
       // at the top the name's island is hidden (#70): out of the keyboard's way too
       if (left) left.tabIndex = s ? 0 : -1
       links.forEach((a) => a.setAttribute('aria-current', String(a.dataset.section === id)))
+    }
+    const setSection = (id: string) => {
+      if (root.dataset.section === id) return
+      root.dataset.section = id
+      render()
       queue()
     }
+    // the scenes' changes of phase and their ways back
+    const scenes = new MutationObserver(render)
+    for (const el of [method, about]) if (el) scenes.observe(el, { attributes: true, attributeFilter: ['data-phase', 'data-seen'] })
+    cleanups.push(() => scenes.disconnect())
     // a section can mark where it really starts (data-starts): the Work lies under the entrance during the passage
     const mark = (id: string) => document.querySelector(`[data-starts="${id}"]`) ?? document.getElementById(id)
     const watched = [document.getElementById('top'), ...props.sections.map((s) => mark(s.id))]

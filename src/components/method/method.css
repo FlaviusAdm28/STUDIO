@@ -801,6 +801,10 @@
   gap: clamp(14px, 2vw, 28px);
   opacity: 0;
 }
+:root[data-js] .method[data-phase='9'] .m-head {
+  /* under the screens at 9: the featured one grows over the words as they go, never under them (bug 3, 7 Nov) */
+  z-index: 1;
+}
 :root[data-js] .method .m-screens {
   position: absolute;
   z-index: 2;

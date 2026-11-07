@@ -103,7 +103,9 @@ export function runStage(about: HTMLElement, release: () => void) {
       return
     }
     // the phases, and the way out below: the Questions at the screen's top (the section's end)
-    const tops = [...Object.values(STARTS_PHONE).map((share) => (LEAD + share + BAND * 2.4) * H), about.offsetHeight]
+    // 12's mark 0.4 screen into it: just past its start it lay ~200 px from the Method's 11, and a stroke ran over one of the two (11 → 13,
+    // 12 → 10; Xiaomi, CDP strokes, 7 Nov)
+    const tops = [...Object.values(STARTS_PHONE).map((share) => (LEAD + (share || 0.4) + BAND * 2.4) * H), about.offsetHeight]
     tops.forEach((y, i) => {
       let m = marks[i]
       if (!m) {

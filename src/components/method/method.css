@@ -899,7 +899,7 @@
      snapping, run by the compositor: no script in the scroll. Kept while the light goes back to the Work (.m-leaving), so a stroke back
      from 7 comes to rest on Experiences, not halfway up the Work */
   :root[data-js]:not([data-section='questions'], [data-section='contact']):has(
-      .method:is([data-phase='7'], [data-phase^='8'], [data-phase='9'], [data-phase='10'], [data-phase='11'], .m-leaving),
+      .method:is([data-phase='7'], [data-phase^='8'], [data-phase='9'], [data-phase='10'], [data-phase='11'], .m-leaving, [data-near]),
       .about:is([data-phase='12'], [data-phase='13'], [data-phase='14'])
     ) {
     scroll-snap-type: y mandatory;

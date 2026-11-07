@@ -452,16 +452,14 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     // the photograph grows by scale, from its frame (the top 60 %) to the whole card: transforms only (method.css)
     const pic = card.querySelector<HTMLElement>('.s-wed-ph picture')
     if (pic) fly(pic, { transform: on ? 'scale(1.6667)' : 'none' }, 1200, 0, instant)
-    // the screen's words leave as the cover's come: they cross. One after the other, a dark empty card stood between the two for most of
-    // a second on a screen without a photograph (Experiences' guide, phone tempo; owner, iPhone, 7 Nov: "uma nova etapa")
     card.querySelectorAll<HTMLElement>('.m-scr > :not(picture):not(.s-wed-ph), .s-wed-nav').forEach((el) =>
-      fly(el, { opacity: on ? '0' : '1', transform: on ? 'translateY(30%)' : 'translateY(0)' }, on ? 450 : 800, on ? 0 : 300, instant),
+      fly(el, { opacity: on ? '0' : '1', transform: on ? 'translateY(30%)' : 'translateY(0)' }, on ? 700 : 800, on ? 0 : 300, instant),
     )
     const cv = card.querySelector<HTMLElement>('.m-cv')
     if (!cv) return
-    fly(cv, { opacity: on ? '1' : '0' }, 500, 0, instant)
+    fly(cv, { opacity: on ? '1' : '0' }, 700, on ? 350 : 0, instant)
     ;[...cv.children].forEach((el, i) =>
-      fly(el as HTMLElement, { opacity: on ? '1' : '0', transform: on ? 'translateY(0)' : 'translateY(30%)' }, 800, on ? 250 + i * 150 : 0, instant),
+      fly(el as HTMLElement, { opacity: on ? '1' : '0', transform: on ? 'translateY(0)' : 'translateY(30%)' }, 900, on ? 600 + i * 180 : 0, instant),
     )
   }
 
@@ -826,6 +824,13 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   const choose = (): void => {
     const STARTS = starts()
     const top = sceneTop()
+    // a phone, the scene just below: the stop-at-each-phase is on already (method.css), so a stroke from Experiences rests on 7. Turned
+    // on only at 7, a stroke ran through it to 8a and the light's passage was cut (Xiaomi, CDP strokes, 7 Nov)
+    const near = kind === 'phone' && top > 0 && top < 0.7 * H
+    if (near !== 'near' in section.dataset) {
+      if (near) section.dataset.near = ''
+      else delete section.dataset.near
+    }
     if (top > 0) {
       if (phase === null || (phase !== 'pre' && top > H * 0.02)) show('pre', phase === null)
       return
@@ -931,6 +936,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     clearInterval(edgeFollow)
     clearTimeout(seenLater)
     marks.forEach((m) => m.remove())
+    delete section.dataset.near
     delete section.dataset.edge
     delete section.dataset.seen
     cleanups.forEach((c) => c())

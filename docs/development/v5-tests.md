@@ -1755,3 +1755,18 @@ manter o ritmo e a paragem, tirar o vazio.
 **E depois (owner, 7/11):** "o correto é o card com as pessoas" — o ecrã em destaque passa a ser sempre o do casamento (README #105).
 Comparado antes (`830d3de`) e agora em 1440 × 900 e 390 × 844 (Chrome, CDP): sem lâmina escolhida, 8c/9/10 iguais; com a lâmina
 Experiences tocada na entrada, o 9 (telemóvel: ecrã inteiro) e o 10 (capa) são o do casamento, no telemóvel e no desktop.
+
+## Revisão "vejo bugs em desktop e mobile" — comparação com a manhã (`830d3de`), 7/11 noite
+
+**Método:** as duas versões lado a lado (worktree em `830d3de`, porta 3101); 20 transições (Work → 7 → … → 14 e de volta), 5 fotogramas
+cada a tempos fixos depois da mudança de fase (× 1,25 no telemóvel novo), SSIM por fotograma; Chrome a 1440 × 900 e 390 × 844 (toque).
+- **Desktop:** igual à manhã em todas as transições (SSIM ≥ 0,95; as diferenças são só o instante da captura). Muda só o que era de
+  propósito: a etiqueta no fim volta a *01 Work* (de manhã ficava *02 Method*).
+- **Telemóvel (Chrome):** a mesma composição e a mesma ordem; o 8c → 9 sem *No templates* em fantasma (bug 3, de propósito).
+- **Revertido:** o cruzamento do 9 → 10 (`70665f9`) — feito para o guia de Experiences, que já não vai à frente (#105); com o ecrã do
+  casamento punha *The seventh of November* e *Your first chapter* um sobre o outro.
+- **Xiaomi, gestos de toque reais (CDP, 13 para a frente + 13 para trás, paragem ligada) — dois defeitos da paragem por fase:**
+  (1) de Experiences um gesto passava o 7 e caía no 8a (a paragem só ligava no 7; a passagem da luz cortada) → liga-se meio ecrã antes
+  (`data-near`, method-stage.ts / method.css); (2) as marcas do 11 e do 12 a ~200 px: um gesto saltava 11 → 13 e 12 → 10 → a marca do
+  12 a 0,4 ecrã dentro dele. Depois: cada gesto uma fase em todo o percurso, nos dois sentidos, a etiqueta certa.
+- Simulador iOS e Chrome 1440: o percurso inteiro com a etiqueta certa. typecheck, lint, build: passam.

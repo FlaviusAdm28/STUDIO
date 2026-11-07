@@ -1745,3 +1745,10 @@ certos; percurso inteiro com a etiqueta sempre certa e o 13 logo a seguir ao 12.
 antes. typecheck, lint, build: passam.
 **Não verificado:** o dedo no iPhone do owner (a paragem com inércia real do iOS) — é o veredicto; o Xiaomi depois das duas últimas
 correções (adormeceu; as correções só tocam em saltos e na passagem do 12).
+
+**Depois (owner, iPhone, 7/11 22:42):** "estragaste o 9 e o 10, não é o cartão correto, uma nova etapa". O cartão em destaque era o de
+Experiences porque Experiences foi escolhido na entrada (decisão #45, sem mudança; no Simulador sem tocar na entrada: Weddings). A "etapa"
+era o 9 → 10 com o ritmo novo: as palavras do ecrã saíam e as da capa só entravam depois — um cartão escuro vazio quase 1 s no guia de
+Experiences (sem fotografia). Agora cruzam-se (`becomeCover`: saída 450 ms, capa a partir de 250 ms em vez de 600). Simulador, gravado
+com Experiences e Weddings escolhidos: o vazio passa a ~0,1 s; o *Your first chapter* entra enquanto o ecrã sai. Escolha do owner:
+manter o ritmo e a paragem, tirar o vazio.

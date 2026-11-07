@@ -452,14 +452,16 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     // the photograph grows by scale, from its frame (the top 60 %) to the whole card: transforms only (method.css)
     const pic = card.querySelector<HTMLElement>('.s-wed-ph picture')
     if (pic) fly(pic, { transform: on ? 'scale(1.6667)' : 'none' }, 1200, 0, instant)
+    // the screen's words leave as the cover's come: they cross. One after the other, a dark empty card stood between the two for most of
+    // a second on a screen without a photograph (Experiences' guide, phone tempo; owner, iPhone, 7 Nov: "uma nova etapa")
     card.querySelectorAll<HTMLElement>('.m-scr > :not(picture):not(.s-wed-ph), .s-wed-nav').forEach((el) =>
-      fly(el, { opacity: on ? '0' : '1', transform: on ? 'translateY(30%)' : 'translateY(0)' }, on ? 700 : 800, on ? 0 : 300, instant),
+      fly(el, { opacity: on ? '0' : '1', transform: on ? 'translateY(30%)' : 'translateY(0)' }, on ? 450 : 800, on ? 0 : 300, instant),
     )
     const cv = card.querySelector<HTMLElement>('.m-cv')
     if (!cv) return
-    fly(cv, { opacity: on ? '1' : '0' }, 700, on ? 350 : 0, instant)
+    fly(cv, { opacity: on ? '1' : '0' }, 500, 0, instant)
     ;[...cv.children].forEach((el, i) =>
-      fly(el as HTMLElement, { opacity: on ? '1' : '0', transform: on ? 'translateY(0)' : 'translateY(30%)' }, 900, on ? 600 + i * 180 : 0, instant),
+      fly(el as HTMLElement, { opacity: on ? '1' : '0', transform: on ? 'translateY(0)' : 'translateY(30%)' }, 800, on ? 250 + i * 150 : 0, instant),
     )
   }
 

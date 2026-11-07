@@ -25,17 +25,18 @@ type Layout = { pos: Pos; o: number; z: number; mode: Mode; full?: boolean; cove
 
 export const PHASES = ['pre', '7', '8a', '8b', '8c', '9', '10', '11'] as const
 export type Phase = (typeof PHASES)[number]
-// where each phase starts, as a share of the held scroll (4.7 screens): 7 the moment the stage is held (README #102: one trigger).
+// where each phase starts, as a share of the held scroll (5.6 screens): 7 the moment the stage is held (README #102: one trigger).
 // In screens: 8a 1.15, 8b 1.6, 8c 2.05, 9 2.6, 10 3.25, 11 3.9 (owner, 2 Nov: from 7 to 11 no longer than this). 8a at 0.6 was tried
-// and turned back (owner, desktop, 3 Nov)
+// and turned back (owner, desktop, 3 Nov). 11 held ~1.3 screens before the About, not ~0.4: a scroll ran on through it (owner, 7 Nov)
+const DESK_SCENE = 5.6
 const STARTS: Record<Exclude<Phase, 'pre'>, number> = {
   '7': 0,
-  '8a': 0.245,
-  '8b': 0.34,
-  '8c': 0.436,
-  '9': 0.553,
-  '10': 0.691,
-  '11': 0.83,
+  '8a': 1.15 / DESK_SCENE,
+  '8b': 1.6 / DESK_SCENE,
+  '8c': 2.05 / DESK_SCENE,
+  '9': 2.6 / DESK_SCENE,
+  '10': 3.25 / DESK_SCENE,
+  '11': 3.9 / DESK_SCENE,
 }
 // On a phone (scene 7.8 screens, method.css): ~1.1 screen a step, and the scroll stops at each phase (the snap marks below). At ~0.8
 // screen (3 Nov) a quick stroke still ran through phases, and the scene moved too fast (owner, iPhone, 7 Nov: "às vezes até passo setores
@@ -451,7 +452,9 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     card.classList.toggle('is-cover', on)
     // the photograph grows by scale, from its frame (the top 60 %) to the whole card: transforms only (method.css)
     const pic = card.querySelector<HTMLElement>('.s-wed-ph picture')
-    if (pic) fly(pic, { transform: on ? 'scale(1.6667)' : 'none' }, 1200, 0, instant)
+    // a little past the whole card (1 / 0.6 = 1.6667 exactly left the card's cream showing as a light line at its foot on a desktop,
+    // owner, 7 Nov): the card clips the rest
+    if (pic) fly(pic, { transform: on ? 'scale(1.68)' : 'none' }, 1200, 0, instant)
     card.querySelectorAll<HTMLElement>('.m-scr > :not(picture):not(.s-wed-ph), .s-wed-nav').forEach((el) =>
       fly(el, { opacity: on ? '0' : '1', transform: on ? 'translateY(30%)' : 'translateY(0)' }, on ? 700 : 800, on ? 0 : 300, instant),
     )

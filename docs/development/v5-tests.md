@@ -1770,3 +1770,14 @@ cada a tempos fixos depois da mudança de fase (× 1,25 no telemóvel novo), SSI
   (`data-near`, method-stage.ts / method.css); (2) as marcas do 11 e do 12 a ~200 px: um gesto saltava 11 → 13 e 12 → 10 → a marca do
   12 a 0,4 ecrã dentro dele. Depois: cada gesto uma fase em todo o percurso, nos dois sentidos, a etiqueta certa.
 - Simulador iOS e Chrome 1440: o percurso inteiro com a etiqueta certa. typecheck, lint, build: passam.
+
+## Desktop: o 11 a passar para o About; o risco claro no fundo da capa do 10 — 7/11 noite
+
+**Owner (Chrome do Mac):** "às vezes a dar scroll não pára no 11 e começa logo o About"; "no 10 a imagem não preenche bem o card, vê-se
+um risco branco em baixo". Os dois já existiam de manhã.
+- 11: no desktop durava ~0,4 ecrã antes de a passagem do About começar. A cena passa de 4,7 para 5,6 ecrãs (secção 7,1), com os passos
+  de 7 a 11 nos mesmos sítios: medido (Chrome 1728 × 913, scroll a 2 % do ecrã) 11 → 12 = 1,25 ecrãs; 8a 6,71 · 8b 7,06 · 8c 7,50 ·
+  9 8,05 · 10 8,70 · 11 9,35 como antes. O telemóvel não muda (as suas fases e a sua altura).
+- 10: a fotografia da capa crescia 1/0,6 = 1,6667, exatamente o cartão; na aresta ficava o creme do ecrã (uma linha de brilho 102 contra
+  ~40 à volta, Chrome 1728 × 913 a 2×). Agora 1,68 (5 px além, cortados pelo cartão): sem pico.
+- Percurso inteiro em Chrome 1440 e 1920: 120 fps, a etiqueta certa. typecheck, lint, build: passam.

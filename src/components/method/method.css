@@ -750,10 +750,11 @@
      blade opens the studio over it; until then the Work keeps the taps */
   position: relative;
   z-index: 2;
-  /* half a screen held before the scene (LEAD in method-stage.ts) + 4.7 screens of scene + the stage (README #99). The stage is
+  /* half a screen held before the scene (LEAD in method-stage.ts) + 5.6 screens of scene + the stage (README #99; 4.7 until 7 Nov, 11
+     lengthened). The stage is
      already held, transparent, when the light comes and goes: held only from the scene on, it slid down with the page when the
      visitor scrolled back to Experiences (owner's recording, 2560 × 1305, 2 Nov) */
-  height: calc(var(--screen) * 6.2);
+  height: calc(var(--screen) * 7.1);
   /* over the Work's last 3.1 screens (work.css: its last step holds Experiences one screen longer under the light, 3 Nov) */
   margin-top: calc(var(--screen) * -3.1);
   /* the hour's ground colour (above) would cover the Work: here the stage brings its own room */

@@ -714,7 +714,8 @@
 }
 .m-night,
 .m-spill,
-.m-cv {
+.m-cv,
+.m-mirror {
   display: none;
 }
 .m-cv-k {
@@ -1119,11 +1120,43 @@
       -webkit-mask-position: 0 var(--m-lift);
       mask-position: 0 var(--m-lift);
     }
-    /* the room stays where it was; above it, its own reflection: the wall's top goes on, with the hour's light in it, without seam and
-       with no colour measured for it (WebKit's own, where this applies) */
+    /* the room stays where it was; above it, its own reflection: the wall's top goes on, without seam and with no colour measured for
+       it. The studio now fills the stage, the 70 px included: the room keeps its box (the same cover, the same crop), the hour's light
+       goes down with it by an independent translate (method-stage.ts moves it by transform) and lights the 70 px itself, and the
+       reflection is the room's own picture turned over (.m-mirror). It was -webkit-box-reflect, which Safari never drew there: the island
+       showed html's colour over the room, and that colour had to be read and painted (1cb418c). With the mirror, Safari draws the held
+       stage itself behind the island and under its bar — its layers are its own (the light, the cards): the edge of light of 7 crosses
+       the strips as the screen (Simulator, iOS 27.3, html magenta, 7 Nov). The photograph has nothing above its crop to show instead
+       (900 × 1950 drawn by its height), and scaling the room up 8 % would have changed its framing (owner chose the mirror). Held in
+       flow by a scroll-driven animation instead, the whole stage shook a frame behind a quick finger (owner's iPhone, lab6, 7 Nov). */
     :root[data-js] .method .m-wipe-in .m-studio {
+      top: 0;
+    }
+    :root[data-js] .method .m-wipe-in .m-room {
       top: var(--m-lift);
-      -webkit-box-reflect: above;
+    }
+    :root[data-js] .method .m-wipe-in .m-key {
+      translate: 0 var(--m-lift);
+    }
+    :root[data-js] .method .m-wipe-in .m-mirror {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--m-lift);
+      overflow: hidden;
+    }
+    :root[data-js] .method .m-wipe-in .m-mirror::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: var(--m-lift);
+      height: var(--screen);
+      background: var(--m-room-tall) center / cover no-repeat;
+      transform: scaleY(-1);
+      transform-origin: 0 0;
     }
     /* 11: the dark room up to the screen's top, its round light where it was (44 % of the screen) */
     :root[data-js] .method .m-end .m-dark {

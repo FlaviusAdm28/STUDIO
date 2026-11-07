@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teste da ilha 6</title>
+<style>
+  /* 7 Nov (Mac). The Method held in flow by a scroll-driven animation shook on the iPhone: the whole stage 6–16 px off for two frames,
+     then back, scrolling quickly back and forth (owner's recording, 17:07). lab4 (a page with no work) had shown 0–1 px with a slow
+     scroll. Is it the technique under a quick finger, or the page's work on the main thread? Two stages held the same way:
+     A — nothing else on the page; B — 30 ms of work on every scroll event (as a busy site). A fixed green line sits where each stage's
+     red line should be: red apart from green = the stage left behind. */
+  html, body { margin: 0; background: #e0f; color: #fff; font: 600 20px/1.3 -apple-system, system-ui, sans-serif; }
+  .gap { height: 80lvh; background: #333; display: grid; place-items: center; text-align: center; padding: 0 20px; }
+  .scene { background: linear-gradient(90deg, #fff 0 50%, #111 50% 100%); overflow: hidden; }
+  .scene b { position: absolute; top: 40%; left: 0; right: 0; text-align: center; mix-blend-mode: difference; font-size: 28px; }
+  .scene u { position: absolute; left: 0; right: 0; top: calc(70px + 50lvh); height: 4px; background: #f00; text-decoration: none; }
+  .hold { position: relative; height: 350lvh; view-timeline: --h; }
+  .st { position: absolute; left: 0; right: 0; top: -70px; height: calc(100lvh + 200px); will-change: transform;
+        animation: hold linear both; animation-timeline: --h; animation-range: contain 0% contain calc(0% + 250lvh); }
+  @keyframes hold { from { transform: translateY(0); } to { transform: translateY(250lvh); } }
+  .ref { position: fixed; left: 0; width: 22%; top: 50lvh; height: 4px; background: #0f0; z-index: 5; pointer-events: none; }
+  .n { height: 110lvh; background: #333; display: grid; place-items: center; text-align: center; }
+  label { font: inherit; padding: 12px 16px; margin: 6px; border-radius: 12px; border: 0; background: #fff; color: #000; display: inline-block; }
+</style>
+</head>
+<body>
+<div class="ref"></div>
+<section class="gap"><div>Desça até A e faça scroll rápido para cima e para baixo (como no Method), sem sair de A. Depois o mesmo em B.<br><br>
+  A linha vermelha separa-se da verde?</div></section>
+<section class="hold a"><div class="st scene"><b>A · página sem trabalho</b><u></u></div></section>
+<section class="gap">a seguir: B</section>
+<section class="hold b"><div class="st scene"><b>B · 30 ms de trabalho em cada scroll</b><u></u></div></section>
+<section class="n"><div>fim<br><br><label>📎 Enviar gravação<input id="f" type="file" accept="video/*,image/*" multiple style="display:none"></label>
+  <div id="st" style="margin-top:14px;font-size:16px"></div></div></section>
+<script>
+// B: 30 ms of main-thread work on every scroll event while B is on screen, with a layout read, as the site's scroll handlers do
+var B = document.querySelector('.b')
+addEventListener('scroll', function () {
+  var r = B.getBoundingClientRect()
+  if (r.bottom < 0 || r.top > innerHeight) return
+  var end = performance.now() + 30
+  while (performance.now() < end) { document.body.offsetHeight }
+}, { passive: true })
+document.getElementById('f').addEventListener('change', function (e) {
+  var files = [].slice.call(e.target.files), st = document.getElementById('st'), i = 0
+  var next = function () {
+    if (i >= files.length) { st.textContent = 'Enviado ✓ (' + files.length + ')'; return }
+    var f = files[i++], x = new XMLHttpRequest()
+    x.open('POST', '/__diag/file?name=' + encodeURIComponent('lab6-' + f.name))
+    x.upload.onprogress = function (p) { if (p.lengthComputable) st.textContent = f.name + ' — ' + Math.round(100 * p.loaded / p.total) + ' %' }
+    x.onload = function () { x.status === 200 ? next() : (st.textContent = 'FALHOU: ' + x.status) }
+    x.onerror = function () { st.textContent = 'FALHOU (rede)' }
+    x.send(f)
+  }
+  next()
+})
+</script>
+</body>
+</html>

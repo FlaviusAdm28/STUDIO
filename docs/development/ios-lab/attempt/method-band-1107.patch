@@ -1,0 +1,248 @@
+diff --git a/src/components/method/method-stage.ts b/src/components/method/method-stage.ts
+index 08a6881..f3da554 100644
+--- a/src/components/method/method-stage.ts
++++ b/src/components/method/method-stage.ts
+@@ -18,6 +18,7 @@
+   The positions are the storyboard's (v46, cardLayout): [centre x %, centre y %, width % of the stage width, turn].
+ */
+ import { bandColour, hex, over, parseColour } from '@/lib/top-colour'
++import { leap } from '@/lib/leap'
+ 
+ type Pos = readonly [number, number, number, number]
+ type Mode = 'on' | 'lift' | 'gone'
+@@ -215,6 +216,45 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
+   let ARF = 9 / 19.5
+   let LVH = 0
+   let lift = 0
++  // iOS: the band — a copy of the stage's ground held in flow beneath it, which Safari draws behind its island and under its bar where
++  // it cuts the sticky stage (method.css .m-band). Each original's twin gets the same animations and the same writes, in the same frame
++  let inFlow = false
++  let ground: HTMLElement | null = null
++  const twins = new Map<Element, HTMLElement>()
++  const makeBand = () => {
++    const b = document.createElement('div')
++    b.className = 'm-band'
++    b.setAttribute('aria-hidden', 'true')
++    const pair = (el: Element | null, copy: Element | null) => {
++      if (el instanceof HTMLElement && copy instanceof HTMLElement) twins.set(el, copy)
++    }
++    const nightT = night.cloneNode(true) as HTMLElement
++    const wipeT = wipe.cloneNode(true) as HTMLElement
++    pair(night, nightT)
++    pair(wipe, wipeT)
++    pair(wipeB, wipeT.querySelector('.m-wipe-b'))
++    pair(wipeIn, wipeT.querySelector('.m-wipe-in'))
++    pair(studio, wipeT.querySelector('.m-studio'))
++    pair(key, wipeT.querySelector('.m-key'))
++    b.append(nightT, wipeT)
++    for (const sp of [spillL, spillR]) {
++      if (!sp) continue
++      const t = sp.cloneNode(true) as HTMLElement
++      pair(sp, t)
++      b.append(t)
++    }
++    // the dark of 11 alone: the end's words and its light stay on the stage
++    const endT = document.createElement('div')
++    endT.className = 'm-end'
++    endT.style.cssText = end.style.cssText
++    endT.append(document.createElement('div'))
++    ;(endT.firstChild as HTMLElement).className = 'm-dark'
++    pair(end, endT)
++    b.append(endT)
++    section.append(b)
++    cleanups.push(() => b.remove())
++    return b
++  }
+   let F = 0
+   let ox = 0
+   // the side the hour's light comes from (README #102): the light's own side in method.css (--m-kx)
+@@ -229,6 +269,8 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
+   type Flight = { el: HTMLElement; to: Keyframe; duration: number; delay: number; instant: boolean; from?: Keyframe; easing?: string }
+   let queue: Flight[] | null = null
+   const start = (f: Flight) => {
++    const twin = twins.get(f.el)
++    if (twin) start({ ...f, el: twin })
+     const { el, to, duration, delay, instant } = f
+     flights.get(el)?.cancel()
+     flights.delete(el)
+@@ -279,6 +321,17 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
+     // bar to the screen's foot (100lvh alone left a band of the studio at the foot, owner, iPhone, 3 Nov)
+     // on iOS the stage reaches 70 px above the screen (method.css --m-lift): every measure against it is of the screen under that
+     lift = parseFloat(getComputedStyle(section).getPropertyValue('--m-lift')) || 0
++    // the iPhone: the stage's ground copied into the band held in flow (method.css .m-band), which Safari draws behind its island
++    inFlow = lift > 0 && CSS.supports('animation-timeline: view()')
++    if (inFlow && !ground) ground = makeBand()
++    else if (!inFlow && ground) {
++      ground.remove()
++      ground = null
++      twins.clear()
++    }
++    // said to the entrance script (sequence.ts): the edges' colour, seen there only over the Work, changes at once, not in a fade
++    if (inFlow) section.dataset.flow = ''
++    else delete section.dataset.flow
+     LVH = Math.max(H, stage.offsetHeight - lift)
+     // the cards in the stage's shape, as before; the whole screen of 9 fills it (README #101, #103). A 9 : 16 card was tried and turned back
+     // (owner, iPhone, 3 Nov: too short)
+@@ -343,6 +396,8 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
+     } else {
+       Object.assign(key.style, { left: `${(side * W) / 100}px`, top: `${(high * H) / 100}px`, width: `${1.1 * 0.92 * W}px`, height: `${1.4 * 0.92 * H}px` })
+     }
++    const keyT = twins.get(key)
++    if (keyT) keyT.style.cssText = key.style.cssText
+   }
+   const keyTransform = (k: number) => {
+     const { side } = keyBase()
+@@ -508,8 +563,9 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
+     ]
+     const toP = place(to)
+     const fromP = fromAt ? place(fromAt) : null
+-    ;[spillL, spillR].forEach((el, i) => {
++    ;[spillL, spillR, spillL && twins.get(spillL), spillR && twins.get(spillR)].forEach((el, j) => {
+       if (!el) return
++      const i = j % 2
+       const settle = () => {
+         el.style.transform = toP[i]
+         el.style.opacity = seen
+@@ -711,7 +767,16 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
+     // and then followed while the light (1.6 s) and the dark of 11 (1.8 s) settle: set once, the edge kept the light as it was at that
+     // moment, and changed again when something else read it (owner, iPhone, 4 Nov: "a cor de cima da ilha muda e fica errada")
+     const settling = instant || goingBack || landing ? 0 : 1900
+-    setEdge(next, passage ? island(reachAt(W / 2, 0)) : goingBack ? island(leaveAt(W / 2, 0)) : landing, settling)
++    // On the iPhone, with the band (method.css .m-band), the studio is drawn behind the island and under the bar itself: the edges' colour
++    // shows only where the light has not come yet, over the Work, still sticky and cut there. Changed as the light passed the middle, the
++    // whole strip went beige over the dark Work while the light was still crossing (owner, iPhone, 7 Nov; Simulator, magenta: the unlit
++    // side is html's colour, the lit side the studio). So there: the Work's colour until the light covers both strips to their corners,
++    // and back to it before the light uncovers the first corner.
++    const corners = [reachAt(0, 0), reachAt(W, 0), reachAt(0, H), reachAt(W, H)]
++    const uncovered = [leaveAt(0, 0), leaveAt(W, 0), leaveAt(0, H), leaveAt(W, H)]
++    const passed = inFlow ? Math.max(...corners) : island(reachAt(W / 2, 0))
++    const left = inFlow ? Math.max(0, Math.min(...uncovered) - EDGE_FADE) : island(leaveAt(W / 2, 0))
++    setEdge(next, passage ? passed : goingBack ? left : landing, settling)
+     // the photograph moves in with the light, and back out with it
+     if (passage) pushPhoto(true)
+     else if (goingBack) pushPhoto(false)
+@@ -852,7 +917,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
+   // (measured: the field focused from 11 stayed on 11)
+   const to = (share: number) =>
+     requestAnimationFrame(() => {
+-      scrollTo({ top: sceneTop() + scrollY + share * sceneTravel(), behavior: 'auto' })
++      leap(sceneTop() + scrollY + share * sceneTravel())
+     })
+   const input = section.querySelector('#m-name')
+   const onField = () => phase !== '7' && !phase?.startsWith('8') && to(starts()['7'] + 0.05)
+diff --git a/src/components/method/method.css b/src/components/method/method.css
+index cef7eb8..e7fc1b9 100644
+--- a/src/components/method/method.css
++++ b/src/components/method/method.css
+@@ -714,7 +714,8 @@
+ }
+ .m-night,
+ .m-spill,
+-.m-cv {
++.m-cv,
++.m-mirror {
+   display: none;
+ }
+ .m-cv-k {
+@@ -1119,11 +1120,40 @@
+       -webkit-mask-position: 0 var(--m-lift);
+       mask-position: 0 var(--m-lift);
+     }
+-    /* the room stays where it was; above it, its own reflection: the wall's top goes on, with the hour's light in it, without seam and
+-       with no colour measured for it (WebKit's own, where this applies) */
++    /* the room stays where it was; above it, its own reflection: the wall's top goes on, without seam and with no colour measured for
++       it. The studio now fills the stage, the 70 px included: the room keeps its box (the same cover, the same crop), the hour's light
++       goes down with it by an independent translate (method-stage.ts moves it by transform) and lights the 70 px itself, and the
++       reflection is the room's own picture turned over (.m-mirror). It was -webkit-box-reflect, which Safari does not draw on a stage
++       held in flow (Simulator, iOS 27.3, 7 Nov: a dark band under the island); the photograph has nothing above its crop to show
++       instead (900 × 1950 drawn by its height), and scaling the room up 8 % would have changed its framing (owner chose the mirror). */
+     :root[data-js] .method .m-wipe-in .m-studio {
++      top: 0;
++    }
++    :root[data-js] .method .m-wipe-in .m-room {
++      top: var(--m-lift);
++    }
++    :root[data-js] .method .m-wipe-in .m-key {
++      translate: 0 var(--m-lift);
++    }
++    :root[data-js] .method .m-wipe-in .m-mirror {
++      display: block;
++      position: absolute;
++      top: 0;
++      left: 0;
++      right: 0;
++      height: var(--m-lift);
++      overflow: hidden;
++    }
++    :root[data-js] .method .m-wipe-in .m-mirror::before {
++      content: '';
++      position: absolute;
++      left: 0;
++      right: 0;
+       top: var(--m-lift);
+-      -webkit-box-reflect: above;
++      height: var(--screen);
++      background: var(--m-room-tall) center / cover no-repeat;
++      transform: scaleY(-1);
++      transform-origin: 0 0;
+     }
+     /* 11: the dark room up to the screen's top, its round light where it was (44 % of the screen) */
+     :root[data-js] .method .m-end .m-dark {
+@@ -1146,3 +1176,57 @@
+     }
+   }
+ }
++
++/* ================= iOS: the band behind the Dynamic Island and under Safari's bar (owner, 7 Nov) =================
++   Safari draws behind its island and under its bottom bar only what scrolls with the page: the held stage (sticky) is cut at the
++   island's foot and at the bar, and there it paints html's colour (iPhone, lab2–lab3, 7 Nov). The whole stage held in flow by a
++   scroll-driven animation reached both strips (lab4), but under a quick finger Safari left it a frame behind now and then: the whole
++   scene 5–20 px off for one frame and back, on a page with no work too (owner's iPhone, lab6, 7 Nov). So the stage stays sticky —
++   still — and only a copy of its ground is held in flow beneath it (.m-band, made by method-stage.ts, iOS only): the night, the light
++   with the room, its spill, the dark of 11, every animation started on the copy in the same frame as on the original. The copy is seen
++   only where Safari cuts the stage, so a frame behind there is a strip of wall or sky, not the scene. Masked to those two strips (and
++   40 px inside the screen, under the stage) so it never shows through the stage's open parts. It is where the stage is: at the
++   section's top (the stage's −70 px margin collapses into the section's own), held from the section's top 70 px above the screen's
++   (the sticky's moment, top −70) one pixel per pixel of scroll until the stage lets go (7.7 − 1 screens less the lift), in px: the
++   range's length changes with the bars, the band must not (Simulator, 7 Nov: band and stage at the same pixel before, during, after). Hidden while the site jumps (src/lib/leap.ts): the animation lags a jump
++   ~10 frames (Xiaomi, 7 Nov), and the strips show html's colour meanwhile. */
++.m-band {
++  display: none;
++}
++@media (prefers-reduced-motion: no-preference) and (max-width: 899px) {
++  @supports (-webkit-touch-callout: none) and (animation-timeline: view()) {
++    :root[data-js] .method {
++      view-timeline: --m-hold block;
++    }
++    :root[data-js] .method .m-band {
++      display: block;
++      position: absolute;
++      z-index: -1;
++      left: 0;
++      right: 0;
++      top: 0;
++      height: calc(var(--screen) + var(--m-lift, 0px));
++      overflow: hidden;
++      pointer-events: none;
++      animation: m-hold linear both;
++      animation-timeline: --m-hold;
++      animation-range: contain var(--m-lift, 0px) contain calc(0% + var(--screen) * 6.7);
++      -webkit-mask: linear-gradient(#000 0 calc(var(--m-lift, 0px) + 40px), transparent 0 calc(var(--m-lift, 0px) + 100svh - 40px), #000 0);
++      mask: linear-gradient(#000 0 calc(var(--m-lift, 0px) + 40px), transparent 0 calc(var(--m-lift, 0px) + 100svh - 40px), #000 0);
++    }
++    :root[data-js] .method .m-band * {
++      pointer-events: none !important;
++    }
++    :root[data-leap] .method .m-band {
++      visibility: hidden;
++    }
++  }
++}
++@keyframes m-hold {
++  from {
++    transform: translateY(0);
++  }
++  to {
++    transform: translateY(calc(var(--screen) * 6.7 - var(--m-lift, 0px)));
++  }
++}

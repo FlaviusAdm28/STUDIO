@@ -1,5 +1,15 @@
 # Chapter One V5 — handoff
 
+## ▶ COMEÇAR AQUI · 7 de novembro de 2026, noite (MacBook) — bordas do Method no iPhone: palco preso + espelho; entrada espera o vídeo
+
+**Estado:** sem commit. Alterado: `method.css` (bloco iOS: `.m-mirror` no lugar do `-webkit-box-reflect`), `method.tsx` (o `.m-mirror`),
+`method-stage.ts` (iOS: a cor das bordas na ida só quando a luz cobre os quatro cantos), `entrance/sequence.ts` (a câmara espera o vídeo
+a tocar, ≤ 2,5 s). Tudo medido no Simulador (iOS 27.3) e o porquê em `docs/development/ios-lab/README.md` §5b. Descoberta: o que
+impedia a cena de chegar à ilha era o reflexo, não o sticky; o palco segurado em fluxo tremia com dedo rápido (lab6) e saiu.
+**Confirmado:** iPhone do owner ("parece resolvido"); Xiaomi sem regressão (A/B); desktop Chrome 1920/1440 e Safari (ios-lab
+README §5b). **Falta:** registar em `v5-tests.md` antes do commit. Os bugs
+de 6/11 que restam (About ao recuar, 9 frase do 11, 3 palavras do 7, 1 etiqueta, 2 retângulo) continuam abaixo.
+
 ## ▶ COMEÇAR AQUI · 7 de novembro de 2026 — bordas (passo 1): o que o iPhone provou, tentativa revertida
 
 **Estado:** código igual a `1cb418c` (nada novo no site). PC agora em **192.168.1.2** (proxy do iPhone `http://192.168.1.2:3130`).

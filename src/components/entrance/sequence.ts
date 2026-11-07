@@ -197,18 +197,30 @@ export function entranceSequence(c: EntranceConfig) {
 
   // The film: one request, chosen by the screen's shape; never for reduced motion or Save-Data.
   const video = section.querySelector('video')
+  // The camera goes through the O once the film moves: started before it played, the woman stood still through the letters and the
+  // video came in later, now and then (owner, iPhone over the LAN, 7 Nov). It waits for 'playing', at most FILM_WAIT, and not at all
+  // where the film will not play (an error; play() refused, as in iOS's Low Power Mode).
+  const FILM_WAIT = 2500
+  let filmMoves: () => void = () => {}
+  const filmReady = new Promise<void>((r) => (filmMoves = r))
   if (video && !reduce && !connection?.saveData) {
     video.muted = true
     video.src = matchMedia('(orientation: portrait)').matches ? c.tall : c.wide
-    video.addEventListener('playing', () => (root.dataset.film = 'playing'), {
-      once: true,
-    })
+    video.addEventListener(
+      'playing',
+      () => {
+        root.dataset.film = 'playing'
+        filmMoves()
+      },
+      { once: true },
+    )
+    video.addEventListener('error', filmMoves, { once: true })
     // Paused while the entrance is out of view: it costs nothing under the rest of the page.
     new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) video.play().catch(() => {})
+      if (entry.isIntersecting) video.play().catch(filmMoves)
       else video.pause()
     }).observe(section)
-  }
+  } else filmMoves()
 
   // Back at the top, the address loses its #chapter: a refresh there shows the entrance again (README #66), as it
   // would for a first visit — with the hash it went straight to that chapter.
@@ -360,8 +372,10 @@ export function entranceSequence(c: EntranceConfig) {
     (faces) => faces.length > 0,
     () => false,
   )
-  Promise.race([loaded, timeout])
-    .then((ready) => {
+  // the film: under the 3 s above, so the sequence still runs when the video is slow (then over the poster, as before)
+  const film = Promise.race([filmReady, new Promise<void>((r) => setTimeout(r, FILM_WAIT))])
+  Promise.all([Promise.race([loaded, timeout]), film])
+    .then(([ready]) => {
       if (root.dataset.entrance !== 'e0') return
       if (!ready || scrollY > 0 || !origin()) return skip()
       addEventListener('resize', origin)

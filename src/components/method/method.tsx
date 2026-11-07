@@ -160,6 +160,8 @@ export function Method() {
           <div className="m-wipe-in">
             <div className="m-studio">
               <div className="m-room" />
+              {/* iOS only (method.css): the room's top mirrored into the 70 px behind the Dynamic Island */}
+              <div className="m-mirror" />
               <div className="m-key" />
             </div>
           </div>

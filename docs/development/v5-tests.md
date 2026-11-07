@@ -1628,3 +1628,43 @@ incluindo `--screen` = lvh + 130 px):**
 About a faixa que a ilha vê é outra — diferenças de até ~20 níveis no estúdio e no retrato a sair são isso); o Xiaomi (a borda relida a cada
 100 ms durante 1,9 s no Method: 19 mudanças do fundo da página; antes era 1). As imagens do estúdio usadas aqui são provisórias (as reais
 não estão no repositório): as cores exatas no iPhone só com as verdadeiras.
+
+## As bordas do Method no iPhone: palco preso + espelho; a entrada espera o vídeo — 7/11, MacBook
+
+**Bugs do owner (iPhone, 6–7/11):** a faixa da ilha e a de baixo ficavam com a cor do estúdio antes de a luz do 7 acabar o percurso (o
+pedido: acompanhar a luz do lado que ela já passou, nada fabricado); às vezes a câmara passava o O com o poster parado (a mulher quieta).
+
+**O que se descobriu (Simulador iOS 27.3 no Mac — Xcode 27.3 beta por `DEVELOPER_DIR`, html/body magenta para separar cena de cor):**
+- O que impedia a cena de chegar à ilha era o `-webkit-box-reflect` do estúdio (os 70 px acima eram o reflexo, que o Safari não desenha
+  ali), não o sticky: o palco preso, com as suas camadas próprias (a luz, os cartões), é desenhado atrás da ilha e por baixo da barra.
+- O palco segurado em fluxo por uma animação de scroll (tentativa do dia, lab4/lab6) chega à ilha mas, com dedo rápido, fica um fotograma
+  atrás: o palco inteiro 5–20 px fora e de volta (gravação do iPhone, perfil de luminância fotograma a fotograma; lab6 com a página sem
+  trabalho também). Saiu. Uma faixa de reserva (cópia do fundo em fluxo por baixo do palco) ficou em
+  `docs/development/ios-lab/attempt/method-band-1107.patch`, desnecessária.
+- No regresso ao Work o palco fica `fixed` enquanto a luz fecha, e o Safari não desenha `fixed` atrás da ilha (faixa de cima magenta).
+
+**Feito:** `method.css` (bloco iOS) — `.m-mirror` (a foto da sala virada nos 70 px de cima; a sala com o mesmo corte; a luz da hora desce
+com `translate`) no lugar do reflexo; `method.tsx` — o elemento. `method-stage.ts` — no iPhone (`reaches`), na ida a cor das bordas só muda
+quando a luz cobre os quatro cantos das duas faixas (antes: ao passar o meio, 855 ms; agora ~1530 ms); no regresso como antes (ao deixar a
+ilha, com o desvanecer). `entrance/sequence.ts` — a sequência espera o `playing` do vídeo (≤ 2,5 s, abaixo da guarda de 3 s; sem esperar se
+o vídeo falha ou o `play()` é recusado, ex. Poupança de energia).
+
+**Medido:**
+- Simulador, html magenta: 7, 8a, 8b, 8c, 9, 10, 11 sem magenta na ilha nem em baixo — 17 Pro (402 × 714 visível), 17 Pro Max (440 × 796),
+  17e (390 × 699), dia e noite. Passagem 6 → 7 gravada (10 fps, faixas de cima e de baixo): o lado por iluminar fica o Work até a luz lá
+  chegar; regresso como antes de 7/11. Entrada 3× (`?autorec`): a câmara arranca no fotograma do `playing`; no zoom (2 s depois) o vídeo
+  a opacidade 1.
+- iPhone do owner (Safari 27.2): "parece resolvido" — sem tremer, a passagem certa; a entrada "parece corrigida".
+- Xiaomi (Chrome 156, ligado ao Mac, CDP): entrada 3× — câmara no `playing`, 89–90 fps durante a câmara. Method, gesto de toque, A/B com
+  `830d3de`: 6 → 7 83,5 / 86,8 / 86,8 fps antes, 83,4 / 86,4 / 87,2 agora; 7 → 6 86,7–87,7 antes, 86,4–87,9 agora — sem regressão.
+- Desktop: Chrome 157 a 1920 × 1080 e 1440 × 900 — entrada 120 fps sem fotogramas longos; Method 116–120 fps; sem overflow. Safari 27.2
+  (janela 1324 × 888) — entrada e Method a 59–60 fps (limite do Safari); sem overflow.
+- `npm run typecheck`, `npm run lint` (sem avisos), `npm run build`: passam.
+
+**Não verificado:** Safari a 1920 × 1080 (o ecrã do Mac é 1728 × 1117); capturas do Safari do Mac (sem permissão de gravar o ecrã);
+teclado, reduced motion e sem JS não mudam (CSS só com `data-js` e movimento; o script só corre com movimento) — não repetidos.
+**Já existia (a melhorar):** ~100–120 ms ao disparar o 7 no Xiaomi; ~105 ms ao passar o O (Safari, Simulador); a 1.ª descodificação
+do estúdio a 1920 (592 ms).
+
+**Ferramentas novas (laboratório, nunca no site):** consola remota no proxy (`/__diag/run`), `?autorec=<s>` no painel, `lab6`; tudo em
+`docs/development/ios-lab/README.md` §5b.

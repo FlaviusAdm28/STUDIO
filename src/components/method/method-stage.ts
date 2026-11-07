@@ -215,6 +215,9 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   let ARF = 9 / 19.5
   let LVH = 0
   let lift = 0
+  // iOS: the held stage is drawn behind Safari's island and under its bar (method.css, the iOS block), so the edges' colour shows there
+  // only over the Work, where the light has not come yet (setEdge's moments below)
+  let reaches = false
   let F = 0
   let ox = 0
   // the side the hour's light comes from (README #102): the light's own side in method.css (--m-kx)
@@ -279,6 +282,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     // bar to the screen's foot (100lvh alone left a band of the studio at the foot, owner, iPhone, 3 Nov)
     // on iOS the stage reaches 70 px above the screen (method.css --m-lift): every measure against it is of the screen under that
     lift = parseFloat(getComputedStyle(section).getPropertyValue('--m-lift')) || 0
+    reaches = lift > 0
     LVH = Math.max(H, stage.offsetHeight - lift)
     // the cards in the stage's shape, as before; the whole screen of 9 fills it (README #101, #103). A 9 : 16 card was tried and turned back
     // (owner, iPhone, 3 Nov: too short)
@@ -572,7 +576,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   // only if a picture cannot be read: the values measured on 3 Nov (390 × 844)
   const FULL_EDGE: Record<string, string> = { weddings: '#a1b2bb', artists: '#a7a49c', experiences: '#191d24' }
   // the band the island sees, across its middle: elsewhere the screen's top; on iOS the 70 px above it (the lift), which in the studio
-  // is its own top's reflection (method.css: -webkit-box-reflect), so the studio's first 70 px; the 9's photograph runs up there itself
+  // is its own top mirrored (method.css: .m-mirror), so the studio's first 70 px; the 9's photograph runs up there itself
   const band = (left: number, top: number, above = false) =>
     lift && !above
       ? { x0: W * 0.3 - left, x1: W * 0.7 - left, y0: -top, y1: lift - top }
@@ -711,7 +715,15 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     // and then followed while the light (1.6 s) and the dark of 11 (1.8 s) settle: set once, the edge kept the light as it was at that
     // moment, and changed again when something else read it (owner, iPhone, 4 Nov: "a cor de cima da ilha muda e fica errada")
     const settling = instant || goingBack || landing ? 0 : 1900
-    setEdge(next, passage ? island(reachAt(W / 2, 0)) : goingBack ? island(leaveAt(W / 2, 0)) : landing, settling)
+    // On the iPhone the held studio is drawn behind the island and under the bar itself (method.css, the iOS block): the edges' colour
+    // shows only where the light has not come yet, over the Work, cut there. Changed as the light passed the middle, the whole strip
+    // went beige over the dark Work while the light was still crossing (owner, iPhone, 7 Nov; Simulator, magenta: the unlit side is
+    // html's colour, the lit side the studio). So on the way in: the Work's colour until the light covers both strips to their corners.
+    // On the way back the stage is fixed while the light closes (holdWhileLeaving), and Safari draws nothing fixed behind the island:
+    // the top strip is one colour again, so it changes as the light leaves the island, as before (Simulator, magenta, 7 Nov).
+    const corners = [reachAt(0, 0), reachAt(W, 0), reachAt(0, H), reachAt(W, H)]
+    const passed = reaches ? Math.max(...corners) : island(reachAt(W / 2, 0))
+    setEdge(next, passage ? passed : goingBack ? island(leaveAt(W / 2, 0)) : landing, settling)
     // the photograph moves in with the light, and back out with it
     if (passage) pushPhoto(true)
     else if (goingBack) pushPhoto(false)

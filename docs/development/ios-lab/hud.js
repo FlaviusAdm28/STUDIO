@@ -13,7 +13,7 @@
     bleed: ['Filme a sangrar', '.entrance{overflow:visible !important}.e-film{top:-300px !important;bottom:-300px !important}'],
   }
   var flags = {}
-  try { (sessionStorage.getItem('__v5flags') || '').split(',').forEach(function (f) { if (FLAGS[f]) flags[f] = true }) } catch (e) {}
+  try { (sessionStorage.getItem('__v5flags') || '').split(',').forEach(function (f) { if (FLAGS[f]) flags[f] = true }) } catch { /* no storage: no switch */ }
   var css = Object.keys(flags).map(function (f) { return FLAGS[f][1] }).join('')
   if (css) { var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st) }
   var R = document.documentElement, vv = window.visualViewport || null
@@ -35,7 +35,10 @@
     T.rows.push([now(), +scrollY.toFixed(1), innerHeight, vv ? +vv.height.toFixed(1) : null, vv ? +vv.offsetTop.toFixed(1) : null, R.clientHeight, rD.offsetHeight, e ? +e.top.toFixed(1) : null, e ? +e.bottom.toFixed(1) : null, s ? +s.top.toFixed(1) : null, s ? +s.bottom.toFixed(1) : null, +f.top.toFixed(1), +f.bottom.toFixed(1), b ? +b.top.toFixed(1) : null, R.dataset.pass || '', (q('.work') || { dataset: {} }).dataset.ch || '', R.dataset.section || '', R.dataset.menu || '',
       // 7 Nov: the Method's stage held in flow (method.css): section top, stage top/bottom, its transform's y, phase, leap/leaving
       (function () { var m = q('#method'), st = m && m.querySelector('.m-stage'); if (!m || !st) return null; var r = m.getBoundingClientRect(), t = st.getBoundingClientRect(), mx = getComputedStyle(st).transform, y = mx && mx !== 'none' ? +mx.split(',')[5] : 0
-        return [+r.top.toFixed(1), +t.top.toFixed(1), +t.bottom.toFixed(1), +(+y).toFixed(1), m.dataset.phase || '', 'leap' in R.dataset ? 1 : 0, m.classList.contains('m-leaving') ? 1 : 0, getComputedStyle(st).position, getComputedStyle(m).getPropertyValue('--m-lift').trim()] })()])
+        return [+r.top.toFixed(1), +t.top.toFixed(1), +t.bottom.toFixed(1), +(+y).toFixed(1), m.dataset.phase || '', 'leap' in R.dataset ? 1 : 0, m.classList.contains('m-leaving') ? 1 : 0, getComputedStyle(st).position, getComputedStyle(m).getPropertyValue('--m-lift').trim()] })(),
+      // 7 Nov (Mac): the entrance's film — its box, its transform, the video (ready, playing, time, opacity), the poster, the phase
+      (function () { var f = q('.e-film'), v = q('.e-video'), z = q('.e-zoom'); if (!f) return null; var r = f.getBoundingClientRect()
+        return [+r.top.toFixed(1), +r.height.toFixed(1), getComputedStyle(f).transform, v ? v.readyState : -1, v && !v.paused ? 1 : 0, v ? +v.currentTime.toFixed(2) : 0, v ? getComputedStyle(v).opacity : '', z ? getComputedStyle(z).transform : '', R.dataset.entrance || '', R.dataset.film || ''] })()])
     if (T.rows.length > 9000) stop('full'); else requestAnimationFrame(frame)
   }
   var envNow = function () {
@@ -64,11 +67,11 @@
     bRec.textContent = recording ? '■ parar e enviar' : '● rec'; bRec.style.background = recording ? '#c22' : 'rgba(0,0,0,.78)'; bMark.style.display = recording ? 'block' : 'none'
     status.textContent = msg || (recording ? 'a gravar' : (T.flags.length ? 'Teste: ' + T.flags.join(', ') : 'diag'))
   }
-  var setFlag = function (f) { var one = {}; if (!flags[f]) one[f] = true; try { sessionStorage.setItem('__v5flags', Object.keys(one).join(',')) } catch (e) {} ; location.replace(location.pathname) }
+  var setFlag = function (f) { var one = {}; if (!flags[f]) one[f] = true; try { sessionStorage.setItem('__v5flags', Object.keys(one).join(',')) } catch { /* no storage: no switch */ } ; location.replace(location.pathname) }
   var mount = function () {
     ;[rD, rS, rL, rV, edge].forEach(function (d) { document.body.appendChild(d) })
     status = document.createElement('div'); status.style.cssText = 'margin:0 0 5px auto;padding:3px 7px;border-radius:5px;background:rgba(0,0,0,.65);max-width:52vw'
-    bRec = btn('● rec', function () { recording ? stop() : start() })
+    bRec = btn('● rec', function () { if (recording) stop(); else start() })
     bMark = btn('✕ vi agora', function () { T.marks.push(now()); note('MARK', T.marks.length); status.textContent = 'marca ' + T.marks.length })
     var file = document.createElement('input'); file.type = 'file'; file.accept = 'image/*,video/*'; file.multiple = true; file.style.display = 'none'
     file.addEventListener('change', function () {
@@ -88,4 +91,20 @@
     R.appendChild(wrap); paint()
   }
   if (document.body) mount(); else addEventListener('DOMContentLoaded', mount)
+  // 7 Nov (Mac): the remote console (proxy.mjs /__diag/cmd → /__diag/res). The body runs as an async function; what it returns comes
+  // back as JSON. Helpers: flag('flow' | '') sets one test switch and reloads, as the HUD's buttons do.
+  window.__flag = function (f) { try { sessionStorage.setItem('__v5flags', f || '') } catch { /* no storage: no switch */ } ; setTimeout(function () { location.replace(location.pathname) }, 300); return 'reloading with ' + (f || 'no flag') }
+  var poll = function () {
+    // only the tab in view answers: Safari keeps the tabs openurl left behind alive, and one of them took the commands
+    if (document.visibilityState !== 'visible') return setTimeout(poll, 1000)
+    fetch('/__diag/cmd', { cache: 'no-store' }).then(function (r) { return r.status === 200 ? r.json() : null }).then(function (c) {
+      if (!c) return poll()
+      var done = function (v) { var s; try { s = JSON.stringify(v === undefined ? null : v) } catch { s = JSON.stringify(String(v)) } ; fetch('/__diag/res?id=' + c.id, { method: 'POST', body: s }).then(poll, poll) }
+      try { Promise.resolve(new Function('return (async () => {' + c.js + '})()')()).then(done, function (e) { done({ error: String(e) }) }) } catch (e) { done({ error: String(e) }) }
+    }).catch(function () { setTimeout(poll, 1000) })
+  }
+  poll()
+  // ?autorec=<s>: records from the load for that many seconds and sends the tape (the entrance, with no hand on the button)
+  var auto = +(new URLSearchParams(location.search).get('autorec') || 0)
+  if (auto) { var go = function () { start(); setTimeout(function () { stop('autorec') }, auto * 1000) }; if (document.body) setTimeout(go, 0); else addEventListener('DOMContentLoaded', go) }
 })()

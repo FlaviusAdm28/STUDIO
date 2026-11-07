@@ -12,7 +12,25 @@ const TAG = '<script src="/__diag/hud.js"></script>'
 // keeps the screen on (Screen Wake Lock) on the test pages, and on the site only when its address carries ?wake (the Xiaomi's runs)
 const WAKE = `<script>(function(){var l=null,ask=function(){if(!navigator.wakeLock||document.visibilityState!=='visible')return;navigator.wakeLock.request('screen').then(function(x){l=x;document.title='☀ '+document.title.replace(/^☀ /,'')}).catch(function(){})};document.addEventListener('visibilitychange',ask);ask()})()</script>`
 const stamp = () => new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
-http.createServer((req, res) => {
+// 7 Nov (Mac): a remote console for the Simulator, which has no finger to press the HUD's buttons. The page (hud.js) long-polls
+// GET /__diag/cmd for JavaScript; `curl --data-binary 'js' localhost:3130/__diag/run` queues it and answers with what it returned.
+const queue = [], waiting = new Map(); let polls = [], seq = 0
+const send = () => { while (queue.length && polls.length) { const p = polls.shift(); p.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' }); p.end(JSON.stringify(queue.shift())) } }
+const body = (req) => new Promise((ok) => { const c = []; req.on('data', (d) => c.push(d)); req.on('end', () => ok(Buffer.concat(c).toString('utf8'))) })
+http.createServer(async (req, res) => {
+  if (req.url.startsWith('/__diag/cmd')) {
+    polls.push(res); const t = setTimeout(() => { polls = polls.filter((p) => p !== res); res.writeHead(204); res.end() }, 20000)
+    res.on('close', () => { clearTimeout(t); polls = polls.filter((p) => p !== res) }); return send()
+  }
+  if (req.url.startsWith('/__diag/res') && req.method === 'POST') {
+    const id = +new URL(req.url, 'http://x').searchParams.get('id'), r = await body(req), w = waiting.get(id)
+    if (w) { waiting.delete(id); w.writeHead(200, { 'content-type': 'application/json' }); w.end(r + '\n') }
+    res.writeHead(204); return res.end()
+  }
+  if (req.url.startsWith('/__diag/run') && req.method === 'POST') {
+    const id = ++seq; waiting.set(id, res); queue.push({ id, js: await body(req) }); send()
+    setTimeout(() => { if (waiting.delete(id)) { res.writeHead(504); res.end('no page answered in 30 s\n') } }, 30000); return
+  }
   if (req.url.startsWith('/__diag/hud.js')) { res.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8', 'cache-control': 'no-store' }); return res.end(readFileSync(`${HERE}/hud.js`)) }
   // the test pages (/__diag/lab*) keep the screen on while open and visible (Screen Wake Lock; needs a secure context, so it works on
   // the Xiaomi through adb reverse on localhost, not on the iPhone through the LAN address). Only these pages; the site is untouched.

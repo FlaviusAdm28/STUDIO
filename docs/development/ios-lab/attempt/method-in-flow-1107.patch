@@ -1,0 +1,140 @@
+diff --git a/src/components/about/about-stage.ts b/src/components/about/about-stage.ts
+index 455a18e..17384b4 100644
+--- a/src/components/about/about-stage.ts
++++ b/src/components/about/about-stage.ts
+@@ -20,6 +20,7 @@
+   resolution (a dark layer with a hole, scaled ×3). Hence the copy, the stage held before the trigger, and the light as below.
+ */
+ import { bandColour, hex, over, type Rgb } from '@/lib/top-colour'
++import { leap } from '@/lib/leap'
+ 
+ export type Phase = 'pre' | '12' | '13' | '14'
+ const ORDER = ['12', '13', '14'] as const
+@@ -646,7 +647,7 @@ export function runStage(about: HTMLElement, release: () => void) {
+   const onFocus = () => {
+     if (phase === '14') return
+     requestAnimationFrame(() =>
+-      scrollTo({ top: scrollY + about.getBoundingClientRect().top + (LEAD + STARTS['14'] + 0.08) * H, behavior: 'auto' }),
++      leap(scrollY + about.getBoundingClientRect().top + (LEAD + STARTS['14'] + 0.08) * H),
+     )
+   }
+   stage.addEventListener('focusin', onFocus)
+diff --git a/src/components/method/method-stage.ts b/src/components/method/method-stage.ts
+index 08a6881..b465593 100644
+--- a/src/components/method/method-stage.ts
++++ b/src/components/method/method-stage.ts
+@@ -18,6 +18,7 @@
+   The positions are the storyboard's (v46, cardLayout): [centre x %, centre y %, width % of the stage width, turn].
+ */
+ import { bandColour, hex, over, parseColour } from '@/lib/top-colour'
++import { leap } from '@/lib/leap'
+ 
+ type Pos = readonly [number, number, number, number]
+ type Mode = 'on' | 'lift' | 'gone'
+@@ -852,7 +853,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
+   // (measured: the field focused from 11 stayed on 11)
+   const to = (share: number) =>
+     requestAnimationFrame(() => {
+-      scrollTo({ top: sceneTop() + scrollY + share * sceneTravel(), behavior: 'auto' })
++      leap(sceneTop() + scrollY + share * sceneTravel())
+     })
+   const input = section.querySelector('#m-name')
+   const onField = () => phase !== '7' && !phase?.startsWith('8') && to(starts()['7'] + 0.05)
+diff --git a/src/components/method/method.css b/src/components/method/method.css
+index cef7eb8..4232a9e 100644
+--- a/src/components/method/method.css
++++ b/src/components/method/method.css
+@@ -1146,3 +1146,50 @@
+     }
+   }
+ }
++
++/* ================= a phone: the held stage is content of the page, held still by the scroll itself (owner, 7 Nov) =================
++   Safari draws behind its Dynamic Island and under its bottom bar only what scrolls with the page: a sticky or fixed layer is cut at the
++   island's foot and the strip takes html's colour (iPhone, lab3, 7 Nov: magenta in all three, the scene in flow behind the island). So
++   on a phone the stage stays in flow and a scroll-driven animation moves it down exactly as far as the page goes up — run by the
++   compositor, no script: on the iPhone the stage stood within 0–1 px through a slow scroll, 4 px once as Safari's bar changed (lab4,
++   frame by frame at 60 fps; moved by script instead it shook 12–44 px). The same on Android, one way for both.
++   The hold starts when the section's top reaches the screen's (the sticky's moment) and runs one pixel per pixel of scroll for the
++   section's height less the screen (7.7 − 1 screens), in px, not as a share of the range: the range's length changes with the
++   browser's bars, the stage must not. Where scroll-driven animations do not exist the stage stays sticky (above). */
++@media (prefers-reduced-motion: no-preference) and (max-width: 899px) {
++  @supports (animation-timeline: view()) {
++    :root[data-js] .method {
++      view-timeline: --m-hold block;
++    }
++    /* the iOS lift (above) by a relative offset, not a negative margin: the stage is the section's first child in flow, and its margin
++       collapsed into the section's own (−3.1 screens) and was lost — the stage sat 70 px low, a dark band under the island and
++       everything 70 px down (iPhone tape, 7 Nov: the stage's top 0 while held, not −70). As sticky, its top had hidden it. */
++    :root[data-js] .method .m-stage {
++      position: relative;
++      top: calc(-1 * var(--m-lift, 0px));
++      margin-top: 0;
++      animation: m-hold linear both;
++      animation-timeline: --m-hold;
++      animation-range: contain 0% contain calc(0% + var(--screen) * 6.7);
++    }
++    /* a jump made by the site (src/lib/leap.ts): held by the browser, sticky as before, until it has landed */
++    :root[data-leap] .method .m-stage {
++      position: sticky;
++      top: calc(-1 * var(--m-lift, 0px));
++      animation: none;
++    }
++    /* letting go, back above the scene (method-stage.ts holdWhileLeaving): fixed where it is, as before */
++    :root[data-js] .method.m-leaving .m-stage {
++      position: fixed;
++      animation: none;
++    }
++  }
++}
++@keyframes m-hold {
++  from {
++    transform: translateY(0);
++  }
++  to {
++    transform: translateY(calc(var(--screen) * 6.7));
++  }
++}
+diff --git a/src/components/work/work-client.tsx b/src/components/work/work-client.tsx
+index 76d7d74..6c778ab 100644
+--- a/src/components/work/work-client.tsx
++++ b/src/components/work/work-client.tsx
+@@ -4,6 +4,7 @@ import { useEffect } from 'react'
+ import type { work } from '@content'
+ import { lensMap } from '@/lib/lens'
+ import { press } from '@/lib/press'
++import { leap } from '@/lib/leap'
+ 
+ type Props = {
+   /** One moment, in seconds: the word fills in this time (#73). */
+@@ -938,7 +939,7 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
+       }
+       addEventListener('scrollend', done, { once: true })
+       window.setTimeout(done, 1500)
+-      scrollTo({ top, behavior: smooth && !reduce ? 'smooth' : 'auto' })
++      leap(top, smooth && !reduce ? 'smooth' : 'auto')
+       return true
+     }
+     listen(document, 'click', (e) => {
+diff --git a/src/lib/address.ts b/src/lib/address.ts
+index 1ae624e..3ce3639 100644
+--- a/src/lib/address.ts
++++ b/src/lib/address.ts
+@@ -10,6 +10,8 @@
+ */
+ const IDS = ['method', 'about']
+ 
++import { leap } from '@/lib/leap'
++
+ export function landOnAddresses() {
+   const mark = (id: string) => {
+     const el = document.querySelector<HTMLElement>(`[data-starts="${id}"]`)
+@@ -26,7 +28,7 @@ export function landOnAddresses() {
+     root.dataset.jump = id
+     clearTimeout(unmark)
+     unmark = window.setTimeout(() => delete root.dataset.jump, 600)
+-    scrollTo({ top: el.getBoundingClientRect().top + scrollY + 1, behavior: 'auto' })
++    leap(el.getBoundingClientRect().top + scrollY + 1)
+     return true
+   }
+   const onClick = (e: MouseEvent) => {

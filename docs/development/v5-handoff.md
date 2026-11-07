@@ -1,5 +1,96 @@
 # Chapter One V5 — handoff
 
+## ▶ COMEÇAR AQUI · 7 de novembro de 2026 — bordas (passo 1): o que o iPhone provou, tentativa revertida
+
+**Estado:** código igual a `1cb418c` (nada novo no site). PC agora em **192.168.1.2** (proxy do iPhone `http://192.168.1.2:3130`).
+
+**Medido no iPhone do owner com páginas de teste** (`D:\STUDIO-tools\v5-m5\ios\lab2–4.html`, servidas pelo proxy em `/__diag/lab2..4`,
+com botão 📎 para enviar vídeos; html/body magenta de propósito; fotogramas em `D:\STUDIO-tools\v5-m7\edges-1107\`):
+- Só o **conteúdo em fluxo** (que corre com a página) é desenhado por trás da ilha e por baixo da barra de baixo. **Sticky e fixed são
+  cortados** e o Safari pinta essas faixas com a cor do html/body. A "subida" de 70 px dos palcos (`--m-lift`, `--a-lift`, a do Work)
+  **nunca chegou à ilha**; no Work parecia funcionar porque o html tem a cor do fundo.
+- Um palco **em fluxo segurado por uma animação de scroll em CSS** (`view-timeline`, `animation-range: contain 0% contain
+  calc(0% + Lpx)`) chega à ilha e fica parado (0–1 px). Segurado por JS treme 12–44 px.
+
+**Tentativa no Method (7/11), revertida no mesmo dia** (patch guardado no scratchpad da sessão, `method-in-flow-1107.patch` + `leap.ts`):
+o palco do Method em fluxo nos telemóveis. Xiaomi: certo (posição igual ao sticky, 0 px; saltos do site marcados com `data-leap` →
+sticky enquanto aterram, sem clarão; custo: subir depressa 67–70 → 59–62 fps, fling para cima 53 → 43). **iPhone: partido** —
+(1) a margem negativa da subida colapsava com a da secção (corrigido com `top` relativo); (2) **os cartões e as palavras deixam de ser
+desenhados enquanto se faz scroll** (camadas animadas dentro de um palco movido por animação de scroll — só a sala aparece);
+(3) **a faixa da ilha continua escura**: a barra e o menu são `position: fixed` junto ao topo, e o Safari usa-os para pintar a faixa
+(o lab4 não tinha nada fixo).
+
+**Depois (mesmo dia):** o lab5 no iPhone mostrou que nem os cartões animados nem a barra fixa estragam a técnica. No site, com
+interruptores do painel de testes: **a faixa escura sob a ilha era o `-webkit-box-reflect`** do estúdio (sem ele, a ilha mostra o estúdio
+e o 9 sobe por trás dela). Os cartões e as palavras **somem quando as animações acabam**; o teste das camadas próprias (`flowlayers`)
+ficou pronto mas por correr. No Android as barras do Chrome são opacas: seguem a cena por theme-color (decisão do owner, 7/11).
+
+**A continuação passa para o MacBook (Simulador de iOS): tudo em `docs/development/ios-lab/README.md`** — o que está provado, a
+tentativa (patch), as ferramentas (proxy, painel, páginas de teste, agora no repo), como montar o Simulador e os próximos passos.
+
+**Xiaomi:** as páginas de teste mantêm o ecrã ligado (Wake Lock); o site pelo proxy também, com `?wake` no endereço
+(`http://localhost:3130/?wake`, com `adb reverse tcp:3130`). Toques por adb são recusados pelo MIUI: usar gestos por CDP
+(`Input.synthesizeScrollGesture`). Scripts: `D:\STUDIO-tools\v5-m7\edges-1107\` (`route.mjs`, `jumps.mjs`, `fps.mjs`, `hold.mjs`).
+
+## ▶ COMEÇAR AQUI · 6 de novembro de 2026 — bugs do iPhone registados pelo owner (por corrigir)
+
+**Estado:** branch `v5-cloud-about` em `1cb418c` (puxado a 6/11), sem alterações de código. Servidor `next start -p 3100`, proxy do
+iPhone `http://192.168.1.244:3130` (o IP do PC mudou; já não é `.223`). Nada foi corrigido: o owner pediu primeiro a lista.
+
+**Fonte:** gravação do iPhone do owner, 6/11 17:20, 50 s:
+`D:\STUDIO-tools\v5-m5\ios\out\2026-11-06T17-22-07-ScreenRecording_11-06-2026_17-20-44_1.mp4`. Frames a 2 por segundo, com
+tempo, e os momentos ampliados: `D:\STUDIO-tools\v5-m7\ios-bugs-1106\` (`sheet_01–10.jpg`, `A/B/C.jpg`). O percurso: Work (Experiences)
+→ 7 → recuo ao Work → 7 → 8 → 9 → 10 → 11 → 12 → 13 → recuo ao 11 → 13 → recuo ao 11 → 13 → 14.
+
+**Princípio que orienta todas as correções (owner, 6/11):** no Safari do iOS o site é **totalmente ecrã inteiro** — os elementos ocupam o
+ecrã todo, **incluindo a zona da ilha** e a faixa de baixo — e **nada é fabricado** (nenhuma cor ou faixa inventada para imitar o que
+está desenhado; mostra-se o que está realmente lá, como antes), a menos que seja mesmo necessário. Uma cor "lida" e aplicada à borda é
+fabricada; o preferível é que a própria imagem/cena chegue lá.
+
+**Confirmados pelo owner (a corrigir):**
+
+| # | Tempo | O que se vê | Observação do owner |
+|---|---|---|---|
+| 1 | 0:01.5, 0:04.2, 0:39.2 | A etiqueta da barra muda antes da cena: *02 Method* com o Work ainda no ecrã inteiro; a subir *01 Work* com a luz do Method a cobrir tudo; *02 Method* com o retrato do About à vista. | Correto. |
+| 2 | 0:02.0 | Na passagem Work → 7 aparece um **retângulo cinzento mais claro no canto inferior esquerdo**. A faixa do topo (ilha) fica escura enquanto a luz já atravessa. | O retângulo em baixo é bug. Em cima não é "mudar cedo": a faixa do topo deve **acompanhar a luz do lado que ela já atravessou** e o outro lado continuar como está (ecrã inteiro: a luz passa por trás da ilha como no resto do ecrã). |
+| 3 | 0:19.5 | No 8 → 9, enquanto o cartão de Weddings cresce para ecrã inteiro, *No templates. No copies.* e *Make it yours* ficam visíveis em fantasma sobre a fotografia. | Sim — os tempos têm de ser melhorados (as palavras do 7 saem antes de o cartão as cobrir). |
+| 6 | 0:23.0 | No 10 → 11 a faixa do topo fica escura enquanto a página ainda está bege. | Correto. Os elementos ocupam o ecrã todo, incluindo a ilha; o escuro do 11 deve chegar ao topo porque a cena chega lá, não por uma cor aplicada. |
+| 7 | 0:31.0–31.6, 0:38.3–39.2 | A voltar do 13 para o 12/11, o retrato perde o oval suave e fica um **retângulo de arestas duras** com uma faixa escura por cima, abaixo da barra; depois corta para escuro. | Certo. |
+| 8 | 0:39.2 | Durante esse recuo, *I'm Flávio.* aparece por cima da fotografia, à esquerda. | Sim. |
+| 9 | 0:32.5 → 33.0, 0:40.0 → 41.0 | Ao voltar ao 11, *Made once, for one moment* e os quatro passos aparecem mais acima e descem ~35 px de uma vez (coincide com a barra do Safari a recolher). | Certo. |
+| 10 | 0:45.6 | No 13 → 14 o crédito *Portrait — Helder Couto · Hold for colour* desenha-se sobre a fotografia, que também fica retângulo duro; *I'm Flávio.* sem o itálico por baixo. | Certo. |
+| 11 | 0:46.0–46.5 | A faixa de baixo do Safari fica **cinzenta clara** com a página escura (parece a cor do céu do retrato). | Certo. |
+| 12 | 0:46.5 → 47.0 | O topo do 14 não fica estável: a fotografia ora começa abaixo da barra (topo escuro), ora sobe atrás da ilha; aos 0:47.0 o crédito fica colado à orla da fotografia. | Certo. |
+
+**Não são bugs (owner):** 4 — a passagem 9 → 10 (o *RSVP* e a faixa do título a separarem-se da fotografia): "não vejo problema na
+animação". 5 — o cartão do 10 a chegar com a fotografia e o título meio segundo depois: "está bem".
+
+**Leitura técnica (hipóteses, por confirmar antes de mexer):**
+- 2 (topo), 6, 11, 12 tocam no commit `1cb418c` (`src/lib/top-colour.ts`, `sequence.ts`, `method-stage.ts`, `about-stage.ts`): a borda é
+  uma cor lida e aplicada (um valor por vez em `html`/`body`), por isso não pode acompanhar uma luz que atravessa o topo de um lado só, e
+  no Safari 26+ uma só cor serve o topo e o fundo (11). O caminho do princípio acima é o que funcionou a 1/11 (memória
+  `ios-safari-edge-colour`): as cenas presas sobem atrás da ilha (`--m-lift`, `--a-lift`, 70 px) e o que se vê no topo é a própria cena;
+  a cor de `html`/`body` só como reserva onde a cena não chega.
+- 7, 8, 10, 12 são o palco do About a perder a máscara oval / a ordem das camadas ao recuar e no 13 → 14 (`about-stage.ts`, `about.css`
+  bloco iOS).
+- 9: a frase do 11 medida com uma altura de ecrã que muda com a barra do Safari (`dvh`/`innerHeight`) — ver onde o 11 é centrado ao
+  voltar.
+- 1: a etiqueta segue `data-starts`/a secção em vez da fase visível.
+
+**Ordem proposta para a próxima sessão** (6/11, não começada por falta de orçamento de tokens; nada foi alterado no código):
+1. As bordas (2 topo, 6, 11, 12): decidir primeiro se o `1cb418c` (cores lidas) sai e volta o método de 1/11 — cenas atrás da ilha e até
+   ao fundo, `html`/`body` só como reserva. É a decisão que mais bugs fecha de uma vez.
+2. O retrato do About ao recuar e no 13 → 14 (7, 8, 10).
+3. A frase do 11 ao voltar (9).
+4. Os tempos das palavras do 7 no 8 → 9 (3).
+5. A etiqueta da barra pela fase visível (1) e o retângulo cinzento no Work → 7 (2, em baixo à esquerda).
+Um de cada vez, gravado no iPhone pelo owner antes do seguinte.
+
+**Como verificar cada correção:** gravar no iPhone pelo proxy (o owner) e no Xiaomi + emulação 390×844; o mesmo percurso do vídeo
+(descer e subir devagar em cada costura); frame a frame no instante indicado na tabela.
+
+---
+
 ## 4 de novembro de 2026 — About construído numa sessão na nuvem, branch `v5-cloud-about` (não integrado no `v5`)
 
 **Estado:** o About (estados 12–14) está no branch `v5-cloud-about`, a partir de `ffeec33`; o `v5` não mudou. O owner puxa o branch e

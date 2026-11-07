@@ -305,11 +305,24 @@ export function runStage(about: HTMLElement, release: () => void) {
 
   // ---- holding the stage where it is while the light goes back (the scroll may already have carried the section below its hold) ----
   let letGo = 0
+  // fixed exactly where it is seen (as the Method's, method-stage.ts), less its own margin: on iOS the stage's −70 px margin (the lift)
+  // moved the fixed box up again, and going back from 12 to 11 the portrait and its light jumped 70 px up as the 11 came (owner's
+  // recording, 7 Nov; Simulator: sticky −70 → fixed −140, −58 → −128 on a slow way back; now the same pixel)
+  const hold = () => {
+    if (!about.classList.contains('a-leaving'))
+      stage.style.top = `${(stage.getBoundingClientRect().top - (parseFloat(getComputedStyle(stage).marginTop) || 0)).toFixed(1)}px`
+    about.classList.add('a-leaving')
+  }
+  const unhold = () => {
+    clearTimeout(letGo)
+    about.classList.remove('a-leaving')
+    stage.style.top = ''
+  }
   const holdWhileLeaving = (ms: number) => {
     clearTimeout(letGo)
-    about.classList.add('a-leaving')
+    hold()
     letGo = window.setTimeout(() => {
-      about.classList.remove('a-leaving')
+      unhold()
       dropCopy()
     }, ms)
   }
@@ -476,8 +489,7 @@ export function runStage(about: HTMLElement, release: () => void) {
 
     // 12, from the Method: the passage
     if (to === '12' && (was === 'pre' || was === null) && !instant) {
-      clearTimeout(letGo)
-      about.classList.remove('a-leaving')
+      unhold()
       atStart()
       // the copy only when the Method's 11 is what is seen: reached by a jump (the menu, an address) the Method is elsewhere or still on its
       // way — from its 9 the copy caught its screens in mid-flight, 4 Nov — and the passage starts from the dark room and its light alone
@@ -595,13 +607,11 @@ export function runStage(about: HTMLElement, release: () => void) {
       // the way back is held where it was only while the section is near: carried far up (the Work's smooth scroll to a chapter, a fling)
       // it covered the Work, dark, for its 2 s (menu, About → 01 Work, 4 Nov)
       if (about.classList.contains('a-leaving') && p < -1.2) {
-        clearTimeout(letGo)
-        about.classList.remove('a-leaving')
+        unhold()
         dropCopy()
       }
       if (jumped && phase !== 'pre') {
-        clearTimeout(letGo)
-        about.classList.remove('a-leaving')
+        unhold()
         show('pre', true)
         dropCopy()
         return
@@ -687,5 +697,6 @@ export function runStage(about: HTMLElement, release: () => void) {
     flights.forEach((a) => a.cancel())
     dropCopy()
     about.classList.remove('a-live', 'a-leaving')
+    stage.style.top = ''
   }
 }

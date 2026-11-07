@@ -1668,3 +1668,31 @@ do estúdio a 1920 (592 ms).
 
 **Ferramentas novas (laboratório, nunca no site):** consola remota no proxy (`/__diag/run`), `?autorec=<s>` no painel, `lab6`; tudo em
 `docs/development/ios-lab/README.md` §5b.
+
+## About no iPhone: o fundo depois do 14, o salto do 12 → 11, a foto do 13 mais acima — 7/11, MacBook
+
+**Pedidos do owner (iPhone, 6–7/11):** bug 11 — depois do 14 a faixa de baixo do Safari (e o Questions) cinzenta clara com a página
+escura; ao voltar do 12 para o 11 a imagem salta; no 13 a foto devia subir um pouco ("vê-se pouco da minha foto").
+
+**Causas e o que se fez:**
+- Bug 11: o Questions, o Contact e o colofão (ainda por desenhar, M7) não tinham fundo e mostravam a cor do html, que no iPhone é a cor
+  lida do topo (o céu do retrato) enquanto o About sobe. Fundo carvão próprio nos três (`globals.css`), como já se viam no desktop.
+  (Tentado primeiro: o About pôr carvão fixo nas bordas no iPhone — revertido: se o Safari não desenhar o topo, o céu lido é melhor reserva.)
+- Salto 12 → 11: ao voltar, o palco do About fica `fixed` (`a-leaving`) sem medir onde está, e no iOS a sua margem de −70 px (a subida)
+  somava-se ao `top`: sticky −70 → fixed −140 (Simulador, iPhone 17 Pro; −58 → −128 num regresso lento). `about-stage.ts`: `hold()` fixa
+  o palco no pixel onde está, menos a margem; `unhold()` em todos os sítios onde se larga.
+- Foto do 13: no iPhone pendurada pelo topo (`object-position: 50% 0`), o ecrã mostrava as linhas 70–432 de 602, cortado à cintura.
+  `about.css` (bloco iOS): `50% 35%` → linhas 130–492, até às mãos; os 70 px atrás da ilha continuam o céu da foto. Também o 12 (o mesmo
+  retrato no círculo) mostra mais. Só iOS (no Xiaomi o 13 já mostra assim).
+
+**Medido:** Simulador iOS 27.3 (17 Pro): depois do 14 o Questions carvão, html magenta sem magenta em baixo nem em cima; o regresso
+12 → 11 por código rápido e lento: o palco no mesmo pixel ao fixar (−70 → −70, −58 → −58), gravado fotograma a fotograma sem salto;
+12, 13, 14 vistos com a foto mais acima. Xiaomi (CDP): Questions carvão depois do About; barra do Chrome a seguir o topo. typecheck,
+lint, build: passam.
+**Atenção nos testes:** o Xiaomi num separador do site responde à mesma consola remota do proxy — tirá-lo do site (about:blank) antes de
+testar no Simulador (houve leituras trocadas nesta sessão).
+**iPhone do owner (7/11, noite):** "parece tudo bem" — o regresso 12 → 11 sem salto, a foto do 13 mais acima, sem faixa cinzenta.
+**Desktop:** Chrome 157 (CDP) a 1440 × 900 e 1920 × 1080 e Safari 27.2 (1324 × 888): o regresso 12 → 11 por roda / suave e passo a
+passo — o palco no mesmo pixel ao fixar (0 → 0); 12, 13, 14 como antes (a foto só sobe no iPhone); Questions, Contact e colofão carvão;
+sem overflow.
+**Não verificado:** o bug 12 (topo do 14 instável) não se reproduz no Simulador; o owner não o voltou a referir.

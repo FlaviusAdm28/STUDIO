@@ -344,6 +344,12 @@
     background: transparent;
     pointer-events: none;
   }
+  /* a phone: 13 at 1.1, 14 at 2.2, let go at 2.9 (about-stage.ts STARTS_PHONE; owner, 7 Nov: too fast) */
+  @media (max-width: 899px) {
+    :root[data-js] .about {
+      height: calc(var(--screen) * 4.2);
+    }
+  }
   /* the bar's mark: the About starts where the passage does */
   :root[data-js] .about .a-start {
     display: block;

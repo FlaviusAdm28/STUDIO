@@ -887,10 +887,32 @@
   transform-origin: 50% 50%;
 }
 @media (max-width: 899px) {
-  /* a longer scene on a phone: 6.2 screens, not 4.7, its steps evened out at ~0.8 screen (method-stage.ts STARTS_PHONE), so a
-     finger does not run through the phases (owner, Xiaomi, 3 Nov: "muito rápido") */
+  /* a longer scene on a phone: 7.8 screens (+ the half screen before it and the stage), ~1.1 screen a step (method-stage.ts
+     STARTS_PHONE). 6.2 at ~0.8 a step (3 Nov) still ran too fast under a finger (owner, iPhone, 7 Nov) */
   :root[data-js] .method {
-    height: calc(var(--screen) * 7.7);
+    height: calc(var(--screen) * 9.3);
+  }
+  /* and the scroll stops at each phase as a stroke ends: a stroke, quick or slow, moves one phase (owner, 7 Nov: "às vezes até passo
+     setores sem querer"). The marks are placed by method-stage.ts and about-stage.ts just past each phase's start, with one more at
+     each end (Experiences above, the Questions below). Mandatory, and only while the Method or the About is on stage: proximity let a
+     fling run through three phases before it settled (Xiaomi, CDP flings, 7 Nov); mandatory, one each time, both ways. Native
+     snapping, run by the compositor: no script in the scroll. Kept while the light goes back to the Work (.m-leaving), so a stroke back
+     from 7 comes to rest on Experiences, not halfway up the Work */
+  :root[data-js]:not([data-section='questions'], [data-section='contact']):has(
+      .method:is([data-phase='7'], [data-phase^='8'], [data-phase='9'], [data-phase='10'], [data-phase='11'], .m-leaving),
+      .about:is([data-phase='12'], [data-phase='13'], [data-phase='14'])
+    ) {
+    scroll-snap-type: y mandatory;
+  }
+  :root[data-js] .method .m-snap,
+  :root[data-js] .about .a-snap {
+    position: absolute;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
   /* 3 vh lower than before: room under the bar's islands (owner, 3 Nov, README #102) */
   :root[data-js] .method .m-head {

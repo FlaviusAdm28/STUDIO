@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import type { work } from '@content'
 import { lensMap } from '@/lib/lens'
 import { press } from '@/lib/press'
+import { unsnapped } from '@/lib/unsnapped'
 
 type Props = {
   /** One moment, in seconds: the word fills in this time (#73). */
@@ -938,7 +939,7 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       }
       addEventListener('scrollend', done, { once: true })
       window.setTimeout(done, 1500)
-      scrollTo({ top, behavior: smooth && !reduce ? 'smooth' : 'auto' })
+      unsnapped(() => scrollTo({ top, behavior: smooth && !reduce ? 'smooth' : 'auto' }), 2600)
       return true
     }
     listen(document, 'click', (e) => {

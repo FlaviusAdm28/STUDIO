@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { lensMap } from '@/lib/lens'
 import { press } from '@/lib/press'
 import { landOnAddresses } from '@/lib/address'
+import { unsnapped } from '@/lib/unsnapped'
 
 type Section = { readonly id: string; readonly number: string; readonly label: string }
 type Props = {
@@ -116,7 +117,7 @@ export function BarClient(props: Props) {
     const toTop = (e: MouseEvent) => {
       e.preventDefault()
       history.pushState(null, '', location.pathname + location.search)
-      scrollTo(0, 0)
+      unsnapped(() => scrollTo(0, 0))
     }
     left?.addEventListener('click', toTop)
     cleanups.push(() => left?.removeEventListener('click', toTop))

@@ -10,6 +10,8 @@
 */
 const IDS = ['method', 'about']
 
+import { unsnapped } from '@/lib/unsnapped'
+
 export function landOnAddresses() {
   const mark = (id: string) => {
     const el = document.querySelector<HTMLElement>(`[data-starts="${id}"]`)
@@ -26,7 +28,7 @@ export function landOnAddresses() {
     root.dataset.jump = id
     clearTimeout(unmark)
     unmark = window.setTimeout(() => delete root.dataset.jump, 600)
-    scrollTo({ top: el.getBoundingClientRect().top + scrollY + 1, behavior: 'auto' })
+    unsnapped(() => scrollTo({ top: el.getBoundingClientRect().top + scrollY + 1, behavior: 'auto' }))
     return true
   }
   const onClick = (e: MouseEvent) => {

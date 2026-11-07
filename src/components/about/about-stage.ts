@@ -31,9 +31,14 @@ const LEAD = 0.3
 // a finger is ~0.8 screen (the Method's phone steps, owner 3 Nov): one stroke never runs through two phases
 const STARTS: Record<(typeof ORDER)[number], number> = { '12': 0, '13': 1, '14': 1.7 }
 const RELEASE = 2.3
+// on a phone ~1.1 screen a phase, as the Method's, the scroll stopping at each, and every animation a quarter slower (owner, iPhone,
+// 7 Nov: too fast, phases passed without meaning to); about.css: the section's height
+const STARTS_PHONE: Record<(typeof ORDER)[number], number> = { '12': 0, '13': 1.1, '14': 2.2 }
+const RELEASE_PHONE = 2.9
+const PHONE_TEMPO = 1.25
 const BAND = 0.025
 // 12 is played whole: reached, 13 waits for it; only this close to the end of the hold does it hurry, so it is never let go unfinished
-const HURRY_AT = RELEASE - 0.25
+const HURRY_BEFORE = 0.25
 const HURRY_MS = 400
 
 const EASE = 'cubic-bezier(0.2, 0.7, 0.2, 1)'
@@ -86,6 +91,32 @@ export function runStage(about: HTMLElement, release: () => void) {
 
   let phase: Phase | null = null
   let kind: 'desk' | 'phone' = innerWidth >= 900 ? 'desk' : 'phone'
+  const tempoOf = () => (kind === 'phone' ? PHONE_TEMPO : 1)
+  const startsOf = () => (kind === 'phone' ? STARTS_PHONE : STARTS)
+  const hurryAt = () => (kind === 'phone' ? RELEASE_PHONE : RELEASE) - HURRY_BEFORE
+  // the scroll stops at each phase on a phone (about.css, method.css .a-snap): one mark a phase, just past its start and the dead band
+  let marks: HTMLElement[] = []
+  const placeMarks = () => {
+    if (kind !== 'phone') {
+      marks.forEach((m) => m.remove())
+      marks = []
+      return
+    }
+    // the phases, and the way out below: the Questions at the screen's top (the section's end)
+    const tops = [...Object.values(STARTS_PHONE).map((share) => (LEAD + share + BAND * 2.4) * H), about.offsetHeight]
+    tops.forEach((y, i) => {
+      let m = marks[i]
+      if (!m) {
+        m = document.createElement('div')
+        m.className = 'a-snap'
+        m.setAttribute('aria-hidden', 'true')
+        about.append(m)
+        marks[i] = m
+      }
+      const top = `${Math.round(y)}px`
+      if (m.style.top !== top) m.style.top = top
+    })
+  }
   // the stage's own screen: on iOS it reaches 70 px above it (about.css --a-lift), and everything is placed under that
   const lift = () => parseFloat(getComputedStyle(stage).paddingTop) || 0
   let H = stage.offsetHeight - lift() || innerHeight
@@ -173,7 +204,8 @@ export function runStage(about: HTMLElement, release: () => void) {
       flights.get(el)?.cancel()
       flights.delete(el)
       if (instant || f.instant) return settle(el, to)
-      const a = el.animate(f.frames ?? [starts[i] ?? {}, to], { duration: ms, delay, easing: f.frames ? 'linear' : easing, fill: 'both' })
+      const t = tempoOf()
+      const a = el.animate(f.frames ?? [starts[i] ?? {}, to], { duration: ms * t, delay: delay * t, easing: f.frames ? 'linear' : easing, fill: 'both' })
       flights.set(el, a)
       a.onfinish = () => {
         settle(el, to)
@@ -233,7 +265,7 @@ export function runStage(about: HTMLElement, release: () => void) {
         el.style.transform = 'none'
       })
       pt.setAttribute('data-open', '')
-    }, after)
+    }, after * tempoOf())
   }
   const closeFromOpen = () => {
     // back from the open photograph: the same picture as scales, then the mask comes back (seen the same)
@@ -287,14 +319,16 @@ export function runStage(about: HTMLElement, release: () => void) {
     copyAnims.forEach((a) => a.cancel())
     copyAnims = LEAVE.flatMap(([sel, gone, ms, delay]) => {
       const el = q(sel, clone)
-      return el ? [el.animate([{ opacity: rest(el), transform: 'none' }, { opacity: 0, transform: gone }], { duration: ms, delay, easing: EASE, fill: 'both' })] : []
+      const t = tempoOf()
+      return el ? [el.animate([{ opacity: rest(el), transform: 'none' }, { opacity: 0, transform: gone }], { duration: ms * t, delay: delay * t, easing: EASE, fill: 'both' })] : []
     })
   }
   const wordsBack = (clone: HTMLElement, at: number) => {
     copyAnims.forEach((a) => a.cancel())
     copyAnims = LEAVE.flatMap(([sel, gone, ms, , back]) => {
       const el = q(sel, clone)
-      return el ? [el.animate([{ opacity: 0, transform: gone }, { opacity: rest(el), transform: 'none' }], { duration: ms, delay: at + back, easing: EASE, fill: 'both' })] : []
+      const t = tempoOf()
+      return el ? [el.animate([{ opacity: 0, transform: gone }, { opacity: rest(el), transform: 'none' }], { duration: ms * t, delay: (at + back) * t, easing: EASE, fill: 'both' })] : []
     })
   }
   const dropCopy = () => {
@@ -324,7 +358,7 @@ export function runStage(about: HTMLElement, release: () => void) {
     letGo = window.setTimeout(() => {
       unhold()
       dropCopy()
-    }, ms)
+    }, ms * tempoOf())
   }
   let passageEnds = 0
 
@@ -418,7 +452,7 @@ export function runStage(about: HTMLElement, release: () => void) {
       edgeLater = 0
       put()
       if (!follow) return
-      const until = performance.now() + follow
+      const until = performance.now() + follow * tempoOf()
       edgeFollow = window.setInterval(() => {
         put()
         if (performance.now() < until) return
@@ -426,7 +460,7 @@ export function runStage(about: HTMLElement, release: () => void) {
         edgeFollow = 0
       }, 100)
     }
-    if (delay) edgeLater = window.setTimeout(go, delay)
+    if (delay) edgeLater = window.setTimeout(go, delay * tempoOf())
     else go()
   }
   // the portrait's colour changes the top too (its sky, the room): once it is mostly there
@@ -450,7 +484,7 @@ export function runStage(about: HTMLElement, release: () => void) {
   const seen = (on: boolean, after = 0) => {
     clearTimeout(seenLater)
     const put = () => (on ? (about.dataset.seen = '') : delete about.dataset.seen)
-    if (after) seenLater = window.setTimeout(put, after)
+    if (after) seenLater = window.setTimeout(put, after * tempoOf())
     else put()
   }
   const show = (to: Phase, instant = false) => {
@@ -515,7 +549,7 @@ export function runStage(about: HTMLElement, release: () => void) {
         fly(frame, { opacity: '1' }, 1700, 700, 'cubic-bezier(0.33, 0, 0.2, 1)'),
         fly(name, { opacity: '0.92' }, 1000, 2000),
       ])
-      passageEnds = performance.now() + 3000
+      passageEnds = performance.now() + 3000 * tempoOf()
       dropLater(3100)
       return
     }
@@ -596,7 +630,7 @@ export function runStage(about: HTMLElement, release: () => void) {
   let dropTimer = 0
   const dropLater = (ms: number) => {
     clearTimeout(dropTimer)
-    dropTimer = window.setTimeout(() => phase !== 'pre' && dropCopy(), ms)
+    dropTimer = window.setTimeout(() => phase !== 'pre' && dropCopy(), ms * tempoOf())
   }
 
   // ---- the phase under the scroll, once a frame, with the dead band; 12's passage is played whole ----
@@ -632,15 +666,17 @@ export function runStage(about: HTMLElement, release: () => void) {
       return
     }
     let at: (typeof ORDER)[number] = '12'
-    ORDER.forEach((ph) => p >= STARTS[ph] && (at = ph))
+    ORDER.forEach((ph) => p >= startsOf()[ph] && (at = ph))
     if (phase === null) return show(at, true)
     if (jumped && at !== '12') return at !== phase && show(at, true)
     if (phase === 'pre') return show(at === '12' ? '12' : at)
     const cur = ORDER.indexOf(phase as (typeof ORDER)[number])
     const nxt = ORDER.indexOf(at)
     if (phase === '12' && nxt > cur && performance.now() < passageEnds) {
-      // the passage first: 13 answers once it has ended; only near the end of the hold is it hurried
-      if (p >= HURRY_AT) {
+      // the passage first: 13 answers once it has ended; only near the end of the hold is it hurried. On a phone a stroke rests on the
+      // next phase's mark (the snap), so reaching 13 is asked for: hurried at once — waiting the passage's 3.75 s there, a scroll went
+      // on through 13 and 14 to the Questions with 12 still on stage (Xiaomi journey, 7 Nov)
+      if (p >= hurryAt() || (kind === 'phone' && p >= startsOf()['13'] + BAND)) {
         hurry()
         passageEnds = Math.min(passageEnds, performance.now() + HURRY_MS)
       }
@@ -650,9 +686,9 @@ export function runStage(about: HTMLElement, release: () => void) {
     }
     if (nxt > cur) {
       let far = cur
-      ORDER.forEach((ph, i) => i > cur && p >= STARTS[ph] + BAND && (far = i))
+      ORDER.forEach((ph, i) => i > cur && p >= startsOf()[ph] + BAND && (far = i))
       if (far !== cur) show(ORDER[far])
-    } else if (nxt < cur && p < STARTS[ORDER[cur]] - BAND) show(at)
+    } else if (nxt < cur && p < startsOf()[ORDER[cur]] - BAND) show(at)
     edgeOnScroll()
   }
   let raf = 0
@@ -668,7 +704,7 @@ export function runStage(about: HTMLElement, release: () => void) {
   const onFocus = () => {
     if (phase === '14') return
     requestAnimationFrame(() =>
-      scrollTo({ top: scrollY + about.getBoundingClientRect().top + (LEAD + STARTS['14'] + 0.08) * H, behavior: 'auto' }),
+      scrollTo({ top: scrollY + about.getBoundingClientRect().top + (LEAD + startsOf()['14'] + 0.08) * H, behavior: 'auto' }),
     )
   }
   stage.addEventListener('focusin', onFocus)
@@ -679,10 +715,12 @@ export function runStage(about: HTMLElement, release: () => void) {
     if (innerWidth === sized && Math.abs((stage.offsetHeight - lift() || innerHeight) - H) < 120) return
     sized = innerWidth
     measure()
+    placeMarks()
     if (phase && phase !== 'pre') show(phase, true)
   }
 
   measure()
+  placeMarks()
   about.classList.add('a-live')
   choose()
   addEventListener('scroll', frameChoose, { passive: true })
@@ -698,6 +736,7 @@ export function runStage(about: HTMLElement, release: () => void) {
     clearTimeout(edgeLater)
     clearInterval(edgeFollow)
     clearTimeout(seenLater)
+    marks.forEach((m) => m.remove())
     colourWatch.disconnect()
     delete about.dataset.edge
     delete about.dataset.seen

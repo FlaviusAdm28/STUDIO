@@ -1720,3 +1720,28 @@ confirmado antes.
 **Medido (percurso inteiro):** etiqueta ≠ cena só nos primeiros 5–14 ms (antes de a barra ter texto) — Simulador, Xiaomi, Chrome 1440 e
 1920, Safari. fps: Simulador 57 (Mac a desenhar), Xiaomi 84,6–86,2, Chrome 118,5–119,5, Safari 59,7. typecheck, lint, build: passam.
 **Não verificado:** o iPhone do owner com dedo depois destas duas correções.
+
+## Telemóvel: o Method e o About mais lentos e o scroll a parar em cada fase — 7/11, MacBook
+
+**Pedido do owner (iPhone, 7/11):** "os tempos de animações e scroll no Method estão rápidos demais, especialmente em mobile; às vezes passo
+setores sem querer" — do início do Method ao fim do About, nos dois sentidos. Escolha do owner: afinar + parar em cada fase; só telemóvel.
+
+**Feito (só `max-width: 899px`, com movimento):**
+- Fases mais longas: Method ~1,1 ecrã por passo (8a 1,5 · 8b 2,6 · 8c 3,7 · 9 4,8 · 10 5,9 · 11 7,0; cena 7,8; secção 9,3 ecrãs);
+  About 13 em 1,1, 14 em 2,2, solto em 2,9 (secção 4,2). As relações entre os dois mantêm-se (a passagem do About meio ecrã depois do 11).
+- Animações ×1,25: todas as do Method e do About (voos, luz, derrame, empurrão da foto, cursor, cópia do 11), e os relógios ligados a
+  elas (bordas, etiqueta, fim das passagens, saídas).
+- O scroll pára em cada fase: marcas (`.m-snap`, `.a-snap`) um pouco depois do início de cada fase e da banda morta, mais uma em
+  Experiences (por cima) e uma no Questions (por baixo); `scroll-snap-type: y mandatory` + `scroll-snap-stop: always` só enquanto o
+  Method ou o About estão em cena (ou a luz a recuar) — `:has()` em `method.css`. `proximity` foi tentado: um gesto rápido passava 3 fases.
+- Saltos do site (menu, endereços, nome da barra, capítulos do Work): `src/lib/unsnapped.ts` desliga a paragem durante o salto (com ela,
+  um salto para o Work aterrava em Experiences).
+- No telemóvel, chegar ao 13 durante a passagem do 12 apressa-a (antes esperava 3,75 s e o scroll seguia até ao Questions).
+
+**Medido:** Xiaomi (CDP, gestos de toque rápidos `speed 3000`): cada gesto avança exatamente uma fase, para a frente e para trás,
+do 7 ao 14; para trás do 7 pára em Experiences; para a frente do 14 pára no Questions; no Work o scroll fica livre; percurso inteiro
+89 fps, etiqueta certa. Simulador iOS 27.3: o Safari aplica a paragem (`y mandatory`); menu → Work, nome → topo, menu → Method aterram
+certos; percurso inteiro com a etiqueta sempre certa e o 13 logo a seguir ao 12. Safari desktop: sem marcas, sem paragem, tempos como
+antes. typecheck, lint, build: passam.
+**Não verificado:** o dedo no iPhone do owner (a paragem com inércia real do iOS) — é o veredicto; o Xiaomi depois das duas últimas
+correções (adormeceu; as correções só tocam em saltos e na passagem do 12).

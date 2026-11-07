@@ -37,18 +37,21 @@ const STARTS: Record<Exclude<Phase, 'pre'>, number> = {
   '10': 0.691,
   '11': 0.83,
 }
-// On a phone (scene 6.2 screens, method.css): the steps evened out at ~0.8 screen — 8a to 8c were 0.57 each and one stroke of a finger
-// ran through two (owner, Xiaomi, 3 Nov). In screens: 8a 1.3, 8b 2.1, 8c 2.9, 9 3.7, 10 4.55, 11 5.4
-const PHONE_SCENE = 6.2
+// On a phone (scene 7.8 screens, method.css): ~1.1 screen a step, and the scroll stops at each phase (the snap marks below). At ~0.8
+// screen (3 Nov) a quick stroke still ran through phases, and the scene moved too fast (owner, iPhone, 7 Nov: "às vezes até passo setores
+// sem querer"). In screens: 8a 1.5, 8b 2.6, 8c 3.7, 9 4.8, 10 5.9, 11 7.0
+const PHONE_SCENE = 7.8
 const STARTS_PHONE: Record<Exclude<Phase, 'pre'>, number> = {
   '7': 0,
-  '8a': 1.3 / PHONE_SCENE,
-  '8b': 2.1 / PHONE_SCENE,
-  '8c': 2.9 / PHONE_SCENE,
-  '9': 3.7 / PHONE_SCENE,
-  '10': 4.55 / PHONE_SCENE,
-  '11': 5.4 / PHONE_SCENE,
+  '8a': 1.5 / PHONE_SCENE,
+  '8b': 2.6 / PHONE_SCENE,
+  '8c': 3.7 / PHONE_SCENE,
+  '9': 4.8 / PHONE_SCENE,
+  '10': 5.9 / PHONE_SCENE,
+  '11': 7.0 / PHONE_SCENE,
 }
+// and every animation a quarter slower on a phone (the same owner's note): durations and delays, and the timers tied to them
+const PHONE_TEMPO = 1.25
 const BAND = 0.025
 // the stage is held this many screens before the scene starts (method.css): the light comes and goes on a stage already held
 const LEAD = 0.5
@@ -215,6 +218,10 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   let ARF = 9 / 19.5
   let LVH = 0
   let lift = 0
+  let tempo = 1
+  // On a phone the scroll stops at each phase as a stroke ends (scroll-snap-stop, method.css): one mark a phase, placed just past its
+  // start and the dead band, so where the scroll rests is that phase. Native: the compositor stops the fling, no script in the scroll
+  let marks: HTMLElement[] = []
   // iOS: the held stage is drawn behind Safari's island and under its bar (method.css, the iOS block), so the edges' colour shows there
   // only over the Work, where the light has not come yet (setEdge's moments below)
   let reaches = false
@@ -238,7 +245,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     flights.delete(el)
     const settle = () => Object.entries(to).forEach(([p, v]) => el.style.setProperty(p, String(v)))
     if (instant) return settle()
-    const a = el.animate([f.from ?? {}, to], { duration, delay, easing: f.easing ?? EASE, fill: 'both' })
+    const a = el.animate([f.from ?? {}, to], { duration: duration * tempo, delay: delay * tempo, easing: f.easing ?? EASE, fill: 'both' })
     flights.set(el, a)
     a.onfinish = () => {
       settle()
@@ -284,6 +291,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     // on iOS the stage reaches 70 px above the screen (method.css --m-lift): every measure against it is of the screen under that
     lift = parseFloat(getComputedStyle(section).getPropertyValue('--m-lift')) || 0
     reaches = lift > 0
+    tempo = kind === 'phone' ? PHONE_TEMPO : 1
     LVH = Math.max(H, stage.offsetHeight - lift)
     // the cards in the stage's shape, as before; the whole screen of 9 fills it (README #101, #103). A 9 : 16 card was tried and turned back
     // (owner, iPhone, 3 Nov: too short)
@@ -405,7 +413,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
       if (!ph) return
       const base = getComputedStyle(ph).transform
       const from = base === 'none' ? '' : base
-      push = ph.animate([{ transform: from || 'none' }, { transform: `${from} scale(${PUSH})` }], { duration: PUSH_MS, easing: IN_OUT, fill: 'both' })
+      push = ph.animate([{ transform: from || 'none' }, { transform: `${from} scale(${PUSH})` }], { duration: PUSH_MS * tempo, easing: IN_OUT, fill: 'both' })
       const mine = push
       mine.onfinish = () => {
         // finished going back: let go
@@ -430,7 +438,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
           mine.cancel()
           push = null
         }
-      }, BACK_MS + 400)
+      }, (BACK_MS + 400) * tempo)
       return
     }
     push.updatePlaybackRate(on ? 1 : -PUSH_MS / BACK_MS)
@@ -464,10 +472,13 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     stage.style.top = on ? `${(Math.max(0, section.getBoundingClientRect().top) - lift).toFixed(1)}px` : ''
     section.classList.toggle('m-leaving', on)
     if (on)
-      letGo = window.setTimeout(() => {
-        section.classList.remove('m-leaving')
-        stage.style.top = ''
-      }, BACK_MS + 300)
+      letGo = window.setTimeout(
+        () => {
+          section.classList.remove('m-leaving')
+          stage.style.top = ''
+        },
+        (BACK_MS + 300) * tempo,
+      )
   }
 
   // the words of 7 and 8: the two lines of the thesis, then the thesis stepping back and Make it yours coming forward. Before the
@@ -499,7 +510,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     blink =
       caret?.animate(
         [{ opacity: 1 }, { opacity: 1, offset: 0.5 }, { opacity: 0, offset: 0.5 }, { opacity: 0 }],
-        { duration: 1060, iterations: 4, delay },
+        { duration: 1060, iterations: 4, delay: delay * tempo },
       ) ?? null
   }
 
@@ -521,9 +532,9 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
       }
       if (!ms) return settle()
       const now = getComputedStyle(el)
-      const tr = el.animate([{ transform: fromP ? fromP[i] : now.transform }, { transform: toP[i] }], { duration: ms, easing, fill: 'both' })
+      const tr = el.animate([{ transform: fromP ? fromP[i] : now.transform }, { transform: toP[i] }], { duration: ms * tempo, easing, fill: 'both' })
       // seen at once as it leaves, kept to its end, then as asked
-      const op = el.animate([{ opacity: '1' }, { opacity: '1', offset: 0.97 }, { opacity: seen }], { duration: ms, fill: 'both' })
+      const op = el.animate([{ opacity: '1' }, { opacity: '1', offset: 0.97 }, { opacity: seen }], { duration: ms * tempo, fill: 'both' })
       spillAnims.push(tr, op)
       op.onfinish = () => {
         settle()
@@ -655,13 +666,13 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
       edgeLater = 0
       put()
       if (!follow) return
-      const until = performance.now() + follow
+      const until = performance.now() + follow * tempo
       edgeFollow = window.setInterval(() => {
         put()
         if (performance.now() > until) clearInterval(edgeFollow)
       }, 100)
     }
-    if (delay) edgeLater = window.setTimeout(go, delay)
+    if (delay) edgeLater = window.setTimeout(go, delay * tempo)
     else go()
   }
 
@@ -680,8 +691,8 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     // for the bar's words (bar-client.tsx): the Method is seen once the light has crossed the middle of the screen's top, and until it
     // leaves it going back — at phase 7 alone the bar said 02 Method over the whole Work for half a second (Simulator, 7 Nov)
     clearTimeout(seenLater)
-    if (passage) seenLater = window.setTimeout(() => (section.dataset.seen = ''), reachAt(W / 2, 0))
-    else if (goingBack) seenLater = window.setTimeout(() => delete section.dataset.seen, leaveAt(W / 2, 0))
+    if (passage) seenLater = window.setTimeout(() => (section.dataset.seen = ''), reachAt(W / 2, 0) * tempo)
+    else if (goingBack) seenLater = window.setTimeout(() => delete section.dataset.seen, leaveAt(W / 2, 0) * tempo)
     else if (next === 'pre') delete section.dataset.seen
     else section.dataset.seen = ''
     const n = cards.length
@@ -744,7 +755,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
       fly(head, { opacity: '1' }, 0, 0, true)
       wordsFound(lines.map((l) => reachAt(...midOf(l))))
       blinkCaret(ASK_AT + 750)
-      passageEnds = performance.now() + ASK_AT + 750
+      passageEnds = performance.now() + (ASK_AT + 750) * tempo
       hurried = false
     } else if (goingBack) {
       fly(head, { opacity: '0' }, 400)
@@ -788,6 +799,28 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   const sceneTop = () => section.getBoundingClientRect().top + lead()
   const sceneTravel = () => section.offsetHeight - (stage.offsetHeight - lift) - lead()
   const starts = () => (kind === 'phone' ? STARTS_PHONE : STARTS)
+  const placeMarks = () => {
+    if (kind !== 'phone') {
+      marks.forEach((m) => m.remove())
+      marks = []
+      return
+    }
+    const travel = sceneTravel()
+    // the phases, and the way out above: Experiences again, a third of a screen before the scene (where a stroke back comes to rest)
+    const tops = [...Object.values(STARTS_PHONE).map((share) => lead() + (share + BAND * 1.6) * travel), lead() - 0.3 * H]
+    tops.forEach((y, i) => {
+      let m = marks[i]
+      if (!m) {
+        m = document.createElement('div')
+        m.className = 'm-snap'
+        m.setAttribute('aria-hidden', 'true')
+        section.append(m)
+        marks[i] = m
+      }
+      const top = `${Math.round(y)}px`
+      if (m.style.top !== top) m.style.top = top
+    })
+  }
   const choose = (): void => {
     const STARTS = starts()
     const top = sceneTop()
@@ -853,6 +886,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   cleanups.push(() => ahead.disconnect())
 
   measure()
+  placeMarks()
   placeKey()
   section.classList.add('m-live')
   choose()
@@ -865,6 +899,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     if (`${innerWidth}` === sized && Math.abs(window.innerHeight - H) < 120) return
     sized = `${innerWidth}`
     measure()
+    placeMarks()
     placeKey()
     if (phase) show(phase, true)
   }
@@ -893,6 +928,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     clearTimeout(edgeLater)
     clearInterval(edgeFollow)
     clearTimeout(seenLater)
+    marks.forEach((m) => m.remove())
     delete section.dataset.edge
     delete section.dataset.seen
     cleanups.forEach((c) => c())

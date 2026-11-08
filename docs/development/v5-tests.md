@@ -1800,3 +1800,11 @@ segunda".
 - **Medido:** Chrome 1728 × 913, gestos de 400 px: uma fase por gesto de Experiences ao 14 e de volta a Experiences. Xiaomi, gestos de toque:
   uma fase por gesto de Experiences ao Questions e de volta. Simulador iOS: os dois casos acima. typecheck, lint, build: passam.
 - **Não verificado:** Safari do Mac com trackpad real; o iPhone do owner com dedo.
+
+## Telemóvel de volta ao `ad808d9`, desktop como em `addc06d` — 8/11 (por validar)
+
+**Owner (iPhone, 8/11):** com o `addc06d` "ficou simplesmente partido o Method de novo" (vídeo enviado, por analisar); o desktop está
+aprovado. Pedido: voltar atrás no telemóvel, documentar, validar no iOS e só então commit e push; o "ficar preso" investiga-se na próxima
+sessão. Feito: no telemóvel `data-near` até 0,7 ecrã, a passagem do 7 apressada por um gesto e a regra da paragem de `ad808d9`
+(`@media (max-width: 899px)`, com `.m-leaving`); no desktop a regra nova (`@media (min-width: 900px)`). typecheck, lint, build: passam.
+**Não verificado nesta reversão** (o owner teve de sair): Xiaomi, Simulador, iPhone — o owner valida no iPhone.

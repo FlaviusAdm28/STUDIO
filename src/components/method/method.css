@@ -892,11 +892,24 @@
    fling run through three phases before it settled (Xiaomi, CDP flings, 7 Nov); mandatory, one each time, both ways. Native
    snapping, run by the compositor: no script in the scroll. Not while the light goes back to the Work: held then, a stroke up at
    Experiences was pulled back to its mark (owner, iOS, 7 Nov: "fica preso no Experiences") */
-:root[data-js]:is([data-section='work'], [data-section='method']):has(
-    .method:is([data-phase='7'], [data-phase^='8'], [data-phase='9'], [data-phase='10'], [data-phase='11'], [data-near])
-  ),
-:root[data-js][data-section='about']:has(.about:is([data-phase='12'], [data-phase='13'], [data-phase='14']):not([data-free])) {
-  scroll-snap-type: y mandatory;
+/* a desktop (approved, owner, 8 Nov) */
+@media (min-width: 900px) {
+  :root[data-js]:is([data-section='work'], [data-section='method']):has(
+      .method:is([data-phase='7'], [data-phase^='8'], [data-phase='9'], [data-phase='10'], [data-phase='11'], [data-near])
+    ),
+  :root[data-js][data-section='about']:has(.about:is([data-phase='12'], [data-phase='13'], [data-phase='14']):not([data-free])) {
+    scroll-snap-type: y mandatory;
+  }
+}
+/* a phone: as in ad808d9 (owner, 8 Nov: the split by section broke iOS; back to this until it is looked at again). Kept while the light
+   goes back to the Work (.m-leaving); on iOS a quick way back can stick at Experiences with this (owner, 7 Nov) — see the handoff */
+@media (max-width: 899px) {
+  :root[data-js]:not([data-section='questions'], [data-section='contact']):has(
+      .method:is([data-phase='7'], [data-phase^='8'], [data-phase='9'], [data-phase='10'], [data-phase='11'], .m-leaving, [data-near]),
+      .about:is([data-phase='12'], [data-phase='13'], [data-phase='14'])
+    ) {
+    scroll-snap-type: y mandatory;
+  }
 }
 :root[data-js] .method .m-snap,
 :root[data-js] .about .a-snap {

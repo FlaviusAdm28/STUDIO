@@ -832,7 +832,9 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     // on only at 7, a stroke ran through it to 8a and the light's passage was cut (Xiaomi, CDP strokes, 7 Nov)
     // Only below the mark of Experiences (0.3 screen above): up to 0.7 screen it held that mark too, the only one there, and every stroke
     // up was pulled back to it — the page stuck dark at Experiences (owner, iPhone, 7 Nov; Simulator: 400 px up, not a pixel moved)
-    const near = top > 0 && top < 0.2 * H
+    // A phone keeps 0.7 screen (as in ad808d9) until the owner's iPhone has been looked at again: changed with the rest of addc06d, iOS
+    // broke (owner, 8 Nov); the "stuck at Experiences" it fixed comes back there — see the handoff
+    const near = top > 0 && top < (kind === 'phone' ? 0.7 : 0.2) * H
     if (near !== 'near' in section.dataset) {
       if (near) section.dataset.near = ''
       else delete section.dataset.near
@@ -861,6 +863,8 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
       // the passage is played whole: 8 answers once it has ended. Hurried by a scroll onwards (0.3 s, 3 Nov), the light was cut and 8a came
       // at once — with the stop at each phase a stroke onwards is not a wish to skip it (owner, iPhone, 7 Nov). The keyboard still hurries it
       if (phase === '7' && performance.now() < passageEnds) {
+        // a phone still hurries it (as in ad808d9), until its iPhone is looked at again (owner, 8 Nov)
+        if (kind === 'phone') hurry()
         return later(passageEnds - performance.now() + 20)
       }
       let far = cur

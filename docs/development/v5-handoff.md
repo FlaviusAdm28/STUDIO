@@ -1,5 +1,46 @@
 # Chapter One V5 — handoff
 
+## ▶ COMEÇAR AQUI · 8 de novembro de 2026 — o telemóvel de volta ao `ad808d9` (por validar no iOS); desktop aprovado
+
+**Estado (não commitado):** branch `v5-cloud-about`, último commit `addc06d`. Por cima dele, na árvore de trabalho, o **telemóvel volta
+ao comportamento de `ad808d9`** e o **desktop fica como em `addc06d`** (aprovado pelo owner, 8/11). Ficheiros: `method-stage.ts` (no
+telemóvel `data-near` até 0,7 ecrã e a passagem do 7 volta a ser apressada por um gesto; no desktop 0,2 e sem apressar) e `method.css`
+(a regra da paragem separada: `@media (min-width: 900px)` a nova, por secção e com `data-free`; `@media (max-width: 899px)` a de
+`ad808d9`, com `.m-leaving`). Build feita e servidor a correr (`next start -p 3100`, proxy 3130); typecheck e lint passam.
+
+**Próximos passos, por ordem:**
+1. **O owner valida o iOS** (`http://192.168.1.7:3130/`): deve estar como antes do `addc06d` ("as transições com pausa estão bem").
+   Se sim: registar em `v5-tests.md`, **commit** e o owner faz **push** (GitHub Desktop; a linha de comandos do Mac não tem a sessão do
+   FlaviusAdm28). Commits de 7/11 ainda por enviar: `34b0f73` … `addc06d`.
+2. **Investigar no iOS, sem estragar o resto** (ficaram de volta no telemóvel):
+   - **Preso em Experiences** ao voltar depressa pelo Method: a paragem (`scroll-snap-type: y mandatory`) fica ligada em Experiences
+     (`data-near` até 0,7 ecrã e `.m-leaving` enquanto a luz recua) e a marca de Experiences é a única ali → cada gesto para cima volta a
+     ela. Reproduzido no Simulador (400 px para cima, 0 px). A correção do `addc06d` (near 0,2, sem `.m-leaving`, regra por secção)
+     resolveu-o no Simulador e no Xiaomi, mas **partiu o Method no iPhone do owner** (vídeo
+     `docs/development/ios-lab/out/2026-11-08T00-16-21-ScreenRecording_11-08-2026_00-15-47_1.mp4` — por analisar; a pasta `out/` é ignorada pelo git, o vídeo só existe neste Mac). Suspeitas: a regra por `data-section`
+     (o `data-section` do iOS muda com a barra/IntersectionObserver e pode desligar a paragem a meio), ou a passagem sem apressar.
+     Testar uma coisa de cada vez no iPhone.
+   - **A passagem da luz cortada:** um gesto durante a passagem do 7 apressa-a (0,3 s) e salta para o 8a.
+3. Depois: Questions e Contact (M7), validação final (M8).
+
+**Bugs relatados pelo owner e ainda em aberto (8/11, por esta ordem de prioridade):**
+
+| # | Onde | O que o owner viu | O que se sabe |
+|---|---|---|---|
+| A | iOS, telemóvel | A andar rápido para trás pelo Method, **fica preso em Experiences** (escuro) e não volta mais para trás, mesmo com scroll. | Reproduzido no Simulador: a paragem por fase fica ligada em Experiences e a única marca ali puxa cada gesto de volta. Corrigido no `addc06d` (Simulador e Xiaomi OK), mas no iPhone isso partiu o Method (C) e foi revertido no telemóvel. |
+| B | iOS, telemóvel | De Experiences para o Method, rápido e a continuar o scroll: **a passagem da luz (7) é cortada** e vai logo para o 8a. | Um gesto durante a passagem apressa-a (0,3 s, regra de 3/11). No `addc06d` deixou de apressar (o 8a espera a luz); revertido no telemóvel com o resto. |
+| C | iOS, telemóvel | Com o `addc06d`, "ficou simplesmente partido o Method de novo". | Vídeo `docs/development/ios-lab/out/2026-11-08T00-16-21-ScreenRecording_11-08-2026_00-15-47_1.mp4` (só neste Mac), por analisar. Suspeitas: a regra da paragem por `data-section` (no iOS pode mudar a meio do gesto e desligar/ligar a paragem), a passagem sem apressar, o `data-free` do About. |
+| D | telemóvel | "Temos um passo a mais no mobile, no storyboard não é assim." | O 8 do storyboard é um estado; no site são três passos (8a, 8b, 8c: uma folha de cada vez), e com a paragem por fase são três paragens. Proposta feita e ainda sem resposta: o 8 numa só paragem, as três folhas a levantarem-se seguidas. |
+| E | todos | (por confirmar) As lentidões que já existiam: ~100–120 ms ao disparar o 7 no Xiaomi; ~105 ms ao passar o O da entrada no Safari; a 1.ª descodificação do estúdio a 1920 (592 ms). | Medidos em 7/11; não são regressões. |
+
+Resolvidos e aprovados em 7/11: as bordas da ilha no Method e no About; a entrada à espera do vídeo; os bugs 1–3 e 6–12 de 6/11; o
+ecrã em destaque sempre o do casamento (#105); no desktop o 11 e o 10 sem passar, a capa do 10 sem risco, a paragem por fase (aprovado).
+
+**Ferramentas desta sessão (Mac):** consola remota (`curl --data-binary 'js' localhost:3130/__diag/run`), `?autorec=<s>`, `lab6`; scripts
+no scratchpad da sessão (temporários): `journey.js` (percurso inteiro com fita), `xi/trans.mjs` + `xi/ssim.sh` (comparação transição a
+transição entre duas builds), `xi/strokes.json` (gestos de toque no Xiaomi por CDP), `xi/wheel.mjs` (gestos de trackpad no Chrome).
+Tudo descrito em `docs/development/ios-lab/README.md` §5b e em `v5-tests.md` (secções de 7/11).
+
 ## ▶ COMEÇAR AQUI · 7 de novembro de 2026, noite (MacBook) — bordas do Method no iPhone: palco preso + espelho; entrada espera o vídeo
 
 **Estado:** sem commit. Alterado: `method.css` (bloco iOS: `.m-mirror` no lugar do `-webkit-box-reflect`), `method.tsx` (o `.m-mirror`),

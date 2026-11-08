@@ -28,7 +28,16 @@ export function landOnAddresses() {
     root.dataset.jump = id
     clearTimeout(unmark)
     unmark = window.setTimeout(() => delete root.dataset.jump, 600)
-    unsnapped(() => scrollTo({ top: el.getBoundingClientRect().top + scrollY + 1, behavior: 'auto' }))
+    // on a phone, on the first phase's mark (the stop at each phase, method.css): landed at the start, the next stroke only took the page
+    // to the mark, the phase unchanged (03 About, Simulator, 8 Nov)
+    const at = el.getBoundingClientRect().top
+    const first = matchMedia('(max-width: 899px)').matches
+      ? [...(el.closest('section')?.querySelectorAll<HTMLElement>('.m-snap, .a-snap') ?? [])]
+          .map((m) => m.getBoundingClientRect().top)
+          .filter((t) => t >= at - 1)
+          .sort((a, b) => a - b)[0]
+      : undefined
+    unsnapped(() => scrollTo({ top: (first ?? at + 1) + scrollY, behavior: 'auto' }))
     return true
   }
   const onClick = (e: MouseEvent) => {

@@ -1808,3 +1808,80 @@ aprovado. Pedido: voltar atrás no telemóvel, documentar, validar no iOS e só 
 sessão. Feito: no telemóvel `data-near` até 0,7 ecrã, a passagem do 7 apressada por um gesto e a regra da paragem de `ad808d9`
 (`@media (max-width: 899px)`, com `.m-leaving`); no desktop a regra nova (`@media (min-width: 900px)`). typecheck, lint, build: passam.
 **Não verificado nesta reversão** (o owner teve de sair): Xiaomi, Simulador, iPhone — o owner valida no iPhone.
+
+## O scroll do telemóvel nas duas pontas da cena; a passagem inteira; a volta sem salto — 8/11 tarde, MacBook (por validar no iPhone)
+
+**Fonte:** gravação do iPhone do owner, 8/11 11:47, 36 s (`docs/development/ios-lab/out/2026-11-08T11-49-00-ScreenRecording_11-08-2026_11-47-57_1.mp4`,
+só neste Mac; build `9b437e1`), idas e voltas rápidas Experiences ↔ 7/8a; e o vídeo do `addc06d` (`…00-16-21…mp4`, "partido").
+Pedido do owner: ver o vídeo, corrigir, testar no Simulador o percurso inteiro (entrada → fim do About) nos dois sentidos, com scroll
+normal, rápido, muito rápido e navegações estranhas, sem mudar a composição de cada etapa; no fim Xiaomi, Chrome e Safari.
+
+**Encontrado no vídeo (e reproduzido no Simulador com dedo, ver "Ferramentas"):**
+1. **Preso em Experiences** (bug A, 9,5–15 s do vídeo: o indicador de scroll mexe, a página não): a paragem ligada na marca de
+   Experiences (`data-near` até 0,7 ecrã e `.m-leaving`) era a única marca ao alcance. Simulador: 4 gestos para cima, 0 px.
+2. **A passagem da luz cortada** (bug B, 1,5–3,75 s: a luz em 0,75 s, depois 8a, 8b, 8c, 9 em 1,5 s): um gesto durante a passagem apressava-a.
+3. **As palavras do 7 sobre o escuro do Work** antes de a luz lá chegar (2,0–2,1 s, 31,0 s): cada linha entrava quando a luz chegava ao
+   seu meio, e a caixa da linha é da largura do ecrã.
+4. **A cena inteira a saltar 70 px para cima** ao começar a volta 7 → Experiences (17,75 → 17,9 s): o palco passa a `fixed` com
+   `top: −70px` e no iOS mantinha a `margin-top: −70px` do sticky. Simulador: −70 → −140 px.
+5. **O vídeo do `addc06d` ("partido"):** um gesto no 7 correu até ao About (20,0 → 21,75 s). No Simulador, o mesmo com gestos fortes: a
+   paragem estava desligada quando o gesto começou e ligou-se a meio da inércia — o iOS só respeita a paragem que está em vigor quando o
+   dedo larga. Também na versão de ontem: um gesto forte de Experiences ia ao 10, do fundo da página ao 11.
+6. (Simulador) **A luz a saltar** ao inverter a meio do fecho (um gesto para baixo 0,1 s depois de um para cima): recomeçava do lado da hora.
+
+**Corrigido (só telemóvel, salvo 3; o desktop fica como aprovado):**
+- 1: a paragem acima da cena só entre a marca de Experiences e o 7, e enquanto um gesto de volta não pousa (`backing`, solto ao repousar:
+  `scrollend` ou 180 ms parado). Em repouso na marca está desligada: o gesto seguinte sobe livre. (Desligar pelo dedo a meio do arrasto
+  foi tentado: o iOS perdeu a mudança 2 vezes em 6.)
+- 2: durante a passagem (2,3 s, até a tese recuar) só as marcas do 7 e de Experiences ficam (`data-passage`, method.css): um gesto para a
+  frente volta ao 7 e a luz nunca é cortada; depois disso um gesto avança (apressando só o resto: o campo). A retenção só se liga se a
+  página está mesmo no 7 (um salto ou o Safari a repor o lugar ao recarregar, ligada por um instante, levavam a página ao 7).
+- 5 (cima): um gesto rápido vindo do fundo do Work que a inércia leve além do 7 é trazido à marca do 7 (uma vez por passagem, invisível sob o
+  palco preso), e de novo quando a retenção acaba — só depois de um toque real (`src/lib/finger.ts`): o iOS ignora parte de um scroll
+  pedido durante a inércia e continua.
+- 5 (baixo): a paragem do telemóvel continua pelo Questions e pelo Contact, com uma marca no fim da página (`about-stage.ts`): nenhum gesto
+  para trás começa com ela desligada. (Uma correção por JS foi tentada e retirada: um toque durante a inércia do iOS não chega à página
+  e o retorno lutava contra o dedo; `overflow: hidden` para parar a inércia também falhou — num caso a página foi ao topo.)
+- 3: cada linha entra quando a luz passou o texto inteiro (os quatro cantos do texto, `Range`) — telemóvel e desktop.
+- 4: `margin-top: 0` no palco `fixed` (bloco iOS de method.css).
+- 6: a luz recomeça de onde está se ainda estava a fechar.
+- Saltos: o menu no telemóvel aterra na primeira marca da secção (03 About aterrava no início, e o gesto seguinte só ia à marca); o foco do
+  teclado no 11 é um salto (`unsnapped`).
+
+**Medido — Simulador iOS 27.3 (iPhone 17 Pro, 402 × 714/754), dedo real** (arrastos do rato na janela do Device Hub, inércia e barras do
+Safari reais; build final):
+- Uma fase por gesto, Experiences → Questions → fim e de volta ao topo: gestos normais (280 pt, 110 ms), fortes (450 pt, 45 ms) e lentos
+  (300 ms + 250 ms parado). Experiences nunca preso: do 7 pousa em Experiences, o gesto seguinte sobe livre.
+- Gesto forte para dentro a partir do Work (1300, 2400, 3300, 3900, 4200 px): sempre 7 (12/12; antes 8a). Para trás a partir do Questions
+  e do fundo: sempre 14 / Questions (8/8; antes 12, 11, 10).
+- 4 gestos rápidos durante a passagem: fica no 7, a luz inteira; o gesto seguinte vai ao 8a. 20 gestos fortes sem pausa, nos dois sentidos:
+  nunca preso nem incoerente (às vezes uma fase passa sem se ver: 13 à ida, 8b à volta). Vaivém rápido Experiences ↔ 7: coerente.
+- Menu de 0, Experiences, 7, 9, 13, Questions, fundo → 02 Method (7), 03 About (12), 04 Questions, 05 Contact, 01 Work: certos.
+  Voltar/avançar do browser: certos, e o gesto seguinte avança uma fase. Recarregar no 7, 8a, 9, 13: fica no lugar (uma regressão minha,
+  ao 7, encontrada e corrigida).
+- Gravações: a passagem com as palavras só onde a luz passou; a volta sem salto; o percurso inteiro 7 → 14 → fim → Experiences, cada
+  fase com a sua composição (folhas em `scratchpad/simrec`, temporárias).
+- **Xiaomi** (Chrome, CDP, gestos de toque com inércia, antes da última limpeza de `finger.ts`, sem mudança de comportamento): uma fase
+  por gesto normal nos dois sentidos; entrar do Work com gesto forte → 7 (6/6); recarregar fica no lugar; saltos do menu certos. Arrastos
+  de quase um ecrã a 6000 px/s passam uma fase (o próprio arrasto passa uma marca); a versão de ontem, no mesmo teste, ia de 7 a 10 e ao
+  Questions. **fps não medido** nesta versão: o Xiaomi desligou-se do Mac antes.
+- **Chrome desktop** (eventos reais de trackpad do macOS, com fases e inércia, 1500 × 913): como aprovado (o 8a mostra-se sozinho no fim
+  da passagem; uma fase por gesto à volta). **Safari desktop** (1324 × 808): igual à versão de ontem no mesmo teste (às vezes uma fase
+  passa num gesto, nos dois builds). Chrome com toque emulado 390 × 844, 320 × 640, 768 × 1024: uma fase por gesto (a 390 às vezes duas;
+  ontem, no mesmo teste, de Experiences ia ao 8a e saltava uma sim uma não). Overflow horizontal 0 em 1920, 1440, 768, 390, 320.
+- Movimento reduzido (390, 1440): sem paragem, sem marcas, a página percorre-se toda; sem JavaScript (`next start`): o texto todo, overflow
+  0; sem erros de consola. typecheck, lint, build: passam.
+
+- **Xiaomi, build final (8/11 tarde, religado):** a mesma bateria, os mesmos resultados. **fps da passagem, A/B com `9b437e1`** (gesto de toque,
+  3 idas e voltas cada): 6 → 7 ontem 78,6 / 83,9 / 83,5 fps, agora 76,3 / 85,5 / 83,7; 7 → 6 ontem 77,3–79,8, agora 78,4–79,7; o pior
+  fotograma ~100–120 ms nos dois (já conhecido), e na 1.ª passagem depois de carregar 199 ms ontem / 221 ms agora (a 1.ª descodificação). Sem regressão.
+- **Owner (iPhone, 8/11):** a retenção durante a passagem da luz "parece-me bem, é assim que quero" — aprovada. A paragem pelo Questions e pelo
+  Contact (com a marca no fim da página) fica para rever ao fazer o M7.
+
+**Não verificado:** o percurso inteiro no iPhone do owner; um trackpad e uma roda físicos no desktop (só eventos sintéticos do macOS); iOS com
+o rato do Simulador não é um dedo (velocidades parecidas, não iguais).
+
+**Ferramentas (novas, `docs/development/ios-lab/finger/`):** `simtouch.swift` (arrastos e eventos de trackpad pelo rato; o WebStorm precisa de
+Acessibilidade — dada pelo owner a 8/11), `lab.sh` (bateria: `fwd`/`back`, `allbat`, `jump`, `ph`), `xiaomi-strokes.mjs`, `xiaomi-fps.mjs`,
+`chrome-strokes.mjs`, `reduced-nojs.mjs`, `windows.swift`. O Xcode 27 mostra o Simulador no **Device Hub**
+(`~/Downloads/Xcode-beta.app/Contents/Applications/DeviceHub.app`); o Simulator.app do Xcode 16.1 não abre os iOS 27.

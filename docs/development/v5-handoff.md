@@ -1,5 +1,28 @@
 # Chapter One V5 — handoff
 
+## ▶ COMEÇAR AQUI · 8 de novembro de 2026, tarde — scroll do telemóvel corrigido nas pontas (por validar no iPhone)
+
+**Estado (não commitado):** branch `v5-cloud-about` em `9b437e1` + alterações: `method-stage.ts`, `method.css`, `about-stage.ts`,
+`src/lib/address.ts`, `src/lib/finger.ts` (novo), ferramentas em `docs/development/ios-lab/finger/`. Build feita; `next start -p 3100` + proxy
+3130 (iPhone: `http://192.168.1.8:3130/`). Ao lado: o `v5` (`ffeec33`) em 3200/3230 e `9b437e1` em 3101/3131/3133 (worktrees no scratchpad).
+Tudo em `v5-tests.md`, secção "O scroll do telemóvel nas duas pontas da cena… 8/11 tarde".
+
+**Corrigido (vídeo do owner de 8/11 11:47 + vídeo do `addc06d`), reproduzido e medido no Simulador com dedo:** preso em Experiences (A);
+a passagem da luz cortada (B); as palavras do 7 sobre o escuro antes da luz; a cena a saltar 70 px ao começar a volta; o "partido" do
+`addc06d` (um gesto rápido atravessava a cena — a paragem ligada a meio da inércia não conta no iOS); a luz a saltar numa inversão; o
+About pelo menu a aterrar fora da marca. D e E: decididos pelo owner (D é a composição aprovada; E nada notado).
+
+**Próximos passos:**
+1. **O owner valida no iPhone e no browser** (o veredicto): vaivém rápido Experiences ↔ 7/8a, gestos fortes, voltar do fundo da página,
+   menu. A retenção durante a passagem da luz já foi vista no iOS e **aprovada** ("é assim que quero", 8/11). Se o resto estiver bem:
+   commit e o owner faz push (GitHub Desktop).
+2. Xiaomi validado com a build final (bateria + fps A/B com `9b437e1`: sem regressão; `v5-tests.md`).
+3. Em aberto (ver o relatório desta sessão): arrastos de quase um ecrã passam uma fase (Xiaomi, toque emulado); no Safari/Chrome desktop,
+   às vezes uma fase passa num gesto de trackpad (já era assim ontem); trackpad/roda físicos não testados.
+4. **Ao fazer o M7 (Questions e Contact) — rever com o owner (pedido dele, 8/11):** a paragem do telemóvel continua hoje pelo Questions e
+   pelo Contact, com uma marca no fim da página (`about-stage.ts` placeMarks, `method.css` regra do telemóvel). Foi a forma fiável de um
+   gesto para trás não atravessar o About; com as secções a sério (mais longas, com conteúdo próprio) decidir onde a paragem acaba.
+
 ## ▶ COMEÇAR AQUI · 8 de novembro de 2026 — o telemóvel de volta ao `ad808d9` (por validar no iOS); desktop aprovado
 
 **Estado (não commitado):** branch `v5-cloud-about`, último commit `addc06d`. Por cima dele, na árvore de trabalho, o **telemóvel volta

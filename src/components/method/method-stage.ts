@@ -17,7 +17,9 @@
   11   the light goes down: on the desktop the screens move aside, quiet; on a phone they leave; one sentence stays
   The positions are the storyboard's (v46, cardLayout): [centre x %, centre y %, width % of the stage width, turn].
 */
+import { fingerDown, strokeLately, watchFinger } from '@/lib/finger'
 import { bandColour, hex, over, parseColour } from '@/lib/top-colour'
+import { unsnapped } from '@/lib/unsnapped'
 
 type Pos = readonly [number, number, number, number]
 type Mode = 'on' | 'lift' | 'gone'
@@ -224,6 +226,11 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   // The scroll stops at each phase as a stroke ends, on a phone and a desktop (scroll-snap-stop, method.css): one mark a phase, placed just past its
   // start and the dead band, so where the scroll rests is that phase. Native: the compositor stops the fling, no script in the scroll
   let marks: HTMLElement[] = []
+  // a phone: where the mark of Experiences lies above the scene (as placed), and a stroke back from the scene still moving
+  let outAt = 0
+  let backing = false
+  // a stroke carried past 7 during this passage, taken back
+  let pulled = false
   // iOS: the held stage is drawn behind Safari's island and under its bar (method.css, the iOS block), so the edges' colour shows there
   // only over the Work, where the light has not come yet (setEdge's moments below)
   let reaches = false
@@ -397,11 +404,19 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     const hh = hw / AR
     return [[cx - hw, cy - hh], [cx + hw, cy - hh], [cx - hw, cy + hh], [cx + hw, cy + hh]] as const
   }
-  const midOf = (el: HTMLElement) => {
-    const r = el.getBoundingClientRect()
+  // when the light has passed the whole of a line of words (its text, not its box, which is as wide as the screen): found at its
+  // middle, half the line came over the still dark Work ahead of the edge (owner's iPhone, 8 Nov: "No templates" read on the dark)
+  const passedAll = (el: HTMLElement) => {
+    const range = document.createRange()
+    range.selectNodeContents(el)
+    const r = range.getBoundingClientRect()
     const s = stage.getBoundingClientRect()
     // of the screen: on iOS the stage's top is 70 px above it (the lift)
-    return [r.left + r.width / 2 - s.left, r.top + r.height / 2 - s.top - lift] as const
+    const x0 = r.left - s.left
+    const x1 = r.right - s.left
+    const y0 = r.top - s.top - lift
+    const y1 = r.bottom - s.top - lift
+    return Math.max(reachAt(x0, y0), reachAt(x1, y0), reachAt(x0, y1), reachAt(x1, y1))
   }
 
   // The Work's photograph of the guide moves in a little under the light, from the transform the Work gave it (it rests while the
@@ -567,6 +582,15 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   // by every scroll event, a finger still moving (or iOS's momentum) pushed the end on and on, and the scene stood at 7 through the
   // whole Method (owner, iPhone, 3 Nov)
   let passageEnds = 0
+  let passageHold = 0
+  // the hold let go: the page first on 7's mark, if a stroke's momentum left it elsewhere within 7 (iOS carried on after the pull back,
+  // and the stop then took the page to 8a's mark, the nearer, Simulator, 8 Nov); with a finger on the screen, its stroke decides. By then
+  // (2.3 s) the momentum is over
+  const endHold = () => {
+    const at7 = marks[0]?.getBoundingClientRect().top ?? 0
+    if (phase === '7' && !fingerDown() && !jumping() && strokeLately(4000) && Math.abs(at7) > 2) scrollTo({ top: scrollY + at7, behavior: 'instant' })
+    delete section.dataset.passage
+  }
   let hurried = false
   const hurry = () => {
     if (hurried) return
@@ -725,7 +749,9 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     const state = next === 'pre' ? (from === null || bladeAt === 'ahead' ? 'ahead' : 'shut') : 'open'
     if (instant || from === null) blade(state === 'shut' ? gatheredAt() : OPEN(), 0, state === 'ahead' ? '0.001' : state, SWEEP_EASE)
     else if (state !== bladeAt) {
-      if (state === 'open') blade(OPEN(), SWEEP_MS, 'open', SWEEP_EASE, gatheredAt())
+      // from its gathered place; or, turned back while still closing, from where it is: from the gathered place it jumped (Simulator,
+      // a stroke down 0.1 s after a stroke up, 8 Nov)
+      if (state === 'open') blade(OPEN(), SWEEP_MS, 'open', SWEEP_EASE, flights.has(wipe) ? undefined : gatheredAt())
       else blade(gatheredAt(), BACK_MS, 'shut', IN_OUT)
     }
     bladeAt = state
@@ -755,12 +781,15 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     fly(key, { transform: keyTransform(KEY_K[next]), opacity: lit && next !== '11' ? '1' : '0' }, 1600, 0, instant)
     // the words: found by the light, then the invitation; elsewhere simply there (7, 8) or not
     const said = next === '7' || next.startsWith('8')
+    clearTimeout(passageHold)
+    if (!passage) delete section.dataset.passage
     if (passage) {
       fly(head, { opacity: '1' }, 0, 0, true)
-      wordsFound(lines.map((l) => reachAt(...midOf(l))))
+      wordsFound(lines.map(passedAll))
       blinkCaret(ASK_AT + 750)
       passageEnds = performance.now() + (ASK_AT + 750) * tempo
       hurried = false
+      pulled = false
     } else if (goingBack) {
       fly(head, { opacity: '0' }, 400)
       // put back unseen once gone, ready for the light to find them again
@@ -823,24 +852,38 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
       }
       const top = `${Math.round(y)}px`
       if (m.style.top !== top) m.style.top = top
+      // which is which, for the hold of the passage (method.css): 7 and the way out stay while the light crosses
+      m.dataset.at = i === 0 ? '7' : i === tops.length - 1 ? 'out' : ''
     })
+    outAt = 0.3 * H
   }
+  // a jump of the site's own (lib/address.ts marks it, lib/unsnapped.ts turns the stop off for it): never taken for a stroke
+  const jumping = () => document.documentElement.dataset.jump !== undefined || document.documentElement.style.scrollSnapType === 'none'
   const choose = (): void => {
     const STARTS = starts()
     const top = sceneTop()
     // the scene just below: the stop-at-each-phase is on already (method.css), so a stroke from Experiences rests on 7. Turned
     // on only at 7, a stroke ran through it to 8a and the light's passage was cut (Xiaomi, CDP strokes, 7 Nov)
-    // Only below the mark of Experiences (0.3 screen above): up to 0.7 screen it held that mark too, the only one there, and every stroke
-    // up was pulled back to it — the page stuck dark at Experiences (owner, iPhone, 7 Nov; Simulator: 400 px up, not a pixel moved)
-    // A phone keeps 0.7 screen (as in ad808d9) until the owner's iPhone has been looked at again: changed with the rest of addc06d, iOS
-    // broke (owner, 8 Nov); the "stuck at Experiences" it fixed comes back there — see the handoff
-    const near = top > 0 && top < (kind === 'phone' ? 0.7 : 0.2) * H
+    // A phone: between the mark of Experiences and the scene (just short of the mark, outAt), and while a stroke back from the scene is still
+    // moving (so it rests on that mark, not in the Work); off once it rests, so the next stroke up is free. Kept on at the mark itself (0.7
+    // screen, ad808d9, and while the light closed) it was the only mark in reach and the page stuck at Experiences (owner's iPhone, 7 and
+    // 8 Nov). Turned off by the finger as it took the page up, iOS missed the change 2 times in 6 (Simulator, 8 Nov): at rest it is off.
+    // A quick stroke from there, the stop turned on only as it flies by, may run past 7: it is taken back (below, the passage's hold).
+    // A desktop as approved (addc06d, 8 Nov)
+    if (top <= 0 || top > 0.7 * H) backing = false
+    const near = top > 0 && (kind === 'phone' ? top < outAt - 12 || backing : top < 0.2 * H)
     if (near !== 'near' in section.dataset) {
       if (near) section.dataset.near = ''
       else delete section.dataset.near
     }
     if (top > 0) {
-      if (phase === null || (phase !== 'pre' && top > H * 0.02)) show('pre', phase === null)
+      if (phase === null || (phase !== 'pre' && top > H * 0.02)) {
+        if (phase !== null && kind === 'phone' && !jumping()) {
+          backing = true
+          section.dataset.near = ''
+        }
+        show('pre', phase === null)
+      }
       return
     }
     const travel = sceneTravel()
@@ -854,6 +897,15 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
       show('7')
       // reached by the keyboard (the field focused from above): the field is there at once, not after the light
       if (document.activeElement === section.querySelector('#m-name')) hurry()
+      // On a phone a stroke onwards while the light crosses rests on 7 again (method.css: only the marks of 7 and Experiences are there
+      // meanwhile): the light is never cut. Hurried, it went to 8a in 0.3 s (owner's iPhone, 8 Nov, bug B); waited for, 8a came seconds
+      // after the stroke, by itself, with the page already a phase on (addc06d: "partido", owner, 8 Nov). From the thesis stepping back,
+      // a stroke goes on, hurrying the rest (the field coming forward). Only when the page is at 7: set for a jump or Safari putting the
+      // place back on a reload (landing past 7), even for a moment, the browser took the page to 7's mark, the only one left (Simulator, 8 Nov)
+      if (at === '7' && kind === 'phone') {
+        section.dataset.passage = ''
+        passageHold = window.setTimeout(endHold, ASK_AT * tempo)
+      }
       if (at !== '7') later(passageEnds - performance.now())
       return
     }
@@ -862,9 +914,19 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     if (nxt > cur) {
       // the passage is played whole: 8 answers once it has ended. Hurried by a scroll onwards (0.3 s, 3 Nov), the light was cut and 8a came
       // at once — with the stop at each phase a stroke onwards is not a wish to skip it (owner, iPhone, 7 Nov). The keyboard still hurries it
+      // carried past 7 while the light crosses (a quick stroke from the Work, its stop turned on only as it flew by): back to 7's mark once
+      // the finger is off, unseen under the held stage; iOS's momentum may carry on from there (it does, Simulator, 8 Nov), so the hold's
+      // end takes it to 7's mark again (endHold) — left there, the page went on to 8a by itself as the hold ended
+      if (phase === '7' && kind === 'phone' && 'passage' in section.dataset && !pulled && !jumping() && !fingerDown() && strokeLately() && marks[0]) {
+        // once a passage: a later stroke the finger begins during iOS's momentum is not told to the page (no touchstart), and taken back
+        // again and again it fought the finger (Simulator, 8 Nov)
+        pulled = true
+        scrollTo({ top: scrollY + marks[0].getBoundingClientRect().top, behavior: 'instant' })
+        return
+      }
       if (phase === '7' && performance.now() < passageEnds) {
-        // a phone still hurries it (as in ad808d9), until its iPhone is looked at again (owner, 8 Nov)
-        if (kind === 'phone') hurry()
+        // a phone hurries what is left once the light has crossed (data-passage gone): until then the stroke rests on 7 again
+        if (kind === 'phone' && !('passage' in section.dataset)) hurry()
         return later(passageEnds - performance.now() + 20)
       }
       let far = cur
@@ -908,7 +970,24 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   placeKey()
   section.classList.add('m-live')
   choose()
-  const onScroll = () => choose()
+  // a stroke back has come to rest when the scroll has been still a moment (scrollend where there is one; iOS fires scroll events through
+  // its momentum and the snap's own glide)
+  let still = 0
+  const rested = () => {
+    clearTimeout(still)
+    if (!backing) return
+    backing = false
+    choose()
+  }
+  const onScroll = () => {
+    choose()
+    if (!backing) return
+    clearTimeout(still)
+    still = window.setTimeout(rested, 180)
+  }
+  addEventListener('scrollend', rested)
+  cleanups.push(() => removeEventListener('scrollend', rested))
+  cleanups.push(watchFinger())
   addEventListener('scroll', onScroll, { passive: true })
   cleanups.push(() => removeEventListener('scroll', onScroll))
   // a real change of size measures again and puts everything in place at once (the address bar alone does not)
@@ -928,9 +1007,10 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   // the keyboard: the field lives in 7–8, Talk to us in 11; reaching either elsewhere brings its phase
   // on the next frame: the browser scrolls the focused element into view after the focus event, and undid this
   // (measured: the field focused from 11 stayed on 11)
+  // a jump of the site's own: the phone's stop off meanwhile (lib/unsnapped.ts), or a mark would take it
   const to = (share: number) =>
     requestAnimationFrame(() => {
-      scrollTo({ top: sceneTop() + scrollY + share * sceneTravel(), behavior: 'auto' })
+      unsnapped(() => scrollTo({ top: sceneTop() + scrollY + share * sceneTravel(), behavior: 'auto' }))
     })
   const input = section.querySelector('#m-name')
   const onField = () => phase !== '7' && !phase?.startsWith('8') && to(starts()['7'] + 0.05)
@@ -944,10 +1024,13 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
 
   return () => {
     clearTimeout(wake)
+    clearTimeout(still)
     clearTimeout(letGo)
     clearTimeout(edgeLater)
     clearInterval(edgeFollow)
     clearTimeout(seenLater)
+    clearTimeout(passageHold)
+    delete section.dataset.passage
     marks.forEach((m) => m.remove())
     delete section.dataset.near
     delete section.dataset.edge

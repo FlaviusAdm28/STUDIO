@@ -102,7 +102,11 @@ export function runStage(about: HTMLElement, release: () => void) {
     // 12 → 10; Xiaomi, CDP strokes, 7 Nov)
     // a desktop: in the middle of 13 and 14, and 12 close to its start (0.8 screen from the Method's 11), as the Method's marks
     const shares = kind === 'phone' ? Object.values(startsOf()).map((share) => (share || 0.4) + BAND * 2.4) : [0.25, 1.05, 1.75]
-    const tops = [...shares.map((share) => (LEAD + share) * H), about.offsetHeight]
+    // and on a phone the page's end (the Contact): the stop stays on through the Questions and the Contact (method.css), so a stroke back
+    // from there starts with it — turned on only as the page flew into the About, iOS let one quick stroke run from the Questions on to 12
+    // or the Method's 11 (Simulator, finger strokes, 8 Nov); with no mark below the Questions' a stroke down was held there
+    const end = document.documentElement.scrollHeight - (about.getBoundingClientRect().top + scrollY) - 1
+    const tops = [...shares.map((share) => (LEAD + share) * H), about.offsetHeight, ...(kind === 'phone' ? [end] : [])]
     tops.forEach((y, i) => {
       let m = marks[i]
       if (!m) {
@@ -115,6 +119,8 @@ export function runStage(about: HTMLElement, release: () => void) {
       const top = `${Math.round(y)}px`
       if (m.style.top !== top) m.style.top = top
     })
+    // the page's end only on a phone: gone if the screen has become a desktop's
+    marks.splice(tops.length).forEach((m) => m.remove())
   }
   // the stage's own screen: on iOS it reaches 70 px above it (about.css --a-lift), and everything is placed under that
   const lift = () => parseFloat(getComputedStyle(stage).paddingTop) || 0

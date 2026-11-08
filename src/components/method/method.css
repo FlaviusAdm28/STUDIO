@@ -750,11 +750,10 @@
      blade opens the studio over it; until then the Work keeps the taps */
   position: relative;
   z-index: 2;
-  /* half a screen held before the scene (LEAD in method-stage.ts) + 5.6 screens of scene + the stage (README #99; 4.7 until 7 Nov, 11
-     lengthened). The stage is
+  /* half a screen held before the scene (LEAD in method-stage.ts) + 4.7 screens of scene + the stage (README #99). The stage is
      already held, transparent, when the light comes and goes: held only from the scene on, it slid down with the page when the
      visitor scrolled back to Experiences (owner's recording, 2560 × 1305, 2 Nov) */
-  height: calc(var(--screen) * 7.1);
+  height: calc(var(--screen) * 6.2);
   /* over the Work's last 3.1 screens (work.css: its last step holds Experiences one screen longer under the light, 3 Nov) */
   margin-top: calc(var(--screen) * -3.1);
   /* the hour's ground colour (above) would cover the Work: here the stage brings its own room */
@@ -887,33 +886,33 @@
 :root[data-js] .method .m-field {
   transform-origin: 50% 50%;
 }
+/* the scroll stops at each phase as a stroke ends: a stroke, quick or slow, moves one phase (owner, 7 Nov: "às vezes até passo
+   setores sem querer" on a phone; on a desktop a wheel or a trackpad ran through 10 — owner, Chrome, 7 Nov: the same, everywhere). The marks are placed by method-stage.ts and about-stage.ts just past each phase's start, with one more at
+   each end (Experiences above, the Questions below). Mandatory, and only while the Method or the About is on stage: proximity let a
+   fling run through three phases before it settled (Xiaomi, CDP flings, 7 Nov); mandatory, one each time, both ways. Native
+   snapping, run by the compositor: no script in the scroll. Not while the light goes back to the Work: held then, a stroke up at
+   Experiences was pulled back to its mark (owner, iOS, 7 Nov: "fica preso no Experiences") */
+:root[data-js]:is([data-section='work'], [data-section='method']):has(
+    .method:is([data-phase='7'], [data-phase^='8'], [data-phase='9'], [data-phase='10'], [data-phase='11'], [data-near])
+  ),
+:root[data-js][data-section='about']:has(.about:is([data-phase='12'], [data-phase='13'], [data-phase='14']):not([data-free])) {
+  scroll-snap-type: y mandatory;
+}
+:root[data-js] .method .m-snap,
+:root[data-js] .about .a-snap {
+  position: absolute;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
 @media (max-width: 899px) {
   /* a longer scene on a phone: 7.8 screens (+ the half screen before it and the stage), ~1.1 screen a step (method-stage.ts
      STARTS_PHONE). 6.2 at ~0.8 a step (3 Nov) still ran too fast under a finger (owner, iPhone, 7 Nov) */
   :root[data-js] .method {
     height: calc(var(--screen) * 9.3);
-  }
-  /* and the scroll stops at each phase as a stroke ends: a stroke, quick or slow, moves one phase (owner, 7 Nov: "às vezes até passo
-     setores sem querer"). The marks are placed by method-stage.ts and about-stage.ts just past each phase's start, with one more at
-     each end (Experiences above, the Questions below). Mandatory, and only while the Method or the About is on stage: proximity let a
-     fling run through three phases before it settled (Xiaomi, CDP flings, 7 Nov); mandatory, one each time, both ways. Native
-     snapping, run by the compositor: no script in the scroll. Kept while the light goes back to the Work (.m-leaving), so a stroke back
-     from 7 comes to rest on Experiences, not halfway up the Work */
-  :root[data-js]:not([data-section='questions'], [data-section='contact']):has(
-      .method:is([data-phase='7'], [data-phase^='8'], [data-phase='9'], [data-phase='10'], [data-phase='11'], .m-leaving, [data-near]),
-      .about:is([data-phase='12'], [data-phase='13'], [data-phase='14'])
-    ) {
-    scroll-snap-type: y mandatory;
-  }
-  :root[data-js] .method .m-snap,
-  :root[data-js] .about .a-snap {
-    position: absolute;
-    left: 0;
-    width: 1px;
-    height: 1px;
-    pointer-events: none;
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
   }
   /* 3 vh lower than before: room under the bar's islands (owner, 3 Nov, README #102) */
   :root[data-js] .method .m-head {

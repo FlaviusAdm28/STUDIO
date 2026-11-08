@@ -27,8 +27,9 @@ export const PHASES = ['pre', '7', '8a', '8b', '8c', '9', '10', '11'] as const
 export type Phase = (typeof PHASES)[number]
 // where each phase starts, as a share of the held scroll (5.6 screens): 7 the moment the stage is held (README #102: one trigger).
 // In screens: 8a 1.15, 8b 1.6, 8c 2.05, 9 2.6, 10 3.25, 11 3.9 (owner, 2 Nov: from 7 to 11 no longer than this). 8a at 0.6 was tried
-// and turned back (owner, desktop, 3 Nov). 11 held ~1.3 screens before the About, not ~0.4: a scroll ran on through it (owner, 7 Nov)
-const DESK_SCENE = 5.6
+// and turned back (owner, desktop, 3 Nov). A scroll ran on through 11 (and 10) into the About (owner, 7 Nov): the scroll now stops at each
+// phase (method.css); lengthened instead (5.6), the marks lay more than a screen apart and a trackpad stroke was pulled back
+const DESK_SCENE = 4.7
 const STARTS: Record<Exclude<Phase, 'pre'>, number> = {
   '7': 0,
   '8a': 1.15 / DESK_SCENE,
@@ -220,7 +221,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   let LVH = 0
   let lift = 0
   let tempo = 1
-  // On a phone the scroll stops at each phase as a stroke ends (scroll-snap-stop, method.css): one mark a phase, placed just past its
+  // The scroll stops at each phase as a stroke ends, on a phone and a desktop (scroll-snap-stop, method.css): one mark a phase, placed just past its
   // start and the dead band, so where the scroll rests is that phase. Native: the compositor stops the fling, no script in the scroll
   let marks: HTMLElement[] = []
   // iOS: the held stage is drawn behind Safari's island and under its bar (method.css, the iOS block), so the edges' colour shows there
@@ -803,14 +804,14 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   const sceneTravel = () => section.offsetHeight - (stage.offsetHeight - lift) - lead()
   const starts = () => (kind === 'phone' ? STARTS_PHONE : STARTS)
   const placeMarks = () => {
-    if (kind !== 'phone') {
-      marks.forEach((m) => m.remove())
-      marks = []
-      return
-    }
     const travel = sceneTravel()
+    const at = starts()
     // the phases, and the way out above: Experiences again, a third of a screen before the scene (where a stroke back comes to rest)
-    const tops = [...Object.values(STARTS_PHONE).map((share) => lead() + (share + BAND * 1.6) * travel), lead() - 0.3 * H]
+    // a desktop: each mark within its phase so that the marks lie at most 0.8 screen apart (10 → 11 at 0.9 held a 400 px stroke). Just past each start,
+    // 7 and 8a were a screen apart, and a trackpad stroke under half of it was pulled back to 7 (Chrome, 450 px strokes, 7 Nov)
+    const DESK_MARKS = [0.45, 1.25, 1.825, 2.325, 2.9, 3.5, 4.1].map((s) => s / DESK_SCENE)
+    const shares = kind === 'phone' ? Object.values(at).map((share) => share + BAND * 1.6) : DESK_MARKS
+    const tops = [...shares.map((share) => lead() + share * travel), lead() - 0.3 * H]
     tops.forEach((y, i) => {
       let m = marks[i]
       if (!m) {
@@ -827,9 +828,11 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   const choose = (): void => {
     const STARTS = starts()
     const top = sceneTop()
-    // a phone, the scene just below: the stop-at-each-phase is on already (method.css), so a stroke from Experiences rests on 7. Turned
+    // the scene just below: the stop-at-each-phase is on already (method.css), so a stroke from Experiences rests on 7. Turned
     // on only at 7, a stroke ran through it to 8a and the light's passage was cut (Xiaomi, CDP strokes, 7 Nov)
-    const near = kind === 'phone' && top > 0 && top < 0.7 * H
+    // Only below the mark of Experiences (0.3 screen above): up to 0.7 screen it held that mark too, the only one there, and every stroke
+    // up was pulled back to it — the page stuck dark at Experiences (owner, iPhone, 7 Nov; Simulator: 400 px up, not a pixel moved)
+    const near = top > 0 && top < 0.2 * H
     if (near !== 'near' in section.dataset) {
       if (near) section.dataset.near = ''
       else delete section.dataset.near
@@ -855,8 +858,9 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     const cur = order.indexOf(phase as Exclude<Phase, 'pre'>)
     const nxt = order.indexOf(at)
     if (nxt > cur) {
+      // the passage is played whole: 8 answers once it has ended. Hurried by a scroll onwards (0.3 s, 3 Nov), the light was cut and 8a came
+      // at once — with the stop at each phase a stroke onwards is not a wish to skip it (owner, iPhone, 7 Nov). The keyboard still hurries it
       if (phase === '7' && performance.now() < passageEnds) {
-        hurry()
         return later(passageEnds - performance.now() + 20)
       }
       let far = cur
@@ -909,6 +913,8 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     if (`${innerWidth}` === sized && Math.abs(window.innerHeight - H) < 120) return
     sized = `${innerWidth}`
     measure()
+    marks.forEach((m) => m.remove())
+    marks = []
     placeMarks()
     placeKey()
     if (phase) show(phase, true)

@@ -1781,3 +1781,22 @@ um risco branco em baixo". Os dois já existiam de manhã.
 - 10: a fotografia da capa crescia 1/0,6 = 1,6667, exatamente o cartão; na aresta ficava o creme do ecrã (uma linha de brilho 102 contra
   ~40 à volta, Chrome 1728 × 913 a 2×). Agora 1,68 (5 px além, cortados pelo cartão): sem pico.
 - Percurso inteiro em Chrome 1440 e 1920: 120 fps, a etiqueta certa. typecheck, lint, build: passam.
+
+## A paragem por fase também no desktop; preso em Experiences; a passagem cortada — 7/11 noite e 8/11
+
+**Owner:** desktop "às vezes não pára no 10" (escolha: parar em cada fase também no desktop); iOS "a andar rápido para trás fica preso no
+Experiences e não anda mais"; iOS "de Experiences para o Method, se for rápido e continuar, passo a animação da luz e vai logo para a
+segunda".
+- **Preso:** a paragem ligava-se "perto do Method" até 0,7 ecrã (`data-near`) e também enquanto a luz recuava (`.m-leaving`); na marca de
+  Experiences (0,3 ecrã acima) era a única marca e cada gesto para cima voltava a ela (Simulador: 400 px para cima, 0 px). Agora `near`
+  só abaixo dela (0,2 ecrã) e sem `.m-leaving`: na volta rápida, em Experiences, a paragem está desligada e o scroll sobe.
+- **Passagem cortada:** um gesto durante a passagem do 7 apressava-a para 0,3 s (regra de 3/11). Com a paragem, já não: o 8a espera
+  pela luz (Simulador: gesto aos 0,4 s → 8a aos 3,3 s). O teclado continua a apressá-la.
+- **Desktop:** a mesma paragem (`.m-snap`/`.a-snap` também no desktop; o CSS fora da regra do telemóvel). Com a marca logo depois de cada
+  início, 7 → 8a e 12 → 13 ficavam a mais de um ecrã e um gesto de trackpad de 300–450 px voltava para trás (Chrome, gestos sintéticos);
+  o 11 alongado (5,6) piorava. Desktop de volta a 4,7 ecrãs (decisão de 2/11) e marcas dentro de cada fase a ≤ 0,8 ecrã umas das outras
+  (Method 0,45/1,25/1,825/2,325/2,9/3,5/4,1; About 0,25/1,05/1,75). A paragem separa-se por secção (Work/Method vs About) e larga-se
+  0,3 ecrã antes de o About soltar o palco (`data-free`): do 14 um gesto segue para o Questions.
+- **Medido:** Chrome 1728 × 913, gestos de 400 px: uma fase por gesto de Experiences ao 14 e de volta a Experiences. Xiaomi, gestos de toque:
+  uma fase por gesto de Experiences ao Questions e de volta. Simulador iOS: os dois casos acima. typecheck, lint, build: passam.
+- **Não verificado:** Safari do Mac com trackpad real; o iPhone do owner com dedo.

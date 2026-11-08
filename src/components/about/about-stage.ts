@@ -94,18 +94,15 @@ export function runStage(about: HTMLElement, release: () => void) {
   const tempoOf = () => (kind === 'phone' ? PHONE_TEMPO : 1)
   const startsOf = () => (kind === 'phone' ? STARTS_PHONE : STARTS)
   const hurryAt = () => (kind === 'phone' ? RELEASE_PHONE : RELEASE) - HURRY_BEFORE
-  // the scroll stops at each phase on a phone (about.css, method.css .a-snap): one mark a phase, just past its start and the dead band
-  let marks: HTMLElement[] = []
+  // the scroll stops at each phase (method.css .a-snap): one mark a phase, just past its start and the dead band, and one at the end
+  const marks: HTMLElement[] = []
   const placeMarks = () => {
-    if (kind !== 'phone') {
-      marks.forEach((m) => m.remove())
-      marks = []
-      return
-    }
     // the phases, and the way out below: the Questions at the screen's top (the section's end)
     // 12's mark 0.4 screen into it: just past its start it lay ~200 px from the Method's 11, and a stroke ran over one of the two (11 → 13,
     // 12 → 10; Xiaomi, CDP strokes, 7 Nov)
-    const tops = [...Object.values(STARTS_PHONE).map((share) => (LEAD + (share || 0.4) + BAND * 2.4) * H), about.offsetHeight]
+    // a desktop: in the middle of 13 and 14, and 12 close to its start (0.8 screen from the Method's 11), as the Method's marks
+    const shares = kind === 'phone' ? Object.values(startsOf()).map((share) => (share || 0.4) + BAND * 2.4) : [0.25, 1.05, 1.75]
+    const tops = [...shares.map((share) => (LEAD + share) * H), about.offsetHeight]
     tops.forEach((y, i) => {
       let m = marks[i]
       if (!m) {
@@ -645,6 +642,12 @@ export function runStage(about: HTMLElement, release: () => void) {
   let jumpAt = -1e9
   const choose = () => {
     const p = progress()
+    // the stop at each phase lets go as the stage does (method.css): from 14 a stroke goes on to the Questions, never pulled back
+    const free = p > (kind === 'phone' ? RELEASE_PHONE : RELEASE) - 0.3
+    if (free !== 'free' in about.dataset) {
+      if (free) about.dataset.free = ''
+      else delete about.dataset.free
+    }
     const jumped = lastP !== null && Math.abs(p - lastP) > 1.2
     lastP = p
     // a jump can arrive in two frames (just short of the start, then on it): it counts for a moment after it is seen (the copy of 11 was
@@ -739,6 +742,7 @@ export function runStage(about: HTMLElement, release: () => void) {
     clearInterval(edgeFollow)
     clearTimeout(seenLater)
     marks.forEach((m) => m.remove())
+    delete about.dataset.free
     colourWatch.disconnect()
     delete about.dataset.edge
     delete about.dataset.seen

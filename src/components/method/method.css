@@ -897,15 +897,15 @@
   :root[data-js]:is([data-section='work'], [data-section='method']):has(
       .method:is([data-phase='7'], [data-phase^='8'], [data-phase='9'], [data-phase='10'], [data-phase='11'], [data-near])
     ),
-  :root[data-js][data-section='about']:has(.about:is([data-phase='12'], [data-phase='13'], [data-phase='14']):not([data-free])) {
+  :root[data-js]:has(.about:is([data-phase='12'], [data-phase='13'], [data-phase='14'])) {
     scroll-snap-type: y mandatory;
   }
 }
 /* a phone: one rule for the Method and the About, as in ad808d9 (split by section, addc06d broke iOS, owner, 8 Nov). Above, [data-near]
    (method-stage.ts): between Experiences' mark and the scene, and while a stroke back from the scene comes to rest there — held on at the
    mark itself it was the only one in reach and the page stuck at Experiences (owner's iPhone, 7 and 8 Nov). Below, on through the
-   Questions and the Contact (14 stays the About's phase there), with a mark at the page's end (about-stage.ts): turned on only as a stroke
-   flew back into the About, iOS let it run through the scene (Simulator, 8 Nov) */
+   Questions and the Contact (14 stays the About's phase there), with marks every 0.75 screen to the page's end (about-stage.ts): turned off
+   there, a quick stroke back began without it and ran through the About (Simulator, 8 Nov) */
 @media (max-width: 899px) {
   :root[data-js]:has(
       .method:is([data-phase='7'], [data-phase^='8'], [data-phase='9'], [data-phase='10'], [data-phase='11'], [data-near]),
@@ -918,6 +918,19 @@
   :root[data-js]:has(.method[data-passage]) .about .a-snap {
     scroll-snap-align: none;
   }
+}
+/* while the About's light finds the portrait (12, ~2.4 s, about-stage.ts) a stroke onwards rests on 12 again; back, the Method's marks are
+   there — on a phone and a desktop. Without it the About played and was gone (owner, 8 Nov): strokes ~0.6 s apart went 11 → 12 → 14 → the
+   Questions with 12 still on stage (iOS Simulator), and on a desktop the page reached 14's mark under 12, which then jumped to 14 past 13
+   (Chrome 1440, wheel strokes). Only the marks after 12 go: Safari keeps the place it rests on by its rank among the marks, and with only
+   11 and 12 left (12 the 2nd) it went to the 2nd of all, the Method's 7, as the hold ended (Safari 27.2, trackpad, 8 Nov) */
+:root[data-js] .about[data-passage] .a-snap:not([data-at='12']) {
+  scroll-snap-align: none;
+}
+/* and while 14's story comes in (data-story, ~2 s, about-stage.ts STORY_MS) a stroke onwards rests on 14 again: the Questions' mark and
+   those below it go, the ones above stay (back is free, and Safari keeps its place by rank). Phone and desktop (owner, 9 Nov) */
+:root[data-js] .about[data-story] .a-snap[data-at='below'] {
+  scroll-snap-align: none;
 }
 :root[data-js] .method .m-snap,
 :root[data-js] .about .a-snap {

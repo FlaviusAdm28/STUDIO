@@ -1885,3 +1885,198 @@ o rato do Simulador não é um dedo (velocidades parecidas, não iguais).
 Acessibilidade — dada pelo owner a 8/11), `lab.sh` (bateria: `fwd`/`back`, `allbat`, `jump`, `ph`), `xiaomi-strokes.mjs`, `xiaomi-fps.mjs`,
 `chrome-strokes.mjs`, `reduced-nojs.mjs`, `windows.swift`. O Xcode 27 mostra o Simulador no **Device Hub**
 (`~/Downloads/Xcode-beta.app/Contents/Applications/DeviceHub.app`); o Simulator.app do Xcode 16.1 não abre os iOS 27.
+
+## M7a — Questions (estados 15–18) — 8/11 noite, MacBook (por validar pelo owner)
+
+**Pedido do owner:** as Questions exatamente como no storyboard; as perguntas a ajustar no desktop e no telemóvel; uma aberta de cada vez;
+o scroll testado para a frente e para trás, a parar sempre nas Questions como nos outros capítulos.
+
+**Feito:** `src/components/questions/` (`questions.tsx` servidor, `questions.css`, `questions-client.tsx`), no lugar do esqueleto em `page.tsx`.
+- Storyboard principal, "04 Questions" (estados 15–18, valores do artefacto): o papel do estúdio em pedra (`#DCD5C8 → #BEB5A6`, luz em cima à
+  esquerda, linha do chão, vinheta; o grão como ruído escuro de baixa opacidade, sem modo de mistura, como no About); a âncora como
+  título (*What do you* / *actually create?* em itálico), a resposta, os capítulos (desktop em lista com numerais e setas; telemóvel numa
+  linha com barras finas, sem numerais); oito perguntas numeradas, a primeira sem filete; o + roda para ×; a resposta desdobra por
+  `grid-template-rows 0fr → 1fr` (0,7 s) e aparece em 0,6 s; uma aberta de cada vez; *05 Contact ↓* só no desktop.
+- Desktop: a moldura 16 : 10 do storyboard (`--u`, como o About). Telemóvel: uma coluna; o estúdio fica no ecrã enquanto a lista corre.
+- 14 → 15 (proposta da README #65, desenhada no storyboard): o papel sobe como um cartão sobre o último ecrã do About (as Questions
+  sobrepõem-se a ele, com sombra no topo); o About sobe 12 % mais devagar e escurece por baixo — animação ligada ao scroll em CSS
+  (`view-timeline` das Questions, `timeline-scope` no `main`), no compositor; sem suporte, o papel sobe sobre o About parado.
+  Depois a âncora entra (1,1 s), e as perguntas uma a uma (0,7 s, 0,1 s entre elas), uma vez.
+- Sem JavaScript: todas as respostas abertas (no desktop a moldura cresce com elas). Movimento reduzido: tudo no lugar, sem sobreposição.
+- iPhone: a cor das bordas nas Questions é a do papel (`sequence.ts`).
+
+**O scroll (o que mudou e porquê):**
+- Um gesto do 14 pára no topo das Questions (a marca no topo do papel, `about-stage.ts`). A espera depois do 14 encurtou (o papel começa
+  0,35 ecrã depois do início do 14 no telemóvel, 0,25 no desktop; antes o palco era largado 0,7/0,6 depois), para o 14 ficar a ~1,1 ecrãs
+  das Questions.
+- A paragem continua pelas Questions e pelo Contact, com marcas a cada 0,75 do ecrã visível até ao fim da página (seguem a altura da
+  página: abrir uma resposta). Testado e posto de lado: (a) paragem desligada nas Questions → um gesto forte de volta atravessava o About
+  até ao Method 9–11; (b) um script a trazer de volta → lutava com o dedo (um toque durante a inércia do iOS não chega à página);
+  (c) a secção como área de paragem maior que o ecrã → o iOS não deixa parar dentro.
+- Desktop: a paragem também continua pelas Questions (a regra deixou de depender da secção e do `data-free`, que saiu).
+- Saiu a compensação de scroll ao fechar uma resposta acima da que se abre (puxava a página para dentro do About a 320 × 640 e lutaria
+  com as marcas): a pergunta tocada sobe suavemente.
+
+**Medido:**
+- **Simulador iOS 27.3, dedo:** do Work ao fim e de volta, gestos normais, fortes e lentos: uma paragem por gesto; Q → fim em passos;
+  do fundo para trás → Questions → 14; gestos fortes do fundo e do topo das Questions: 14 ou Questions (8/8); com a 7.ª resposta aberta
+  as marcas seguem e o texto lê-se numa paragem; menu e saltos (Method 7, About 12, Questions, Contact, Work) certos; capítulos das
+  Questions → Work (Weddings, Artists, Experiences) certos.
+- **Chrome desktop (1500 × 888, eventos reais de trackpad):** Experiences → … → 14 → Questions → fim e de volta, uma paragem por gesto.
+- **Safari desktop (1324 × 888):** à ida certo; à volta Questions → 14 às vezes precisa de 2–3 gestos curtos (400 px): a subida do papel é
+  um ecrã de scroll, o 14 fica a 1,1 ecrãs das Questions (as outras fases ≤ 0,8). O Chrome passa à primeira (conta a inércia).
+- **Visual (Chrome):** 1920, 1440, 768, 390, 320: composição do storyboard, sem overflow horizontal (um de 86 px a 1440 — a margem
+  lateral global — corrigido).
+- **Teclado:** Tab do *04 Questions ↓* do About → capítulos → perguntas, foco visível; Enter abre, Espaço abre a seguinte e fecha a anterior.
+- **Movimento reduzido e sem JS** (390, 1440): conteúdo todo, sem overflow, sem erros de consola. typecheck, lint, build: passam.
+- **Contraste:** tinta `#2A2823` sobre o papel ~13 : 1; resposta (0,85) ~10 : 1; números (0,55) ~3,3 : 1 (decorativos, `aria-hidden`); a
+  barra sobre o papel (vidro a 0,50, o máximo aprovado na #71) ~3,9 : 1 — abaixo de 4,5 : 1 para texto pequeno: decisão do owner.
+
+**Xiaomi (Chrome, CDP, gestos de toque com inércia, 392 × 779) — e dois bugs encontrados nele:**
+- Gestos normais de Experiences ao fim: `7 8a 8b 8c 9 10 11 12 13 14 Q0 fim`, 3/3; de volta, uma fase por gesto até Experiences. Na 1.ª
+  volta logo depois de carregar, uma vez 10 → 12 (sem repetir).
+- Fortes (700 px a 6000 px/s): passam uma fase (o item 1 em aberto); do fundo para trás → 14 (3/3); do topo das Questions para trás →
+  13 ou 14; do 14 para a frente → fim (passa o topo das Questions); 6 gestos rápidos seguidos de Experiences → 7, do 14 → fim.
+- Perguntas: uma aberta de cada vez (tocar outra fecha a anterior, tocar a aberta fecha), o scroll não mexe; com a 2.ª aberta as marcas
+  seguem até ao fim. Menu: *04 Questions* → topo das Questions, *05 Contact* → fim, *03 About* → 12; capítulo *Weddings* → Work.
+- **fps:** 14 → Questions (subida do papel + entrada) 86,2 / 88,3 / 88,7, pior fotograma 22–33 ms, 0 acima de 50 ms; Questions → 14
+  85,6–87,9 (pior 22–23 ms); pelas Questions e o Contact 89,7.
+- **Bug: o papel tapava o Contact e o rodapé (telemóvel).** O papel colado (`sticky`) tem margem negativa de um ecrã, e o `sticky` mede-se
+  pela caixa da margem (0 de altura): ficava no topo do ecrã depois do fim das Questions e cobria o Contact e o colofão, com os links
+  por baixo dele. → `overflow: clip` nas Questions (sem contentor de scroll: o papel continua colado). Depois: Contact e colofão
+  visíveis e os links do índice respondem (Chrome 1920, 1440, 768, 390, 320; Xiaomi; Simulador), overflow 0.
+- **Bug: chegar com `#questions` no telemóvel abria no Method** (Chrome 390 × 844: y 10 644 para o topo em 13 799): o browser saltava
+  antes de as cenas terem a altura. → `address.ts` trata `#questions` e `#contact` como `#method`/`#about` (salto depois de a página
+  estar montada; menu e índice também). Depois: chegar com `#questions` → topo das Questions e com `#contact` → fim, em Chrome 320, 390,
+  768, 1440, 1920, Xiaomi e Simulador (4/4); menu certo nos três.
+- Depois das duas correções: Xiaomi e Simulador, o percurso normal Experiences → fim e o regresso do fundo (`Q0 14 13`) iguais; typecheck,
+  lint, build passam.
+
+**Owner (8/11 noite), três pontos — corrigidos:**
+1. *"Precisamos definir uma pausa/paragem no About, senão dás scroll, o About carrega e passa logo para o Questions."* Reproduzido:
+   Simulador, gestos a ~0,6 s, `11 → 12 → 12 → 14 → Q` (a passagem do 12 ainda a correr); Chrome 1440 (roda), `12 12 12 14` — a página
+   ia às marcas do 13 e do 14 por baixo do 12 e o 12 saltava para 14, sem o 13. → **retenção do 12, como a do 7** (aprovada no iPhone):
+   enquanto a luz encontra o retrato (2,4 s × tempo; 3 s no telemóvel) só a marca do 12 fica à frente (`.about[data-passage]`,
+   `method.css`); um gesto levado além dela por inércia é trazido uma vez, e no fim da retenção a página volta à marca se a inércia a
+   deixou fora (`about-stage.ts`, como `endHold` do Method). Telemóvel e desktop. Nunca num salto (menu, endereço).
+   - **Safari desktop:** com só as marcas do 11 e do 12 ligadas durante a retenção, ao acabar a página ia ao **7 do Method** — o Safari
+     guarda a paragem pela ordem entre as marcas (a 2.ª de [11, 12] → a 2.ª de todas, o 7). → só se desligam as marcas **depois** do 12;
+     as do Method ficam. Depois: certo.
+   - **Medido:** Simulador (dedo), do 11 com gestos a 0,4/0,6/1,0/1,5 s: `12 12 13 14 Q` (o 2.º gesto fica no 12); 2 gestos fortes → 12
+     (na marca, 2/2); para trás durante a retenção → 11 (2/2, também forte). Chrome desktop (trackpad real): `12 12 13 14 Q`; para trás → 11;
+     no fim fica no 12. Safari desktop (trackpad real): `12 12 13 14 Q`; para trás → 11; no fim fica no 12. Bateria inteira do Simulador
+     igual à anterior (uma vez, num gesto forte para trás, `13 → 14` — 3 repetições depois: `14 13 12 11 10`, limpo).
+2. *"Notei um lag ao carregar o Questions, desktop e mobile."* Medido sem lag de desenho (Chrome 1440 e 390: 119–120 fps, pior
+   fotograma 11–25 ms, nenhum *long animation frame*, 1.ª vez e 2.ª; Xiaomi 86–89 fps). O lag era a entrada: começava com o papel quase
+   em cima (0,3 s + 1,1 s; a última pergunta ~2,3 s) — o papel chegava vazio (contra a regra 1 do storyboard). → começa com o papel a um
+   quarto da subida, a âncora em 0,9 s, as perguntas a 0,35 s + 0,07 s cada (0,6 s): tudo lá ~1,4 s depois. Simulador: a âncora já se vê
+   durante a subida; com o papel em cima as perguntas estão a chegar.
+3. *"Em mobile ao carregar a cor não fica full screen."* As Questions no telemóvel mediam 765 px num ecrã de 779–835 (Xiaomi): com o papel
+   recortado ao fim da secção (a correção de cima), em baixo via-se o carvão do Contact. → `min-height: var(--screen)` no telemóvel.
+   Depois: no topo das Questions o fundo do ecrã é papel (Chrome 320, 390, 768; Simulador, até debaixo da barra do Safari).
+- Movimento reduzido e sem JS (390, 1440): sem marcas, overflow 0, palavras todas, sem erros. Fim da página e links do índice certos
+  (1920–320). typecheck, lint, build: passam.
+
+**Owner, iPhone, fim da noite:** "continuo a ver a cor que não enche no iOS" — o ponto 3 **não está resolvido no iPhone** (passa no
+Simulador e no Chrome). Por investigar (handoff, "ABERTO PARA AMANHÃ").
+
+**Não verificado:** o iPhone do owner (pontos 1 e 2); trackpad físico; **o Xiaomi depois destes três** (bloqueou-se a meio). O Contact (estados 19–21) ainda é o esqueleto: no fim da página a barra diz
+*04 Questions* e as bordas do Safari ficam da cor do papel por cima do Contact escuro — fica para o M7b.
+
+## Revisão do M7a com o owner, ponto a ponto — 9/11, MacBook (aprovados pelo owner no iPhone)
+
+Vídeos do owner em `docs/development/ios-lab/out/` (2026-11-09T10-18, 10-42, 10-48; só neste Mac). Simulador iOS 27.3 (`v5-iphone`,
+402 × 874), Safari 27.2 desktop (1324 × 850). Node 22.23.4 oficial (SHA-256 verificado) no scratchpad: o `/usr/local/bin/node` 20.5 é
+antigo demais para o Next 16.3.
+
+1. **A cor que não enchia no iOS (topo das Questions).** Causa: com a página deslocada, o Safari mostra atrás da ilha os 70 px acima do
+   ecrã; parado nas Questions, era o fim escuro do About (vídeo 10-18: faixa cinzenta por cima do papel; reproduzido no Simulador).
+   - Uma faixa fixa acima do ecrã (`top: -70px`) **não é desenhada** pelo Safari (Simulador, magenta: nada).
+   - 1.ª tentativa: o papel prolongado 70 px acima, a aparecer por opacidade nos últimos 70 px da subida (`clip-path` na secção). Certo
+     tecnicamente; o owner achou a mudança feia (vídeo 10-42: uma faixa cinzenta translúcida sobre o cartão). Abandonada.
+   - **Feito:** no iPhone (com movimento e JS) o cartão sobe mais 70 px e passa por baixo da ilha; a paragem das Questions fica 70 px
+     mais abaixo (`about-stage.ts` placeMarks, `address.ts`) e as palavras 70 px mais abaixo no cartão (`questions.css` `--q-lift`). Os
+     gradientes do papel são calculados sobre a altura maior (`--q-h`): o ecrã parado é o mesmo (diferença média 0,002/255). Na subida
+     vêem-se mais 70 px de papel acima do título. Sem `clip-path` (fica o `overflow: clip`). Simulador: paragem em 14 523 (era 14 453),
+     vindo de cima e de baixo; barra *04 Questions*. **Aprovado** pelo owner.
+   - Os ícones da barra de estado passam a branco durante a subida e voltam a preto (vídeo 10-48): é o iOS a reagir ao escurecimento do
+     About (a-dim). Testado: mesmo com 0,3 de escurecimento (contra 0,85) o iOS já os põe brancos; deixar o topo sem escurecer cria uma
+     faixa clara. **Owner: fica assim.**
+2. **12 com a fotografia inteira** (vídeo 10-18, 8,5–12 s): voltar ao 12 antes de o 13 acabar de abrir a luz. Causa: o temporizador de
+   `setOpen(true, 1750)` não era cancelado no regresso. → `setOpen(false)` no 12 e no regresso ao Method. Simulador (scroll programado,
+   12 → 13 → 12): antes, a 700 ms, fotografia aberta no 12; depois, 300/700/1200/1600 ms, luz fechada; ficar no 13 abre. **Aprovado.**
+3. **A "segunda pílula" dentro da ilha esquerda.** O Safari (iOS 27.3 e desktop 27.2) passou a aceitar `url()` no `backdrop-filter`: a
+   lente (feita para o Chromium) ligava-se, **não desenha nada** (ilha com e sem ela: diferença 0) e o filtro ficava com o mapa de uma
+   largura antiga — a pílula (medida: +5–8 de luminância do início da ilha até ~170 px). Desligar/ligar o filtro limpava-a. → lente só
+   fora do WebKit (`bar-client.tsx`, `navigator.vendor`). Simulador: 3 cargas e 6 saltos pelo menu sem pílula. **Aprovado.**
+4. **O 14 antes das Questions.** Um gesto seguido passava às Questions antes de o texto do 14 entrar. → retenção do 14 como a do 12:
+   chegando ao 14 por gesto (do 13 ou do 12), durante 1,6 s (+1 s vindo do 12) × tempo, as marcas das Questions e abaixo desligam-se
+   (`.about[data-story] .a-snap[data-at='below']`, `method.css`); para trás livre. Telemóvel e desktop. Simulador (scroll programado):
+   para a frente a 0,3/1,2/2 s → fica no 14; depois → Questions; para trás durante a retenção → 13. **Aprovado.**
+5. **A barra no Safari desktop** (cor, tremer no 12, o Method a mexer-se nela no 13/14). Gravação a 120 fps (11 → 12 → 13 → 14, scroll
+   programado): nada disso com a build sem lente. **A cor do topo do Safari 27.2 (Mac):** ignora `theme-color` e o fundo da página depois
+   de carregar; segue um elemento fixo com a largura toda no cimo (uma faixa de teste pintou-o) e não acompanha as mudanças de cor dele.
+   Com a lente ligada (cópia na porta 3102) o topo era igual em 5 sítios — não é deste dia. O owner vê o 3100 **certo**; pelo proxy
+   (`hud.js`, elementos fixos) via-se errado: **avaliar a cor do topo do Safari desktop sempre sem o proxy**.
+
+Decididos sem trabalho (owner, 9/11): contraste da barra sobre o papel (~3,9 : 1) — um meio-termo mais tarde; o trackpad curto das
+Questions para o 14 no Safari desktop — sem problema; o 8 no telemóvel mantém as três paragens; a paragem nas Questions antes do
+Contact entra com o Contact (como em todo o site).
+
+typecheck e lint passam; build feita depois de cada ponto. **Não verificado:** gestos reais com o dedo no Simulador (só scroll
+programado; o owner validou com o dedo no iPhone), o Xiaomi com estas mudanças, reduced-motion e sem JS desde a revisão (as regras novas
+só existem com JS e movimento), as cinco larguras da validação.
+
+## Passagem completa: Xiaomi, Chrome e Safari desktop, telemóvel emulado, reduced-motion, sem JS — 9/11 noite, MacBook
+
+Build com as cinco correções do dia (secção anterior). Ferramentas novas: `docs/development/ios-lab/finger/wheel.swift` (eventos reais do
+macOS: roda de rato e trackpad) e `finger/journey.mjs` (a página inteira, gesto a gesto, num Chrome de teste); ver o README do laboratório.
+
+**Xiaomi (Chrome, CDP, toque com inércia; proxy próprio em 3133):**
+- Bateria (`xiaomi-strokes.mjs`): normal para a frente `W 7 7 8a 8b 8c 9 10 12 13 14 Q Q` — **uma vez o 11 não apareceu** (10 → 12);
+  repetido de propósito 7 vezes (10 → 11 → 12, e 8c → 9 → 10 → 11 → 12 ao ritmo da bateria): sempre certo. Não reproduzido. Para trás,
+  normal: uma fase por gesto até Experiences. Gestos fortes (700 px, 6000 px/s) passam fases (`7 8a 8c 10 12 14`; para trás do 7 um
+  gesto forte vai até ao topo do Work, que é livre) — já em aberto. Do Work com gesto forte → 7 (6/6). Do fundo, forte para trás → 13 / 14.
+  Saltos do menu certos. Vaivém Experiences ↔ 7 coerente.
+- fps 6 ↔ 7 (`xiaomi-fps.mjs`, 3 idas e voltas): 81,8–87,7 fps; pior fotograma ~100 ms, 210 ms na 1.ª passagem depois de carregar (as
+  duas já conhecidas, iguais a 8/11).
+- **Não medido:** a subida do papel (14 → Questions) com o fundo novo das Questions — o Xiaomi adormeceu e o MIUI não deixa acordá-lo
+  por adb.
+
+**Chrome desktop (1500 × 913, eventos reais do macOS, `wheel.swift`):**
+- Roda de rato, um clique de cada vez: de Experiences 40 px, 40 px, depois 7 e uma fase por clique; 13 → 14 → Questions → fim e de volta
+  ao Method: uma fase por clique.
+- Trackpad (gesto de 300 px com inércia), de Experiences ao fim e de volta ao topo: **uma fase por gesto em todo o percurso**, nos dois
+  sentidos.
+- Os eventos `mouseWheel` do CDP davam "preso em Experiences" (a paragem liga a ~90 px da marca e o Chrome encaixa na mais próxima a cada
+  evento) e "preso no 14" (a 990 px das Questions): **artefacto do teste**, não acontece com eventos reais. Registado no README do
+  laboratório.
+
+**Safari desktop 27.2 (1324 × 850, eventos reais de trackpad):** de cima ao fim, uma fase por gesto do 7 ao 14, Questions, fim; para cima
+do 14 ao topo, uma fase por gesto; 60 fps (o ecrã do Safari a 60 Hz), pior fotograma 53 ms (3 acima de 50 ms em ~2 min). Barra certa,
+overflow 0. Dois pontos:
+- **De Experiences para o 7, gesto de 300 px: entra 3 vezes em 5**; nas outras 2 fica em Experiences e o gesto seguinte entra. A mesma
+  mecânica: a paragem liga a meio do gesto (`data-near`, 0,2 ecrã antes da cena; a marca de Experiences a 0,3) e o Safari encaixa na
+  marca mais próxima, ainda Experiences. **Não corrigido**: mexe nas marcas do desktop aprovadas a 8/11 — proposta para o owner.
+- Das Questions para o 14 três gestos curtos seguidos não chegam (um forte chega): o ponto já aceite pelo owner (9/11, "acho que não há
+  problema").
+
+**Chrome com toque emulado (`journey.mjs`):** 390 × 844, 320 × 640, 768 × 1024: uma fase por gesto da entrada ao fim e de volta ao topo;
+119 fps, pior 34–75 ms; sem erros. A etiqueta da barra chega depois da fase no 7 (*01 Work*) e no 12 (*02 Method*), e no 11 a subir
+(*03 About*): é o atraso desenhado (a barra muda quando a secção está à vista), não um defeito.
+
+**Reduced-motion e sem JS** (`reduced-nojs.mjs`, `next start`): 390 e 1440 — sem paragem, sem marcas, a página percorre-se toda,
+overflow 0; sem JS o texto todo (*No templates*, *Made once*, *Talk to us*); sem erros de consola.
+
+**Overflow horizontal:** 0 em 1920, 1440, 768, 390, 320 (amostras a cada meio ecrã, a página inteira). **Texto abaixo de 12 px:** só nas
+peças em miniatura do Work e nos ecrãs do Method (`dm-*`, `s-k`, 9–11,9 px) — são imagens de interfaces, como desenhadas; e `w-foot` a
+11,5 px a 768. Registado, não mudado.
+
+**Teclado nas Questions (1440):** Tab percorre as perguntas, foco visível (1 px sólido), Enter e Espaço abrem e fecham, `aria-expanded`,
+`aria-controls` e a região com `aria-labelledby` certos.
+
+**Uma ocorrência não reproduzida:** numa captura a 390 o endereço `#questions` mostrou o 11 do Method; repetido 7 vezes (à frente, em
+segundo plano, depois de outra largura): aterra sempre nas Questions. Provavelmente uma captura tirada com a janela tapada.
+
+**Não verificado:** a subida do papel no Xiaomi; o iPhone do owner com a passagem inteira desta build (o owner validou os cinco pontos);
+o Simulador com dedo (só scroll programado); Safari desktop com roda de rato; Firefox.

@@ -1,6 +1,79 @@
 # Chapter One V5 — handoff
 
-## ▶ COMEÇAR AQUI · 8 de novembro de 2026, tarde — scroll do telemóvel corrigido nas pontas (por validar no iPhone)
+## ▶ COMEÇAR AQUI · 9 de novembro de 2026 — revisão do M7a ponto a ponto (cinco correções aprovadas; não commitado)
+
+**Estado:** branch `v5` em `1d32373` + o M7a (Questions) e as correções de hoje, sem commit. Build feita; `next start -p 3100` + proxy
+3130 (iPhone `http://192.168.1.8:3130/`). Node: o do Mac (20.5) é antigo para o Next 16.3 — usar o Node 22 oficial (scratchpad da sessão,
+SHA-256 verificado; voltar a descarregar se o scratchpad tiver sido limpo). Tudo em `v5-tests.md`, "Revisão do M7a com o owner… 9/11".
+
+**Aprovado pelo owner hoje (iPhone e PC):**
+1. Topo do iOS nas Questions: o cartão sobe 70 px mais e passa debaixo da ilha (`questions.css --q-lift`, paragem e `#questions` 70 px
+   abaixo). Os ícones da barra de estado a passar a branco durante a subida: é o iOS, fica assim.
+2. 12 com a fotografia inteira ao voltar depressa do 13: corrigido (`setOpen(false)`).
+3. A pílula dentro da ilha: a lente da barra só fora do WebKit.
+4. Retenção no 14 enquanto o texto entra (`data-story`), telemóvel e desktop.
+5. Barra no Safari desktop: certa no 3100. **Avaliar a cor do topo do Safari desktop sem o proxy** (o `hud.js` muda-a).
+
+**Decidido sem trabalho:** contraste da barra sobre papel (meio-termo mais tarde); trackpad curto Questions → 14 (ok); o 8 com três
+paragens no telemóvel (fica); a paragem nas Questions antes do Contact entra com o Contact.
+
+**Passagem completa (9/11 noite, `v5-tests.md`):** Xiaomi, Chrome e Safari desktop com eventos reais, 390/320/768 com toque,
+reduced-motion, sem JS, 5 larguras — sem regressões. **Para o owner decidir:** no Safari desktop um gesto normal de Experiences para o
+7 fica em Experiences 2 vezes em 5 (o seguinte entra) — afinar as marcas do desktop (aprovadas a 8/11)? Falta: a subida do papel no
+Xiaomi (adormeceu). ⚠ Os `mouseWheel` do CDP dão falsos "presos" no desktop: usar `finger/wheel.swift` (README do laboratório).
+
+**Pedido do owner (9/11, fim), para depois do Contact:** a subida das Questions (14 → 15). No desktop é precisa um gesto longo (a
+subida mede um ecrã, ~990 px; um gesto curto começa a subir o cartão e a paragem leva-o de volta ao 14); no telemóvel o gesto está bom
+mas a subida é muito rápida (é o encaixe do iOS que a leva). Duas opções, apresentadas ao owner: (a) **afinar a proporção** — uma
+animação de scroll no compositor: no telemóvel a subida espalhada pelo gesto inteiro (~1,5–1,7× mais lenta, ainda segue o dedo), no
+desktop comprimida em ~0,7 ecrã (o meio caminho do Safari a ~300 px); (b) **passagem tocada** como o 7 e o 12 (~1,4 s fixos, uma cópia
+do topo das Questions sobe no palco do About e dá lugar à secção verdadeira). Recomendado começar por (a). Decidido fazer **depois do
+Contact** (as marcas do fim da página mudam com ele).
+
+**Próximos passos:** (1) a subida do papel no Xiaomi (e o que ficou de ontem: bloqueou-se); reduced-motion, sem JS e as cinco larguras;
+(2) registar e **commit** quando o owner pedir (push pelo GitHub Desktop); (3) o Contact (M7b, estados 19–21), com a paragem nas
+Questions antes dele, a barra e as bordas do Safari no fim da página; (4) a imagem de partilha. Em aberto antes de dar o site por
+concluído: arrastos de quase um ecrã que passam uma fase; no desktop um gesto de trackpad que às vezes passa uma fase.
+
+## 8 de novembro de 2026, noite — M7a: Questions construídas (por aprovar; não commitado)
+
+**Estado:** branch `v5` (o `v5-cloud-about` foi integrado por fast-forward e enviado: `1d32373`). Por cima, sem commit: as Questions
+(`src/components/questions/`), a passagem 14 → 15 e o scroll do fim (`about-stage.ts`, `about.css`, `method.css`), `page.tsx`,
+`globals.css`, `sequence.ts`, `src/lib/address.ts` (chegar com `#questions`/`#contact`), a retenção do 12 (`about-stage.ts`, `method.css`). Build feita; `next start -p 3100` + proxy 3130 (iPhone `http://192.168.1.8:3130/`).
+Testes: `v5-tests.md`, "M7a — Questions".
+
+**Para o owner ver/decidir:**
+1. As Questions no PC (http://localhost:3100/), no iPhone e no Xiaomi: a subida do papel sobre o About, a entrada, uma resposta de cada vez.
+2. **O scroll pelas Questions e pelo Contact** é por paragens a cada 3/4 de ecrã (até ao fim da página) — foi a forma fiável de um gesto
+   forte para trás não atravessar o About no iPhone. **Rever ao fazer o Contact (pedido do owner, 8/11).**
+3. A espera depois do 14 ficou mais curta (o papel começa 0,35 ecrã depois do 14 no telemóvel, 0,25 no desktop).
+4. A barra sobre o papel claro: ~3,9 : 1 (vidro no máximo aprovado, 0,50).
+5. Safari desktop: das Questions para o 14 um gesto curto de trackpad às vezes não chega.
+
+**Xiaomi validado (8/11 noite):** gestos, perguntas, menu; subida do papel 86–89 fps, 0 fotogramas acima de 50 ms. Encontrados nele e
+corrigidos: o papel tapava o Contact e o rodapé no telemóvel (`overflow: clip`); chegar com `#questions` abria no Method (`address.ts`).
+**Pedidos do owner (8/11 noite), feitos:** (1) retenção no About enquanto a luz encontra o retrato (12), como a do 7, telemóvel e desktop
+(no Safari desktop só se desligam as marcas depois do 12); (2) a entrada das Questions começa com o papel a subir (não chega vazio);
+(3) no telemóvel o papel enche o ecrã todo. Xiaomi por repetir com estes (bloqueou-se).
+
+**⚠ ABERTO PARA AMANHÃ (owner, iPhone, 8/11 fim da noite): "continuo a ver a cor que não enche no iOS".** A correção (3)
+(`min-height: var(--screen)` nas Questions, telemóvel) passou no Simulador e no Chrome, mas não no iPhone dele. Não investigado (sessão
+fechada a pedido). Começar por:
+1. Pedir ao owner um vídeo ou captura: **onde** falta a cor (em cima, na ilha/barra de estado? em baixo, debaixo da barra do Safari? dos
+   lados?) e **quando** (durante a subida do papel, ao chegar, ou parado nas Questions). Confirmar que recarregou (cache do Safari).
+2. Suspeitas: (a) as **bordas do Safari** (`sequence.ts` `paintEdges`, `QUESTIONS_EDGE #dcd5c8`) mudam só quando a secção passa a
+   `questions`; durante a subida o topo/fundo do Safari ainda é a cor do About (escuro) com o papel claro na página — ou, ao contrário,
+   claro sobre o fundo do papel mais escuro (`#beb5a6` + vinheta) em baixo; (b) o papel (`.q-paper`, `sticky`, `height: var(--screen)` =
+   `100lvh + 130px` no iOS) recortado pelo `overflow: clip` da secção — se a secção começa abaixo do topo do ecrã físico (o `--a-lift`/
+   `--m-lift` de 70 px dos palcos no iOS não existe nas Questions) pode faltar papel por baixo da ilha; (c) a sombra do topo do cartão.
+3. Simulador: Device Hub (`osascript … set frontmost of process "DeviceHub"`), `lab.sh`, capturas da janela em `-R1225,175,370,770`.
+   **Fechar os separadores 3130 do Xiaomi antes** (`xblank.mjs`): também respondem à consola e baralham os resultados.
+**Por fazer:** o Contact (estados 19–21, M7b) — com ele a barra e as bordas do Safari no fim da página (hoje *04 Questions* e cor do
+papel por cima do Contact); a imagem de partilha (M7).
+**Mantidos em aberto pelo owner (8/11), a fechar antes de dar o site por concluído:** arrastos de quase um ecrã que passam uma fase;
+no desktop um gesto de trackpad que às vezes passa uma fase.
+
+## 8 de novembro de 2026, tarde — scroll do telemóvel corrigido nas pontas (validado pelo owner, commit `1d32373`, integrado no `v5`)
 
 **Estado (não commitado):** branch `v5-cloud-about` em `9b437e1` + alterações: `method-stage.ts`, `method.css`, `about-stage.ts`,
 `src/lib/address.ts`, `src/lib/finger.ts` (novo), ferramentas em `docs/development/ios-lab/finger/`. Build feita; `next start -p 3100` + proxy
@@ -165,7 +238,7 @@ Um de cada vez, gravado no iPhone pelo owner antes do seguinte.
 
 ---
 
-## 4 de novembro de 2026 — About construído numa sessão na nuvem, branch `v5-cloud-about` (não integrado no `v5`)
+## 4 de novembro de 2026 — About construído numa sessão na nuvem, branch `v5-cloud-about` (integrado no `v5` a 8/11, `1d32373`)
 
 **Estado:** o About (estados 12–14) está no branch `v5-cloud-about`, a partir de `ffeec33`; o `v5` não mudou. O owner puxa o branch e
 valida no PC, no Xiaomi e no iPhone antes de integrar. Testes e números: `v5-tests.md`, secção "M7a — About". Código:

@@ -265,7 +265,12 @@ export function BarClient(props: Props) {
 
     // ---- the lens: a displacement map shaped like each island; within 14 px of its rim the backdrop is pulled from
     // further inside, so the rim magnifies (README #69). Only where backdrop-filter takes a url() (Chromium). ----
-    if (CSS.supports('backdrop-filter', 'url(#bar-lens-left) blur(1px)')) {
+    // Not in WebKit: Safari (iOS 27.3 at least) now accepts the url() but draws no lens (the island pixel for pixel the same with it or
+    // without, Simulator, 9 Nov), and its filter kept a map of an older width: a second, smaller pill inside the left island, from its
+    // left end to about the section's number (owner's iPhone, 9 Nov). Turning the filter off and on cleared it; without the url() it
+    // has nothing to keep
+    const webkit = navigator.vendor === 'Apple Computer, Inc.'
+    if (!webkit && CSS.supports('backdrop-filter', 'url(#bar-lens-left) blur(1px)')) {
       const sizes = new Map<string, string>()
       const lens = () =>
         islands.forEach((el) => {

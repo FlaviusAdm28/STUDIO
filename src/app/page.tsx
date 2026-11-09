@@ -1,9 +1,10 @@
-import { contact, nav, questions, sections } from '@content'
+import { contact, nav, sections } from '@content'
 import { Bar } from '@/components/bar/bar'
 import { Entrance } from '@/components/entrance/entrance'
 import { Work } from '@/components/work/work'
 import { Method } from '@/components/method/method'
 import { About } from '@/components/about/about'
+import { Questions } from '@/components/questions/questions'
 import { FpsMeter } from '@/components/fps-meter'
 
 /*
@@ -34,17 +35,7 @@ export default function Home() {
 
         <About />
 
-        <section id="questions" aria-labelledby="questions-title">
-          <h2 id="questions-title">04 Questions</h2>
-          <h3>{questions.anchor.q}</h3>
-          <p>{questions.anchor.a}</p>
-          {questions.rows.map((row) => (
-            <details key={row.q}>
-              <summary>{row.q}</summary>
-              <p>{row.a}</p>
-            </details>
-          ))}
-        </section>
+        <Questions />
 
         <section id="contact" aria-labelledby="contact-title">
           <h2 id="contact-title">05 Contact</h2>

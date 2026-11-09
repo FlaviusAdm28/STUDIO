@@ -5,16 +5,19 @@
   from the top, the Work, the Method and the About, 1440 × 900 and 390 × 844, 4 Nov). Each marks where it really starts with data-starts,
   as the bar reads it: the address goes there, at once (a smooth scroll would run every passage on the way). The menu, the colophon's
   index, back and forward, and an address arrived with. The Work lands on its own chapters (work-client.tsx).
+  The Questions and the Contact start at their own top, but an address arrived with went there before the scenes had their heights: on a
+  phone #questions opened in the Method (y 10 644 for a top at 13 799, Chrome 390 × 844, 8 Nov). They land the same way, once laid out.
   With reduced motion or no JavaScript the sections lie one after the other, the marks are not displayed, and the browser's own jump is
-  right: nothing is done.
+  right: nothing is done (the Questions and the Contact are set at their top, where the browser already put them).
 */
-const IDS = ['method', 'about']
+const IDS = ['method', 'about', 'questions', 'contact']
+const OWN = ['questions', 'contact']
 
 import { unsnapped } from '@/lib/unsnapped'
 
 export function landOnAddresses() {
   const mark = (id: string) => {
-    const el = document.querySelector<HTMLElement>(`[data-starts="${id}"]`)
+    const el = document.querySelector<HTMLElement>(`[data-starts="${id}"]`) ?? (OWN.includes(id) ? document.getElementById(id) : null)
     return el && getComputedStyle(el).display !== 'none' ? el : null
   }
   // the scenes are told it is a jump, not a scroll (data-jump on <html>, for a moment): from it they settle at once, or start from what is
@@ -30,7 +33,8 @@ export function landOnAddresses() {
     unmark = window.setTimeout(() => delete root.dataset.jump, 600)
     // on a phone, on the first phase's mark (the stop at each phase, method.css): landed at the start, the next stroke only took the page
     // to the mark, the phase unchanged (03 About, Simulator, 8 Nov)
-    const at = el.getBoundingClientRect().top
+    // the Questions on an iPhone: their card goes on 70 px under the island, the words where they are seen (questions.css --q-lift)
+    const at = el.getBoundingClientRect().top + (parseFloat(getComputedStyle(el).getPropertyValue('--q-lift')) || 0)
     const first = matchMedia('(max-width: 899px)').matches
       ? [...(el.closest('section')?.querySelectorAll<HTMLElement>('.m-snap, .a-snap') ?? [])]
           .map((m) => m.getBoundingClientRect().top)

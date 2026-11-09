@@ -63,6 +63,17 @@ Patch completo em `attempt/method-in-flow-1107.patch` (+ `attempt/leap.ts`). **R
   `node docs/development/ios-lab/proxy.mjs 3130 3100` (escuta em 3130, site em 3100). Rotas: `/__diag/lab2` … `lab5` (as páginas de
   `labs/`), `/__diag/hud.js`, `POST /__diag/log` (fita), `POST /__diag/file` (vídeo/foto do telemóvel) → `out/` (ignorado pelo git).
   `?wake` no endereço do site mantém o ecrã ligado (Wake Lock; só em contexto seguro, ex. `localhost`).
+- `finger/wheel.swift` (9 Nov) — **eventos reais do macOS** na janela que estiver à frente: `wheel x y n ms` (n cliques de uma roda de rato,
+  linhas, sem fases; n < 0 sobe), `wheel x y dy n pad` (um gesto de trackpad com fases e inércia, como o `simtouch`), `wheel x y click`.
+  Compilar: `DEVELOPER_DIR=~/Downloads/Xcode-beta.app/Contents/Developer xcrun swiftc -O wheel.swift -o wheel` (fora do repositório).
+- `finger/journey.mjs` (9 Nov) — a página inteira num Chrome de teste (`--remote-debugging-port=9223`, perfil no scratchpad): um gesto de
+  cada vez até ao fim e de volta ao topo; fase, etiqueta da barra, overflow, fps, erros. `node journey.mjs 390 844 touch`. O Chrome de teste
+  tem de estar **à frente** (`System Events … frontmost of process whose unix id is <pid>`): atrás, os gestos de toque não fazem nada.
+- ⚠ **Não julgar a paragem por fase no desktop com `Input.dispatchMouseEvent` (`mouseWheel`) do CDP**: o Chrome trata esses eventos como
+  scrolls soltos e encaixa na marca mais próxima, não na seguinte — dá "preso em Experiences" e "preso no 14" que **não existem** com uma
+  roda ou um trackpad reais (medido 9/11 com `wheel.swift`: uma fase por clique / gesto). Para o desktop, eventos reais.
+- **A cor do topo do Safari desktop não se avalia pelo proxy**: o `hud.js` tem elementos fixos e o Safari 27.2 tinge a barra com a cor de
+  um elemento fixo de largura inteira no cimo. Ver no `:3100` direto.
 - `hud.js` — painel à direita no site servido pelo proxy:
   - **● rec**: grava por fotograma scroll, alturas do ecrã/visualViewport, a posição do palco do Work e — coluna 19 — a do Method:
     `[topo da secção, topo do palco, fundo do palco, y do transform, fase, data-leap, m-leaving, position, --m-lift]`. Ao parar envia a

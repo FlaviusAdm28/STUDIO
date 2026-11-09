@@ -339,15 +339,42 @@
     /* over the Method's last 1.6 screens (about-stage.ts): held 0.3 screen before the passage, which starts half a screen after the
        Method has shown its 11 (and 0.3 screen before the Method lets it go) */
     margin-top: calc(var(--screen) * -1.6);
-    /* 0.3 held before + 2.3 of passage (12 → 13 at 1.0 → 14 at 1.7, let go at 2.3) + the stage */
-    height: calc(var(--screen) * 3.6);
+    /* 0.3 held before + 1.95 of passage (12 → 13 at 1.0 → 14 at 1.7, the Questions' paper starting to rise at 1.95) + the stage + the
+       screen the paper rises over it (questions.css: the Questions lie over the About's last screen). Let go at 2.3 before the Questions
+       were built; 14 → the paper is shorter now, as the scroll stops at each phase (a stroke from 14 reaches the Questions) */
+    height: calc(var(--screen) * 4.25);
     background: transparent;
     pointer-events: none;
   }
-  /* a phone: 13 at 1.1, 14 at 2.2, let go at 2.9 (about-stage.ts STARTS_PHONE; owner, 7 Nov: too fast) */
+  /* a phone: 13 at 1.1, 14 at 2.2, the paper at 2.55 (about-stage.ts STARTS_PHONE; owner, 7 Nov: too fast) */
   @media (max-width: 899px) {
     :root[data-js] .about {
-      height: calc(var(--screen) * 4.2);
+      height: calc(var(--screen) * 4.85);
+    }
+  }
+  /* 14 → 15 (storyboard; README #65): the Questions' paper rises like a card over the About, which goes up more slowly beneath it and
+     darkens. Driven by the scroll in CSS (the paper's own view of the screen, --q-rise in questions.css), on the compositor: transform and
+     opacity only. Where scroll-driven animations do not exist, the paper simply rises over the About held */
+  @supports (animation-timeline: view()) {
+    :root[data-js] main {
+      timeline-scope: --q-rise;
+    }
+    :root[data-js] .about .a-stage {
+      animation: a-under linear both;
+      animation-timeline: --q-rise;
+      animation-range: entry 0% entry 100%;
+    }
+    :root[data-js] .about .a-stage::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      background: #1b1c1a;
+      opacity: 0;
+      pointer-events: none;
+      animation: a-dim linear both;
+      animation-timeline: --q-rise;
+      animation-range: entry 0% entry 100%;
     }
   }
   /* the bar's mark: the About starts where the passage does */
@@ -505,5 +532,16 @@
   }
   :root[data-js] .about .a-rule {
     transform: scaleX(0);
+  }
+}
+
+@keyframes a-under {
+  to {
+    translate: 0 -12%;
+  }
+}
+@keyframes a-dim {
+  to {
+    opacity: 0.85;
   }
 }

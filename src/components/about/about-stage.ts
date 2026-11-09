@@ -19,6 +19,7 @@
   around the photograph (a dead band just above the trigger where the stage was no longer held); the light cheap, in layers, at a low
   resolution (a dark layer with a hole, scaled ×3). Hence the copy, the stage held before the trigger, and the light as below.
 */
+import { fingerDown, strokeLately, watchFinger } from '@/lib/finger'
 import { bandColour, hex, over, type Rgb } from '@/lib/top-colour'
 
 export type Phase = 'pre' | '12' | '13' | '14'
@@ -27,19 +28,28 @@ const ORDER = ['12', '13', '14'] as const
 // The section lies over the Method's last 1.6 screens (about.css). Its stage is held LEAD screens before the passage starts, so the dead
 // band around the start never lets it move with the page; the passage starts half a screen after the Method shows its 11.
 const LEAD = 0.3
-// where each phase starts, in screens of scroll from the passage's start; let go at RELEASE (about.css: the section's height). A stroke of
-// a finger is ~0.8 screen (the Method's phone steps, owner 3 Nov): one stroke never runs through two phases
+// where each phase starts, in screens of scroll from the passage's start; at RELEASE the Questions' paper starts to rise over the stage
+// (about.css: the section's height). A stroke of a finger is ~0.8 screen (the Method's phone steps, owner 3 Nov): one stroke never runs through two phases
 const STARTS: Record<(typeof ORDER)[number], number> = { '12': 0, '13': 1, '14': 1.7 }
-const RELEASE = 2.3
+const RELEASE = 1.95
 // on a phone ~1.1 screen a phase, as the Method's, the scroll stopping at each, and every animation a quarter slower (owner, iPhone,
 // 7 Nov: too fast, phases passed without meaning to); about.css: the section's height
 const STARTS_PHONE: Record<(typeof ORDER)[number], number> = { '12': 0, '13': 1.1, '14': 2.2 }
-const RELEASE_PHONE = 2.9
+const RELEASE_PHONE = 2.55
 const PHONE_TEMPO = 1.25
 const BAND = 0.025
 // 12 is played whole: reached, 13 waits for it; only this close to the end of the hold does it hurry, so it is never let go unfinished
 const HURRY_BEFORE = 0.25
 const HURRY_MS = 400
+// A stroke onwards while the light finds the portrait rests on 12 again (method.css, data-passage), as the Method's 7 on a phone (approved,
+// owner's iPhone, 8 Nov): until the portrait is there in its light (2.4 s × the tempo). Without it the About "carrega e passa logo para o
+// Questions" (owner, 8 Nov): strokes ~0.6 s apart went 11 → 12 → 14 → the Questions with 12 still playing (Simulator), and on a desktop
+// 12 → 14 past 13 (Chrome 1440, wheel strokes). Phone and desktop
+const HOLD_MS = 2400
+// And at 14 while its story comes in (method.css, data-story): a stroke onwards rests on 14 again until the paragraph, the credit and
+// 04 Questions are there — from 13 the last of them ends at 1.6 s, from 12 at 2.6 s (× the tempo). Without it a stroke went on to the
+// Questions before the About could be read (owner, 9 Nov: "consigo ir para o questions antes de conseguir ver tudo do about"). Back is free
+const STORY_MS = 1600
 
 const EASE = 'cubic-bezier(0.2, 0.7, 0.2, 1)'
 const GLIDE: Curve = [0.45, 0, 0.25, 1]
@@ -97,16 +107,28 @@ export function runStage(about: HTMLElement, release: () => void) {
   // the scroll stops at each phase (method.css .a-snap): one mark a phase, just past its start and the dead band, and one at the end
   const marks: HTMLElement[] = []
   const placeMarks = () => {
-    // the phases, and the way out below: the Questions at the screen's top (the section's end)
+    // the phases, and the way out below: the Questions at the screen's top (their paper risen over the About's last screen)
     // 12's mark 0.4 screen into it: just past its start it lay ~200 px from the Method's 11, and a stroke ran over one of the two (11 → 13,
     // 12 → 10; Xiaomi, CDP strokes, 7 Nov)
-    // a desktop: in the middle of 13 and 14, and 12 close to its start (0.8 screen from the Method's 11), as the Method's marks
-    const shares = kind === 'phone' ? Object.values(startsOf()).map((share) => (share || 0.4) + BAND * 2.4) : [0.25, 1.05, 1.75]
-    // and on a phone the page's end (the Contact): the stop stays on through the Questions and the Contact (method.css), so a stroke back
-    // from there starts with it — turned on only as the page flew into the About, iOS let one quick stroke run from the Questions on to 12
-    // or the Method's 11 (Simulator, finger strokes, 8 Nov); with no mark below the Questions' a stroke down was held there
-    const end = document.documentElement.scrollHeight - (about.getBoundingClientRect().top + scrollY) - 1
-    const tops = [...shares.map((share) => (LEAD + share) * H), about.offsetHeight, ...(kind === 'phone' ? [end] : [])]
+    // a desktop: in the middle of 13 and 14, and 12 close to its start (0.8 screen from the Method's 11), as the Method's marks; 14's at
+    // 1.85, 1.1 screens before the Questions' (at 1.75 it was 1.3, and a trackpad stroke in Safari came back to it, 8 Nov)
+    const shares = kind === 'phone' ? Object.values(startsOf()).map((share) => (share || 0.4) + BAND * 2.4) : [0.25, 1.05, 1.85]
+    const questions = document.getElementById('questions')
+    const top = about.getBoundingClientRect().top
+    // on an iPhone the Questions' card goes on 70 px under the island (questions.css --q-lift): their stop is that much further
+    const qLift = questions ? parseFloat(getComputedStyle(questions).getPropertyValue('--q-lift')) || 0 : 0
+    const out = questions ? questions.getBoundingClientRect().top - top + qLift : about.offsetHeight
+    // and on from there to the page's end, every 0.75 screen (the Questions, the Contact): the stop stays on below, so a stroke back from
+    // there starts with it — begun with it off, iOS let a quick one run through 14 to 12, or on into the Method's 11 to 9 (Simulator, finger
+    // strokes, 8 Nov; a script taking it back fought the finger: a touch during iOS's momentum is not told to the page). A stroke is one
+    // step, each step shows the next three quarters of a screen, so every line is read; the marks follow the answers opening (pages, below)
+    const end = document.documentElement.scrollHeight - innerHeight - (top + scrollY)
+    const below: number[] = []
+    // in screens as seen (the stage's H runs on under Safari's bar): each step leaves a quarter of the last screen in view
+    const step = 0.75 * innerHeight
+    for (let y = out + step; y < end - 0.25 * step; y += step) below.push(y)
+    if (end > out + 1) below.push(end)
+    const tops = [...shares.map((share) => (LEAD + share) * H), out, ...below]
     tops.forEach((y, i) => {
       let m = marks[i]
       if (!m) {
@@ -116,10 +138,12 @@ export function runStage(about: HTMLElement, release: () => void) {
         about.append(m)
         marks[i] = m
       }
-      const top = `${Math.round(y)}px`
-      if (m.style.top !== top) m.style.top = top
+      const at = `${Math.round(y)}px`
+      if (m.style.top !== at) m.style.top = at
+      // which is which, for the hold of the passage (method.css): 12's stays while the light finds the portrait; those below 14 (the
+      // Questions' and on) go while 14's story comes in
+      m.dataset.at = i === 0 ? '12' : i >= shares.length ? 'below' : ''
     })
-    // the page's end only on a phone: gone if the screen has become a desktop's
     marks.splice(tops.length).forEach((m) => m.remove())
   }
   // the stage's own screen: on iOS it reaches 70 px above it (about.css --a-lift), and everything is placed under that
@@ -366,6 +390,18 @@ export function runStage(about: HTMLElement, release: () => void) {
     }, ms * tempoOf())
   }
   let passageEnds = 0
+  // the hold of the passage (HOLD_MS): a jump of the site's own is never taken for a stroke (lib/address.ts, lib/unsnapped.ts)
+  let passageHold = 0
+  let storyHold = 0
+  let pulled = false
+  const jumping = () => document.documentElement.dataset.jump !== undefined || document.documentElement.style.scrollSnapType === 'none'
+  // let go: the page first on 12's mark, if a stroke's momentum left it elsewhere within 12 (iOS carries on after a pull back; the Method's
+  // endHold); with a finger on the screen, its stroke decides
+  const endHold = () => {
+    const at12 = marks[0]?.getBoundingClientRect().top ?? 0
+    if (phase === '12' && !fingerDown() && !jumping() && strokeLately(4000) && Math.abs(at12) > 2) scrollTo({ top: scrollY + at12, behavior: 'instant' })
+    delete about.dataset.passage
+  }
 
   // every layer at the start of the passage: the room of 11 (its light on the sentence), the portrait unseen in its place in the dark
   const START: [HTMLElement, Keyframe][] = [
@@ -497,6 +533,10 @@ export function runStage(about: HTMLElement, release: () => void) {
     phase = to
     about.dataset.phase = to
     clearTimeout(wake)
+    clearTimeout(passageHold)
+    delete about.dataset.passage
+    clearTimeout(storyHold)
+    delete about.dataset.story
     // the portrait: in from 0.7 s over 1.7 s at the passage (half at 1.55 s), out from 0.1 s over 0.9 s going back (half at 0.55 s)
     if (to === 'pre') seen(false, instant || was === null ? 0 : 550)
     else seen(true, !instant && (was === 'pre' || was === null) && to === '12' ? 1550 : 0)
@@ -512,8 +552,10 @@ export function runStage(about: HTMLElement, release: () => void) {
         dropCopy()
         return
       }
-      // back to the Method: the light leaves the portrait for the sentence first, then the Method's 11 comes back
+      // back to the Method: the light leaves the portrait for the sentence first, then the Method's 11 comes back. Still opening (13
+      // left within its 1.75 s), the open photograph is still to come: it is called off (see 12, below)
       if (pt.hasAttribute('data-open')) closeFromOpen()
+      else setOpen(false)
       const clone = method?.dataset.phase === '11' ? copy() : null
       if (clone) {
         clone.style.opacity = '1'
@@ -556,11 +598,20 @@ export function runStage(about: HTMLElement, release: () => void) {
       ])
       passageEnds = performance.now() + 3000 * tempoOf()
       dropLater(3100)
+      // only when the page is at 12 (choose: a stroke from the Method's 11), never for a jump
+      if (!viaJump) {
+        about.dataset.passage = ''
+        pulled = false
+        passageHold = window.setTimeout(endHold, HOLD_MS * tempoOf())
+      }
       return
     }
     if (to === '12') {
-      // back from 13 (or a refresh here): the story goes first, then the photograph closes into the light at the centre
+      // back from 13 (or a refresh here): the story goes first, then the photograph closes into the light at the centre. Back before the
+      // light had opened (a quick stroke within 13's first 1.75 s), its open photograph was still to come and came anyway: 12 with the
+      // whole photograph, no light (owner's iPhone, 9 Nov). Called off with the rest
       if (pt.hasAttribute('data-open') || instant) closeFromOpen()
+      else setOpen(false)
       run(
         [
           fly(role, { opacity: '0' }, 450),
@@ -616,6 +667,11 @@ export function runStage(about: HTMLElement, release: () => void) {
     }
     if (to === '14') {
       const after = was === '13' ? 0 : 1000 // straight from 12: the story waits for the room
+      // reached by a stroke (never a jump, a refresh or a way back from below): the next one rests here until the story is in
+      if (!instant && !viaJump && (was === '13' || was === '12')) {
+        about.dataset.story = ''
+        storyHold = window.setTimeout(() => delete about.dataset.story, (STORY_MS + after) * tempoOf())
+      }
       list.push(
         fly(rule, { transform: 'none' }, 1200, after + 300),
         fly(para, { opacity: '1' }, 1000, after + 200),
@@ -648,12 +704,6 @@ export function runStage(about: HTMLElement, release: () => void) {
   let jumpAt = -1e9
   const choose = () => {
     const p = progress()
-    // the stop at each phase lets go as the stage does (method.css): from 14 a stroke goes on to the Questions, never pulled back
-    const free = p > (kind === 'phone' ? RELEASE_PHONE : RELEASE) - 0.3
-    if (free !== 'free' in about.dataset) {
-      if (free) about.dataset.free = ''
-      else delete about.dataset.free
-    }
     const jumped = lastP !== null && Math.abs(p - lastP) > 1.2
     lastP = p
     // a jump can arrive in two frames (just short of the start, then on it): it counts for a moment after it is seen (the copy of 11 was
@@ -687,7 +737,15 @@ export function runStage(about: HTMLElement, release: () => void) {
       // the passage first: 13 answers once it has ended; only near the end of the hold is it hurried. On a phone a stroke rests on the
       // next phase's mark (the snap), so reaching 13 is asked for: hurried at once — waiting the passage's 3.75 s there, a scroll went
       // on through 13 and 14 to the Questions with 12 still on stage (Xiaomi journey, 7 Nov)
-      if (p >= hurryAt() || (kind === 'phone' && p >= startsOf()['13'] + BAND)) {
+      // carried past 12 while the light finds the portrait (a quick stroke from 11, its stop fixed as the finger lifted, before the hold):
+      // back to 12's mark once the finger is off, once a passage — taken back again and again it fought the finger (the Method's, 8 Nov)
+      const held = 'passage' in about.dataset
+      if (held && !pulled && !jumping() && !fingerDown() && strokeLately() && marks[0]) {
+        pulled = true
+        scrollTo({ top: scrollY + marks[0].getBoundingClientRect().top, behavior: 'instant' })
+        return
+      }
+      if (!held && (p >= hurryAt() || (kind === 'phone' && p >= startsOf()['13'] + BAND))) {
         hurry()
         passageEnds = Math.min(passageEnds, performance.now() + HURRY_MS)
       }
@@ -732,6 +790,14 @@ export function runStage(about: HTMLElement, release: () => void) {
 
   measure()
   placeMarks()
+  // the page below changes height (an answer opening, the fonts): the marks follow, once a frame at most
+  let placing = 0
+  const pages = new ResizeObserver(() => {
+    cancelAnimationFrame(placing)
+    placing = requestAnimationFrame(placeMarks)
+  })
+  pages.observe(document.body)
+  watchFinger()
   about.classList.add('a-live')
   choose()
   addEventListener('scroll', frameChoose, { passive: true })
@@ -744,11 +810,16 @@ export function runStage(about: HTMLElement, release: () => void) {
 
   return () => {
     clearTimeout(wake)
+    clearTimeout(passageHold)
+    delete about.dataset.passage
+    clearTimeout(storyHold)
+    delete about.dataset.story
     clearTimeout(edgeLater)
     clearInterval(edgeFollow)
     clearTimeout(seenLater)
     marks.forEach((m) => m.remove())
-    delete about.dataset.free
+    pages.disconnect()
+    cancelAnimationFrame(placing)
     colourWatch.disconnect()
     delete about.dataset.edge
     delete about.dataset.seen

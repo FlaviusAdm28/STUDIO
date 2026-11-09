@@ -107,7 +107,7 @@ a {
   top: 8px;
 }
 
-main > section:not(.entrance, .method, .about),
+main > section:not(.entrance, .method, .about, .questions),
 .colophon {
   padding-inline: var(--gutter);
 }
@@ -122,21 +122,20 @@ main > section:not(.entrance, .method, .about),
   list-style: none;
 }
 
-main > section:not(.entrance, .method, .about) {
+main > section:not(.entrance, .method, .about, .questions) {
   padding-block: 64px;
 }
 
 /* the sections not built yet (M7) on the page's charcoal, as they already looked on a desktop: transparent, they showed html's colour,
    which on iOS is the colour read for Safari's edges — the portrait's sky as the About went up, light grey under a dark page and in the
    bar's strip (owner's iPhone, 6 Nov, bug 11; Simulator, 7 Nov) */
-#questions,
 #contact,
 .colophon {
   background: var(--charcoal);
 }
 
 /* the sections not built yet (M7): a plain size; the built ones size their own photographs */
-main section:not(.entrance, .work, .method, .about) picture {
+main section:not(.entrance, .work, .method, .about, .questions) picture {
   max-width: 420px;
   margin-block: 16px;
 }

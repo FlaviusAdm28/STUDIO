@@ -107,6 +107,7 @@ export function entranceSequence(c: EntranceConfig) {
   let tone = ''
   let viaMethod = false
   const ios = CSS.supports('-webkit-touch-callout', 'none')
+  const QUESTIONS_EDGE = '#dcd5c8'
   const paintEdges = (colour: string) => {
     if (colour === tone) return
     tone = colour
@@ -140,7 +141,8 @@ export function entranceSequence(c: EntranceConfig) {
       viaMethod = !!edge
       root.style.transition = fade
       document.body.style.transition = fade
-      paintEdges(edge || (past || d.section === 'about' ? '#1e1d1a' : ground ? getComputedStyle(ground).backgroundColor : frame))
+      // the Questions: their paper's top (questions.css .q-paper), so the island and the band under Safari's bar are the stone's
+      paintEdges(edge || (d.section === 'questions' ? QUESTIONS_EDGE : past || d.section === 'about' ? '#1e1d1a' : ground ? getComputedStyle(ground).backgroundColor : frame))
     }
     const watch = new MutationObserver(scene)
     watch.observe(root, { attributes: true, attributeFilter: ['data-pass', 'data-section'] })

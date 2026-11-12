@@ -69,6 +69,21 @@ Patch completo em `attempt/method-in-flow-1107.patch` (+ `attempt/leap.ts`). **R
 - `finger/journey.mjs` (9 Nov) — a página inteira num Chrome de teste (`--remote-debugging-port=9223`, perfil no scratchpad): um gesto de
   cada vez até ao fim e de volta ao topo; fase, etiqueta da barra, overflow, fps, erros. `node journey.mjs 390 844 touch`. O Chrome de teste
   tem de estar **à frente** (`System Events … frontmost of process whose unix id is <pid>`): atrás, os gestos de toque não fazem nada.
+- **Ferramentas de 11 Nov** (todas leem o estado pela consola do laboratório ou por CDP; resultados em `v5-tests.md`, 11/11):
+  - `finger/where.js` — onde está a página numa palavra (`W<capítulo>@y`, 7…11, 12–14, Q, C, fim): `curl --data-binary @where.js
+    localhost:<porta>/__diag/run`. `finger/cstate.js` — o estado das Questions/Contact em repouso, com `✗(…)` se algo não bate (secção,
+    `c-dusk`, sala, pergunta, linha, perguntas, colofão, barra, overflow). ⚠ O fim conta-se a < 60 px: a < 3 px, com a barra do Safari
+    aberta no fim, dava "C" sem a página se mexer (o falso "volta ao Contact" de 11 Nov).
+  - `finger/xiaomi-contact.mjs` (bateria do Contact por toque: normal, forte, lento, vaivém, dois gestos, toques, saltos, fps),
+    `finger/xiaomi-contact-force.mjs` (forte/médio/normal, 3× de cada ponto), `finger/xiaomi-walk.mjs` (o site inteiro, normal e forte),
+    `finger/xiaomi-12.mjs` (a passagem 11 → 12 cronometrada e a retenção). Xiaomi: `adb forward tcp:9222 localabstract:chrome_devtools_remote`,
+    `adb reverse tcp:3133 tcp:3133`, o separador em `localhost:3133`.
+  - `finger/desk-walk.sh <porta> <x> <y> "<comando de foco>"` (o site inteiro, trackpad normal e rápido) e `finger/desk-contact.sh` (a
+    bateria do Contact) — eventos reais: `WHEEL=<caminho do wheel compilado>`. Chrome de teste no 3131 (`x 750 y 583` com a janela em
+    0,40 1500 × 1000), Safari no 3136 (`x 864 y 571` com a janela em 202,75). ⚠ No zsh separar os argumentos (`${=d}`), e nunca chamar
+    `seq` a uma função de shell que use o comando `seq` (11 Nov: recursão, os processos do Mac esgotaram-se).
+  - `finger/frames-band.mjs`, `finger/frames-rgb.mjs` — luminância / RGB por faixa de linhas, fotograma a fotograma, de uma gravação
+    (iPhone 1206 × 2622): para medir faixas, arestas e cores nos vídeos do owner.
 - ⚠ **Não julgar a paragem por fase no desktop com `Input.dispatchMouseEvent` (`mouseWheel`) do CDP**: o Chrome trata esses eventos como
   scrolls soltos e encaixa na marca mais próxima, não na seguinte — dá "preso em Experiences" e "preso no 14" que **não existem** com uma
   roda ou um trackpad reais (medido 9/11 com `wheel.swift`: uma fase por clique / gesto). Para o desktop, eventos reais.

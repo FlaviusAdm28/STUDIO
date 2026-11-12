@@ -51,6 +51,20 @@ html {
   background: var(--charcoal);
 }
 
+/* no elastic bounce at the page's ends with a mouse or trackpad, nor on iOS: at the colophon the bounce took the page's end up under the
+   Contact's held scene (the colophon over the handle, iPhone) and drew a black band at the screen's foot (Safari desktop; owner's
+   recordings, 10 Nov 16:35 and 16:39). Android's touch keeps it: there it is the pull that reloads the page */
+@media (hover: hover) and (pointer: fine) {
+  html {
+    overscroll-behavior-y: none;
+  }
+}
+@supports (-webkit-touch-callout: none) {
+  html {
+    overscroll-behavior-y: none;
+  }
+}
+
 /* no browser tap colour anywhere (Chrome's blue box, owner 3 Nov): the press is drawn by the site where it is wanted (lib/press.ts) */
 html {
   -webkit-tap-highlight-color: transparent;
@@ -107,35 +121,16 @@ a {
   top: 8px;
 }
 
-main > section:not(.entrance, .method, .about, .questions),
-.colophon {
+main > section:not(.entrance, .method, .about, .questions, .contact) {
   padding-inline: var(--gutter);
 }
 
-.colophon ol,
-.colophon ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-main > section:not(.entrance, .method, .about, .questions) {
+main > section:not(.entrance, .method, .about, .questions, .contact) {
   padding-block: 64px;
 }
 
-/* the sections not built yet (M7) on the page's charcoal, as they already looked on a desktop: transparent, they showed html's colour,
-   which on iOS is the colour read for Safari's edges — the portrait's sky as the About went up, light grey under a dark page and in the
-   bar's strip (owner's iPhone, 6 Nov, bug 11; Simulator, 7 Nov) */
-#contact,
-.colophon {
-  background: var(--charcoal);
-}
-
-/* the sections not built yet (M7): a plain size; the built ones size their own photographs */
-main section:not(.entrance, .work, .method, .about, .questions) picture {
+/* a section not built with its own rules: a plain size; the built ones size their own photographs */
+main section:not(.entrance, .work, .method, .about, .questions, .contact) picture {
   max-width: 420px;
   margin-block: 16px;
 }
@@ -157,7 +152,3 @@ summary {
   font-size: 1.25rem;
 }
 
-.colophon {
-  padding-block: 32px 48px;
-  color: var(--stone);
-}

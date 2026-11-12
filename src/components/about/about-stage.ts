@@ -8,7 +8,7 @@
   12   the light finds you (transition B). The passage starts on a copy of the Method's 11, exactly as it is (#65), so it plays whole at
        its own pace whatever the scroll does: Talk to us leaves first, then the steps and (desktop) the screens, the sentence last; the
        light that was on the sentence glides down onto the portrait and gathers on it, and in it the portrait appears in black and white,
-       fading to its edges in a circle; "I'm Flávio." small beneath it (~3.2 s)
+       fading to its edges in a circle; "I'm Flávio." small beneath it (~2 s; ~3.2 s until 11 Nov)
   13   the room comes up: the circle of light opens to the whole photograph as it goes to its place, the name rises and becomes the title
        (one element, a measured transform), the room takes the portrait's atmosphere; the sentence comes after
   14   your story: the rule, the paragraph, the credit, 04 Questions ↓. Then the section lets go: the About is not a long held scene
@@ -45,7 +45,10 @@ const HURRY_MS = 400
 // owner's iPhone, 8 Nov): until the portrait is there in its light (2.4 s × the tempo). Without it the About "carrega e passa logo para o
 // Questions" (owner, 8 Nov): strokes ~0.6 s apart went 11 → 12 → 14 → the Questions with 12 still playing (Simulator), and on a desktop
 // 12 → 14 past 13 (Chrome 1440, wheel strokes). Phone and desktop
-const HOLD_MS = 2400
+// 1.6 s since the passage was made a third quicker (owner, 11 Nov; was 2.4 s): the portrait is there in its light at 1.65 s
+const HOLD_MS = 1600
+// the passage to 12 played whole: its last layer (the name) ends at 1.9 s (was 3 s)
+const PASSAGE_MS = 2000
 // And at 14 while its story comes in (method.css, data-story): a stroke onwards rests on 14 again until the paragraph, the credit and
 // 04 Questions are there — from 13 the last of them ends at 1.6 s, from 12 at 2.6 s (× the tempo). Without it a stroke went on to the
 // Questions before the About could be read (owner, 9 Nov: "consigo ir para o questions antes de conseguir ver tudo do about"). Back is free
@@ -118,16 +121,29 @@ export function runStage(about: HTMLElement, release: () => void) {
     // on an iPhone the Questions' card goes on 70 px under the island (questions.css --q-lift): their stop is that much further
     const qLift = questions ? parseFloat(getComputedStyle(questions).getPropertyValue('--q-lift')) || 0 : 0
     const out = questions ? questions.getBoundingClientRect().top - top + qLift : about.offsetHeight
-    // and on from there to the page's end, every 0.75 screen (the Questions, the Contact): the stop stays on below, so a stroke back from
-    // there starts with it — begun with it off, iOS let a quick one run through 14 to 12, or on into the Method's 11 to 9 (Simulator, finger
-    // strokes, 8 Nov; a script taking it back fought the finger: a touch during iOS's momentum is not told to the page). A stroke is one
-    // step, each step shows the next three quarters of a screen, so every line is read; the marks follow the answers opening (pages, below)
+    // then the Questions, every 0.75 screen down to their last screen of questions; the Contact; and the page's end, the colophon (owner,
+    // 9 Nov: "parar no questions antes de ir para o contact, como em tudo no site"). The stop stays on below, so a stroke back from there
+    // starts with it — begun with it off, iOS let a quick one run through 14 to 12, or on into the Method's 11 to 9 (Simulator, finger
+    // strokes, 8 Nov; a script taking it back fought the finger: a touch during iOS's momentum is not told to the page). Each step shows the
+    // next three quarters of a screen, so every line is read; the marks follow the answers opening (pages, below). The Contact starts under
+    // the Questions' last screen of paper (contact.css): its stop is where it starts, the question in its place and the light gone down
     const end = document.documentElement.scrollHeight - innerHeight - (top + scrollY)
+    const start = document.querySelector('.c-start')
+    const contactAt = start ? start.getBoundingClientRect().top - top : end
+    const lastQuestions = Math.min(contactAt - innerHeight, end)
     const below: number[] = []
     // in screens as seen (the stage's H runs on under Safari's bar): each step leaves a quarter of the last screen in view
     const step = 0.75 * innerHeight
-    for (let y = out + step; y < end - 0.25 * step; y += step) below.push(y)
-    if (end > out + 1) below.push(end)
+    for (let y = out + step; y < lastQuestions - 0.25 * step; y += step) below.push(y)
+    // only when it shows a good part of a screen more: 142 px below the Questions' own stop it was a step that showed nothing new (iOS)
+    if (lastQuestions > out + 0.35 * innerHeight) below.push(lastQuestions)
+    if (contactAt < end - 1) below.push(contactAt)
+    // the page's end: a mark at the page's foot that rests with its foot at the screen's (scroll-snap-align: end, method.css), so the
+    // stop is the true end whatever the browser's bar is doing. Placed at the end less the screen, it was the end with the bar as it was
+    // when placed: with the bar out the page went on 40 px (iPhone) or 56 px (Xiaomi) more under a forced stroke, at its end (owner's
+    // iPhone, 10 Nov 17:03: "se forçar continua a forçar"; Xiaomi, CDP strokes)
+    const foot = document.documentElement.scrollHeight - (top + scrollY) - 1
+    if (end > out + 1) below.push(foot)
     const tops = [...shares.map((share) => (LEAD + share) * H), out, ...below]
     tops.forEach((y, i) => {
       let m = marks[i]
@@ -143,6 +159,8 @@ export function runStage(about: HTMLElement, release: () => void) {
       // which is which, for the hold of the passage (method.css): 12's stays while the light finds the portrait; those below 14 (the
       // Questions' and on) go while 14's story comes in
       m.dataset.at = i === 0 ? '12' : i >= shares.length ? 'below' : ''
+      if (y === foot && i === tops.length - 1) m.dataset.align = 'end'
+      else delete m.dataset.align
     })
     marks.splice(tops.length).forEach((m) => m.remove())
   }
@@ -232,6 +250,8 @@ export function runStage(about: HTMLElement, release: () => void) {
       const { el, to, ms, delay, easing } = f
       flights.get(el)?.cancel()
       flights.delete(el)
+      fades.get(el)?.cancel()
+      fades.delete(el)
       if (instant || f.instant) return settle(el, to)
       const t = tempoOf()
       const a = el.animate(f.frames ?? [starts[i] ?? {}, to], { duration: ms * t, delay: delay * t, easing: f.frames ? 'linear' : easing, fill: 'both' })
@@ -244,6 +264,13 @@ export function runStage(about: HTMLElement, release: () => void) {
         }
       }
     })
+  }
+  // a fade laid over a flight that goes on (above it in the composite order, so its opacity is the one seen): kept until the element's
+  // next flight, so the one below, ending later, cannot bring its own opacity back
+  const fades = new Map<Element, Animation>()
+  const fadeOver = (el: HTMLElement, from: string, ms: number) => {
+    fades.get(el)?.cancel()
+    fades.set(el, el.animate([{ opacity: from }, { opacity: 0 }], { duration: ms * tempoOf(), easing: EASE, fill: 'both' }))
   }
   const hurry = (ms = HURRY_MS) =>
     [...flights.values(), ...copyAnims].forEach((a) => {
@@ -336,10 +363,12 @@ export function runStage(about: HTMLElement, release: () => void) {
   }
   // the copy's words, and (desktop) its screens as one layer: [selector, gone, ms, delay out, delay back]
   const LEAVE: [string, string, number, number, number][] = [
-    ['.m-cta', 'translateY(60%)', 600, 0, 300],
-    ['.m-steps', 'translateY(40%)', 700, 150, 200],
-    ['.m-screens', 'scale(1.04)', 1100, 150, 0],
-    ['.m-close', 'translateY(-6%)', 900, 500, 0],
+    // out: the same order, about a third quicker (owner, 11 Nov: the wait for "I'm Flávio." too long; was 600/0, 700/150, 1100/150,
+    // 900/500). Back as it was
+    ['.m-cta', 'translateY(60%)', 450, 0, 300],
+    ['.m-steps', 'translateY(40%)', 500, 100, 200],
+    ['.m-screens', 'scale(1.04)', 800, 100, 0],
+    ['.m-close', 'translateY(-6%)', 650, 300, 0],
   ]
   // each leaves from, and comes back to, the opacity it rests at in the Method (the steps rest at 0.75: started from 1 they brightened for
   // a frame at the handover, 4 Nov)
@@ -537,9 +566,9 @@ export function runStage(about: HTMLElement, release: () => void) {
     delete about.dataset.passage
     clearTimeout(storyHold)
     delete about.dataset.story
-    // the portrait: in from 0.7 s over 1.7 s at the passage (half at 1.55 s), out from 0.1 s over 0.9 s going back (half at 0.55 s)
+    // the portrait: in from 0.45 s over 1.2 s at the passage (half at 1.05 s), out from 0.1 s over 0.9 s going back (half at 0.55 s)
     if (to === 'pre') seen(false, instant || was === null ? 0 : 550)
-    else seen(true, !instant && (was === 'pre' || was === null) && to === '12' ? 1550 : 0)
+    else seen(true, !instant && (was === 'pre' || was === null) && to === '12' ? 1050 : 0)
     // the top's colour as the top changes: followed while the room comes up and the photograph opens over the top (to 13, 14), and
     // while it closes off it (back to 12). By the clock alone it was early or late on one screen or the other: the photograph reaches the
     // top between 1.2 and 1.5 s at 390 × 844, and leaves it by 0.4 s, by 0.65 s on the iPhone's taller portrait (timed, 4 Nov)
@@ -561,20 +590,28 @@ export function runStage(about: HTMLElement, release: () => void) {
         clone.style.opacity = '1'
         wordsBack(clone, 900)
       }
+      // still gliding down from 13 to their places at 12 (a stroke back from 12 within its 1.5 s), the portrait and the name go on as they
+      // were going, and the name only fades. A new flight takes the place of the one before it: given only the opacity, the name dropped
+      // at once to where its last finished flight had left it — 45 px down and smaller in one frame (owner's iPhone, 12 Nov, 3 of 3 such
+      // strokes in the recording); given its place again, it lurched on at four times the speed (Simulator, 28 px in a frame)
+      const glide = was === '12'
+      const nameGlides = glide && flights.has(name)
+      const nameSeen = nameGlides ? getComputedStyle(name).opacity : ''
       run([
-        fly(name, { opacity: '0' }, 400),
+        ...(nameGlides ? [] : [fly(name, { transform: nameFrom, opacity: '0' }, 400)]),
         fly(role, { opacity: '0' }, 400),
-        fly(say, { opacity: '0' }, 400),
+        fly(say, { opacity: '0', transform: 'translateY(5%)' }, 400),
         fly(credit, { opacity: '0' }, 400),
         fly(para, { opacity: '0' }, 400),
         fly(next, { opacity: '0' }, 400),
         fly(rule, { transform: 'scaleX(0)' }, 400),
         fly(lit, { opacity: '0' }, 900),
         fly(frame, { opacity: '0' }, 900, 100),
-        fly(pt, { transform: ptAt12 }, 1000, 0, GLIDE_EASE),
+        ...(glide && flights.has(pt) ? [] : [fly(pt, { transform: ptAt12 }, 1000, 0, GLIDE_EASE)]),
         fly(glow, { transform: 'none', opacity: '1' }, 1500, 0, GLIDE_EASE),
         ...opening(currentK(), ONE, 900, 0),
       ])
+      if (nameGlides) fadeOver(name, nameSeen, 400)
       // the stage is unseen again only once all of it is back (about.css: clipped at pre, unless leaving), held where it is meanwhile
       holdWhileLeaving(2000)
       return
@@ -591,13 +628,16 @@ export function runStage(about: HTMLElement, release: () => void) {
       else dropCopy()
       run([
         // the light leaves the sentence as it starts to go, and the portrait appears in it while the sentence is still leaving: the
-        // room is never empty between them (storyboard rule 1; at 1.4 s it was, 4 Nov)
-        fly(glow, { transform: glowAt12, opacity: '1' }, 2400, 300, GLIDE_EASE),
-        fly(frame, { opacity: '1' }, 1700, 700, 'cubic-bezier(0.33, 0, 0.2, 1)'),
-        fly(name, { opacity: '0.92' }, 1000, 2000),
+        // room is never empty between them (storyboard rule 1; at 1.4 s it was, 4 Nov). About a third quicker, the same order, and the
+        // name in while the portrait is still coming rather than after it (owner, 11 Nov: "ta a demorar muito tempo a carregar o 12…
+        // pode continuar elegante e ser mais rápida"; was the light 2400 ms from 300, the portrait 1700 from 700, the name 1000 from
+        // 2000 — the name at 2.0–3.0 s, 2.5–3.75 s on a phone)
+        fly(glow, { transform: glowAt12, opacity: '1' }, 1600, 200, GLIDE_EASE),
+        fly(frame, { opacity: '1' }, 1200, 450, 'cubic-bezier(0.33, 0, 0.2, 1)'),
+        fly(name, { opacity: '0.92' }, 700, 1200),
       ])
-      passageEnds = performance.now() + 3000 * tempoOf()
-      dropLater(3100)
+      passageEnds = performance.now() + PASSAGE_MS * tempoOf()
+      dropLater(PASSAGE_MS + 100)
       // only when the page is at 12 (choose: a stroke from the Method's 11), never for a jump
       if (!viaJump) {
         about.dataset.passage = ''
@@ -667,8 +707,10 @@ export function runStage(about: HTMLElement, release: () => void) {
     }
     if (to === '14') {
       const after = was === '13' ? 0 : 1000 // straight from 12: the story waits for the room
-      // reached by a stroke (never a jump, a refresh or a way back from below): the next one rests here until the story is in
-      if (!instant && !viaJump && (was === '13' || was === '12')) {
+      // reached by a stroke (never a jump, a refresh or a way back from below): the next one rests here until the story is in. Not while
+      // the page is held on the Questions (data-c-hold, contact-client.tsx): a quick stroke carried it into 13 for a moment before the
+      // hold took it back, this hold took the Questions' marks away, and as the other let go the page went to 14 (Chrome, 2 of 2)
+      if (!instant && !viaJump && (was === '13' || was === '12') && !('cHold' in document.documentElement.dataset)) {
         about.dataset.story = ''
         storyHold = window.setTimeout(() => delete about.dataset.story, (STORY_MS + after) * tempoOf())
       }
@@ -831,6 +873,7 @@ export function runStage(about: HTMLElement, release: () => void) {
     removeEventListener('resize', onResize)
     stage.removeEventListener('focusin', onFocus)
     flights.forEach((a) => a.cancel())
+    fades.forEach((a) => a.cancel())
     dropCopy()
     about.classList.remove('a-live', 'a-leaving')
     stage.style.top = ''

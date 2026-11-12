@@ -590,8 +590,8 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
     listen(window, 'scroll', chooseChapter, { passive: true })
     chooseChapter()
     // the rotation runs only while the stage is on screen
-    const seen = new IntersectionObserver(([e]) => {
-      visible = e.isIntersecting
+    const seen = new IntersectionObserver((es) => {
+      visible = es[es.length - 1].isIntersecting
       if (visible) run()
       else stop()
     })

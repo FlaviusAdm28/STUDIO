@@ -1,0 +1,445 @@
+/*
+  05 Contact — states 19–21 (storyboard; README #54, #55, #106). Values from the approved storyboard (main storyboard, "05 Contact"):
+  desktop 1 --u = 1 % of the storyboard's 16 : 10 frame (as the Questions), phone 1 --p = 1 % of its 9 : 19.5 phone.
+  At rest everything is in the flow: the room (poster, film, veil) behind the section, the question, the times and the action, then the
+  colophon. With JavaScript and motion (and scroll-driven animations) the passage of #106: the Contact lies under the Questions' last
+  screen of paper, whose light goes down as the question comes up (questions.css); its room held behind the whole Contact; the question
+  held while the colophon comes in, the scene drawing up to make room for it (storyboard 21). Transform and opacity only.
+*/
+
+.contact {
+  --u: min(1vw, 1.6svh);
+  --p: min(1vw, 0.4615svh);
+  --c-lift: 0px;
+  --c-ink: rgba(238, 232, 221, 0.8);
+  position: relative;
+  color: var(--linen);
+  /* the room's own dark, under the poster (and what shows before it is drawn) */
+  background: #1b1c1a;
+}
+
+/* ---- the room: the entrance's poster, its film over it once playing, a charcoal veil, one warm light low ---- */
+.c-room {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.c-poster,
+.c-poster img,
+.c-film {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.c-film {
+  opacity: 0;
+  transition: opacity 1.2s var(--ease);
+}
+.contact.c-playing .c-film {
+  opacity: 1;
+}
+/* only on an iPhone, with motion (below) */
+.c-shade {
+  display: none;
+}
+.c-veil {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle calc(34 * var(--u)) at 50% 58%, rgba(255, 232, 200, 0.07), transparent 100%),
+    radial-gradient(70% 60% at 50% 45%, rgba(27, 28, 26, 0.72), rgba(27, 28, 26, 0.9) 100%);
+}
+
+/* the bar's mark of where the Contact starts (bar-client, data-starts; lib/address.ts): its top is the start; it reaches the page's end,
+   so the bar's line at the screen's top always finds it past there (0 px tall, a jump or a quick stroke went over the line unseen and the
+   bar stayed on 04 Questions, Chrome 390, 9 Nov) */
+.c-start {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  pointer-events: none;
+}
+
+/* ---- 19–20: the question, then the visitor's times and the one action ---- */
+.c-hold {
+  position: relative;
+}
+.c-scene {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 18svh 10% 10svh;
+  gap: 7svh;
+}
+.c-ask {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: calc(5.6 * var(--u));
+  line-height: 1.05;
+  text-wrap: balance;
+}
+.c-ask i {
+  font-style: italic;
+}
+.c-now {
+  display: grid;
+  justify-items: center;
+  gap: calc(2.2 * var(--u));
+}
+.c-time {
+  margin: 0;
+  max-width: 60ch;
+  font-size: max(14px, 1.35 * var(--u));
+  line-height: 1.6;
+  color: var(--c-ink);
+}
+/* the one action: Instagram (README #54); its whole pill is the target */
+.c-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(1.2 * var(--u));
+  min-height: 44px;
+  padding: max(10px, 1.1 * var(--u)) max(22px, 2.6 * var(--u));
+  border: 1px solid rgba(238, 232, 221, 0.55);
+  border-radius: 99px;
+  font-size: max(12px, 1.15 * var(--u));
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--linen);
+  text-decoration: none;
+  transition:
+    background-color 0.5s var(--ease),
+    color 0.5s var(--ease);
+}
+.c-cta:hover,
+.c-cta:focus-visible {
+  background: var(--linen);
+  color: #2a2823;
+}
+.c-cta:focus-visible {
+  outline: 2px solid var(--linen);
+  outline-offset: 4px;
+}
+/* the handle as text, to select and search by hand */
+.c-handle {
+  margin: 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: max(17px, 1.6 * var(--u));
+  opacity: 0.75;
+  user-select: text;
+}
+.c-gap {
+  display: none;
+}
+
+/* ---- 21: the colophon, the site's last page ---- */
+.colophon {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: calc(3 * var(--u));
+  margin: 0 7%;
+  padding: max(14px, 1.6 * var(--u)) 0 7svh;
+  border-top: 1px solid rgba(238, 232, 221, 0.18);
+  font-size: max(13px, 1 * var(--u));
+  line-height: 1.9;
+  color: rgba(238, 232, 221, 0.72);
+}
+.c-sig {
+  margin: 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: max(24px, 2.2 * var(--u));
+  line-height: 1.2;
+  color: var(--linen);
+}
+/* "Built around / you." on two lines on a desktop (storyboard), one on a phone */
+.c-sig-w {
+  display: block;
+  max-width: 6.6em;
+}
+.c-sig small {
+  display: block;
+  margin-top: max(10px, 1 * var(--u));
+  font-family: var(--sans);
+  font-style: normal;
+  font-size: max(11px, 1 * var(--u));
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(238, 232, 221, 0.6);
+}
+.c-k {
+  margin: 0 0 max(4px, 0.4 * var(--u));
+  font: 500 max(11px, 0.9 * var(--u)) / 1.6 var(--sans);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+.colophon ol,
+.colophon ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.colophon a {
+  color: inherit;
+  text-decoration: none;
+}
+.colophon a:hover {
+  color: var(--linen);
+}
+.colophon a:focus-visible {
+  outline: 1px solid var(--linen);
+  outline-offset: 3px;
+}
+
+/* ---- phone and tablet upright ---- */
+@media (max-width: 899px) {
+  .c-veil {
+    background:
+      radial-gradient(circle calc(70 * var(--p)) at 50% 50%, rgba(255, 232, 200, 0.07), transparent 100%),
+      radial-gradient(70% 60% at 50% 45%, rgba(27, 28, 26, 0.72), rgba(27, 28, 26, 0.9) 100%);
+  }
+  .c-scene {
+    padding: 24svh 7% 10svh;
+    gap: 6svh;
+  }
+  .c-ask {
+    font-size: calc(11.6 * var(--p));
+  }
+  .c-now {
+    gap: calc(5 * var(--p));
+  }
+  .c-time {
+    font-size: max(13px, 3.6 * var(--p));
+  }
+  .c-cta {
+    gap: calc(3 * var(--p));
+    padding: max(12px, 3 * var(--p)) max(26px, 7 * var(--p));
+    font-size: max(12px, 3.2 * var(--p));
+  }
+  .c-handle {
+    font-size: max(17px, 4.6 * var(--p));
+  }
+  .colophon {
+    grid-template-columns: 1fr 1fr;
+    gap: calc(4 * var(--p));
+    /* its foot clear of the browser's bars at the page's end (not --room: on iOS that also counts the held scenes' 130 px) */
+    padding: max(14px, 4 * var(--p)) 0 calc(4svh + 100lvh - 100svh);
+    font-size: max(13px, 3.1 * var(--p));
+  }
+  .c-sig {
+    grid-column: 1 / -1;
+    font-size: max(24px, 6.2 * var(--p));
+  }
+  .c-sig-w {
+    max-width: none;
+  }
+  .c-sig small {
+    margin-top: calc(2 * var(--p));
+    font-size: max(11px, 2.8 * var(--p));
+  }
+  .c-k {
+    font-size: max(11px, 2.6 * var(--p));
+  }
+}
+
+/* ================= the passage (#106) and the held question — JavaScript, motion, scroll-driven animations =================
+   As the storyboard's A (README #106): the studio's light goes down where it is, and the question is there once it has — it does not
+   come up with the page. The Contact lies under the Questions' last two screens: its room and its scene are held on the screen from a
+   screen before the passage, unseen. When a stroke takes the Contact's start halfway up the screen the passage plays in its own time
+   (contact-client.tsx sets .c-dusk on the page): the Questions' paper and last questions go (questions.css), then the question comes in
+   where it stays, then its line and the action (states 19–20); back up, they go and the light comes back. The colophon only comes a
+   screen later (21), the scene drawing up for it with the scroll. Built first with the question riding up with the page and the
+   colophon already under the action at the Contact's stop on the iPhone (owner's recording, 10 Nov: "o implementado não está como
+   definimos"), then with the light tied to the scroll (too quick on the iPhone; see questions.css).
+   Without these (reduced motion, no JavaScript, Firefox) the Contact follows the Questions as it is above. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* a layer of its own, in front of the Questions (5): the film comes on over their darkened paper (E, storyboard saida-mascara, owner
+       10 Nov), and on an iPhone Safari takes it under the Dynamic Island and its bar only so — with its room loose between the Questions
+       and its words, as before, the two bands showed the page's flat colour, never the film (Simulator, 10 Nov: the film painted half
+       red half blue never reached them; the Contact as a layer of its own put both halves in both bands). Over the Questions' last
+       screens it is see-through and lets them be touched and read: only its links take a touch (it took the taps meant for the questions,
+       and the bar read its dark over the paper, owner's iPhone, 10 Nov) */
+    /* --c-reach: the section starts this much higher than its own content (the start below, the room's flow and so the scene, the
+       colophon and the page's length are where they were), so the room is held at the screen's top all the way back to the Questions'
+       stop. A sticky box never leaves its section (WebKit keeps it inside even with a negative margin, Simulator, 11 Nov): starting where
+       its content starts, the section's top was only 28 px above the screen at the Questions' stop on an iPhone, the room needs 70 (behind
+       the Dynamic Island), and for the last 42 px of a stroke back the room, still lit, came down with the page and left the island's band
+       bare — "o vídeo desce, vê-se uma barra em cima" (owner's iPhone, 11 Nov 14:09; measured each frame in the Simulator) */
+    :root[data-js] .contact {
+      --c-reach: 50svh;
+      margin-top: calc(-2 * var(--screen) - var(--c-reach));
+      background: transparent;
+      z-index: 6;
+      pointer-events: none;
+    }
+    /* the room held from a screen before the passage to the page's end, unseen until the light has gone down (contact-client.tsx draws
+       the way between) */
+    :root[data-js] .c-room {
+      position: sticky;
+      z-index: 1;
+      top: calc(-1 * var(--c-lift));
+      height: calc(var(--screen) + var(--c-lift));
+      margin-bottom: calc(var(--c-reach) - var(--screen) - var(--c-lift));
+      background: #1b1c1a;
+      opacity: 0;
+    }
+    :root[data-js].c-dusk .c-room {
+      opacity: 1;
+    }
+    /* where the Contact starts, a screen in: its top at the screen's top is the Contact's stop */
+    :root[data-js] .c-start {
+      top: calc(var(--screen) + var(--c-reach));
+    }
+    :root[data-js] .c-hold {
+      z-index: 2;
+      timeline-scope: --c-end;
+    }
+    :root[data-js] .c-hold :is(.c-cta, .c-handle, .colophon) {
+      pointer-events: auto;
+    }
+    /* the scene held from the start: the passage's screen, the Contact's own, then the colophon's arrival (.c-gap is their flow) */
+    :root[data-js] .c-scene {
+      position: sticky;
+      top: 0;
+      height: var(--screen);
+      min-height: 0;
+      margin-bottom: calc(-1 * var(--screen));
+    }
+    /* the passage's screen, the Contact's own, and half a screen more before the colophon comes: the colophon alone (230–260 px) was
+       less than a stroke, and one back from the page's end went over the Contact to the Questions (Safari desktop, trackpad; Chrome
+       390, touch, 10 Nov). Nothing moves in that half screen and no stop rests in it */
+    :root[data-js] .c-gap {
+      display: block;
+      height: calc(2 * var(--screen) + 50svh);
+    }
+    /* it comes in faded, as the storyboard's colophon appears (opacity), and is whole once in: sliding in at full strength its rule went
+       up across the film as a line drawn over the screen (owner, Safari and Chrome desktop, 10 Nov: "um traço tipo risco"; it was the
+       only line across the screen in a recording of Chrome, 30 fps). Faded with the rest it still crossed ~50 rows at 70 % (the colophon
+       comes in within one stroke): the rule itself only comes over the last fifth of its way in */
+    :root[data-js] .colophon {
+      view-timeline: --c-end block;
+      animation:
+        c-colo-in linear both,
+        c-rule-in linear both;
+      animation-timeline: --c-end, --c-end;
+      animation-range: entry 0% entry 100%;
+    }
+    /* 21: the scene draws up for the colophon with the scroll (storyboard: the question 18 % → 9 % and smaller, the times 53 % → 37 %) */
+    :root[data-js] .c-ask {
+      transform-origin: 50% 0;
+      animation: c-ask-up linear both;
+      animation-timeline: --c-end;
+      animation-range: entry 0% entry 100%;
+    }
+    :root[data-js] .c-now {
+      animation: c-now-up linear both;
+      animation-timeline: --c-end;
+      animation-range: entry 0% entry 100%;
+    }
+    /* 19–20, played: once the light is going down the question comes in where it stays, then its line and the action (contact-client.tsx
+       plays the way, Web Animations: iOS cut CSS transitions here). Unseen before, and out of the keyboard's way. Only once the island
+       runs (.c-live): before it, arrived at directly, they are simply there. Translate here, transform for 21: never overwriting */
+    :root[data-js].c-live:not(.c-dusk) :is(.c-ask, .c-now) {
+      opacity: 0;
+      visibility: hidden;
+      translate: 0 4svh;
+    }
+  }
+}
+@keyframes c-ask-up {
+  to {
+    transform: translateY(-9svh) scale(0.79);
+  }
+}
+@keyframes c-colo-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes c-rule-in {
+  0%,
+  80% {
+    border-top-color: transparent;
+  }
+  100% {
+    border-top-color: rgba(238, 232, 221, 0.18);
+  }
+}
+@keyframes c-now-up {
+  to {
+    transform: translateY(-16svh);
+  }
+}
+/* a phone: the scene goes up with the colophon, together, by what the colophon really covers (on the iPhone it is taller, the room under
+   Safari's bar at its foot, and a fixed 10 svh left Talk to us under it, Simulator, 9 Nov): what the action and the handle would leave
+   under it on the smallest screen (100svh, Safari's bar out: measured with the bar in, the colophon came over the handle when it came
+   out, owner's iPhone, 10 Nov 16:35; measured with the screen as it is now, 100dvh, each stroke at the end brought the bar out or in and
+   the question jumped 40 px, 17:03). --c-below and --c-colo measured by contact-client.tsx */
+@media (max-width: 899px) {
+  @keyframes c-ask-up {
+    to {
+      transform: translateY(calc(-1 * var(--c-up)));
+    }
+  }
+  @keyframes c-now-up {
+    to {
+      transform: translateY(calc(-1 * var(--c-up)));
+    }
+  }
+  .contact {
+    --c-up: max(0px, var(--c-below, 0px) - 100svh + var(--c-colo, 0px) + 24px);
+  }
+}
+
+/* iOS, a phone: the room reaches 70 px above the screen, behind the Dynamic Island (as the Method's and the About's stages, README #86) */
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 899px) and (prefers-reduced-motion: no-preference) {
+    :root[data-js] .contact {
+      --c-lift: 70px;
+    }
+    /* At the page's end Safari paints the screen under its bar (below the layout viewport, where the page has ended) with the page's flat
+       colour (#1b1c1a, sequence.ts), never the room: the room is held there but Safari does not draw past the document's end (the room
+       painted in stripes and the page magenta: magenta under the bar at the end only, Simulator, 11 Nov). Each stroke to the colophon
+       brought that flat band up from the screen's foot over the film, a lighter, cooler edge rising with the words (27,27,24 under the
+       bar, 24,24,22 the film over it, owner's iPhone and the Simulator, 11 Nov: "ao subir o texto em baixo ele ajusta uma barra de cor").
+       So the room's foot is that same colour, flat from the smallest screen's foot (100svh, the bar out) down: the band, when it comes,
+       is the colour already there. Always, not with the scroll: faded in with the colophon it was seen darkening and clearing under the
+       words at each stroke at the end (owner, 11 Nov: "consegues ver o filtro a ajustar-se por baixo"). At the Contact's stop the film's
+       foot is that dark already (the veil's 0.9): with it and without it the screen is the same to the eye (Simulator, the same frame) */
+    @supports (animation-timeline: view()) {
+      :root[data-js] .c-shade {
+        display: block;
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(var(--c-lift) + 100svh - 160px);
+        bottom: 0;
+        background: linear-gradient(rgba(27, 28, 26, 0), #1b1c1a 160px);
+      }
+      /* and nothing of the picture under it: the film and the poster end where the shade is whole (same size, same framing — only cut).
+         When a quick stroke at the end opened or closed Safari's bar, for 1–3 frames Safari showed the strip under the bar before its
+         painted layers (the veil, the shade) were drawn there, but the film's own layer (a video, always whole) was: the film raw, a
+         dark red band across the screen's foot (owner's iPhone 16:53, the Simulator 3 times in 8 strokes; with the cut 0, 11 Nov). A
+         clip-path is the compositor's: what is left there is the room's flat colour, the page's own */
+      :root[data-js] :is(.c-poster, .c-film, .c-veil) {
+        clip-path: inset(0 0 calc(100% - var(--c-lift) - 100svh) 0);
+      }
+    }
+  }
+}

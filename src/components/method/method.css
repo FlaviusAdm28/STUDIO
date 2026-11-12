@@ -932,6 +932,13 @@
 :root[data-js] .about[data-story] .a-snap[data-at='below'] {
   scroll-snap-align: none;
 }
+/* and while the light comes up again on the Questions (data-c-hold, contact-client.tsx: the way back from the Contact, until the page
+   rests) a stroke back rests on the Questions' stop: the marks above it go, the About's and the Method's. Phone and desktop (owner,
+   12 Nov) */
+:root[data-js][data-c-hold] .about .a-snap:not([data-at='below']),
+:root[data-js][data-c-hold] .method .m-snap {
+  scroll-snap-align: none;
+}
 :root[data-js] .method .m-snap,
 :root[data-js] .about .a-snap {
   position: absolute;
@@ -941,6 +948,10 @@
   pointer-events: none;
   scroll-snap-align: start;
   scroll-snap-stop: always;
+}
+/* the page's end (about-stage.ts): its foot at the screen's foot, whatever the browser's bar is doing */
+:root[data-js] .about .a-snap[data-align='end'] {
+  scroll-snap-align: end;
 }
 @media (max-width: 899px) {
   /* a longer scene on a phone: 7.8 screens (+ the half screen before it and the stage), ~1.1 screen a step (method-stage.ts

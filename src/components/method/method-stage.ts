@@ -485,19 +485,33 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   // Back above the scene, the stage is no longer held (its section's top is below the screen's): the light going back slid down
   // with the scroll (owner, 2 Nov). While it goes the stage is held in place, fixed, then sticky again.
   let letGo = 0
+  // A desktop holds it only once the stage would really move: until the section's top comes near the screen's, the stage is held by
+  // its sticky place (the same pixel). Fixed at once, each change of 7 and the way back was a layout, and in Safari a layout between a
+  // stroke's end and its momentum put the page back on the mark the stroke began from (WebKit's resnap): from Experiences the page
+  // shook between it and 7 and stayed (Safari 27.2, real trackpad, 12 Nov). Fixed later, the page is leaving the scene, with the stop off
+  let holdLater = false
+  const fixStage = () => {
+    // fixed exactly where it is (the change comes ~2 % of a screen below the top, the dead band)
+    stage.style.top = `${(Math.max(0, section.getBoundingClientRect().top) - lift).toFixed(1)}px`
+    section.classList.add('m-leaving')
+  }
   const holdWhileLeaving = (on: boolean) => {
     clearTimeout(letGo)
-    // fixed exactly where it is (the change comes ~2 % of a screen below the top, the dead band)
-    stage.style.top = on ? `${(Math.max(0, section.getBoundingClientRect().top) - lift).toFixed(1)}px` : ''
-    section.classList.toggle('m-leaving', on)
-    if (on)
-      letGo = window.setTimeout(
-        () => {
-          section.classList.remove('m-leaving')
-          stage.style.top = ''
-        },
-        (BACK_MS + 300) * tempo,
-      )
+    holdLater = false
+    if (!on) {
+      if (section.classList.contains('m-leaving')) section.classList.remove('m-leaving')
+      if (stage.style.top) stage.style.top = ''
+      return
+    }
+    if (kind === 'desk' && section.getBoundingClientRect().top < -0.15 * H) holdLater = true
+    else fixStage()
+    letGo = window.setTimeout(() => holdWhileLeaving(false), (BACK_MS + 300) * tempo)
+  }
+  const holdIfMoving = () => {
+    if (holdLater && section.getBoundingClientRect().top >= -0.15 * H) {
+      holdLater = false
+      fixStage()
+    }
   }
 
   // the words of 7 and 8: the two lines of the thesis, then the thesis stepping back and Make it yours coming forward. Before the
@@ -835,12 +849,20 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   const placeMarks = () => {
     const travel = sceneTravel()
     const at = starts()
-    // the phases, and the way out above: Experiences again, a third of a screen before the scene (where a stroke back comes to rest)
+    // the phases, and the way out above: Experiences again, a third of a screen before the scene on a phone (where a stroke back comes to rest)
     // a desktop: each mark within its phase so that the marks lie at most 0.8 screen apart (10 → 11 at 0.9 held a 400 px stroke). Just past each start,
     // 7 and 8a were a screen apart, and a trackpad stroke under half of it was pulled back to 7 (Chrome, 450 px strokes, 7 Nov)
-    const DESK_MARKS = [0.45, 1.25, 1.825, 2.325, 2.9, 3.5, 4.1].map((s) => s / DESK_SCENE)
+    // Each past its phase's start and the dead band (STARTS + BAND, choose): 8a's at 1.25 lay 16 px short of it, and a page resting
+    // there stayed on 7 — a stroke during the light's passage, or a slow one, came to rest on 8a's mark with 7 still on stage, and the
+    // next went on to 8b (Chrome and Safari, real trackpad, 3 of 3, 12 Nov: the "7 → 7 → 8b" of 11 Nov)
+    const DESK_MARKS = [0.45, 1.3, 1.825, 2.325, 2.9, 3.5, 4.1].map((s) => s / DESK_SCENE)
     const shares = kind === 'phone' ? Object.values(at).map((share) => share + BAND * 1.6) : DESK_MARKS
-    const tops = [...shares.map((share) => lead() + share * travel), lead() - 0.3 * H]
+    // Experiences' mark on a desktop just before the scene (0.05 screen), the same picture as at 0.3 (the stage is held through the lead:
+    // screenshots identical): 7 comes in a stroke's first 50 px, while the finger is still on. At 0.3 it came 285 px on, where a stroke
+    // of 300–360 px ends, and Safari, laying out the change between the finger's end and the momentum, put the page back on the mark the
+    // stroke began from (WebKit's resnap after layout): Experiences again, 3 of 3 (Safari 27.2, real trackpad, 12 Nov)
+    const out = kind === 'phone' ? 0.3 : 0.05
+    const tops = [...shares.map((share) => lead() + share * travel), lead() - out * H]
     tops.forEach((y, i) => {
       let m = marks[i]
       if (!m) {
@@ -855,7 +877,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
       // which is which, for the hold of the passage (method.css): 7 and the way out stay while the light crosses
       m.dataset.at = i === 0 ? '7' : i === tops.length - 1 ? 'out' : ''
     })
-    outAt = 0.3 * H
+    outAt = out * H
   }
   // a jump of the site's own (lib/address.ts marks it, lib/unsnapped.ts turns the stop off for it): never taken for a stroke
   const jumping = () => document.documentElement.dataset.jump !== undefined || document.documentElement.style.scrollSnapType === 'none'
@@ -869,9 +891,14 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     // screen, ad808d9, and while the light closed) it was the only mark in reach and the page stuck at Experiences (owner's iPhone, 7 and
     // 8 Nov). Turned off by the finger as it took the page up, iOS missed the change 2 times in 6 (Simulator, 8 Nov): at rest it is off.
     // A quick stroke from there, the stop turned on only as it flies by, may run past 7: it is taken back (below, the passage's hold).
-    // A desktop as approved (addc06d, 8 Nov)
+    // A desktop as approved (addc06d, 8 Nov), and on from the mark of Experiences itself, so a stroke from there starts with the stop on:
+    // turned on in its flight (0.2 screen into it), Safari took the page back to that mark, again and again — from the Work, strokes
+    // of 200–450 px stayed at Experiences, and the menu's 02 Method landed there for good (Safari 27.2, real trackpad, 12 Nov); with
+    // that mark put out of reach it ran past 7 to 8a. A stroke up from the mark turns it off at once and goes on into the Work, free.
+    // Kept on in the scene too: taken off as 7 came, in the stroke's first 0.33 s, Safari took the page from 7 back to Experiences in one
+    // frame, 2 times in 4 (the marks had not moved)
     if (top <= 0 || top > 0.7 * H) backing = false
-    const near = top > 0 && (kind === 'phone' ? top < outAt - 12 || backing : top < 0.2 * H)
+    const near = kind === 'phone' ? top > 0 && (top < outAt - 12 || backing) : top <= outAt + 3
     if (near !== 'near' in section.dataset) {
       if (near) section.dataset.near = ''
       else delete section.dataset.near
@@ -938,8 +965,8 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   // The first lights-on decoded the studio and every card's photograph in one frame: 182 ms on the Xiaomi (2 Nov). They are
   // decoded ahead, once, while the Method is still a screen away (the photographs are lazy: they are asked for here).
   const ahead = new IntersectionObserver(
-    ([e]) => {
-      if (!e.isIntersecting) return
+    (es) => {
+      if (!es[es.length - 1].isIntersecting) return
       ahead.disconnect()
       const light = document.documentElement.dataset.light ?? 'day'
       const room = new Image()
@@ -980,6 +1007,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     choose()
   }
   const onScroll = () => {
+    holdIfMoving()
     choose()
     if (!backing) return
     clearTimeout(still)

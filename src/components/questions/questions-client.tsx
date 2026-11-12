@@ -32,6 +32,12 @@ export function QuestionsClient() {
     }
     section.addEventListener('click', onClick)
 
+    // where the list ends in its box, for the box's hold while the light goes down (questions.css): an open answer can take it past the
+    // screen's foot
+    const list = section.querySelector<HTMLElement>('.q-list')
+    const sized = new ResizeObserver(() => list && section.style.setProperty('--q-foot', `${Math.round(list.offsetTop + list.offsetHeight)}px`))
+    if (list) sized.observe(list)
+
     // the entrance, once
     let seen: IntersectionObserver | null = null
     let done = 0
@@ -42,10 +48,12 @@ export function QuestionsClient() {
     }
     if (reduce) arrive()
     else {
-      // the paper a quarter of the way up: its top above the screen's lowest quarter (once it had nearly arrived, the paper came up empty)
+      // the paper a quarter of the way up: its top above the screen's lowest quarter (once it had nearly arrived, the paper came up empty).
+      // The last reading of a batch: landed at #questions the browser gives two at once, unseen (before the jump) then seen, and read
+      // by the first the questions never came — an empty paper (Xiaomi, Chrome, 10 Nov; the same in every observer of one element)
       seen = new IntersectionObserver(
-        ([e]) => {
-          if (!e.isIntersecting) return
+        (es) => {
+          if (!es[es.length - 1].isIntersecting) return
           seen?.disconnect()
           arrive()
         },
@@ -56,6 +64,7 @@ export function QuestionsClient() {
 
     return () => {
       section.removeEventListener('click', onClick)
+      sized.disconnect()
       seen?.disconnect()
       clearTimeout(done)
     }

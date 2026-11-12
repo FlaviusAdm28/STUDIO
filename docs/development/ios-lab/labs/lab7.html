@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>lab7 — the passage C, three ways</title>
+<!--
+  lab7 (10 Nov): what option C of the Questions → Contact passage costs over the playing film (storyboard saida-mascara, C: the film
+  across the screen with a soft oblique edge). Three ways, ?m=
+    mask  — the film's mask-image moved every frame (as the storyboard): the mask is drawn again each frame
+    slide — a window with a fixed soft edge (static mask) slid by transform, the film inside slid back the other way so it stays still:
+            transforms only, nothing drawn again
+    clip  — clip-path polygon moved every frame: a hard edge (reference)
+  ?still — the film paused during the wipe (its poster frame), played after.
+  window.run(n) wipes n times on and back (1.2 s each, 0.6 s held) and returns the frame times: fps, worst, frames over 25 / 50 ms.
+-->
+<style>
+  html, body { margin: 0; height: 100%; background: #1b1c1a; overflow: hidden; }
+  .paper { position: fixed; inset: 0; background:
+    radial-gradient(60% 70% at 28% 14%, rgba(255, 250, 240, 0.5), transparent 72%),
+    radial-gradient(130% 100% at 30% 40%, transparent 55%, rgba(60, 50, 40, 0.2) 100%),
+    linear-gradient(180deg, #dcd5c8 0%, #d2cabc 64%, #ccc3b4 76%, #beb5a6 100%); }
+  .win { position: fixed; top: 0; bottom: 0; left: 0; width: 100vw; overflow: hidden; will-change: transform; }
+  .film { position: absolute; top: 0; left: 0; width: 100vw; height: 100%; }
+  .film video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .veil { position: absolute; inset: 0; background: radial-gradient(70% 60% at 50% 45%, rgba(27, 28, 26, 0.72), rgba(27, 28, 26, 0.9) 100%); }
+  /* slide: the window is the screen plus its soft edge, the edge static on its left */
+  /* the oblique edge leans ~0.18 of the screen's height across it: transparent for the first 45 vw so the window's own left side never shows */
+  .slide .win { width: 200vw; -webkit-mask-image: linear-gradient(100deg, transparent 45vw, #000 100vw); mask-image: linear-gradient(100deg, transparent 45vw, #000 100vw); }
+  .slide .film { will-change: transform; }
+  #hud { position: fixed; left: 8px; bottom: 8px; z-index: 9; font: 12px/1.3 system-ui; color: #fff; background: rgba(0,0,0,.5); padding: 4px 8px; border-radius: 6px; }
+</style>
+<body>
+<div class="paper"></div>
+<div class="win"><div class="film"><video muted loop playsinline autoplay preload="auto" src="/media/v5/entrance/hero-720x1280.mp4"></video><div class="veil"></div></div></div>
+<div id="hud"></div>
+<script>
+  const q = new URLSearchParams(location.search)
+  const m = q.get('m') || 'slide'
+  const still = q.has('still')
+  document.body.classList.add(m)
+  const win = document.querySelector('.win'), film = document.querySelector('.film'), video = document.querySelector('video')
+  document.getElementById('hud').textContent = m + (still ? ' still' : '')
+  const W = () => innerWidth
+  const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+  // o: 0 = the film nowhere (the paper), 1 = the film over the whole screen
+  const set = (o) => {
+    const w = W()
+    if (m === 'slide') {
+      // the window's soft edge (45–100 vw of it) goes from the right edge to beyond the left
+      const x = (1 - o) * 0.55 * w + o * -w
+      win.style.transform = `translate3d(${x}px,0,0)`
+      film.style.transform = `translate3d(${-x}px,0,0)`
+    } else if (m === 'mask') {
+      const soft = 40, at = (1 - o) * (100 + soft)
+      const g = `linear-gradient(100deg, transparent ${(at - soft).toFixed(2)}%, #000 ${at.toFixed(2)}%)`
+      win.style.webkitMaskImage = g; win.style.maskImage = g
+    } else {
+      const at = (1 - o) * 120 - 10
+      win.style.clipPath = `polygon(${at}% 0, 100% 0, 100% 100%, ${at - 10}% 100%)`
+    }
+  }
+  set(0)
+  const wipe = (from, to, ms, times) => new Promise((ok) => {
+    const t0 = performance.now(); let last = t0
+    const f = (n) => {
+      times.push(n - last); last = n
+      const t = Math.min(1, (n - t0) / ms)
+      set(from + (to - from) * ease(t))
+      if (t < 1) requestAnimationFrame(f); else ok()
+    }
+    requestAnimationFrame((n) => { last = n; requestAnimationFrame(f) })
+  })
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms))
+  window.run = async (n = 3) => {
+    const times = []
+    for (let i = 0; i < n; i++) {
+      if (still) video.pause()
+      await wipe(0, 1, 1200, times)
+      if (still) video.play().catch(() => {})
+      await wait(600)
+      await wipe(1, 0, 1200, times)
+      await wait(600)
+    }
+    const T = times.slice(1), tot = T.reduce((a, b) => a + b, 0)
+    return { m: m + (still ? ' still' : ''), fps: +(T.length / tot * 1000).toFixed(1), worst: Math.round(Math.max(...T)), over25: T.filter((x) => x > 25).length, over50: T.filter((x) => x > 50).length, frames: T.length, playing: !video.paused && video.readyState >= 2 }
+  }
+</script>
+</body>
+</html>

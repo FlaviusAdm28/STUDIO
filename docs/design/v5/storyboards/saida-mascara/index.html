@@ -1,0 +1,415 @@
+<title>Questions → Contact, por máscara</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Schibsted+Grotesk:wght@400;500&display=swap">
+<style>
+  /* Storyboard of one passage, second round: the Questions (04) into the Contact (05) by a mask. The film lies OVER the paper, in a layer
+     of its own, and is uncovered through a mask; once the mask is open the film fills the screen and its veil comes down to the
+     Contact's dark. On an iPhone that layer is what Safari takes under the Dynamic Island and its bar (measured in the Simulator, 10 Nov:
+     the film behind the paper never went there; the Contact as its own layer did). One control stands for the scroll, as the first
+     round (saida-questions). Single dark look, as the other V5 storyboards. Media: the site's own film and posters, published as img/. */
+  :root {
+    --charcoal: #1e1d1a; --linen: #eee8dd; --muted: #b3ab9e; --ink: #2a2823; --rule: rgba(238, 232, 221, 0.16); --band: #312f2b;
+    --voice: "Cormorant Garamond", Georgia, serif; --read: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--charcoal); color: var(--linen); font: 15px/1.55 var(--read);
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--charcoal); }
+  main { max-width: 1240px; margin: 0 auto; padding-block: 40px 96px; display: grid; gap: 48px; }
+  h1 { font: italic 400 clamp(34px, 6vw, 52px)/1.05 var(--voice); margin: 0; text-wrap: balance; }
+  h2 { font: 400 clamp(24px, 3.4vw, 32px)/1.1 var(--voice); margin: 0; text-wrap: balance; }
+  h2 i { font-style: italic; }
+  p, li { color: var(--muted); max-width: 72ch; }
+  p { margin: 0; }
+  b { color: var(--linen); font-weight: 500; }
+  .label { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+  header { display: grid; gap: 14px; }
+  section.opt, section.why { display: grid; gap: 18px; padding-top: 26px; border-top: 1px solid var(--rule); }
+  .head { display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap; }
+  .head .n { font: italic 400 30px var(--voice); color: var(--muted); }
+  .tag { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; border: 1px solid var(--rule); border-radius: 99px; padding: 3px 10px; color: var(--muted); }
+  .tag.rec { color: var(--linen); border-color: var(--linen); }
+  .row { display: grid; grid-template-columns: minmax(0, 1fr) 210px minmax(0, 280px); gap: 26px; align-items: start; }
+  @media (max-width: 960px) { .row { grid-template-columns: minmax(0, 1fr) 170px; } .notes { grid-column: 1 / -1; } }
+  @media (max-width: 560px) { .row { grid-template-columns: minmax(0, 1fr) 118px; gap: 12px; } }
+  .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 230px)) minmax(0, 1fr); gap: 26px; align-items: start; }
+  @media (max-width: 760px) { .pair { grid-template-columns: repeat(2, minmax(0, 1fr)); } .pair .notes { grid-column: 1 / -1; } }
+  figure { margin: 0; display: grid; gap: 8px; min-width: 0; }
+  figcaption { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .notes { display: grid; gap: 10px; min-width: 0; }
+  .notes p { font-size: 14px; }
+  .notes ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; }
+
+  /* the control: the scroll, by hand or played */
+  .ctl { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center;
+    padding-block: 12px; background: var(--charcoal); border-bottom: 1px solid var(--rule); }
+  .ctl button { all: unset; cursor: pointer; padding: 7px 16px; border: 1px solid var(--rule); border-radius: 99px; font-size: 13px; color: var(--muted); }
+  .ctl button[aria-pressed="true"] { color: var(--linen); border-color: var(--linen); }
+  .ctl button:focus-visible, .ctl input:focus-visible { outline: 1px solid var(--linen); outline-offset: 3px; }
+  .ctl label { display: flex; gap: 12px; align-items: center; flex: 1 1 260px; min-width: 0; font-size: 13px; color: var(--muted); }
+  .ctl input[type="range"] { flex: 1; min-width: 0; accent-color: var(--linen); }
+  .ctl output { font: italic 400 18px var(--voice); color: var(--linen); min-width: 11ch; }
+
+  /* ---------- frames ---------- */
+  .fr { position: relative; overflow: hidden; container-type: inline-size; background: #1b1c1a; border-radius: 6px; isolation: isolate;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 18px 40px rgba(0, 0, 0, 0.35); max-width: 100%; }
+  .fr.d { aspect-ratio: 16 / 10; }
+  .fr.p { aspect-ratio: 402 / 874; border-radius: 22px; }
+  .L { position: absolute; inset: 0; pointer-events: none; }
+
+  /* the Questions' last screen: the stone studio in daylight and its words */
+  .paper { z-index: 2; background: radial-gradient(60% 70% at 28% 14%, rgba(255, 250, 240, 0.5), transparent 72%),
+    radial-gradient(130% 100% at 30% 40%, transparent 55%, rgba(60, 50, 40, 0.2) 100%),
+    linear-gradient(180deg, #dcd5c8 0%, #d2cabc 64%, #ccc3b4 76%, #beb5a6 100%); }
+  .qs { z-index: 4; color: var(--ink); }
+  .dim { z-index: 3; background: #141412; opacity: 0; }
+  /* D: the Questions' panel going up, its foot casting a shadow on the Contact beneath */
+  .opt-d .paper { box-shadow: 0 1.6cqw 4cqw rgba(0, 0, 0, 0.45); }
+  .qs .an { position: absolute; left: 7%; top: 16%; width: 32%; display: grid; gap: 1.6cqw; }
+  .qs .h { font: 400 4.6cqw/1.02 var(--voice); }
+  .qs .h i { font-style: italic; }
+  .qs .an p { color: rgba(42, 40, 35, 0.85); font-size: 1.25cqw; line-height: 1.6; max-width: none; }
+  .qs .chs { display: grid; gap: 0.5cqw; }
+  .qs .chs > span { font: 400 1.9cqw var(--voice); display: flex; justify-content: space-between; border-top: 1px solid rgba(42, 40, 35, 0.2); padding-top: 0.5cqw; }
+  .qs .chs em { font-size: 0.75em; opacity: 0.6; margin-right: 0.5em; font-style: normal; }
+  .qs ol { position: absolute; left: 47%; right: 7%; top: 14%; list-style: none; margin: 0; padding: 0; }
+  .qs li { display: grid; grid-template-columns: 3cqw 1fr 2cqw; align-items: baseline; padding: 0.9cqw 0; border-top: 1px solid rgba(42, 40, 35, 0.22);
+    font: 400 1.95cqw/1.15 var(--voice); color: var(--ink); max-width: none; }
+  .qs li:first-child { border-top: 0; }
+  .qs li:last-child { border-bottom: 1px solid rgba(42, 40, 35, 0.22); }
+  .qs li em { font-size: 0.7em; opacity: 0.55; }
+  .qs li span:last-child { justify-self: end; }
+  .p .qs .an { left: 7%; right: 7%; width: auto; top: 13%; gap: 3cqw; }
+  .p .qs .h { font-size: 10.4cqw; }
+  .p .qs .an p { font-size: 3.5cqw; }
+  .p .qs .chs { display: flex; }
+  .p .qs .chs > span { font-size: 5.2cqw; border: 0; padding: 0; }
+  .p .qs .chs > span + span::before { content: ""; align-self: center; width: 1px; height: 3.8cqw; margin: 0 4cqw; background: rgba(42, 40, 35, 0.35); }
+  .p .qs .chs em, .p .qs .chs b { display: none; }
+  .p .qs ol { left: 7%; right: 7%; top: 44%; }
+  .p .qs li { grid-template-columns: 7cqw 1fr 5cqw; padding: 2.2cqw 0; font-size: 4.6cqw; }
+
+  /* the Contact: its film, in a layer of its own OVER the paper, uncovered through the mask */
+  .scene { z-index: 6; overflow: hidden; }
+  .scene video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.04); }
+  .veil { background: radial-gradient(circle 34cqw at 50% 58%, rgba(255, 232, 200, 0.07), transparent 100%),
+    radial-gradient(70% 60% at 50% 45%, rgba(27, 28, 26, 0.72), rgba(27, 28, 26, 0.9) 100%); }
+  .p .veil { background: radial-gradient(circle 70cqw at 50% 50%, rgba(255, 232, 200, 0.07), transparent 100%),
+    radial-gradient(70% 60% at 50% 45%, rgba(27, 28, 26, 0.72), rgba(27, 28, 26, 0.9) 100%); }
+  .cq { position: absolute; z-index: 5; left: 10%; right: 10%; top: 18%; text-align: center; font: 400 5.6cqw/1.05 var(--voice); color: var(--linen); }
+  .cq i { font-style: italic; }
+  .p .cq { left: 7%; right: 7%; top: 25%; font-size: 11.6cqw; }
+  .now { position: absolute; z-index: 5; left: 15%; right: 15%; top: 53%; display: grid; justify-items: center; gap: 2.2cqw; text-align: center; }
+  .p .now { left: 7%; right: 7%; top: 56%; gap: 5cqw; }
+  .now .t { font-size: 1.35cqw; line-height: 1.6; color: rgba(238, 232, 221, 0.8); }
+  .p .now .t { font-size: 3.6cqw; }
+  .now .t b { font-weight: 500; }
+  .cta { display: inline-flex; align-items: center; gap: 1.2cqw; border: 1px solid rgba(238, 232, 221, 0.55); border-radius: 99px; padding: 1.1cqw 2.6cqw;
+    font-size: 1.15cqw; letter-spacing: 0.18em; text-transform: uppercase; color: var(--linen); }
+  .p .cta { font-size: 3.2cqw; padding: 3cqw 7cqw; gap: 3cqw; }
+  .handle { font: italic 400 1.6cqw var(--voice); opacity: 0.75; }
+  .p .handle { font-size: 4.6cqw; }
+
+  /* the bar: two islands of dark glass (README #69) */
+  .bar { position: absolute; z-index: 30; left: 3%; right: 3%; top: 3%; height: 6%; display: flex; justify-content: space-between; pointer-events: none; }
+  .bar i { display: flex; align-items: center; gap: 0.9cqw; padding: 0 1.4cqw; height: 100%; border-radius: 99px; background: rgba(22, 21, 19, 0.5);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 0 0 1px rgba(255, 255, 255, 0.08); font: 400 1.25cqw var(--voice); color: var(--linen); white-space: nowrap; font-style: normal; }
+  .bar i small { font: 500 0.78cqw var(--read); letter-spacing: 0.14em; text-transform: uppercase; }
+  .bar i small u { text-decoration: none; font: 400 1.6em var(--voice); letter-spacing: 0; margin-right: 0.35em; }
+  .bar i.sep::before { content: ""; width: 1px; height: 40%; background: currentColor; opacity: 0.35; order: 1; }
+  .bar i.sep small { order: 2; }
+  .p .bar { top: 8.2%; height: 5.2%; left: 5%; right: 5%; }
+  .p .bar i { font-size: 4.4cqw; padding: 0 3.6cqw; gap: 2.4cqw; }
+  .p .bar i small { font-size: 2.8cqw; }
+  .p .bar i.r { aspect-ratio: 1; padding: 0; justify-content: center; }
+  .p .bar i.r span { display: none; }
+  .p .bar i.r b { display: block; }
+  .bar i.r b { display: none; width: 40%; height: 26%; border-top: 1px solid; border-bottom: 1px solid; position: relative; }
+  .bar i.r b::after { content: ""; position: absolute; left: 0; right: 30%; top: 50%; border-top: 1px solid; transform: translateY(-50%); }
+  .grain { z-index: 40; opacity: 0.08; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 .6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+  /* the iPhone's own chrome over the phone frames (iOS 27 Safari, 402 × 874 pt): the time, the Dynamic Island, the status icons, the
+     address pill at the foot. Its two bands are 62 pt each (measured in the Simulator) */
+  .ios { z-index: 50; }
+  .ios .time { position: absolute; left: 9%; top: 2.3%; font: 600 3.9cqw/1 -apple-system, "SF Pro Text", system-ui, sans-serif; color: #fff; }
+  .ios .isl { position: absolute; left: 50%; top: 1.3%; width: 31%; height: 4.1%; transform: translateX(-50%); background: #000; border-radius: 99px; }
+  .ios .ico { position: absolute; right: 8%; top: 2.5%; display: flex; gap: 1.6cqw; align-items: center; }
+  .ios .ico i { display: block; width: 4.4cqw; height: 2.6cqw; border-radius: 0.8cqw; background: #fff; opacity: 0.95; }
+  .ios .ico i:last-child { width: 6.4cqw; }
+  .ios .url { position: absolute; left: 50%; bottom: 2.2%; transform: translateX(-50%); padding: 1.6cqw 4.6cqw; border-radius: 99px;
+    background: rgba(120, 118, 114, 0.55); font: 500 3.2cqw/1 -apple-system, system-ui, sans-serif; color: #fff; }
+  /* today's flat bands: Safari's own colour where the film never goes */
+  .bands::before, .bands::after { content: ""; position: absolute; left: 0; right: 0; height: 7.1%; background: var(--band); }
+  .bands::before { top: 0; }
+  .bands::after { bottom: 0; }
+  .bands { z-index: 45; }
+
+  .closing { display: grid; gap: 14px; padding-top: 26px; border-top: 1px solid var(--rule); }
+  .closing ol { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+</style>
+
+<main>
+  <header>
+    <span class="label">Chapter One V5 · 04 Questions → 05 Contact · segunda volta · para escolher</span>
+    <h1>Questions → Contact, por máscara</h1>
+    <p>Na passagem de hoje o filme está <b>por trás</b> do papel e o papel desvanece. Nessa posição o iPhone nunca leva o filme para debaixo da ilha nem da barra do Safari, e por isso ficam as faixas de cor. Com uma máscara o filme pode estar <b>por cima</b>, numa camada só sua: aparece através da máscara e, quando ela abre, enche o ecrã inteiro. Depois o véu baixa até ao escuro do Contact.</p>
+    <p>Três máscaras (A, B, C) e duas maneiras sem máscara (D, E), cada uma em desktop e telemóvel. O controlo em cima faz de scroll: arrasta-o, ou carrega em <b>Reproduzir</b>. O fim é sempre o mesmo (estados 19–20 aprovados).</p>
+  </header>
+
+  <section class="why" aria-labelledby="w-h">
+    <div class="head"><h2 id="w-h">O fim no iPhone</h2></div>
+    <div class="pair">
+      <figure><div class="fr p" data-end="today"></div><figcaption>Hoje: faixas lisas</figcaption></figure>
+      <figure><div class="fr p" data-end="mask"></div><figcaption>Com o filme por cima</figcaption></figure>
+      <div class="notes">
+        <p>À esquerda, como está agora: em cima, à volta da ilha, e em baixo, debaixo da barra, o Safari pinta uma cor lisa (medido: <b>62 pt</b> cada uma). À direita, o filme numa camada sua: o Safari leva-o até às bordas.</p>
+        <ul>
+          <li>Medido no Simulador do iPhone, 10/11: o papel das Questions já vai até às bordas; o filme do Contact só vai quando o Contact é uma camada própria.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <div class="ctl" role="group" aria-label="A passagem">
+    <button type="button" id="play" aria-pressed="false">Reproduzir</button>
+    <label for="p">Scroll <input type="range" id="p" min="0" max="1000" value="0"></label>
+    <output id="out" for="p" aria-live="off">Questions</output>
+  </div>
+
+  <section class="opt" data-opt="a" aria-labelledby="a-h">
+    <div class="head"><span class="n">A</span><h2 id="a-h">A luz fecha-se</h2></div>
+    <div class="row">
+      <figure><div class="fr d"></div><figcaption>Desktop</figcaption></figure>
+      <figure><div class="fr p"></div><figcaption>Telemóvel</figcaption></figure>
+      <div class="notes">
+        <p>As perguntas saem e o papel fica aceso num <b>círculo de luz suave</b> que se fecha para o meio. O filme entra pelas bordas, ainda claro. O círculo apaga-se e o véu baixa até ao escuro. Depois vêm a pergunta, a hora e o botão.</p>
+        <ul>
+          <li>É a luz a baixar no lugar (#106), agora como uma luz que se fecha. Lembra a luz redonda do 11 do Method.</li>
+          <li>Custo: um círculo de borda suave sobre o filme. Mede-se no Xiaomi; no iPhone vê-se se pisca.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="opt" data-opt="b" aria-labelledby="b-h">
+    <div class="head"><span class="n">B</span><h2 id="b-h">O horizonte</h2></div>
+    <div class="row">
+      <figure><div class="fr d"></div><figcaption>Desktop</figcaption></figure>
+      <figure><div class="fr p"></div><figcaption>Telemóvel</figcaption></figure>
+      <div class="notes">
+        <p>As perguntas saem e o filme <b>sobe de baixo</b> por cima do papel, com uma borda suave, como a noite a subir pelo horizonte. Cobre o ecrã e o véu baixa.</p>
+        <ul>
+          <li>Simples de ler e o mais barato (uma borda reta).</li>
+          <li>Parecida com a subida do papel das Questions sobre o About: pode ler-se como repetição.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="opt" data-opt="c" aria-labelledby="c-h">
+    <div class="head"><span class="n">C</span><h2 id="c-h">A luz sai pelo lado da hora</h2></div>
+    <div class="row">
+      <figure><div class="fr d"></div><figcaption>Desktop</figcaption></figure>
+      <figure><div class="fr p"></div><figcaption>Telemóvel</figcaption></figure>
+      <div class="notes">
+        <p>As perguntas saem e o filme <b>atravessa o ecrã de lado</b>, com uma borda suave e oblíqua: a luz do estúdio sai pelo lado por onde entrou no Method (manhã pela esquerda, fim de tarde pela direita). Cobre o ecrã e o véu baixa.</p>
+        <ul>
+          <li>Fecha o gesto do Method: lá a luz da hora acendeu o estúdio, aqui apaga-o. <span id="side-note"></span></li>
+          <li>Custo parecido com a B.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="opt" data-opt="d" aria-labelledby="d-h">
+    <div class="head"><span class="n">D</span><h2 id="d-h">O painel das Questions sobe e sai</h2><span class="tag rec">ideia do owner · recomendada</span></div>
+    <div class="row">
+      <figure><div class="fr d"></div><figcaption>Desktop</figcaption></figure>
+      <figure><div class="fr p"></div><figcaption>Telemóvel</figcaption></figure>
+      <div class="notes">
+        <p>O painel das Questions, que subiu por cima do About, <b>continua a subir e sai</b> pelo topo, com sombra no pé. Por baixo já está o Contact: o filme escuro. A pergunta entra logo a seguir, depois a hora e o botão.</p>
+        <ul>
+          <li>Um só movimento no site: o cartão cobre o About e depois descobre o Contact. Sem direção nova.</li>
+          <li>Segue o dedo: é a própria página a andar, nunca fica a meio com a página parada.</li>
+          <li>O Contact inteiro numa camada só sua, por baixo: o iPhone leva o filme para debaixo da ilha e da barra. Custo: nenhum além do scroll.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="opt" data-opt="e" aria-labelledby="e-h">
+    <div class="head"><span class="n">E</span><h2 id="e-h">A luz baixa, depois o filme acende-se</h2></div>
+    <div class="row">
+      <figure><div class="fr d"></div><figcaption>Desktop</figcaption></figure>
+      <figure><div class="fr p"></div><figcaption>Telemóvel</figcaption></figure>
+      <div class="notes">
+        <p>As perguntas saem e o papel <b>escurece onde está</b> até quase preto (a A aprovada, #106). Depois o filme <b>acende-se por cima</b>, numa camada sua, e vêm a pergunta, a hora e o botão.</p>
+        <ul>
+          <li>Sem movimento nenhum: só luz. A mais barata de todas (duas opacidades).</li>
+          <li>Tocada no tempo, como hoje, mas mais curta.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="closing" aria-labelledby="x-h">
+    <h2 id="x-h">Para escolher</h2>
+    <ol>
+      <li><b>A</b>, <b>B</b>, <b>C</b>, <b>D</b> ou <b>E</b>? (C, D e E depois da conversa de 10/11: a C acrescenta um movimento de lado logo a seguir à subida das Questions.)</li>
+      <li>Em qualquer uma, no site a passagem segue o gesto ou é mais curta do que hoje (hoje ~2,7 s, tocada depois de a página parar).</li>
+      <li>O filme só toca com o Contact à vista; com movimento reduzido ou poupança de dados fica a imagem parada e a passagem é um corte simples.</li>
+    </ol>
+  </section>
+</main>
+
+<script>
+(() => {
+  const pad = (n) => String(n).padStart(2, '0')
+  const now = new Date()
+  const arrived = new Date(now.getTime() - 17 * 60000)
+  const hm = (d) => pad(d.getHours()) + ':' + pad(d.getMinutes())
+  const Q = ['What does it cost?', 'How long does it take?', 'How does a project work?', 'What do you need from me?', 'Do you work in English and outside Portugal?', 'Is it only digital?', 'What about the domain and hosting?', 'Can you work with my existing team?']
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+  const clamp = (v) => Math.min(1, Math.max(0, v))
+  const ramp = (p, a, b) => clamp((p - a) / (b - a))
+  const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+  // the side the light came in by in the Method (README #47): morning from the left, late afternoon from the right; day and night centred,
+  // shown here from the right
+  const h = now.getHours()
+  const fromLeft = h >= 5 && h < 11
+  document.getElementById('side-note').textContent = `Agora (${hm(now)}) sai pela ${fromLeft ? 'esquerda' : 'direita'}.`
+
+  const sceneHTML = (phone) => `
+    <div class="L scene">
+      <video muted loop playsinline preload="auto" poster="img/${phone ? 'poster-tall-720' : 'poster-wide-960'}.jpg" src="img/${phone ? 'hero-tall' : 'hero-wide'}.mp4"></video>
+      <div class="L veil"></div>
+      <div class="cq">Is there something<br>that deserves<br><i>its own experience?</i></div>
+      <div class="now"><div class="t">You arrived at <b>${hm(arrived)}</b>. It’s <b>${hm(now)}</b> now —${phone ? '<br>' : ' '}a good moment to tell us about it.</div>
+        <span class="cta">Talk to us <span aria-hidden="true">→</span></span><span class="handle">@chapterone.studio.pt</span></div>
+    </div>`
+  const questionsHTML = `
+    <div class="L paper"></div>
+    <div class="L dim"></div>
+    <div class="L qs">
+      <div class="an"><div class="h">What do you<br><i>actually create?</i></div><p>We design and build digital experiences for weddings, artists and unique occasions, tailored to each project.</p>
+        <div class="chs"><span><span><em>I</em>Weddings</span><b>→</b></span><span><span><em>II</em>Artists</span><b>→</b></span><span><span><em>III</em>Experiences</span><b>→</b></span></div></div>
+      <ol>${Q.map((q, i) => `<li><em>${pad(i + 1)}</em><span>${q}</span><span>+</span></li>`).join('')}</ol>
+    </div>`
+  const barHTML = (sec) => `<div class="bar" aria-hidden="true"><i class="sep">Chapter One<small class="sec">${sec}</small></i><i class="r"><span><small>${hm(now)}</small></span><span><small>Talk to us</small></span><span><small>≡ Menu</small></span><b></b></i></div>`
+  const iosHTML = `<div class="L ios" aria-hidden="true"><span class="time">${hm(now)}</span><span class="isl"></span><span class="ico"><i></i><i></i><i></i></span><span class="url">chapterone.studio</span></div>`
+
+  // the iPhone, at the end: today (flat bands) and with the film over everything
+  document.querySelectorAll('[data-end]').forEach((fr) => {
+    fr.innerHTML = sceneHTML(true) + barHTML('<u>05</u>Contact') + (fr.dataset.end === 'today' ? '<div class="L bands"></div>' : '') + '<div class="L grain"></div>' + iosHTML
+    fr.querySelector('.scene').style.zIndex = 6
+  })
+
+  const frames = []
+  document.querySelectorAll('section.opt').forEach((sec) => {
+    const opt = sec.dataset.opt
+    sec.querySelectorAll('.fr').forEach((fr) => {
+      const phone = fr.classList.contains('p')
+      fr.innerHTML = questionsHTML + sceneHTML(phone) + barHTML('<u>04</u>Questions') + '<div class="L grain"></div>' + (phone ? iosHTML : '')
+      sec.classList.add('opt-' + opt)
+      frames.push({ fr, opt, phone, scene: fr.querySelector('.scene'), veil: fr.querySelector('.scene .veil'), qs: fr.querySelector('.qs'),
+        paper: fr.querySelector('.paper'), dim: fr.querySelector('.dim'),
+        cq: fr.querySelector('.cq'), now: fr.querySelector('.now'), sec: fr.querySelector('.bar .sec') })
+    })
+  })
+
+  const setMask = (el, m) => { el.style.webkitMaskImage = m; el.style.maskImage = m }
+  // the film's mask for each way; o = how far it has opened (0 nothing of the film, 1 all of it)
+  const masks = {
+    // a soft circle of the paper's light at the middle, closing: outside it the film
+    a: (f, o) => {
+      const w = f.fr.clientWidth, hh = f.fr.clientHeight
+      const R = Math.hypot(w, hh) * 0.62
+      const r = R * (1 - o)
+      const soft = Math.max(18, r * 0.45)
+      return o >= 1 ? 'none' : `radial-gradient(circle at 50% 46%, transparent ${Math.max(0, r - soft).toFixed(1)}px, #000 ${r.toFixed(1)}px)`
+    },
+    // the film from the foot up, a soft straight edge
+    b: (f, o) => {
+      const soft = 22
+      const top = (1 - o) * (100 + soft) - soft
+      return o >= 1 ? 'none' : `linear-gradient(to bottom, transparent ${top.toFixed(2)}%, #000 ${(top + soft).toFixed(2)}%)`
+    },
+    // the film across from the side the light leaves by, a soft oblique edge
+    c: (f, o) => {
+      const soft = 26
+      const at = o * (100 + soft)
+      return o >= 1 ? 'none' : `linear-gradient(${fromLeft ? '-' : ''}100deg, #000 ${(at - soft).toFixed(2)}%, transparent ${at.toFixed(2)}%)`
+    },
+  }
+
+  const render = (p) => {
+    for (const f of frames) {
+      f.sec.innerHTML = p > 0.5 ? '<u>05</u>Contact' : '<u>04</u>Questions'
+      let a, b
+      if (f.opt === 'd') {
+        // the panel (paper and questions) goes up with the page and out at the top; the Contact lies beneath, already dark
+        const up = ramp(p, 0.04, 0.62)
+        const y = `translateY(${(-up * 104).toFixed(2)}%)`
+        f.paper.style.transform = y; f.qs.style.transform = y; f.qs.style.opacity = 1
+        f.scene.style.zIndex = 1
+        setMask(f.scene, 'none')
+        f.veil.style.opacity = 1
+        a = ease(ramp(p, 0.56, 0.8)); b = ease(ramp(p, 0.8, 1))
+      } else if (f.opt === 'e') {
+        // the paper's light goes down where it is, then the film comes on over the dark
+        f.qs.style.opacity = 1 - ease(ramp(p, 0, 0.2))
+        f.dim.style.opacity = 0.97 * ease(ramp(p, 0.06, 0.46))
+        setMask(f.scene, 'none')
+        f.scene.style.opacity = ease(ramp(p, 0.42, 0.7))
+        f.veil.style.opacity = 1
+        a = ease(ramp(p, 0.62, 0.84)); b = ease(ramp(p, 0.82, 1))
+      } else {
+        f.qs.style.opacity = 1 - ease(ramp(p, 0, 0.22))
+        const o = ease(ramp(p, 0.08, 0.6))
+        setMask(f.scene, o <= 0 ? 'linear-gradient(transparent, transparent)' : masks[f.opt](f, o))
+        // the film comes in still light, then its veil comes down to the Contact's dark
+        f.veil.style.opacity = 0.45 + 0.55 * ease(ramp(p, 0.42, 0.74))
+        a = ease(ramp(p, 0.62, 0.84)); b = ease(ramp(p, 0.82, 1))
+      }
+      f.cq.style.opacity = a; f.cq.style.transform = `translateY(${(1 - a) * 6}%)`
+      f.now.style.opacity = b; f.now.style.transform = `translateY(${(1 - b) * 8}%)`
+    }
+    out.textContent = p < 0.04 ? 'Questions' : p < 0.98 ? 'a passagem' : 'Contact (19–20)'
+  }
+
+  const range = document.getElementById('p')
+  const out = document.getElementById('out')
+  const play = document.getElementById('play')
+  let p = 0, raf = 0, t0 = 0, playing = false
+  const set = (v) => { p = v; range.value = Math.round(v * 1000); render(v) }
+  range.addEventListener('input', () => { stop(); set(range.value / 1000) })
+  // played: down through the passage (~3 s, as a calm stroke), held, then back
+  const CYCLE = [[0, 0], [800, 0], [3800, 1], [6800, 1], [9000, 0]]
+  const tick = (t) => {
+    if (!t0) t0 = t
+    const e = (t - t0) % CYCLE[CYCLE.length - 1][0]
+    for (let i = 1; i < CYCLE.length; i++) {
+      if (e <= CYCLE[i][0]) { const [ta, va] = CYCLE[i - 1], [tb, vb] = CYCLE[i]; set(va + (vb - va) * ((e - ta) / (tb - ta || 1))); break }
+    }
+    raf = requestAnimationFrame(tick)
+  }
+  const start = () => { playing = true; t0 = 0; play.setAttribute('aria-pressed', 'true'); play.textContent = 'Pausar'; raf = requestAnimationFrame(tick) }
+  const stop = () => { playing = false; cancelAnimationFrame(raf); play.setAttribute('aria-pressed', 'false'); play.textContent = 'Reproduzir' }
+  play.addEventListener('click', () => (playing ? stop() : start()))
+
+  // the film plays only where it is seen, never with reduced motion
+  const io = new IntersectionObserver((es) => es.forEach((e) => {
+    const v = e.target.querySelector('video')
+    if (!v) return
+    if (e.isIntersecting && !reduce) v.play().catch(() => {})
+    else v.pause()
+  }))
+  document.querySelectorAll('.fr').forEach((fr) => io.observe(fr))
+  new ResizeObserver(() => render(p)).observe(document.querySelector('main'))
+  render(0)
+  if (!reduce) start()
+})()
+</script>

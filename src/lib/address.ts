@@ -31,16 +31,17 @@ export function landOnAddresses() {
     root.dataset.jump = id
     clearTimeout(unmark)
     unmark = window.setTimeout(() => delete root.dataset.jump, 600)
-    // on a phone, on the first phase's mark (the stop at each phase, method.css): landed at the start, the next stroke only took the page
+    // on the first phase's mark (the stop at each phase, method.css): landed at the start, the next stroke only took the page
     // to the mark, the phase unchanged (03 About, Simulator, 8 Nov)
     // the Questions on an iPhone: their card goes on 70 px under the island, the words where they are seen (questions.css --q-lift)
     const at = el.getBoundingClientRect().top + (parseFloat(getComputedStyle(el).getPropertyValue('--q-lift')) || 0)
-    const first = matchMedia('(max-width: 899px)').matches
-      ? [...(el.closest('section')?.querySelectorAll<HTMLElement>('.m-snap, .a-snap') ?? [])]
-          .map((m) => m.getBoundingClientRect().top)
-          .filter((t) => t >= at - 1)
-          .sort((a, b) => a - b)[0]
-      : undefined
+    // A desktop too (12 Nov): landed on the start, between two marks, Chrome took the page to the nearest once the stop came back —
+    // Experiences under 01 Work for 02 Method — and Safari left it there, off every mark, so the next stroke up from 03 About ran past
+    // 11 to 10 (Safari 27.2, real trackpad, 7 of 8)
+    const first = [...(el.closest('section')?.querySelectorAll<HTMLElement>('.m-snap, .a-snap') ?? [])]
+      .map((m) => m.getBoundingClientRect().top)
+      .filter((t) => t >= at - 1)
+      .sort((a, b) => a - b)[0]
     unsnapped(() => scrollTo({ top: (first ?? at + 1) + scrollY, behavior: 'auto' }))
     return true
   }

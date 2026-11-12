@@ -1,6 +1,184 @@
 # Chapter One V5 — handoff
 
-## ▶ COMEÇAR AQUI · 9 de novembro de 2026 — revisão do M7a ponto a ponto (cinco correções aprovadas; não commitado)
+## ▶ COMEÇAR AQUI · 12 de novembro de 2026 — o nome do 12 sem saltos; retenção nas Questions na volta do Contact; a barra num salto
+
+### Estado
+- Branch `v5` em `602858d` (enviado). **Tudo por commitar** (10/11, 11/11 e hoje). Commit só quando o owner pedir; push dele no GitHub
+  Desktop. `v5-tests.md` tem a secção de 12/11.
+- Servidores e laboratório como abaixo (11/11). Nesta sessão: Node 22 em `…/10f08265-…/scratchpad/node/`, `lab.sh` do Simulador em
+  `…/10f08265-…/scratchpad/lab.sh` (porta 3135), `wheel` em `…/7c234a64-…/scratchpad/wheel` — os scratchpads apagam-se.
+
+### Respostas do owner (iPhone, manhã) e o que foi feito
+1. **12 mais rápido: tempo aprovado.** O *I'm Flávio.* saltava na volta 13 → 12 → 11 com o 2.º gesto antes de acabar a descida (medido
+   no vídeo dele: 27–47 px num fotograma). Corrigido (`about-stage.ts`): o retrato e o nome continuam a descida e o nome só desvanece.
+2. **Volta em 1,2 s: "parece ok".** Recomendação: ficar assim — com a retenção (3) as Questions veem-se sempre.
+3. **Retenção nas Questions** (`contact-client.tsx` `data-c-hold`, `method.css`): enquanto a luz volta e até a página parar, um gesto para
+   trás fica nas Questions. Medido no Simulador, Chrome e Safari desktop (pormenor e as três tentativas em `v5-tests.md`).
+4. **O fim com gestos rápidos: "agora parece bem".**
+5. **Encontrado e corrigido:** a barra dizia *04 Questions* sobre o About depois de um salto do menu a partir do Contact (`bar-client.tsx`).
+
+### Para o owner testar no iPhone (`http://192.168.1.8:3130/`, recarregar)
+0. **No PC (Safari)**: descer o Work até ao Method, e o menu → *02 Method* e um gesto: entra sempre?
+1. 13 → 12 → 11 com dois gestos rápidos: o *I'm Flávio.* acompanha o retrato e desaparece sem saltar?
+2. No Contact, vários gestos seguidos para trás enquanto a luz volta: fica nas Questions? E o gesto seguinte vai ao About?
+3. Menu → *03 About* a partir do Contact: a barra diz *03 About*?
+
+6. **Desktop "7 → 7 → 8b" corrigido** (tarde): a marca do 8a estava 16 px antes do início da fase; agora em 1,3 ecrã. Chrome e Safari:
+   uma fase por gesto 7 → 11 → 7 com gestos de 300/200/120 (`v5-tests.md`).
+
+7. **Safari desktop preso em Experiences — corrigido** (opção a, escolhida pelo owner; `method-stage.ts`, só desktop): encaixe já ligado
+   em repouso em Experiences; a marca de Experiences a 0,05 ecrã da cena (a mesma imagem: capturas iguais ao píxel); o palco só fica
+   fixo na volta quando ia mesmo mover-se. Causa: o WebKit põe a página na marca de partida se houver *layout* entre o fim do dedo e a
+   inércia. Safari 45/48 entram de Experiences; Chrome e telemóvel sem mudança (`v5-tests.md`).
+
+8. **Safari desktop 12 → 10 depois do menu — corrigido** (`address.ts`): os saltos do menu aterravam entre marcas no desktop; agora na
+   primeira marca da secção, como no telemóvel (*02 Method* aterra no 7). O que resta de 12 → 10 são gestos rápidos (450 px), o #1.
+
+### Por corrigir (por ordem proposta) — como em 11/11, menos o que ficou feito
+1. Gestos rápidos que passam paragens (Xiaomi, Chrome e Safari desktop; no desktop já a 450 px onde as marcas estão a ~½ ecrã). Proposta
+   a medir antes de mostrar: só fora do iOS, no fim do gesto (`scrollend`), se passou mais de uma marca, voltar à primeira — risco: um
+   recuo visível depois do gesto.
+2. A subida das Questions (14 → 15); a barra de cima; M7/M8; tirar o medidor de FPS.
+
+### Não verificado
+O iPhone do owner e o Safari dele com estas correções; Firefox. (Xiaomi verificado à noite: `v5-tests.md`.)
+
+## ▶ 11 de novembro de 2026 (noite) — Contact acertado no iPhone; 12 e volta das Questions mais rápidos; paragens avaliadas
+
+### Estado
+- Branch `v5` em `602858d` (enviado). **Tudo por commitar** — o de 10/11 (o Contact, a passagem E, a regressão do papel das Questions no
+  Chrome/Android) e o de hoje (abaixo). Commit só quando o owner pedir, tudo junto; ele faz o push no GitHub Desktop. Antes do commit:
+  `v5-tests.md` já tem as secções de 11/11.
+- Servidores (morrem com o Mac): `npm run build`, `npx next start -p 3100` (Node 22: o do Mac, 20.5, é velho para o Next 16.3 — o do
+  scratchpad apaga-se; descarregar o oficial e verificar o SHA-256), proxies `node docs/development/ios-lab/proxy.mjs <porta> 3100`:
+  3130 iPhone do owner (`http://192.168.1.8:3130/`), 3131 Chrome de teste (`--remote-debugging-port=9223`), 3133 Xiaomi, 3135 Simulador,
+  3136 Safari desktop.
+- Laboratório: `ios-lab/README.md` §4 — ferramentas novas de 11/11 (`where.js`, `cstate.js`, baterias do Xiaomi, `desk-walk.sh`,
+  `desk-contact.sh`, medição de fotogramas). Simulador: `v5-iphone` no Device Hub, `simtouch` + `lab.sh` (pôr o Device Hub à frente antes
+  de cada gesto: ao abrir um endereço o foco sai e os gestos perdem-se).
+
+### Feito hoje (pormenor e números em `v5-tests.md`, secções de 11/11)
+1. **Bordas do iOS na passagem E** (`contact-client.tsx` `edges()`, `sequence.ts`): a ilha e a faixa da barra do Safari pintadas a cada
+   fotograma com a cor do topo do ecrã, em vez de uma transição de tempo fixo (iam 0,35 s à frente na ida e ~1 s na volta). Owner: a ida
+   ficou bem.
+2. **A volta Contact → Questions sem o vídeo a descer nem barra em cima** (`contact.css` `--c-reach`: a secção começa 50svh mais acima; um
+   sticky nunca sai da sua secção — a sala descia 42 px no fim do gesto). Owner: "scroll tá corrigido".
+3. **A "barra de cor" que subia com o *Built around you*** (`contact.css` `.c-shade`, só iPhone): no fim da página o Safari pinta por baixo
+   da sua barra a cor lisa da página (o documento acabou), mais clara e fria que o filme — o fundo da sala é agora essa cor, fixo (ligado
+   ao scroll via-se a ajustar).
+4. **O "filtro a ajustar" em gestos rápidos no fim** (`contact.css`: `clip-path` no cartaz, filme e véu no 100svh, iPhone): era o filme
+   cru a aparecer 1–3 fotogramas por baixo da barra quando esta abre/fecha. Medido no iPhone do owner (gravador por fotograma + vídeo) e
+   no Simulador (3 → 0 em 8 gestos; 0 em 16 aberturas da barra). Owner: "pareceu ok".
+5. **Passagem completa do Contact** no Xiaomi, Chrome e Safari desktop (eventos reais), reduced-motion e sem JS: certo; só os gestos muito
+   rápidos passam paragens.
+6. **O 12 mais rápido** (`about-stage.ts`, pedido do owner): a mesma ordem, ~⅓ mais curto, o nome a entrar com o retrato — no telemóvel
+   *I'm Flávio.* aos 1,5 s (era 2,5 s), avança para o 13 aos 2,0 s (era 3,0 s). **Por aprovar no iPhone.**
+7. **A volta Contact → Questions em 1,2 s** (era 2 s; `BACK_MS`): as perguntas aparecem quando a página pára (havia ~0,75 s de papel vazio,
+   onde um 2.º gesto levava ao 14 — a explicação provável do "passo do contact para o about e fecha logo o questions"). **Por aprovar.**
+8. **Avaliação das paragens no site inteiro** (tabela em `v5-tests.md`). O "volta ao Contact no fim" que reportei era falso (o detetor;
+   corrigido em `where.js`/`cstate.js`).
+
+### Para o owner testar no iPhone (`http://192.168.1.8:3130/`, recarregar) e no PC
+1. 11 → 12 → 13: o 12 mais rápido continua elegante? Mais rápido, mais calmo, ou assim?
+2. Contact → Questions: as perguntas já lá estão quando a página pára? A volta em 1,2 s está bonita?
+3. Se ainda "passar do Contact para o About": dizer se foi um gesto ou dois — ou abrir a página e pedir o gravador (consola remota no 3130:
+   regista cada fotograma enquanto se faz o gesto e se grava o ecrã).
+4. O fim da página com gestos rápidos (o "filtro"), com o filme a tocar.
+
+### Por corrigir (por ordem proposta)
+1. **Gestos rápidos que passam paragens** (#103-16, adiado antes; o owner pediu hoje a avaliação): Xiaomi (forte 700 px a 6000 px/s salta
+   ~uma em duas, nos dois sentidos), Chrome desktop (trackpad rápido salta muitas), Safari desktop (algumas). O iPhone (Simulador) está
+   certo mesmo rápido. `scroll-snap-stop: always` não segura as marcas nesses browsers. Ideia a medir antes de propor: guardar "uma paragem
+   por gesto" por script só fora do iOS (no fim do gesto, `scrollend`, se passou mais de uma marca, voltar à primeira) — ver como fica à
+   vista; risco: um recuo visível depois do gesto.
+2. **Desktop, gesto normal, 7 → 7 → 8b** (Chrome e Safari): depois da retenção do 7, o gesto seguinte salta o 8a. Por investigar.
+3. **Safari desktop: 12 → 10 num gesto para cima**, 1× no percurso normal e 2/5 logo a seguir a entrar no About pelo menu. Por investigar.
+4. **A subida das Questions (14 → 15)** — rápida no telemóvel, gesto longo no desktop (pedido de 9/11, ainda em aberto).
+5. **A barra de cima** — correções por definir com o owner.
+6. Do plano: imagem de partilha (M7), validação final (M8), tirar o medidor de FPS de `page.tsx` antes de publicar.
+
+### Não verificado
+Firefox (não instalado); o iPhone do owner com o 12 novo e a volta em 1,2 s; o Xiaomi com o 12 visto pelo owner (só medido).
+
+## ▶ 10 de novembro de 2026 (fim do dia) — M7b: o Contact com a passagem E (README #107; por aprovar; não commitado)
+
+### Estado
+- Branch `v5` em `602858d` (enviado). **Tudo o que está abaixo está por commitar:** o Contact (`src/components/contact/`), a passagem E,
+  as correções do dia e a regressão de `602858d` (o papel das Questions sem fundo no Chrome/Android, corrigida aqui). Commit só quando o
+  owner pedir, com tudo junto; ele faz o push no GitHub Desktop.
+- Servidores (morrem quando o Mac desliga): `npm run build` e `npx next start -p 3100`, e os proxies
+  `node docs/development/ios-lab/proxy.mjs <porta> 3100` — 3130 (iPhone do owner `http://192.168.1.8:3130/`), 3131 (Chrome de teste),
+  3133 (Xiaomi), 3135 (Simulador), 3136 (Safari desktop). Uma porta por browser: a consola remota responde de qualquer página nessa porta.
+  O Node do Mac (20.5) é velho para o Next 16.3: usar o Node 22 oficial (o do scratchpad apaga-se; descarregar outra vez e verificar).
+- Laboratório: Device Hub com o `v5-iphone`, `simtouch` (dedo real), `wheel.swift` (trackpad/roda reais), Xiaomi por adb — `ios-lab/README.md`.
+
+### O que ficou feito hoje (pormenor em `v5-tests.md`, as secções de 10/11)
+1. **A passagem Questions → Contact é a E** (storyboard https://claude.ai/artifact/KcQYyLJYgDuJLgasK7atbm,
+   `storyboards/saida-mascara/`): as perguntas saem, o papel escurece onde está, o filme acende-se por cima, a pergunta, a linha e
+   *Talk to us*. 3 s a ir, 2 s a voltar; começa a 15 % do caminho entre as paragens; desfaz-se se o gesto não passa meio caminho.
+2. **O filme em ecrã inteiro no iPhone** (debaixo da ilha e da barra do Safari): o Contact é uma camada própria por cima das Questions.
+   Medido no Simulador com sondas de cor: com o filme por trás do papel, o Safari nunca o levava às faixas — foi a causa de todas as
+   "barras de cor" e de todos os remendos falhados (cor lida do filme, rampas), que saíram.
+3. **O "risco" no desktop** era o filete do colofão a subir sobre o filme: agora o colofão entra a desvanecer e o filete só no fim.
+4. **No fim da página:** sem salto elástico (iOS e rato/trackpad); a pergunta já não salta quando a barra do Safari entra/sai; a paragem
+   do fim alinhada pelo pé da página.
+5. **Bugs encontrados a testar e corrigidos:** perguntas vazias ao aterrar em `#questions` (todos os observadores de um elemento liam a
+   primeira de duas leituras — corrigido no site todo); toques no escuro do Contact abriam perguntas invisíveis; o Safari desktop aterrava
+   no topo com `#questions`/`#contact` (agora 4/4).
+
+### Para o owner testar na próxima sessão (iPhone e PC)
+No iPhone (`http://192.168.1.8:3130/`, recarregar) e no PC (`localhost:3100`, Chrome e Safari):
+1. **Do 14 (About) às Questions e ao Contact, gesto normal:** o papel escurece, o filme acende-se, a pergunta, depois a hora e o botão.
+   É assim que queres? O tempo (3 s) está bem?
+2. **Ecrã inteiro no iPhone:** no Contact parado, o filme vai até à ilha e até ao fundo, sem faixas de cor? E no fim (colofão)?
+3. **Gesto lento** das Questions para o Contact (arrastar devagar e largar a meio): a luz começa logo a baixar e volta se a página volta?
+4. **Gesto rápido** e **dois gestos seguidos** até ao fim; e **de volta** (fim → Contact → Questions → About): uma paragem por gesto?
+5. **No fim, forçar o scroll** para baixo e para cima: algum salto, cor a mudar ou linha a atravessar o ecrã?
+6. **Ida e volta rápida** nas Questions ↔ Contact (mudar de ideias a meio): fica alguma coisa misturada ou parada a meio?
+7. **Tocar** numa pergunta nas Questions (abre?) e no escuro do Contact (não deve abrir nada); *Talk to us* e os links do colofão.
+8. **A barra de cima** sobre o papel e sobre o escuro (o owner já disse que a barra vai precisar de correções; anotar o quê).
+9. **Abrir um endereço** (`…/#questions`, `…/#contact`) no Safari do PC e do iPhone: aterra no sítio certo?
+Se algo falhar: gravar o ecrã (vai para `docs/development/ios-lab/out/` pelo botão *enviar foto/vídeo*) e dizer o ponto.
+
+### Conhecido e deixado (decidir com o owner)
+- **Fling rápido para cima a partir do fim, no Chrome desktop,** passa o Contact e vai às Questions (no Safari não). É o tema dos gestos
+  rápidos no site todo (#103-16), já adiado pelo owner; não vem da E (igual com a paragem antiga).
+- **A subida das Questions (14 → 15)** rápida no telemóvel e com mudança de cor brusca — o próximo trabalho, agora mais à vista com o
+  Contact calmo.
+- **A barra de cima** — correções por definir com o owner.
+- Não verificado depois da E: movimento reduzido, sem JavaScript, 768 com toque, Firefox.
+- Por fazer do plano: imagem de partilha (M7), validação final (M8), tirar o medidor de FPS antes de publicar.
+
+### Antes (histórico deste dia)
+
+**Estado:** branch `v5` em `602858d` (enviado) + o Contact e a passagem A (README #106), sem commit. Build feita; `next start -p 3100`,
+proxies 3130 (iPhone `http://192.168.1.8:3130/`), 3131 (Safari desktop), 3133 (Xiaomi), 3134/3135 (Simulador). Device Hub aberto com o
+`v5-iphone`; `simtouch` a correr (scratchpad `touch/`). Testes: `v5-tests.md`, "M7b — Contact" e "M7b — refeito… 10/11".
+
+**⚠ Regressão já no commit `602858d`, corrigida aqui (por commitar):** desde a manhã de 9/11 o papel das Questions no Chrome/Android
+não tinha fundo (gradientes recusados pelo Chrome). Commitar esta correção com o Contact.
+
+**Como ficou (10/11):** a cena do Contact presa desde o início, invisível; a passagem **tocada** (`contact-client.tsx`, fotograma a
+fotograma: o iOS corta transições CSS e Web Animations começadas na inércia): o papel desvanece 1,4 s, a pergunta aos 0,9 s, a linha e
+*Talk to us* aos 1,6 s; o colofão só no fim (meio ecrã a mais antes dele). Verificado no Simulador com dedo, Safari e Chrome desktop com
+eventos reais, Chrome toque 390/320.
+
+**Xiaomi (10/11):** paragens certas, passagem ~81 fps; o filme só toca no Contact (um fotograma de 58–67 ms quando arranca). **Corrigido a seguir (owner):** a barra sobre as Questions ilegível e os toques nas perguntas apanhados pela camada do Contact.
+**Corrigido depois do vídeo das 13:22 (owner):** as perguntas ficam paradas no lugar enquanto a luz baixa (subiam com a página), e a ilha
+e a faixa da barra do Safari escurecem com o papel (ficavam claras sobre a sala escura). Simulador e Chrome; **falta o Xiaomi** (não
+estava ligado) e o iPhone do owner. **A barra de cima precisa de correções** (owner): fica para depois de fechar o Contact.
+**Corrigido depois dos vídeos das 16:35/16:39 (owner):** o filme do Contact nasce da cor lisa que o Safari pinta na ilha e debaixo da
+barra (sem barras de cor); sem salto elástico no fim (iOS e rato/trackpad), que punha o colofão sobre o endereço e desenhava uma faixa
+preta no Safari desktop; a subida da cena acompanha a barra do Safari (`100dvh`).
+**Refeito depois do vídeo das 17:03 (owner: "estamos a falhar constantemente"), medindo primeiro:** as faixas do iOS são sempre a cor da
+página (sonda verde/vermelho/azul no Simulador) → essa cor é a do filme no topo, lida do fotograma; a subida da cena com `100svh` (não
+salta); a paragem do fim alinhada pelo pé da página; o filete do colofão só no fim da sua entrada (era o "risco"); e as perguntas vazias
+ao aterrar em `#questions` (observadores que liam a primeira de duas leituras), corrigido em todo o site. Simulador, Xiaomi, Chrome e
+Safari desktop. **Por investigar:** o Safari desktop aterra no topo com `#questions` mudado por AppleScript.
+**Para o owner:** ver no iPhone e no PC.
+**Depois:** a afinação da subida das Questions (14 → 15: gesto longo no desktop, rápida no telemóvel) — talvez tocada como esta.
+
+## 9 de novembro de 2026 — revisão do M7a ponto a ponto (cinco correções aprovadas; não commitado)
 
 **Estado:** branch `v5` em `1d32373` + o M7a (Questions) e as correções de hoje, sem commit. Build feita; `next start -p 3100` + proxy
 3130 (iPhone `http://192.168.1.8:3130/`). Node: o do Mac (20.5) é antigo para o Next 16.3 — usar o Node 22 oficial (scratchpad da sessão,

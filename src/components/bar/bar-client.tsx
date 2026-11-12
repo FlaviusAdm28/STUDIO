@@ -100,9 +100,12 @@ export function BarClient(props: Props) {
             if (!later) setSection(idOf(e.target))
           }
           // Back above a section's start, the one before it again: it never left the line, so nothing announces it. The bar stayed
-          // on 02 Method over the whole of Experiences on the way up (test round, 1 Nov); above the Work it is the top.
+          // on 02 Method over the whole of Experiences on the way up (test round, 1 Nov); above the Work it is the top. The later one
+          // in the band if there is one: a jump from the Contact to the About (the menu) passed the Questions, and the one before the
+          // Contact set 04 Questions over the About's 12 (Chrome and Safari 1500 wide, 12 Nov)
           else if (idOf(e.target) === root.dataset.section && e.boundingClientRect.top > 0) {
-            const before = watched[watched.indexOf(e.target) - 1]
+            const last = [...watched].reverse().find((x) => x && inBand.has(x))
+            const before = last ?? watched[watched.indexOf(e.target) - 1]
             if (before) setSection(idOf(before))
           }
         })

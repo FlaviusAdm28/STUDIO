@@ -28,7 +28,10 @@ const title = (q: string) => {
 export function Questions() {
   return (
     <section id="questions" className="questions" aria-labelledby="questions-title" data-lum="0.8">
-      <div className="q-paper" aria-hidden="true" />
+      <div className="q-paper" aria-hidden="true">
+        {/* the light going down at the Contact (questions.css, contact-client.tsx) */}
+        <span className="q-dim" />
+      </div>
       <div className="q-box">
         <div className="q-anchor">
           <h2 id="questions-title" className="q-title">

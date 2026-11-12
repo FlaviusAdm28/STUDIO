@@ -100,14 +100,20 @@ export function entranceSequence(c: EntranceConfig) {
     hash: location.hash,
   }
   root.dataset.light = light
+  // arrived at the Contact: its light already down before the page comes alive (contact-client.tsx keeps it from there), or the
+  // Questions' paper, held over it, showed empty until then
+  if (location.hash === '#contact') root.classList.add('c-dusk')
   // The page's colour: Safari fills the status area and the overscroll from html and body. Nothing fixed at the bottom edge: a strip made
   // Safari paint a solid bar there, and the scenes now run on under it (entrance.css).
   const frame = getComputedStyle(root).getPropertyValue(`--frame-${light}`).trim()
   const themeMeta = document.querySelector('meta[name="theme-color"]')
   let tone = ''
   let viaMethod = false
+  let wasDusk = false
   const ios = CSS.supports('-webkit-touch-callout', 'none')
   const QUESTIONS_EDGE = '#dcd5c8'
+  // the Contact's room (contact.css: its own dark)
+  const CONTACT_EDGE = '#1b1c1a'
   const paintEdges = (colour: string) => {
     if (colour === tone) return
     tone = colour
@@ -133,19 +139,54 @@ export function entranceSequence(c: EntranceConfig) {
       const methodEdge = document.getElementById('method')?.dataset.edge ?? ''
       const aboutEdge = document.getElementById('about')?.dataset.edge ?? ''
       const edge = d.section === 'about' ? aboutEdge || methodEdge : d.section === 'method' || d.section === 'work' ? methodEdge : ''
+
       // in the Method and the About the edges cross-fade (0.3 s, as the light's edge passes the island), and so does the change that ends
       // it; elsewhere they change at once, as before
       // only where the edges are seen (iOS Safari: its status area and the band under its bar); on Android a cross-fade of the page's
       // background repainted the whole page on every frame (Xiaomi, quick strokes over the seam: 58 fps with it, 67.5 without, 3 Nov)
-      const fade = ios && (d.section === 'method' || d.section === 'about' || edge || viaMethod) ? 'background-color .3s linear' : ''
+      // the light going down at the Contact (#106, contact-client.tsx .c-dusk) takes the edges with the paper, in its time (1.4 s out;
+      // back 0.9 s after 0.15 s): changed at once, the island and the band under Safari's bar stayed the paper's stone over a room
+      // already dark, then went dark in one go (owner's iPhone, 10 Nov 13:22: "as cores das bordas topo e fundo ficam bugadas")
+      const dusk = root.classList.contains('c-dusk')
+      const duskTurn = dusk !== wasDusk && (d.section === 'questions' || d.section === 'contact')
+      wasDusk = dusk
+      const fade = !ios
+        ? ''
+        : duskTurn
+          ? dusk
+            ? 'background-color 1.1s cubic-bezier(.33, 1, .68, 1) -0.1s'
+            : 'background-color .9s cubic-bezier(.33, 1, .68, 1) .15s'
+          : d.section === 'method' || d.section === 'about' || edge || viaMethod
+            ? 'background-color .3s linear'
+            : ''
       viaMethod = !!edge
+      // the Questions: their paper's top (questions.css .q-paper), so the island and the band under Safari's bar are the stone's; the
+      // charcoal once the light is down
+      const colour =
+        edge ||
+        (d.section === 'questions' || d.section === 'contact'
+          ? dusk || d.section === 'contact'
+            ? CONTACT_EDGE
+            : QUESTIONS_EDGE
+          : past || d.section === 'about'
+            ? '#1e1d1a'
+            : ground
+              ? getComputedStyle(ground).backgroundColor
+              : frame)
+      // a fade under way (the light's) is left to run while nothing changes the colour
+      if (colour === tone) return
+      // on iOS the Contact's passage draws the edges itself, a frame at a time with the paper's light (contact-client.tsx edges()): while
+      // it runs (data-c-run) this colour is only where it ends
+      if (ios && (duskTurn || 'cRun' in d) && (d.section === 'questions' || d.section === 'contact')) {
+        tone = colour
+        return
+      }
       root.style.transition = fade
       document.body.style.transition = fade
-      // the Questions: their paper's top (questions.css .q-paper), so the island and the band under Safari's bar are the stone's
-      paintEdges(edge || (d.section === 'questions' ? QUESTIONS_EDGE : past || d.section === 'about' ? '#1e1d1a' : ground ? getComputedStyle(ground).backgroundColor : frame))
+      paintEdges(colour)
     }
     const watch = new MutationObserver(scene)
-    watch.observe(root, { attributes: true, attributeFilter: ['data-pass', 'data-section'] })
+    watch.observe(root, { attributes: true, attributeFilter: ['data-pass', 'data-section', 'class'] })
     addEventListener('DOMContentLoaded', () => {
       const work = document.querySelector('.work')
       if (work) watch.observe(work, { attributes: true, attributeFilter: ['data-ch'] })
@@ -218,18 +259,23 @@ export function entranceSequence(c: EntranceConfig) {
     )
     video.addEventListener('error', filmMoves, { once: true })
     // Paused while the entrance is out of view: it costs nothing under the rest of the page.
-    new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) video.play().catch(filmMoves)
+    new IntersectionObserver((es) => {
+      if (es[es.length - 1].isIntersecting) video.play().catch(filmMoves)
       else video.pause()
     }).observe(section)
   } else filmMoves()
 
+  let away = false
   // Back at the top, the address loses its #chapter: a refresh there shows the entrance again (README #66), as it
   // would for a first visit — with the hash it went straight to that chapter.
   new IntersectionObserver(
-    ([entry]) => {
-      if (entry.intersectionRatio > 0.95 && location.hash)
-        history.replaceState(history.state, '', location.pathname + location.search)
+    (es) => {
+      const ratio = es[es.length - 1].intersectionRatio
+      // only once the visitor has been away and comes back up: on arrival with an address the page is still at the top when this first
+      // reads, and Safari read it before the page had gone to the address — the address went and the visitor stayed at the top
+      // (Safari 27.2, #questions, 2 times in 2, 10 Nov)
+      if (ratio < 0.95) away = true
+      else if (away && location.hash) history.replaceState(history.state, '', location.pathname + location.search)
     },
     { threshold: [0.95] },
   ).observe(section)

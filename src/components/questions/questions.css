@@ -28,18 +28,30 @@
      steps */
   background:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192'%3E%3Cfilter id='n' x='0' y='0' width='1' height='1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.15 0 0 0 0 0.13 -0.07 0 0 0 0.06'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
-    radial-gradient(60% calc(0.7 * var(--q-h)) at 28% calc(var(--q-lift) + 0.14 * var(--q-h)), rgba(255, 250, 240, 0.5), transparent 72%),
-    radial-gradient(160% calc(0.22 * var(--q-h)) at 50% calc(var(--q-lift) + 0.82 * var(--q-h)), rgba(255, 255, 255, 0.12), transparent 70%),
-    radial-gradient(130% var(--q-h) at 30% calc(var(--q-lift) + 0.4 * var(--q-h)), transparent 55%, rgba(60, 50, 40, 0.2) 100%),
-    linear-gradient(
-      180deg,
-      #dcd5c8 var(--q-lift),
-      #d2cabc calc(var(--q-lift) + 0.64 * var(--q-h)),
-      #ccc3b4 calc(var(--q-lift) + 0.76 * var(--q-h)),
-      #beb5a6 100%
-    );
-  /* the paper's own height under the 70 px it reaches above the screen on iOS (--q-lift, 0 elsewhere): its light falls where it did */
-  --q-h: calc(100% - var(--q-lift));
+    radial-gradient(60% 70% at 28% 14%, rgba(255, 250, 240, 0.5), transparent 72%),
+    radial-gradient(160% 22% at 50% 82%, rgba(255, 255, 255, 0.12), transparent 70%),
+    radial-gradient(130% 100% at 30% 40%, transparent 55%, rgba(60, 50, 40, 0.2) 100%),
+    linear-gradient(180deg, #dcd5c8 0%, #d2cabc 64%, #ccc3b4 76%, #beb5a6 100%);
+}
+/* iOS, the paper 70 px taller above the screen (--q-lift, the phone's rules below): its gradients drawn over the taller box so the screen
+   shows the same light. Only there: Chrome drops the whole background when a radial gradient's size is a calc() of a percentage and a
+   length (Chrome 157, 9 Nov: the paper was drawn flat, the section's stone alone, on every Chrome since the lift went in that morning) */
+@supports (-webkit-touch-callout: none) {
+  .q-paper {
+    --q-h: calc(100% - var(--q-lift));
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192'%3E%3Cfilter id='n' x='0' y='0' width='1' height='1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.15 0 0 0 0 0.13 -0.07 0 0 0 0.06'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+      radial-gradient(60% calc(0.7 * var(--q-h)) at 28% calc(var(--q-lift) + 0.14 * var(--q-h)), rgba(255, 250, 240, 0.5), transparent 72%),
+      radial-gradient(160% calc(0.22 * var(--q-h)) at 50% calc(var(--q-lift) + 0.82 * var(--q-h)), rgba(255, 255, 255, 0.12), transparent 70%),
+      radial-gradient(130% var(--q-h) at 30% calc(var(--q-lift) + 0.4 * var(--q-h)), transparent 55%, rgba(60, 50, 40, 0.2) 100%),
+      linear-gradient(
+        180deg,
+        #dcd5c8 var(--q-lift),
+        #d2cabc calc(var(--q-lift) + 0.64 * var(--q-h)),
+        #ccc3b4 calc(var(--q-lift) + 0.76 * var(--q-h)),
+        #beb5a6 100%
+      );
+  }
 }
 .q-box {
   position: relative;
@@ -409,7 +421,7 @@
    now it starts a quarter of the way up and is all there ~1.4 s later — never an empty screen waiting (storyboard rule 1) */
 @media (prefers-reduced-motion: no-preference) {
   :root[data-js] .questions {
-    z-index: 4;
+    z-index: 5; /* over the About (3) and the Contact's room (4), under its words (6): contact.css */
     margin-top: calc(-1 * var(--screen));
     /* its rise drives the About's way beneath it (about.css a-under, a-dim) */
     view-timeline: --q-rise block;
@@ -448,6 +460,81 @@
     transition: none;
   }
 }
+/* ================= the light goes down (#106; the Contact's passage, contact.css) =================
+   After the last question the paper goes on for one more screen, and the Contact lies under it (its room behind, its question over it).
+   When a stroke takes the Contact's start halfway up the screen (contact-client.tsx, .c-dusk on the page, drawn by the script) the paper
+   and the last questions go, in their own time: the studio's light goes down where it is, and the entrance's film is there behind. Played, not tied
+   to the scroll: on the iPhone the stop took the page there in ~0.3 s and the light went out at once, and coming back Safari left its
+   scroll-driven fade at 0.91, the Questions unseen at their own stop (Simulator, finger strokes, 10 Nov). On a desktop the paper, drawn
+   over the whole section until now, is held on the screen as on a phone, for that last screen. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* its own stone under the paper goes: the paper covers all of the section that is seen, and the Contact's room must show through */
+    :root[data-js] .questions {
+      background: transparent;
+    }
+    /* that screen: a block, not the section's padding, so the questions can be held over it (a sticky box keeps to its parent's content
+       box: over a padding they went on up with the page, Simulator, 10 Nov) */
+    :root[data-js] .questions::after {
+      content: '';
+      display: block;
+      height: var(--screen);
+    }
+    /* the states only: contact-client.tsx draws the way between them (E of the storyboard saida-mascara): the questions go and the
+       paper's light goes down where it is to near black; the Contact's film then comes on over it. The questions only fade: they stay in
+       the keyboard's way back */
+    :root[data-js] .questions .q-dim {
+      position: absolute;
+      inset: 0;
+      background: #141412;
+      opacity: 0;
+    }
+    :root[data-js].c-dusk .questions .q-dim {
+      opacity: 0.97;
+    }
+    /* gone, they take no touch: under the Contact (which lets touches through to them) a tap on its empty dark opened an unseen question
+       (Simulator, 10 Nov) */
+    :root[data-js].c-dusk .questions .q-box {
+      opacity: 0;
+      pointer-events: none;
+    }
+    /* the questions held where they are while the light goes down, as the storyboard's A ("no lugar"): in the flow they went on up with
+       the page for the half screen before the light went down, and faded on their way out of the screen (owner's iPhone, 10 Nov 13:22).
+       Held as they are at their own stop (the 70 px of iOS's lift above the screen), or, with an answer open past the screen's foot,
+       once the list's foot is a margin above the screen's (--q-foot, where the list ends in the box, questions-client.tsx; the visible
+       screen, 100svh, so it is never under the browser's bar). Their last screen of paper is the room */
+    :root[data-js] .questions .q-box {
+      position: sticky;
+      top: min(calc(-1 * var(--q-lift)), calc(100svh - var(--q-foot, 0px) - 18 * var(--p, 0px)));
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) and (min-width: 900px) {
+    :root[data-js] .questions {
+      grid-template-rows: 100svh var(--screen);
+    }
+    :root[data-js] .questions::after {
+      display: none;
+    }
+    :root[data-js] .q-paper {
+      position: sticky;
+      inset: auto;
+      top: 0;
+      grid-area: 1 / 1 / 3 / 2;
+      align-self: start;
+      justify-self: stretch;
+      height: var(--screen);
+    }
+    /* centred in the first screen, and held there: over both rows, as the paper (a grid item sticks only inside its own area: in the
+       first row alone it went on up 105 px before it had faded, Chrome 1440, 10 Nov) */
+    :root[data-js] .q-box {
+      grid-area: 1 / 1 / 3 / 2;
+      align-self: start;
+      margin-top: calc((100svh - 62.5 * var(--u)) / 2);
+      top: calc((100svh - 62.5 * var(--u)) / 2);
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .q-pm,
   .q-ans,

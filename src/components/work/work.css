@@ -137,6 +137,38 @@
     pointer-events: none;
   }
 
+  /* the Work's stops (work-client.tsx): the top, Weddings (1.4 screens down, where the passage ends) and Artists; Experiences' is the
+     Method's (method.css .m-snap[data-at='out']). On at rest from the top to Experiences (data-pass-zone): a stroke moves one chapter
+     (owner, 13 Nov), and a stroke from the top rests at Weddings with the passage playing (owner, 12 Nov: one stroke starts it, the
+     scroll no longer drives it); off below, so they never catch a stroke from the Method. Only the snapping is turned on and off: the
+     marks are always there, as the Method's are. WebKit keeps a resting page on its mark by rank, and marks appearing above it moved
+     the page: the Work's turned on as a stroke back from 7 came to rest at Experiences took it to the top, and turned off at 7 took it
+     on to 8c (Safari 27.2, real trackpad, 13 Nov). The Contact's hold of the way back takes them off with the others above the
+     Questions (method.css, data-c-hold) */
+  :root[data-js] .w-pass-snap {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+  :root[data-js][data-pass-zone] {
+    scroll-snap-type: y mandatory;
+  }
+  :root[data-js][data-c-hold] .w-pass-snap {
+    scroll-snap-align: none;
+  }
+  /* iOS, from the stroke that starts the passage: Weddings the only stop ahead (work-client.tsx passHold — a real iPhone rests a strong
+     stroke on the stop nearest its momentum, and from the top that was Artists) */
+  :root[data-js][data-pass-hold][data-pass-hold] .w-pass-snap[data-at='artists'],
+  :root[data-js][data-pass-hold][data-pass-hold] .method .m-snap,
+  :root[data-js][data-pass-hold][data-pass-hold] .about .a-snap {
+    scroll-snap-align: none;
+  }
+
   :root[data-js] .e-hold + .work {
     z-index: 1;
     /* 7.9: the last step one screen longer (3 Nov, see .w-step:last-child) */

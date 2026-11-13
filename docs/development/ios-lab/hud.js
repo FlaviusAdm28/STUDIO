@@ -18,7 +18,7 @@
   if (css) { var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st) }
   var R = document.documentElement, vv = window.visualViewport || null
   var T = { ua: navigator.userAgent, flags: Object.keys(flags), rows: [], ev: [], marks: [], env: null, envEnd: null, started: null,
-    cols: ['t', 'scrollY', 'innerH', 'vvH', 'vvTop', 'clientH', 'dvh', 'entTop', 'entBottom', 'stageTop', 'stageBottom', 'fixedTop', 'fixedBottom', 'barTop', 'pass', 'ch', 'section', 'menu'] }
+    cols: ['t', 'scrollY', 'innerH', 'vvH', 'vvTop', 'clientH', 'dvh', 'entTop', 'entBottom', 'stageTop', 'stageBottom', 'fixedTop', 'fixedBottom', 'barTop', 'pass (+Z stops on, H Work stops held back, L page locked)', 'ch', 'section', 'menu'] }
   var recording = false, t0 = 0
   var now = function () { return +(performance.now() - t0).toFixed(1) }
   var note = function (n, d) { if (recording) T.ev.push([now(), n, d === undefined ? null : d]) }
@@ -32,7 +32,7 @@
   var frame = function () {
     if (!recording) return
     var e = rect('#top'), s = rect('.w-stage'), f = edge.getBoundingClientRect(), b = rect('.bar')
-    T.rows.push([now(), +scrollY.toFixed(1), innerHeight, vv ? +vv.height.toFixed(1) : null, vv ? +vv.offsetTop.toFixed(1) : null, R.clientHeight, rD.offsetHeight, e ? +e.top.toFixed(1) : null, e ? +e.bottom.toFixed(1) : null, s ? +s.top.toFixed(1) : null, s ? +s.bottom.toFixed(1) : null, +f.top.toFixed(1), +f.bottom.toFixed(1), b ? +b.top.toFixed(1) : null, R.dataset.pass || '', (q('.work') || { dataset: {} }).dataset.ch || '', R.dataset.section || '', R.dataset.menu || '',
+    T.rows.push([now(), +scrollY.toFixed(1), innerHeight, vv ? +vv.height.toFixed(1) : null, vv ? +vv.offsetTop.toFixed(1) : null, R.clientHeight, rD.offsetHeight, e ? +e.top.toFixed(1) : null, e ? +e.bottom.toFixed(1) : null, s ? +s.top.toFixed(1) : null, s ? +s.bottom.toFixed(1) : null, +f.top.toFixed(1), +f.bottom.toFixed(1), b ? +b.top.toFixed(1) : null, (R.dataset.pass || '') + ('passZone' in R.dataset ? 'Z' : '') + ('passHold' in R.dataset ? 'H' : '') + (R.style.overflow === 'hidden' ? 'L' : ''), (q('.work') || { dataset: {} }).dataset.ch || '', R.dataset.section || '', R.dataset.menu || '',
       // 7 Nov: the Method's stage held in flow (method.css): section top, stage top/bottom, its transform's y, phase, leap/leaving
       (function () { var m = q('#method'), st = m && m.querySelector('.m-stage'); if (!m || !st) return null; var r = m.getBoundingClientRect(), t = st.getBoundingClientRect(), mx = getComputedStyle(st).transform, y = mx && mx !== 'none' ? +mx.split(',')[5] : 0
         return [+r.top.toFixed(1), +t.top.toFixed(1), +t.bottom.toFixed(1), +(+y).toFixed(1), m.dataset.phase || '', 'leap' in R.dataset ? 1 : 0, m.classList.contains('m-leaving') ? 1 : 0, getComputedStyle(st).position, getComputedStyle(m).getPropertyValue('--m-lift').trim()] })(),

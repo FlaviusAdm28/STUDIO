@@ -125,8 +125,33 @@ export function entranceSequence(c: EntranceConfig) {
   if (frame) {
     root.style.setProperty('--frame', frame)
     paintEdges(frame)
+    // The open menu is what is at the top of the screen (owner, 12 Nov: "o menu deve ficar completo no ecrã todo… não barras de cor"):
+    // on Android the bar Chrome draws over the page takes its colour from theme-color, and stayed the paper's stone over the menu's dark
+    // glass (Xiaomi, over the Questions). There it is the menu's film over the colour that was there (bar.css .menu-film, by the ground
+    // measured as it opens). On an iPhone the menu itself runs under the island and Safari's bar (bar.css .menu-room): nothing to paint
+    const FILM: Record<string, number> = { dark: 0.3, mixed: 0.5, light: 0.66 }
+    const rgbOf = (c: string) => {
+      const h = c.trim().match(/^#([0-9a-f]{6})$/i)
+      if (h) return [0, 2, 4].map((i) => parseInt(h[1].slice(i, i + 2), 16))
+      const m = c.match(/\d+(\.\d+)?/g)
+      return m && m.length >= 3 ? m.slice(0, 3).map(Number) : null
+    }
+    const menuTone = (under: string) => {
+      const rgb = rgbOf(under)
+      const a = FILM[document.querySelector<HTMLElement>('dialog.menu')?.dataset.ground ?? 'dark'] ?? 0.3
+      if (!rgb) return '#1e1d1a'
+      const film = [20, 19, 17]
+      return `#${rgb.map((v, i) => Math.round(v * (1 - a) + film[i] * a).toString(16).padStart(2, '0')).join('')}`
+    }
+    let menuShown = false
     const scene = () => {
       const d = root.dataset
+      const menuOn = d.menu === 'armed' || d.menu === 'open'
+      if (menuOn || menuShown) {
+        if (!ios) themeMeta?.setAttribute('content', menuOn ? menuTone(tone) : tone)
+        menuShown = menuOn
+        if (menuOn) return
+      }
       const work = document.querySelector<HTMLElement>('.work') // parsed after this script
       const ch = Number(work?.dataset.ch ?? 0)
       const ground = ch > 0 && d.pass === 'done' && work?.querySelectorAll('.w-ground')[ch]
@@ -186,7 +211,7 @@ export function entranceSequence(c: EntranceConfig) {
       paintEdges(colour)
     }
     const watch = new MutationObserver(scene)
-    watch.observe(root, { attributes: true, attributeFilter: ['data-pass', 'data-section', 'class'] })
+    watch.observe(root, { attributes: true, attributeFilter: ['data-pass', 'data-section', 'class', 'data-menu'] })
     addEventListener('DOMContentLoaded', () => {
       const work = document.querySelector('.work')
       if (work) watch.observe(work, { attributes: true, attributeFilter: ['data-ch'] })

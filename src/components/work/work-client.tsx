@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import type { work } from '@content'
 import { lensMap } from '@/lib/lens'
 import { press } from '@/lib/press'
+import { strokeLately, watchFinger } from '@/lib/finger'
 import { unsnapped } from '@/lib/unsnapped'
 
 type Props = {
@@ -620,6 +621,7 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       top: number
       r: { left: number; top: number; right: number; bottom: number; width: number; height: number }
     } | null = null
+    const marks: HTMLElement[] = []
     const measure = () => {
       if (!holder || !entrance || !arch) return
       // the arch relative to the stage: during the passage the stage is held at the top of the screen
@@ -640,29 +642,73 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
         top: holder.getBoundingClientRect().top + scrollY,
         r: { left: a.left, top: a.top, right: a.right, bottom: a.bottom, width: a.width, height: a.height },
       }
+      // the Work's stops (work.css .w-pass-snap): the top, Weddings where the passage ends (1.4 screens down the held entrance), and
+      // Artists at its step's top, where its address lands. Experiences' stop is the Method's (method-stage.ts, data-at='out'), where a
+      // stroke back from the Method rests. Without a stop at Artists a stroke went from Weddings to the Method's first mark: a second
+      // stroke while the passage played crossed the whole Work, Experiences shown and the passage cut (owner's iPhone, 12 Nov; Simulator,
+      // 13 Nov: strokes 0.4 and 0.9 s apart, y 1238 → 4471, 2 of 2) — iOS does not give the page the touches of a stroke begun while
+      // the page is still settling, so only a stop can hold it (owner, 13 Nov: a stop at each chapter)
+      if (!marks.length) {
+        ;['top', 'weddings', 'artists'].forEach((at, i) => {
+          const mark = document.createElement('div')
+          mark.className = 'w-pass-snap'
+          mark.dataset.at = at
+          mark.setAttribute('aria-hidden', 'true')
+          ;(i < 2 ? holder : section).append(mark)
+          marks.push(mark)
+        })
+      }
+      marks[1].style.top = `${1.4 * geo.H}px`
+      if (steps[1]) marks[2].style.top = `${steps[1].offsetTop + 1}px`
     }
-    // The passage on the compositor: the scroll itself drives it, with no frame of the main thread. Moved by script it kept
-    // pace with the main thread, ~27 frames a second, however fast the screen drew (Xiaomi trace, 31 Oct: 113 draws, 55 main
-    // frames, each waiting for raster). The blade of Weddings grows into the arch (owner, 31 Oct): it is the same photograph,
+    // where each chapter rests: its stop (none with reduced motion, where the marks are not laid out)
+    const restOf = (k: number) => {
+      const stop = k === 2 ? document.querySelector<HTMLElement>('.method .m-snap[data-at="out"]') : marks[k + 1]
+      return stop?.getClientRects().length ? stop.getBoundingClientRect().top + scrollY : null
+    }
+    // The passage on the compositor, played by time: a stroke starts it and it runs whole (owner, 12 Nov: "one stroke dispara a
+    // animação e não o scroll controla a animação"; driven by the scroll, a slow stroke or a wheel left the page halfway, the
+    // photograph half flown, no text and no bar). Web Animations on the document's clock, no frame of the main thread: moved by
+    // script it kept pace with the main thread, ~27 frames a second, however fast the screen drew (Xiaomi trace, 31 Oct: 113
+    // draws, 55 main frames, each waiting for raster). The blade of Weddings grows into the arch (owner, 31 Oct): it is the same photograph,
     // so nothing is exchanged. Two boxes fly together, the photograph counter-scaled inside so it never stretches: one with
     // the arch's curve, one with square corners over it, which fades so the curve appears softly (a radius cannot change on
     // the compositor, and scaled flat it bent the blade's top edge). They lie under the entrance's words, so the blade's
     // name stays whole while the box takes over: over it, the name flickered in the first pixels of scroll.
     const host = entrance?.querySelector<HTMLElement>('.e-window')
-    const canComposite = 'ScrollTimeline' in window && CSS.supports('animation-range', '0px 100px') && !!host
+    const canComposite = !!host
     let flights: Animation[] = []
-    let textFlight: Pick<Animation, 'cancel'> | null = null
+    let textFlight: Animation[] = []
     let flyText: (() => void) | null = null
+    // The clock (approved by time, values to be judged on the iPhone): the whole way in PASS_MS, back in BACK_MS (the same 1.2 s as
+    // the way back to the Questions). prog is where the passage is, in the pixels of the old scroll-driven passage (0 … 1.4 screens);
+    // goal is the end it is going to.
+    const SCROLLING = new Set([' ', 'PageUp', 'PageDown', 'Home', 'End', 'ArrowUp', 'ArrowDown'])
+    const PASS_MS = 1600
+    const BACK_MS = 1200
+    let prog = 0
+    let goal = 0
+    const endOf = () => 1.4 * (geo?.H ?? 0)
+    const rateNow = () => (goal > prog ? 1 : goal < prog ? -PASS_MS / BACK_MS : 0)
+    const syncOne = (a: Animation) => {
+      const end = endOf()
+      a.currentTime = end ? (prog / end) * PASS_MS : 0
+      const rate = rateNow()
+      if (rate) {
+        a.playbackRate = rate
+        a.play()
+      } else a.pause()
+    }
     const lifted: HTMLElement[] = []
     let shadow: HTMLElement | null = null
     const SAMPLES = 32
     const flight = () => {
       flights.forEach((a) => a.cancel())
       flights = []
-      textFlight?.cancel()
-      textFlight = null
+      textFlight.forEach((a) => a.cancel())
+      textFlight = []
       if (!geo || !entrance || !host || !film || !firstText) return
-      const { H, r, top } = geo
+      const { H, r } = geo
       const shape = entrance.querySelector<HTMLElement>('.e-blade .e-blade-shape')
       const blades = [...entrance.querySelectorAll<HTMLElement>('.e-blade')]
       const name = blades[0]?.querySelector<HTMLElement>('.e-blade-name')
@@ -691,17 +737,31 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       // the photograph's light arrives with it, not before
       const aura = section.querySelector<HTMLElement>('.w-ch[data-c="weddings"] .w-aura[data-j="0"]')
       const glow = aura ? getComputedStyle(aura).opacity : '1'
-      const Timeline = (window as unknown as { ScrollTimeline: new (o: object) => AnimationTimeline }).ScrollTimeline
-      const timeline = new Timeline({ source: document.documentElement, axis: 'block' })
       const END = 1.4 * H
-      const fly = (el: Element, frames: Keyframe[], from = 0, to = END) =>
-        el.animate(frames, {
-          timeline,
+      // each part keeps its stretch of the old 1.4 screens, now a stretch of the clock: every animation lasts PASS_MS in all (delay +
+      // duration + end delay), so one time places them all, either way
+      const fly = (el: Element, frames: Keyframe[], from = 0, to = END) => {
+        const a = el.animate(frames, {
+          delay: (from / END) * PASS_MS,
+          duration: ((to - from) / END) * PASS_MS,
+          endDelay: ((END - to) / END) * PASS_MS,
           fill: 'both',
-          rangeStart: `${top + from}px`,
-          rangeEnd: `${top + to}px`,
-        } as unknown as KeyframeAnimationOptions)
-      const b = shape.getBoundingClientRect()
+        })
+        a.pause()
+        return a
+      }
+      // The blade where the passage starts, at the top of the held entrance. Measured where the page happens to be (a reload
+      // down the page, a change of size, the blade's file arriving late), past the hold the entrance had gone up with the page,
+      // and the photograph flew to a card thousands of pixels above the screen: a square box crossing the top-left on the way
+      // back and the same coming down (owner's iPhone, 12 Nov; the Simulator, built at 9204 px: the start at −9427 px).
+      const seen = shape.getBoundingClientRect()
+      const lift = entrance.getBoundingClientRect().top
+      const b = {
+        left: seen.left,
+        top: seen.top - lift,
+        width: seen.width,
+        height: seen.height,
+      }
       const lean = matchMedia('(orientation: portrait)').matches ? 0.06 : 0.14
       // The photograph starts exactly as the blade shows it: both framings computed from its own proportions, the blade's
       // cover and the arch's. Assuming it filled the arch's width, it jumped as the blade took over (owner, 31 Oct).
@@ -805,10 +865,12 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
           ...cards.map((card) => fly(card, [{ opacity: 0 }, { opacity: 0, offset: 0.9 }, { opacity: 1 }], 0, END)),
           ...(aura ? [fly(aura, [{ opacity: 0 }, { opacity: 0, offset: 0.55 }, { opacity: glow }], 0, END)] : []),
         ]
-        textFlight = { cancel: () => held.forEach((a) => a.cancel()) }
+        textFlight = held
+        held.forEach(syncOne)
       }
       // arriving past the passage (a chapter's address, a refresh down the page) the stage is already the stage's own
-      if (scrollY - top < END) flyText()
+      if (prog < END) flyText()
+      flights.forEach(syncOne)
     }
     // once the entrance's own timeline has ended: an animation made here would cover it
     const composited = () => canComposite && !root.dataset.entrance
@@ -827,7 +889,7 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
         ch = 0
         section.dataset.ch = '0'
       }
-      if (flights.length && !textFlight) flyText?.()
+      if (flights.length && !textFlight.length) flyText?.()
     }
     const passageFrame = () => {
       if (!holder || !entrance || !film || !arch || reduce) return
@@ -837,7 +899,7 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       }
       if (!geo) return
       const { H, W, r } = geo
-      const s = scrollY - geo.top
+      const s = prog
       if (s <= 0) {
         if (root.dataset.pass) {
           if (root.dataset.pass === 'done') leaveStage()
@@ -848,7 +910,8 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
         return
       }
       const p = clamp(s / H)
-      const d = clamp((s - H) / (0.4 * H))
+      // at the end exactly: 1.4 × H, less H, over 0.4 × H came out 0.99999… and the passage never became 'done' (Chrome, 12 Nov)
+      const d = s >= 1.4 * H - 0.5 ? 1 : clamp((s - H) / (0.4 * H))
       const was = root.dataset.pass
       const state = d >= 1 ? 'done' : 'on'
       if (was !== state) root.dataset.pass = state
@@ -883,30 +946,273 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       if (was !== 'done' && d >= 1) {
         firstText?.removeAttribute('style')
         // the text belongs to the stage now: its chapter's own rules take over
-        textFlight?.cancel()
-        textFlight = null
+        textFlight.forEach((a) => a.cancel())
+        textFlight = []
         run()
       } else if (was === 'done' && d < 1) {
         leaveStage()
       }
     }
+    // ---- the clock: from prog to goal, on the compositor's own animations (flights) or, before they exist, on the main thread ----
+    let tickRaf = 0
+    let lastT = 0
+    const tick = (now: number) => {
+      tickRaf = 0
+      const end = endOf()
+      if (flights.length) {
+        prog = clamp(Number(flights[0].currentTime ?? 0) / PASS_MS) * end
+        if (Math.abs(prog - goal) < 0.5) prog = goal
+      } else {
+        const step = (now - (lastT || now)) * (goal > prog ? end / PASS_MS : end / BACK_MS)
+        prog = goal > prog ? Math.min(goal, prog + step) : Math.max(goal, prog - step)
+      }
+      lastT = now
+      passageFrame()
+      // iOS: come to rest at Weddings with the passage still playing on, the page is held there until it ends (lockPage)
+      if (ios && goal === end && prog < end && geo && scrollY - geo.top >= end - 15) lockPage(true)
+      if (prog !== goal) tickRaf = requestAnimationFrame(tick)
+      else {
+        holdEvents(false)
+        lockPage(false)
+        passHold(false)
+      }
+    }
+    // played: towards an end, from wherever it is (turned back halfway it goes back from there)
+    const go = (to: number) => {
+      if (goal === to && (prog === to || tickRaf)) return
+      goal = to
+      if (!to) {
+        lockPage(false)
+        passHold(false)
+      }
+      flights.forEach(syncOne)
+      textFlight.forEach(syncOne)
+      lastT = 0
+      if (!tickRaf) tickRaf = requestAnimationFrame(tick)
+    }
+    // put: a jump of the site's own (the menu, an address, the name), a reload down the page — no passage to watch
+    const put = (to: number) => {
+      cancelAnimationFrame(tickRaf)
+      tickRaf = 0
+      goal = prog = to
+      flights.forEach(syncOne)
+      textFlight.forEach(syncOne)
+      holdEvents(false)
+      lockPage(false)
+      passHold(false)
+      passageFrame()
+    }
+    // A jump of the site's own: its scroll is not a stroke. Only while nothing of the visitor's moved the page just before — the menu
+    // keeps the snapping off 2.6 s after a jump to the Work (unsnapped), and a stroke up from Weddings in that time was taken for the
+    // jump: answered only once the 2.6 s were over, ~1.5 s late (Simulator, 12 Nov, the menu → Work from Weddings, then a stroke up)
+    let userAt = -1e9
+    const byUser = () => {
+      userAt = performance.now()
+    }
+    for (const k of ['wheel', 'touchmove']) listen(window, k, byUser, { passive: true })
+    listen(window, 'keydown', (e: Event) => {
+      if (SCROLLING.has((e as KeyboardEvent).key)) byUser()
+    })
+    const siteJump = () =>
+      (root.dataset.jump !== undefined || root.style.scrollSnapType === 'none') && performance.now() - userAt > 1500
+    // ---- the stroke: it starts the passage and the page goes to an end ----
+    // At the top a stop at Weddings (work.css, data-pass-zone) holds a stroke there, so a strong one does not carry the page into
+    // the Work with the passage still playing; at rest anywhere between, the page goes to the end the passage is going to — unseen:
+    // the entrance and the stage are both held on screen there. The stops are turned on and off only at rest (atRest): turned on
+    // during a stroke, Safari takes the page back to a mark.
+    watchFinger()
+    // which way the finger went in the last stroke (+1 down the page): iOS's own snap moving the page back after a slow stroke is not a
+    // stroke back. Taken for one, a slow stroke from the top started the passage, the snap took the page back to the top and the passage
+    // went back with it (Simulator, 12 Nov, 180 pt in 0.45 s)
+    let fingerFrom = 0
+    let fingerWay = 0
+    listen(
+      window,
+      'touchstart',
+      (e: Event) => {
+        fingerFrom = (e as TouchEvent).touches[0]?.clientY ?? 0
+        fingerWay = 0
+      },
+      { passive: true },
+    )
+    listen(
+      window,
+      'touchmove',
+      (e: Event) => {
+        const y = (e as TouchEvent).touches[0]?.clientY ?? fingerFrom
+        if (Math.abs(y - fingerFrom) > 4) fingerWay = y < fingerFrom ? 1 : -1
+        // held at Weddings (lockPage) the page cannot move, so a stroke back is read from the finger: the passage turns back, and the
+        // page goes to the top at once — unseen, the entrance and the stage are held on screen all the way
+        if (locked && geo && y - fingerFrom > NUDGE) {
+          lockPage(false)
+          go(0)
+          scrollTo({ top: geo.top, behavior: 'instant' })
+          lastY = 0
+        }
+      },
+      { passive: true },
+    )
+    const notTheFinger = (way: number) => fingerWay === -way && strokeLately(1500)
+    // On iOS the page is held while the passage plays, by its events, as the other browsers are by overflow (holdFor, below): a second
+    // stroke during it carried the page on into the Work, to Experiences, with the passage cut (Simulator, 12 Nov). Listening only then.
+    const ios = CSS.supports('-webkit-touch-callout', 'none')
+    const still = (e: Event) => {
+      if (e.cancelable) e.preventDefault()
+    }
+    let held2 = false
+    const holdEvents = (on: boolean) => {
+      if (!ios || on === held2) return
+      held2 = on
+      if (on) {
+        addEventListener('touchmove', still, { passive: false })
+        addEventListener('wheel', still, { passive: false })
+      } else {
+        removeEventListener('touchmove', still)
+        removeEventListener('wheel', still)
+      }
+    }
+    // iOS gives the page no touches of a stroke begun while it is still settling (a stroke 0.4–0.9 s after the one that started the
+    // passage: no touchstart, Simulator, 13 Nov), so holdEvents cannot stop it: it ran on into the Work with the passage cut (the owner's
+    // "buga a animação", iPhone, 12 Nov). Once the page rests at Weddings it is held by overflow until the passage ends: a stroke onwards
+    // then does nothing, and the next after the passage goes to Artists. A stroke within ~0.7 s, before the page is there, still goes on:
+    // two strokes, two chapters (Artists' stop)
+    let locked = false
+    const lockPage = (on: boolean) => {
+      if (!ios || on === locked) return
+      locked = on
+      if (on) root.style.overflow = 'hidden'
+      else root.style.removeProperty('overflow')
+    }
+    // iOS on a real iPhone does not keep a strong stroke at a scroll-snap-stop: it rests on the stop nearest where the momentum would
+    // go. From the top a strong stroke went past Weddings to Artists, the passage cut (owner's iPhone, 13 Nov 00:45, 2 of 2; before
+    // Artists had a stop, to Experiences — the first video's "buga"); the Simulator's finger is never that fast (21 of 21 held). So
+    // from the stroke that starts the passage, the stops after Weddings are taken away (work.css, data-pass-hold) and Weddings is the
+    // only one ahead; they come back once the passage has ended, or as soon as a finger takes the page past Weddings (a second stroke:
+    // it rests on Artists, two strokes two chapters — with nothing ahead it ran to the page's end, Simulator, 13 Nov). Only marks
+    // below the page go and come, so WebKit's resting by rank is not moved
+    const passHold = (on: boolean) => {
+      if (!ios || on === 'passHold' in root.dataset) return
+      if (on) root.dataset.passHold = ''
+      else delete root.dataset.passHold
+    }
+    let lastY = scrollY
+    let movedAt = 0
+    let restRaf = 0
+    const zone = (on: boolean) => {
+      if (on) root.dataset.passZone = ''
+      else delete root.dataset.passZone
+    }
+    const atRest = (now: number) => {
+      restRaf = 0
+      // and a moment after the finger lifts: a finger resting still before lifting left the page still, and it was moved as iOS began
+      // its own snap there — the two together carried it past Weddings (Simulator, 12 Nov: 286 → 1922)
+      if (now - movedAt < 200 || strokeLately(300)) {
+        restRaf = requestAnimationFrame(atRest)
+        return
+      }
+      if (!geo || reduce) return
+      const end = endOf()
+      let y = scrollY - geo.top
+      // anywhere short of the end the passage is going to: there (at the top after it went on, iOS's snap; or between)
+      if (!siteJump() && (goal === end ? y < end - 0.5 : y > 0.5 && y < end - 0.5)) {
+        y = goal === end ? end : 0
+        scrollTo({ top: geo.top + y, behavior: 'instant' })
+        lastY = y
+      }
+      zone(inWork())
+    }
+    // The Work's stops are on at rest from the top to Experiences' stop, the Method's own below it (method.css). Not while a desktop
+    // holds the page for the passage (holdFor): on, Safari took the next click of a mouse wheel to the next mark, overflow or not
+    let holding = false
+    const inWork = () => {
+      const out = restOf(2)
+      return !holding && (out === null ? scrollY - (geo?.top ?? 0) < endOf() - 2 : scrollY <= out + 2)
+    }
+    // Outside iOS the stop does not hold a strong stroke: Chrome and Safari on a Mac, and Chrome on Android, let a fling run past a
+    // scroll-snap-stop (the #1 of 11 Nov), and a fast trackpad stroke from the top crossed the Work to Experiences with the passage cut
+    // (Chrome, 12 Nov). There the stroke that starts the passage takes the page straight to its end — unseen: the entrance is held
+    // there — and the page is held while it plays (overflow, so the rest of the stroke and its momentum go nowhere), as the entrance
+    // holds it until the camera is through. iOS keeps the stop: it holds there, and with this a finger still on the glass went on
+    // scrolling from the page's new place, 50–700 px past Weddings with the passage playing (Simulator, 12 Nov, 6 strokes of 6).
+    let freeT = 0
+    const holdFor = (to: number) => {
+      if (ios || !geo) return
+      // the stop off at once: on, Safari took the next click of a mouse wheel to the next mark, the Experiences' one, overflow or not
+      // (Safari 27.2, 12 Nov)
+      holding = true
+      zone(false)
+      root.style.scrollbarGutter = 'stable'
+      root.style.overflow = 'hidden'
+      scrollTo({ top: geo.top + to, behavior: 'instant' })
+      lastY = to
+      clearTimeout(freeT)
+      freeT = window.setTimeout(
+        () => {
+          root.style.removeProperty('overflow')
+          root.style.removeProperty('scrollbar-gutter')
+          holding = false
+          zone(inWork())
+        },
+        to ? PASS_MS : BACK_MS,
+      )
+    }
+    const NUDGE = 12
     let passQueued = false
+    const watch = () => {
+      passQueued = false
+      if (!holder || !entrance || !film || !arch || reduce) return
+      if (!geo) passageFrame()
+      if (!geo) return
+      const { H } = geo
+      const end = endOf()
+      const y = scrollY - geo.top
+      const dy = y - lastY
+      lastY = y
+      if (siteJump()) {
+        if (y >= end - 2) put(end)
+        else if (y <= 2) put(0)
+      } else if (y > end + 0.25 * H && prog < end) put(end)
+      // a finger has taken the page past Weddings (a second stroke): the stops after it are back (passHold)
+      if (y > end + 2) passHold(false)
+      // the first few pixels of a stroke start it, either way: 12 px, past a resting finger's tremor. At 0.04 of a screen (37 px) one
+      // press of an arrow key in Safari did not, and the page went back to where it was (Safari 27.2, 12 Nov)
+      else if (goal === 0 && dy > 0 && y > NUDGE && !notTheFinger(1)) {
+        go(end)
+        holdFor(end)
+        holdEvents(true)
+        if (y < end) passHold(true)
+      } else if (goal === end && dy < 0 && y < end - NUDGE && !notTheFinger(-1)) {
+        go(0)
+        holdFor(0)
+        holdEvents(true)
+      }
+      movedAt = performance.now()
+      if (!restRaf) restRaf = requestAnimationFrame(atRest)
+    }
     const onPassScroll = () => {
       if (passQueued) return
       passQueued = true
-      requestAnimationFrame(() => {
-        passQueued = false
-        passageFrame()
-      })
+      requestAnimationFrame(watch)
     }
     listen(window, 'scroll', onPassScroll, { passive: true })
-    // the phone's address bar hides and shows as one scrolls: only a real change of size measures again
+    // the phone's address bar hides and shows as one scrolls: only a real change of size measures again (and keeps where it is)
     let sized = `${innerWidth}x${entrance?.clientHeight}`
     listen(window, 'resize', () => {
       const now = `${innerWidth}x${entrance?.clientHeight}`
       if (now === sized) return
       sized = now
+      const was = endOf()
+      const at = was ? prog / was : 0
+      const to = was ? goal / was : 0
+      // measured, then the place on the new clock, then the flight built from it and the state drawn: drawn first, from the old
+      // place in the new size, it stayed 'on' at Weddings (Chrome, 1100 × 800 → 1500, 12 Nov)
       geo = null
+      measure()
+      const end = endOf()
+      prog = at * end
+      goal = to * end
+      if (geo && composited()) flight()
+      passageFrame()
       onPassScroll()
     })
     const ended = new MutationObserver(() => {
@@ -917,10 +1223,26 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
     ended.observe(root, { attributes: true, attributeFilter: ['data-entrance'] })
     cleanups.push(() => {
       ended.disconnect()
+      cancelAnimationFrame(tickRaf)
+      cancelAnimationFrame(restRaf)
+      clearTimeout(freeT)
+      holdEvents(false)
+      root.style.removeProperty('overflow')
+      root.style.removeProperty('scrollbar-gutter')
+      zone(false)
+      delete root.dataset.passHold
+      marks.forEach((mark) => mark.remove())
       flights.forEach((a) => a.cancel())
-      textFlight?.cancel()
+      textFlight.forEach((a) => a.cancel())
     })
-    passageFrame()
+    // where the page arrives: past the passage (a reload down the page, a chapter's address) the stage is already there
+    if (!reduce && holder) {
+      passageFrame()
+      const end = endOf()
+      put(end && -holder.getBoundingClientRect().top >= end - 2 ? end : 0)
+      movedAt = 0
+      restRaf = requestAnimationFrame(atRest)
+    }
 
     // ---- a chapter's address (#44): the blades, the title and the menu land on that chapter's step ----
     // one passage, straight from where one is to the chapter chosen: the smooth scroll crosses the steps in between,
@@ -931,7 +1253,9 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
     const land = (id: string, smooth: boolean) => {
       const k = chapters.indexOf(chapterOf(id))
       if (k < 0) return false
-      const top = steps[k].getBoundingClientRect().top + scrollY + 1
+      // on the chapter's stop: landed elsewhere, the stop coming back took the page to the nearest — Experiences' step lies nearer
+      // Artists' stop than its own
+      const top = restOf(k) ?? steps[k].getBoundingClientRect().top + scrollY + 1
       jumping = true
       setChapter(k)
       const done = () => {

@@ -68,7 +68,8 @@ export function BarClient(props: Props) {
       const s = byId[id]
       // Leaving for the top the last words stay while the island fades: emptied here, 01 Work vanished at once and the name went
       // on alone (owner, iPhone, 1 Nov).
-      if (sec && s) sec.innerHTML = `<i>${s.number}</i>${s.label}`
+      // the word alone, no number (owner, 12 Nov: "Chapter One | 03 About" read as two numberings; the menu keeps them, in order)
+      if (sec && s) sec.textContent = s.label
       // at the top the name's island is hidden (#70): out of the keyboard's way too
       if (left) left.tabIndex = s ? 0 : -1
       links.forEach((a) => a.setAttribute('aria-current', String(a.dataset.section === id)))
@@ -311,43 +312,96 @@ export function BarClient(props: Props) {
           if (lumAt(r.left + (r.width * (i + 0.5)) / 6, r.top + (r.height * (j + 0.5)) / 6) > 0.55) light++
       return light / 36
     }
-    const open = () => {
-      if (root.dataset.menu || !drop) return
+    // the page stays still under the open menu (owner, 12 Nov: a stroke over the menu took the page from the Questions to the Contact
+    // behind it, and on an iPhone the menu, lying in the page, went with it): strokes, the wheel and the keys that scroll. By the events,
+    // not overflow: hidden on the page — a change of the page's layout while it rests on a stop, and Safari puts it back on the stop it
+    // last knew (WebKit's resnap, 12 Nov)
+    const ios = CSS.supports('-webkit-touch-callout', 'none')
+    const still = (e: Event) => e.cancelable && e.preventDefault()
+    const SCROLL_KEYS = new Set([' ', 'PageUp', 'PageDown', 'Home', 'End', 'ArrowUp', 'ArrowDown'])
+    const stillKeys = (e: KeyboardEvent) => SCROLL_KEYS.has(e.key) && e.preventDefault()
+    // a stroke's momentum may still carry the page as the menu opens: on an iPhone the menu, in the page, goes with it
+    const follow = () => dialog.style.setProperty('--menu-at', `${scrollY}px`)
+    const hold = (on: boolean) => {
+      if (on) {
+        window.addEventListener('wheel', still, { passive: false })
+        window.addEventListener('touchmove', still, { passive: false })
+        window.addEventListener('keydown', stillKeys)
+        if (ios) window.addEventListener('scroll', follow, { passive: true })
+      } else {
+        window.removeEventListener('wheel', still)
+        window.removeEventListener('touchmove', still)
+        window.removeEventListener('keydown', stillKeys)
+        window.removeEventListener('scroll', follow)
+      }
+    }
+    cleanups.push(() => hold(false))
+    on('resize', () => (root.dataset.menu === 'open' || root.dataset.menu === 'armed') && placeDrop())
+    // the drop's place and size, from the menu island where it is now: as it opens, and again if the window changes while it is open
+    // (made wider, a corner was left uncovered; made narrow, the island moved and the drop would have closed onto where it had been)
+    const placeDrop = () => {
       const isl = button?.closest<HTMLElement>('.bar-isl')?.getBoundingClientRect()
-      if (!isl) return
+      if (!isl) return false
       const rCap = isl.height / 2
-      // just large enough to reach the farthest corner: the drop covers the screen exactly as it stops growing. Larger
+      // on an iPhone the menu lies in the page where the screen is, its room on into the bands above and below (bar.css)
+      const px = (k: string) => parseFloat(getComputedStyle(root).getPropertyValue(k)) || 0
+      const above = ios ? px('--menu-above') : 0
+      const below = ios ? px('--menu-below') : 0
+      if (ios) {
+        dialog.style.setProperty('--menu-at', `${scrollY}px`)
+        dialog.style.setProperty('--menu-h', `${innerHeight}px`)
+      }
+      // just large enough to reach the farthest corner of its room: the drop covers it exactly as it stops growing. Larger
       // (the screen's diagonal), it covered the screen at ~0.94 and kept growing, and its blur grew with it — the owner saw
       // the blurred page shift as it settled (29 Oct, desktop)
       const cx = isl.right - rCap
-      const cy = isl.top + rCap
-      const R = Math.ceil(Math.hypot(Math.max(cx, innerWidth - cx), Math.max(cy, innerHeight - cy))) + 2
-      dialog.style.setProperty('--drop-x', `${isl.right - rCap}px`)
-      dialog.style.setProperty('--drop-y', `${isl.top + rCap}px`)
+      const cy = isl.top + rCap + above
+      const R = Math.ceil(Math.hypot(Math.max(cx, innerWidth - cx), Math.max(cy, innerHeight + above + below - cy))) + 2
+      dialog.style.setProperty('--drop-x', `${cx}px`)
+      dialog.style.setProperty('--drop-y', `${cy}px`)
       dialog.style.setProperty('--drop-r', `${R}px`)
       dialog.style.setProperty('--drop-s0', (rCap / R).toFixed(4))
+      return true
+    }
+    const open = (byKeys = false) => {
+      if (root.dataset.menu || !drop || !placeDrop()) return
       dialog.show()
       const k = lightShare()
       dialog.dataset.ground = k >= 0.5 ? 'light' : k > 0.2 ? 'mixed' : 'dark'
       root.dataset.menu = 'armed'
       inert.forEach((el) => el?.setAttribute('inert', ''))
+      hold(true)
       setOpenLabel(true)
       // the glass is visible two frames before it grows, so its backdrop exists when the drop starts (28 Oct)
       requestAnimationFrame(() =>
         requestAnimationFrame(() => {
           root.dataset.menu = 'open'
-          links[0]?.focus({ preventScroll: true })
+          // from the keyboard the first link takes the focus; opened by a touch or the mouse the menu itself does: on a link, Safari
+          // drew its focus ring around 01 Work under the finger (iPhone Simulator, 12 Nov)
+          if (byKeys) links[0]?.focus({ preventScroll: true })
+          else dialog.focus({ preventScroll: true })
         }),
       )
     }
-    const close = (focusButton = true) => {
+    // closed by a click or a touch the focus still goes back to the button, without its ring: Safari drew it round Menu after every click
+    // (Safari 27.2, real mouse, 12 Nov); the next key brings it back
+    const unquiet = () => button && delete button.dataset.quiet
+    on('keydown', unquiet)
+    button?.addEventListener('blur', unquiet)
+    cleanups.push(() => button?.removeEventListener('blur', unquiet))
+    const close = (focusButton = true, quiet = false) => {
       if (root.dataset.menu !== 'open' && root.dataset.menu !== 'armed') return
+      // back to fixed where it is (bar.css: in the page only while open), so a section chosen in it moves the page and not the menu
       root.dataset.menu = 'closing'
+      hold(false)
       // if the drop has nothing to shrink (closed before it grew), no transition ends: close anyway
       window.setTimeout(finish, 1200)
       inert.forEach((el) => el?.removeAttribute('inert'))
       setOpenLabel(false)
-      if (focusButton) button?.focus({ preventScroll: true })
+      if (focusButton && button) {
+        if (quiet) button.dataset.quiet = ''
+        button.focus({ preventScroll: true })
+      }
     }
     // once the drop has shrunk the dialog closes, so no blur is composed behind a closed menu (28 Oct: it lingered)
     function finish() {
@@ -361,8 +415,9 @@ export function BarClient(props: Props) {
     cleanups.push(() => drop?.removeEventListener('transitionend', shrunk))
     const onButton = (e: MouseEvent) => {
       e.preventDefault()
-      if (root.dataset.menu === 'open' || root.dataset.menu === 'armed') close()
-      else open()
+      if (root.dataset.menu === 'open' || root.dataset.menu === 'armed') close(true, e.detail > 0)
+      // a click from the keyboard (Enter) has no detail
+      else open(e.detail === 0)
     }
     button?.addEventListener('click', onButton)
     cleanups.push(() => button?.removeEventListener('click', onButton))

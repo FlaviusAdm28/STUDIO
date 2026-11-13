@@ -141,7 +141,8 @@ export function runStage(about: HTMLElement, release: () => void) {
     // the page's end: a mark at the page's foot that rests with its foot at the screen's (scroll-snap-align: end, method.css), so the
     // stop is the true end whatever the browser's bar is doing. Placed at the end less the screen, it was the end with the bar as it was
     // when placed: with the bar out the page went on 40 px (iPhone) or 56 px (Xiaomi) more under a forced stroke, at its end (owner's
-    // iPhone, 10 Nov 17:03: "se forçar continua a forçar"; Xiaomi, CDP strokes)
+    // iPhone, 10 Nov 17:03: "se forçar continua a forçar"; Xiaomi, CDP strokes). As Safari brings its bar out there the page is taken to
+    // the new end at once (contact-client.tsx): the colophon goes up with the bar, not at a third stroke (owner, 13 Nov)
     const foot = document.documentElement.scrollHeight - (top + scrollY) - 1
     if (end > out + 1) below.push(foot)
     const tops = [...shares.map((share) => (LEAD + share) * H), out, ...below]
@@ -161,6 +162,9 @@ export function runStage(about: HTMLElement, release: () => void) {
       m.dataset.at = i === 0 ? '12' : i >= shares.length ? 'below' : ''
       if (y === foot && i === tops.length - 1) m.dataset.align = 'end'
       else delete m.dataset.align
+      // past the Contact's stop (the colophon's, the page's end): they go while the light goes down (method.css, data-c-on)
+      if (i >= shares.length && y > contactAt + 1) m.dataset.past = ''
+      else delete m.dataset.past
     })
     marks.splice(tops.length).forEach((m) => m.remove())
   }

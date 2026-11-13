@@ -1,10 +1,92 @@
 # Chapter One V5 — handoff
 
-## ▶ COMEÇAR AQUI · 12 de novembro de 2026 — o nome do 12 sem saltos; retenção nas Questions na volta do Contact; a barra num salto
+## ▶ COMEÇAR AQUI · 13 de novembro de 2026 — bugs para produção: o 1 corrigido (paragens no Work), 2–5 por fazer
+
+### Estado (nada commitado desde `00a1462`)
+- Por commitar, tudo junto: o de 12/11 (abaixo) e **as paragens do Work** (README #110, `work-client.tsx`, `work.css`, storyboard
+  estado 5, `v5-tests.md` "Paragens no Work… 13/11"). typecheck, lint (0), build passam. Commit só quando o owner pedir.
+- Laboratório como a 12/11 (servidores e proxies a correr; Simulador `v5-iphone`; Chrome de teste pid 32221 CDP 9223 na 3131; Safari na
+  3136). Ajudas desta sessão: `…/bbf6a277-…/scratchpad/b1.sh` (`fresh`, `top0`, `wrec`/`wdump` gravador por fotograma, `wst`). A janela do
+  Device Hub fica atrás do WebStorm: trazê-la com `activate` + `AXRaise` (`front` em `b1.sh`) antes dos gestos.
+
+### Ponto da situação (13/11, fim)
+- **Os 5 bugs e o Contact mais suave: feitos e aprovados pelo owner no iPhone dele** (README #110–#114, `v5-tests.md` 13/11). O 1 tem um
+  resto aceite pelo owner como caso-limite (rajadas de gestos muito rápidos no iPhone real).
+- **Xiaomi verificado (13/11, `finger/xiaomi-bugs.mjs`, `v5-tests.md`):** os 5 bugs e o Contact certos. Fica o #1 de sempre fora do iOS:
+  gestos fortes passam paragens (W → E; do 7 ao topo). Endereço do Mac na rede agora **192.168.1.7**.
+- **Nada commitado desde `00a1462`.** Antes de produção (do plano): tirar o medidor de FPS de `page.tsx`, a imagem de partilha (M7), a
+  validação final (M8: 5 larguras, teclado, movimento reduzido, sem JS com `next start`, contraste), commit quando o owner pedir,
+  pré-visualização no Vercel, depois o `master`. Em pausa por decisão do owner: o menu (lista de erros a pedir), a barra de cima.
+
+### Os 5 bugs dos vídeos do owner (iPhone, 12/11 23:50–23:54, `ios-lab/out/`) — o owner quer corrigi-los para produção
+1. **Vaivém entrada ↔ Weddings mostra Experiences/Artists — corrigido** (owner escolheu "paragens no Work"): um 2.º gesto durante a
+   passagem atravessava o Work (o iOS não entrega esse toque à página). Agora uma paragem por capítulo e, no iPhone, a página parada no
+   Weddings enquanto a passagem toca. Simulador, Chrome e Safari desktop medidos (`v5-tests.md`). **Vídeo do owner 00:45:** um gesto
+   forte do topo ainda passava para o Artists (iPhone real; não reproduz no Simulador) → `passHold`: só o Weddings à frente durante a
+   passagem. **Vídeo 01:00 (owner: "de forma geral parece bom", inconsistente só com muitos gestos rápidos e longos seguidos):**
+   7 → topo e Experiences → Weddings em ~1,5 s, sem paragem visível pelo meio (sem fita: não se sabe se um gesto ou vários). Deixado
+   como caso-limite, junto do #1 (gestos rápidos). Ideia guardada, não feita: no iPhone, durante um gesto, só as paragens vizinhas
+   ativas — mexe em todas as marcas do site e no rank do WebKit; só com a fita a provar que vale a pena. **Falta:** Xiaomi.
+2. **Corrigido (13/11; owner OK no iPhone, falta o Xiaomi):** o ecrã inteiro com a forma do cartão, ampliado por igual;
+   o menu animado. **Method, telemóvel: a animação para o *Your first chapter* "dá um salto, não está smooth"** (owner). No vídeo (23:51): o ecrã do
+   Weddings em ecrã inteiro encolhe para cartão e volta; o título *The twelfth of November* fica por cima da foto (0,6 / 2,2 s) e aos
+   1,2–1,4 s o ecrã cresce com o linho de baixo vazio. Por medir (gravar por fotograma a passagem 9 → 10 → 11 no Simulador).
+3. **Questions → Contact → Questions, gestos rápidos** (23:52, 0,6–2,1 s): a barra já diz *CONTACT* sobre o papel vazio; depois o escuro
+   com o colofão e **sem a pergunta** (a página foi ao fim e voltou à paragem do Contact); na volta ~0,5 s de escuro vazio com *QUESTIONS*.
+4. **Questions: abrir/fechar uma resposta e ler** (23:53): um gesto pequeno sobe a página ~30 px (título cortado debaixo da barra) e às
+   vezes começa a passagem para o Contact (perguntas desbotam, barra *CONTACT*) e volta.
+   **Corrigido (README #111, escolha do owner):** com o dedo no vidro a passagem só começa a meio caminho. **O bug de facto (vídeo 01:16):**
+   com uma resposta aberta a caixa subia 65 px a cada gesto (margem sob a lista) e ~60 px ao sair para o Contact (a resposta alongava o
+   caminho além da retenção). 1.ª tentativa (`--q-over` em `<html>`) deu lag (owner, 10:07) — refeito com a ideia do owner: **a resposta
+   fecha quando a passagem para o Contact começa** ("B", escolhida pelo owner) e a caixa mede-se fechada (`--q-rest`), a página nunca muda
+   de altura e o título nunca sobe para debaixo da barra. **Confirmado pelo owner no iPhone dele (13/11): OK.** Falta o Xiaomi. Simulador e Chrome emulado medidos;
+   **falta** o iPhone do owner (lag?) e o Xiaomi. Endereço do Mac na rede agora **192.168.1.7** (iPhone: `http://192.168.1.7:3130/`). Visto pelo caminho (para o 3): na volta do Contact a barra passa a *QUESTIONS* ainda no escuro.
+5. **Corrigido (README #113; Simulador e Chrome desktop medidos, falta o iPhone do owner e o Xiaomi).** **Contact: um 3.º gesto que puxa tudo para cima** (owner: "no contacto existe um 2.º scroll que abre o *Built around you*, mas ainda
+   existe um 3.º scroll que puxa tudo para cima e não é suposto"). No vídeo (23:53–23:54) a pergunta, a hora e *Talk to us* saltam ~40 px
+   entre o Contact e o fim. Deve haver só duas paragens: Contact e o colofão.
+   **Corrigido (README #112, escolhas do owner):** ida — 2.º gesto durante a luz fica no Contact (`data-c-on`, `a-snap[data-past]`);
+   volta — o escuro vazio 3× mais curto. A barra continua com o scroll (não escolhido). Simulador, Chrome e Safari desktop medidos;
+   **falta** o iPhone do owner e o Xiaomi.
+Ordem combinada: 1 (feito, falta Xiaomi) → 4 (feito, owner OK no iPhone, falta Xiaomi) → 3 (feito, owner OK no iPhone) → 5 (feito, owner OK no iPhone) → 2 (feito, owner OK no iPhone). Pelo meio (owner, 13/11): o texto do Contact e o colofão mais suaves (README #114, owner OK no iPhone).
+
+## ▶ 12 de novembro de 2026 (fim da noite) — a passagem da entrada por tempo; bug do owner por investigar
+
+### Estado (nada commitado desde `00a1462`)
+- **Por commitar, tudo junto:** o menu (página parada, ecrã inteiro, cor da barra no Android), a barra sem números, a foto do
+  Weddings "bugada" (o voo medido no sítio da entrada), **a passagem da entrada por tempo** (README #109, `work-client.tsx`,
+  `work.css`, storyboard estado 2) e as ferramentas do passeio (`ios-lab/finger/watch.js`, `watch-dump.js`, `human.mjs`,
+  `human-xiaomi.mjs`). typecheck, lint (0), build passam. Commit só quando o owner pedir.
+- Servidores: `next start -p 3100` (Node 22 em `…/10f08265-…/scratchpad/node/node-v22.23.4-darwin-arm64/bin`), proxies 3130 (iPhone do
+  owner), 3131 (Chrome de teste, CDP 9223, pid 26098), 3133 (Xiaomi), 3135 (Simulador), 3136 (Safari). `wheel` em
+  `…/10f08265-…/scratchpad/sw/wheel`, `simtouch` em `…/10f08265-…/scratchpad/touch`, `lab.sh` em `…/10f08265-…/scratchpad/lab.sh`;
+  as receitas de teste da passagem (`deskmat`, `kb`, `pst`, `prest`) em `…/9aae31b1-…/scratchpad/prec.sh` — scratchpads apagam-se.
+  ⚠ Nunca correr `prettier` sem as opções do projeto (`--no-semi --single-quote --print-width 120 --trailing-comma all`; não há
+  config no repositório): reformatou `work-client.tsx` inteiro a 12/11 (revertido).
+
+### ⚠ PRIMEIRO: bug encontrado pelo owner (iPhone, fim da noite, por investigar)
+- **"Se começares a andar para trás e para a frente (scroll) no Weddings, ele buga a animação."** Sem vídeo; o owner teve de sair.
+  Suspeitas a medir primeiro (medir antes de corrigir, nas 4 plataformas):
+  1. Gestos alternados rápidos (↓ ↑ ↓ ↑) com a passagem ainda a tocar: `go()` inverte o relógio a meio (`playbackRate` −1,33 ↔ 1) —
+     as animações de `textFlight` criadas em `leaveStage()` a meio da volta podem ficar fora de passo com as `flights`.
+  2. No iPhone o 2.º gesto durante o encaixe do 1.º (~1,2 s) não chega à página (medido: vai para Experiences com a passagem cortada
+     por `put(end)`); o mesmo para cima.
+  3. `notTheFinger()` (direção do dedo, 1,5 s) a ignorar um gesto verdadeiro para o lado contrário logo a seguir a outro.
+  4. Entre o Weddings e Artists (o Work sem paragens): um gesto para cima a partir de ~2000–2400 cruza o Weddings e dispara a volta.
+  Reproduzir no Simulador com `fwd`/`back` alternados a 0,3–1 s (gravar vídeo: `simctl io booted recordVideo`) e com `prec.sh`
+  (`pst`, gravador de `__pl`); depois Chrome/Safari com `wheel` e o Xiaomi.
+- A seguir: **as paragens do Work, uma por capítulo** (owner perguntou "sugeres então fazer stops?" — recomendado: sim); resolve também o
+  2.º gesto no iPhone (passa a parar em Artists).
+- **O menu está em pausa** (owner: "ainda vejo muitos erros no menu, vamos pausar"): pedir-lhe a lista/vídeo quando se voltar a ele;
+  conhecido: no iPhone um toque num link perde-se enquanto o link aparece (proposta no ponto 1 de "Por corrigir" abaixo).
+- **Xiaomi:** ecrã bloqueado (o adb acorda mas não desbloqueia); a passagem nova não foi testada lá. Pedir ao owner para desbloquear e
+  ligar "Manter ativo" nas opções de programador.
+
+## ▶ 12 de novembro de 2026 (dia e noite) — o nome do 12 sem saltos; retenção nas Questions na volta do Contact; a barra num salto
 
 ### Estado
-- Branch `v5` em `602858d` (enviado). **Tudo por commitar** (10/11, 11/11 e hoje). Commit só quando o owner pedir; push dele no GitHub
-  Desktop. `v5-tests.md` tem a secção de 12/11.
+- Branch `v5` em **`00a1462` (commitado e enviado, 12/11)**: o Contact, as correções de 10–12/11, as ferramentas e os testes.
+  `master` = `fe1bd33` = o site publicado, inalterado. Antes de juntar ao `master`: tirar o medidor de FPS de `page.tsx`, a imagem de
+  partilha (M7), a validação final (M8) e um link de pré-visualização no Vercel (proposto ao owner a 12/11).
 - Servidores e laboratório como abaixo (11/11). Nesta sessão: Node 22 em `…/10f08265-…/scratchpad/node/`, `lab.sh` do Simulador em
   `…/10f08265-…/scratchpad/lab.sh` (porta 3135), `wheel` em `…/7c234a64-…/scratchpad/wheel` — os scratchpads apagam-se.
 
@@ -34,11 +116,33 @@
 8. **Safari desktop 12 → 10 depois do menu — corrigido** (`address.ts`): os saltos do menu aterravam entre marcas no desktop; agora na
    primeira marca da secção, como no telemóvel (*02 Method* aterra no 7). O que resta de 12 → 10 são gestos rápidos (450 px), o #1.
 
-### Por corrigir (por ordem proposta) — como em 11/11, menos o que ficou feito
-1. Gestos rápidos que passam paragens (Xiaomi, Chrome e Safari desktop; no desktop já a 450 px onde as marcas estão a ~½ ecrã). Proposta
-   a medir antes de mostrar: só fora do iOS, no fim do gesto (`scrollend`), se passou mais de uma marca, voltar à primeira — risco: um
-   recuo visível depois do gesto.
-2. A subida das Questions (14 → 15); a barra de cima; M7/M8; tirar o medidor de FPS.
+9. **O menu (noite, por commitar):** página parada com o menu aberto; no iPhone em ecrã inteiro (debaixo da ilha e da barra do Safari);
+   Android com a barra na cor do vidro; foco sem anel ao toque; redimensionar recalcula a gota. 100/100 navegações pelo menu nas 4
+   plataformas. **Falta no Xiaomi** (adormeceu bloqueado): toques reais nos links, toques rápidos, abrir durante passagens. **Feito
+   depois:** a barra sem números (*Chapter One | About*; o menu guarda-os). Pormenor em `v5-tests.md` ("O menu").
+10. **A foto do Weddings "bugada" (vídeo do owner, iPhone, 12/11 noite) — corrigido** (`work-client.tsx` `flight()`, por commitar): o voo
+   da lâmina para o arco media a lâmina onde a página estava; refeito longe do topo (recarregar abaixo, mudar de tamanho, a imagem da
+   lâmina a chegar tarde) o voo partia de uma lâmina milhares de px acima do ecrã — a caixa quadrada no canto de cima, a subir e a descer.
+   Agora mede-a no sítio da entrada retida. **Depois: passeio "como um visitante"** nas 4 plataformas (gestos mistos, menu, toques; ferramentas
+   novas `finger/watch.js`, `human.mjs`, `human-xiaomi.mjs`): sem erros, sem restos, menu sempre certo — exceto o ponto 1 abaixo (iOS).
+
+11. **A passagem da entrada por tempo (owner, noite: "one stroke dispara a animação…") — feito, por commitar** (README #109,
+   `work-client.tsx`, `work.css`): 1,6 s a ir, 1,2 s a voltar (a julgar no iPhone), nunca a meio; desktop 32/32, Simulador 16/16.
+   **Falta:** Xiaomi (bloqueado); o 2.º gesto no iPhone durante o encaixe passa para Experiences — resolve-se com as paragens do Work,
+   **o próximo passo** (o owner perguntou "sugeres então fazer stops?": sim, uma por capítulo). Pormenor em `v5-tests.md`.
+
+### Por corrigir / decidir (por ordem proposta) — o menu **em pausa** (owner, noite: "ainda vejo muitos erros no menu, vamos pausar")
+1. **iOS: um toque num link do menu perde-se enquanto esse link ainda está a aparecer** (medido no Simulador: *Questions* a 0,5 e 0,7 s
+   depois de abrir falha 3/3; a 0,9 s ou mais, ou antes de começar a aparecer, funciona). O iOS (WebKit) trata um toque em conteúdo a
+   tornar-se visível como "hover" e não manda o clique. Proposta (pequena, só iOS, só links do menu): se um toque acaba num link sem
+   clique em ~300 ms, navegar na mesma. Alternativa: mudar a entrada das palavras (design). **Decisão do owner.**
+2. Gestos rápidos que passam paragens (#1; Xiaomi, Chrome e Safari desktop; não no iOS) — **o passeio de 12/11 mostrou casos maiores**:
+   no Xiaomi um gesto forte do 7 para cima vai **até ao topo** (o Work inteiro) e do meio da passagem da entrada **até ao 7**; no desktop o
+   1.º gesto forte do topo cai no Artists. O Work não tem paragens (é scroll nativo por desenho). Proposta como antes (`scrollend`, só fora
+   do iOS) — a medir; e decidir se o Work deve ter paragem por capítulo.
+3. **A passagem da entrada não tem paragem** (todas as plataformas): um gesto lento ou a roda do rato deixa a página a meio — a foto meio
+   voada, sem texto e sem barra (capturas em `v5-tests.md`). Nativo por desenho; **decisão do owner** se quer uma paragem.
+4. A subida das Questions (14 → 15); a barra de cima; M7/M8; tirar o medidor de FPS.
 
 ### Não verificado
 O iPhone do owner e o Safari dele com estas correções; Firefox. (Xiaomi verificado à noite: `v5-tests.md`.)

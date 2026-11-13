@@ -939,6 +939,13 @@
 :root[data-js][data-c-hold] .method .m-snap {
   scroll-snap-align: none;
 }
+/* and while the light goes down on the way to the Contact (data-c-on, contact-client.tsx: from the passage's start to the first rest once
+   it is over) a stroke onwards rests on the Contact's stop: the marks past it go, the colophon's and the page's end. Without it a second
+   stroke within the 3 s took the page to the colophon while the question had not come yet (owner's iPhone, 12 Nov 23:52; Simulator, two
+   strokes 0.5 s apart: the colophon at 0.85 s, the question at 1.15–1.25 s). Only marks below the page go: WebKit's rank is kept */
+:root[data-js][data-c-on] .about .a-snap[data-past] {
+  scroll-snap-align: none;
+}
 :root[data-js] .method .m-snap,
 :root[data-js] .about .a-snap {
   position: absolute;
@@ -967,10 +974,6 @@
   :root[data-js] .method .m-card {
     aspect-ratio: var(--m-ar, 9 / 19.5);
   }
-  /* the whole screen of 9 in the held stage's shape, so it fills the screen to its foot (README #103) */
-  :root[data-js] .method .m-card.is-full {
-    aspect-ratio: var(--m-ar-full, var(--m-ar, 9 / 19.5));
-  }
   :root[data-js] .method .m-sheet {
     inset: 0;
     border-radius: 5cqw;
@@ -978,10 +981,10 @@
   :root[data-js] .method .m-cover {
     top: 46%;
   }
-  /* the featured screen opens to the whole screen: its corners go with it */
-  :root[data-js] .method .m-card.is-full .m-scr {
-    border-radius: 0;
-  }
+  /* The whole screen of 9 is the card in its own shape, grown evenly to the screen and, on iOS, the island's 70 px (method-stage.ts FULL):
+     its corners and its shadow lie past the screen's edges. In a shape of its own (the stage's and the lift's), with square corners, no
+     shadow and a taller photograph, every one changed in one frame at 9 → 10 — the card, the photograph and the cream panel 70 px, the
+     corners — before it moved (owner, iPhone, 12 Nov 23:51: "a animação para o your first chapter parece estar a dar um salto") */
   /* the whole screen runs on under the browser's bars (on iOS under Safari's floating bar): its words sit at the top of the cream
      panel, clear of them (owner, iPhone, 3 Nov: the date was under the bar) */
   :root[data-js] .method .m-card.is-full .s-wed-tx {
@@ -1122,13 +1125,6 @@
     padding-bottom: 14cqw;
     border-radius: 5cqw;
   }
-  /* the whole screen: the site's own menu comes down, clear of the bar's islands */
-  :root[data-js] .method .m-card.is-full .s-wed-nav {
-    top: 24cqw;
-  }
-  :root[data-js] .method .m-card.is-full .m-dev {
-    box-shadow: none;
-  }
 }
 /* With the motion the wedding screen is built in layers, so becoming the cover is transforms only: the photograph keeps its
    frame (the top 60 %) and grows by scale to the whole card, the cream panel lies over the foot and sinks away. Animating the
@@ -1240,18 +1236,6 @@
       background:
         radial-gradient(circle 62vw at 50% calc(var(--m-lift) + 0.44 * (100% - var(--m-lift))), rgba(255, 236, 206, 0.15), rgba(255, 236, 206, 0.05) 60%, transparent 100%),
         #171816;
-    }
-    /* 9: the whole screen runs up behind the island (method-stage.ts makes it 70 px taller, from the screen's top up); its photograph takes
-       the 70 px, its cream panel stays where it was */
-    :root[data-js] .method .m-card.is-full .s-wed-ph picture {
-      height: calc(60% + 0.4 * var(--m-lift));
-    }
-    :root[data-js] .method .m-card.is-full .s-wed-tx {
-      height: calc(40% - 0.4 * var(--m-lift));
-    }
-    /* the page's own menu, hung from the photograph's top, stays where it was: under the island it would be lost */
-    :root[data-js] .method .m-card.is-full .s-wed-nav {
-      top: calc(24cqw + var(--m-lift));
     }
   }
 }

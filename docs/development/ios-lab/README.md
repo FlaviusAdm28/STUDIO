@@ -84,6 +84,15 @@ Patch completo em `attempt/method-in-flow-1107.patch` (+ `attempt/leap.ts`). **R
     `seq` a uma função de shell que use o comando `seq` (11 Nov: recursão, os processos do Mac esgotaram-se).
   - `finger/frames-band.mjs`, `finger/frames-rgb.mjs` — luminância / RGB por faixa de linhas, fotograma a fotograma, de uma gravação
     (iPhone 1206 × 2622): para medir faixas, arestas e cores nos vídeos do owner.
+- **Ferramentas de 12 Nov — o passeio "como um visitante"**: `finger/watch.js` (vigia na página: erros, fotogramas, a foto da passagem fora
+  do ecrã, a barra, Questions/Contact, restos de gestos; ler com `watch-dump.js`), `finger/human-xiaomi.mjs <semente> <pasta>` (Xiaomi por CDP)
+  e `finger/human.mjs sim|chrome|safari <semente> <pasta>` (`TOUCH=<pasta do simtouch>` ou `WHEEL=<wheel compilado>`): do topo ao fim e de
+  volta com gestos mistos, menu, toques, links do menu; captura em cada paragem. ⚠ Em zsh o `RANDOM` não avança dentro de `$( )`; o Safari
+  volta ao mesmo sítio ao recarregar (abrir um endereço novo).
+- **Ferramentas de 13 Nov**: `finger/xiaomi-bugs.mjs [prefixo] [1,2,3,4,5,c]` (os 5 bugs dos vídeos do owner e o Contact, no Xiaomi
+  por CDP, medidos fotograma a fotograma) e `finger/xiaomi-drag.mjs` (arrastos com toques reais por `Input.dispatchTouchEvent`: o
+  `synthesizeScrollGesture` não dá `touchstart` à página, e o "dedo no vidro" do Contact não o via; o `adb shell input swipe` precisa no
+  MIUI de "Depuração USB (definições de segurança)").
 - ⚠ **Não julgar a paragem por fase no desktop com `Input.dispatchMouseEvent` (`mouseWheel`) do CDP**: o Chrome trata esses eventos como
   scrolls soltos e encaixa na marca mais próxima, não na seguinte — dá "preso em Experiences" e "preso no 14" que **não existem** com uma
   roda ou um trackpad reais (medido 9/11 com `wheel.swift`: uma fase por clique / gesto). Para o desktop, eventos reais.

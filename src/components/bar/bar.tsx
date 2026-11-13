@@ -68,10 +68,13 @@ export function Bar() {
         </div>
       </header>
 
-      <dialog className="menu" aria-label={nav.menu}>
-        <div className="menu-drop" aria-hidden="true">
-          <div className="menu-film" />
-          <div className="menu-sheen" />
+      <dialog className="menu" aria-label={nav.menu} tabIndex={-1}>
+        {/* the drop's room: the screen, and on an iPhone the bands of the Dynamic Island and of Safari's bar too (bar.css) */}
+        <div className="menu-room" aria-hidden="true">
+          <div className="menu-drop">
+            <div className="menu-film" />
+            <div className="menu-sheen" />
+          </div>
         </div>
         <ol className="menu-list">
           {sections.map((s, i) => (

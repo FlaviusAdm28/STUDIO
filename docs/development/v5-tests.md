@@ -2618,3 +2618,446 @@ do owner (o veredicto); Firefox.
   ↑ → 14 e ↓ → Q em todos. Menu do Contact → *03 About*: 12, barra *about* (3/3).
 - **Site inteiro** (`xiaomi-walk.mjs`): normal ↓ topo → fim e ↑ fim → topo, uma fase por gesto; forte ↓/↑ salta fases (#1, já existia).
 - **O nome no 13 → 12 → 11** (2.º gesto a 400 / 600 / 900 ms): nenhum passo acima de 6 px por fotograma enquanto visível (3/3).
+
+## O menu — correções e bateria (owner, 12/11 noite: "não deve ser possível dar scroll com o menu aberto"; "em mobile… continua a existir uma barra em cima e em baixo")
+
+### Detetado (medido antes de mudar)
+1. **Scroll com o menu aberto** (todas as plataformas): Simulador, um gesto com o menu aberto levou a página das Questions ao Contact
+   por trás dele (14523 → 15379).
+2. **Barras de cor no iPhone:** captura no Simulador sobre as Questions — a faixa do relógio e a da barra do Safari na cor do papel. Sondas
+   (Simulador, iOS 27.3): uma caixa `fixed` nunca chega às faixas (verde: nunca); uma caixa **na página** (absolute) chega às duas
+   (magenta em cima, ciano em baixo); o vidro (`backdrop-filter`) e uma tinta numa caixa na página também chegam.
+3. **Barra de estado do Android na cor da cena** com o menu escuro por cima (Xiaomi, sobre o papel: `#dcd5c8`).
+4. **Anel de foco à volta de "01 Work"** ao abrir com o dedo (Simulador) — o foco ia para o 1.º link; **e à volta de "Menu"** ao fechar com
+   o rato (Safari desktop, clique real).
+5. **Janela redimensionada com o menu aberto:** mais larga, um canto de 8 px por cobrir; estreita (passa ao layout do telemóvel), o
+   círculo ficava centrado onde o botão estava (fecharia para fora do botão).
+
+### Corrigido (`bar-client.tsx`, `bar.css`, `bar.tsx`, `sequence.ts`)
+1. **A página fica parada com o menu aberto:** gestos (`touchmove`), roda/trackpad (`wheel`) e as teclas que fazem scroll (Espaço, PgUp/PgDn,
+   Home/End, ↑/↓) — por eventos, não por `overflow: hidden` (mudar o layout da página com ela numa paragem faz o Safari reencaixar). Ao fechar
+   tudo volta.
+2. **iPhone: o menu fica na página enquanto está aberto** (absolute onde está o ecrã), e o vidro corre numa caixa (`.menu-room`) 80 px acima
+   e 160 px abaixo do ecrã: passa debaixo da ilha e da barra do Safari. Ao fechar volta a `fixed` (um link do menu move a página, não o menu).
+3. **Android (e desktop): `theme-color` com o menu aberto = a película do menu sobre a cor que lá estava** (`sequence.ts`, pelo fundo medido
+   ao abrir: escuro .30, misto .50, claro .66); volta à cor da cena ao fechar. No iPhone nada a pintar (o próprio menu está nas faixas).
+4. **Foco:** aberto com o teclado vai para o 1.º link (como antes); com o dedo/rato vai para o próprio menu (sem anel). Fechado com o dedo/rato
+   o foco volta ao botão **sem anel** (a próxima tecla devolve-o); com Esc, com anel.
+5. **Redimensionar com o menu aberto** recalcula a gota (centro e raio).
+
+### Testado (build final)
+- **Navegação pelo menu, 5 × 5 (de cada secção para cada secção, 25 por plataforma):** Chrome 1500, Safari 1500, Simulador iPhone, Xiaomi —
+  **100/100**: lugar certo (Work, 7, 12, Questions, Contact), etiqueta da barra certa, menu fechado, página sem `inert`.
+- **Página parada com o menu aberto**, em 5 sítios (Work, 9, 13, Questions, fim): Chrome e Safari com trackpad ↓↑, roda, Espaço, PgDn, ↓, End
+  — 10/10 parada; Simulador com o dedo (normal, forte, forte) 5/5; Xiaomi (toque normal, normal, muito forte 700 px) 5/5. Depois de fechar o
+  scroll volta (Simulador 4/4 onde há para onde ir; Xiaomi 9 → 10 5/5, igual a nunca ter aberto).
+- **Faixas no iPhone** (Simulador, capturas): Work, 9, 13, Questions, fim — o vidro debaixo do relógio e da barra do Safari (aberta e
+  compacta) em todos; abrir e fechar gravados (a gota cresce do botão e volta a ele).
+- **Android** (Xiaomi, toques reais): barra de estado + barra do Chrome na cor do vidro (Questions `#dcd5c8` → `#58554f`, Work, 13) e de
+  volta ao fechar; sem anel ao abrir e fechar.
+- **Teclado** (Chrome e Safari, teclas reais): Enter abre no 1.º link; Tab ×10 fica no menu; Esc fecha e devolve o foco (com anel); Enter num
+  link navega. **Clique real:** sem anel ao abrir e ao fechar.
+- **Toques/cliques rápidos** (desktop): duplo → fechado e a página mexe-se a seguir; triplo → aberto; link escolhido 60 ms depois de abrir →
+  navega. **Simulador:** duplo toque certo; um toque durante a inércia de um gesto só pára a página (é o iOS), o seguinte abre.
+- **Abrir durante as passagens** (Chrome e Safari): durante a do 7, a do 12, a do Contact e a volta às Questions — ao fechar o estado está
+  certo (`cstate.js` sem ✗) e o gesto seguinte vai para o sítio certo.
+- **Redimensionar com o menu aberto** (Chrome): 1728, 800, 500, 1500 de largura — coberto e centrado no botão em todos.
+- **Movimento reduzido** (Chrome 390 e 1440): abre e fecha (sem a gota), links certos. **Sem JS:** *Menu* leva a `#index` (5 links).
+- Percurso da barra pela página inteira, a descer e a subir: 0 erros (Chrome, Simulador; Safari 0 em 2 de 3 corridas — 1 leitura no
+  topo numa corrida, não repetida: tempo do teste, 120 ms por posição).
+- typecheck, lint (0 avisos), build: passam.
+
+### Não verificado / falta
+- **Xiaomi, com toques reais:** links do menu, toques rápidos e abrir durante as passagens — o telemóvel adormeceu com o ecrã bloqueado
+  (o adb não pode acordá-lo: sem `INJECT_EVENTS`). As mesmas situações passaram no desktop e no Simulador; no Xiaomi passaram a matriz
+  (por cliques de script), a página parada e a cor da barra.
+- **O iPhone do owner** (o veredicto das faixas e do vidro nelas, com a barra do Safari a mudar); Firefox; rotação do telemóvel com o menu
+  aberto; leitores de ecrã (VoiceOver/TalkBack).
+- Windows (barras de scroll clássicas): o menu não mexe no `overflow`, por isso a página não deve saltar — não testado.
+
+### A barra sem números (owner, 12/11 noite: "tirava os números e deixava só o nome")
+- `bar-client.tsx`: a secção escrita só com a palavra (*Chapter One | Questions*); o menu guarda os números. Saiu a regra `.bar-sec i`.
+- Medido (Chrome, com *Questions*, a mais longa): ilha da esquerda 209 px a 320 (folga entre as ilhas **35 px**, era 19), 243 a 390 (55),
+  279 a 1440. Capturas a 320, 390, 1440 e no Simulador (*Chapter One | ABOUT*): certas. typecheck, lint, build: passam.
+
+## A foto do Weddings "bugada" + passeio "como um visitante" nas 4 plataformas — 12/11 noite, MacBook
+
+### O bug do vídeo do owner (iPhone, `ios-lab/out/2026-11-12T21-14-30-…mp4`, 4,4 s)
+- **Visto** (fotograma a fotograma): a descer e a subir entre a entrada e o Weddings, a foto voava para / de uma **caixa quadrada no canto
+  de cima à esquerda** em vez da lâmina do Weddings; ~0,6 s de ecrã escuro antes das lâminas.
+- **Causa** (sonda no Simulador): o voo da lâmina para o arco (`work-client.tsx` `flight()`, animações na linha do scroll) media a lâmina
+  com `getBoundingClientRect()` **onde a página estava**. Refeito longe do topo — recarregar a meio da página, mudar de tamanho, a imagem da
+  lâmina a chegar tarde — a entrada retida já tinha subido com a página: o voo partia de **−9427 px** (feito a 9204 px). Chrome, feito no
+  topo: certo (566 px).
+- **Correção:** a lâmina medida no sítio da entrada retida (`top` menos o deslocamento da entrada). Simulador recarregado a 11 722 px:
+  o voo parte de **386 px** (a lâmina, 385); gravação de 3 gestos para cima e 2 para baixo: a foto entra e sai da lâmina, sem caixa.
+
+### O passeio (ferramentas novas em `ios-lab/finger/`)
+- `watch.js` (vigia dentro da página) + `watch-dump.js`; `human-xiaomi.mjs` (toque por CDP), `human.mjs sim|chrome|safari` (dedo do
+  `simtouch`, trackpad/roda/cliques reais do `wheel`). Do topo ao fim e de volta, gestos normais/lentos/rápidos (no desktop também a roda do
+  rato), pausas 0,3–3 s, um gesto ao contrário de vez em quando, o menu aberto (com um gesto por baixo) e fechado, um momento do Work e uma
+  pergunta tocados; depois 6 links do menu de sítios diferentes. Captura em cada paragem (revistas todas).
+- ⚠ Erros do próprio teste, corrigidos antes das corridas que contam: o filtro de elementos excluía a barra (o menu nunca abria); o `RANDOM`
+  do zsh não avança dentro de `$( )` (todos os gestos iguais) — passou para Node; o Safari volta ao mesmo sítio ao recarregar (usar um
+  endereço novo).
+
+| | gestos | menu (links) | menu aberto + gesto | erros | restos | fotogramas > 50 ms |
+|---|---|---|---|---|---|---|
+| Xiaomi (2 corridas) | ~60 | 6/6 certos | — (não calhou) | 0 | 0 | 46 e 50 (pior 199 ms a entrar no 7, 188 na passagem da entrada) |
+| Simulador iPhone 17 Pro | ~50 | 5/6 (ver 1) | 3/3 parada | 0 | 0 | (o Simulador não mede desempenho) |
+| Chrome 1500 × 1000 | ~65 | 6/6 | 3/3 parada | 0 | 0 | 2 |
+| Safari 1500 × 1000 | ~60 | 6/6 | 6/6 parada | 0 | 0 | 41 |
+
+### Encontrado
+1. **iOS — toque perdido num link do menu enquanto aparece** (não corrigido, decisão): *Questions* a 0,5 s e 0,7 s depois de abrir → o
+   menu fica aberto (3/3); a 0,9/1,0/1,1 s → navega; *Work* a 0,7 s (ainda opacidade 0) → navega. Gravados os eventos: `pointerdown`,
+   `touchstart`, `pointerup`, `touchend` no link — **sem `click`**. O WebKit não manda o clique quando o toque cai em conteúdo a tornar-se
+   visível (a transição de opacidade das palavras do menu). Xiaomi e desktop: sem o problema.
+2. **Gestos rápidos que passam paragens** (#1, conhecido) — casos novos: Xiaomi 8a → 8c, 8c → 10, 12 → 14, 14 → C (sem as Questions),
+   meio da passagem → 7 (o Work inteiro), 7 → topo (o Work inteiro a subir); Chrome/Safari trackpad rápido: topo → Artists, 14 → C. iOS:
+   nenhuma paragem do Method saltada; no Work (sem paragens) W2 → meio da passagem.
+3. **A passagem da entrada sem paragem**: gestos lentos/roda deixam a página a meio (Simulador 637, 704, 860 px; Chrome 1043–1199; Xiaomi
+   287–797): foto meio voada, sem texto, barra escondida. Nativo; decisão.
+4. Xiaomi: uma volta do fim parou no Contact a 14 531 em vez de 14 416 (1 vez em 4); não repetido.
+
+### Verificado e não é bug
+- **Contact vazio logo depois de um gesto forte do 14** (Xiaomi): o gesto saltou as Questions e a passagem do Contact toca inteira (~3,3 s:
+  sala 1,6–2,2 s, pergunta 2,2–2,7 s, linha 2,8–3,2 s) — a captura a 1,3 s apanhou o escuro do meio. Do 14 com gestos normal e forte
+  pára nas Questions (3/3).
+- **Barra "Method" no 12** a 0,6 s: espera que o About seja visto (`bar-client` `seen()`); a captura logo a seguir já diz *About*.
+- **`scroll-snap-type: none` 2 s depois do menu → Work**: o salto do Work segura-o 2,6 s de propósito (`land`).
+- **`data-c-hold` no Contact** (Safari): dura o que dura a passagem do Contact e sai no fim (~3–5,5 s; reproduzido com trackpad real, com
+  e sem o menu aberto a meio) — nunca preso.
+- **Menu "armed" com o menu aberto**: os dois fotogramas antes de *open*; as capturas mostram-no aberto.
+- **Em *4794* a secção já é "method" e a barra diz *Work***: é a paragem em Experiences (opção a) — o ecrã é o Work.
+
+### Não verificado
+- O iPhone do owner (a correção do voo e o toque do menu no aparelho real); Xiaomi com o menu aberto + gesto (não calhou nas corridas;
+  verificado na sessão do menu); Firefox; leitores de ecrã.
+- typecheck, lint (0), build: passam.
+
+## A passagem por tempo (owner, 12/11 noite: "one stroke dispara a animação e não o scroll controla a animação") — README #109
+
+### O que mudou (`work-client.tsx`, `work.css`)
+- O voo lâmina → arco, o filme, as palavras e o texto do Work: as mesmas animações, agora no relógio do documento (cada uma guarda
+  o seu troço dos antigos 1,4 ecrãs, em `delay`/`duration`/`endDelay`), **1,6 s a ir, 1,2 s a voltar** (a julgar no iPhone).
+  `prog` (onde a passagem está) e `goal` (a ponta para onde vai); o estado `data-pass` desenhado a partir de `prog`.
+- **Disparo:** 12 px de um gesto, nos dois sentidos (a 0,04 do ecrã, 37 px, uma tecla ↓ do Safari não chegava). Só conta o dedo:
+  o encaixe do iOS a levar a página de volta depois de um gesto lento não é um gesto para trás.
+- **Nunca a meio:** em repouso entre o topo e o Weddings a página vai para a ponta da passagem — invisível, a entrada e o palco
+  estão retidos ali.
+- **Paragem no Weddings** (`.w-pass-snap`, `data-pass-zone`): ligada só em repouso no topo (ligada no Weddings levava um gesto
+  para a 1.ª marca do Method, saltando Artists; ligada durante um gesto, o Safari puxa para uma marca).
+- **Fora do iOS:** o gesto que dispara leva a página já à ponta e segura-a com `overflow: hidden` enquanto a passagem toca
+  (o Chrome e o Safari deixam um gesto forte passar uma `scroll-snap-stop`, o #1: um gesto rápido do topo cruzava o Work até
+  Experiences com a passagem cortada). A paragem desliga-se nesse momento (ligada, o Safari levava o 2.º clique de uma roda à marca de
+  Experiences, com `overflow` ou sem ele). **No iOS** a paragem segura; com `overflow` o dedo ainda no vidro continuava a fazer scroll
+  a partir do novo sítio (50–700 px além do Weddings, 6/6) — por isso lá não; seguro por eventos (`touchmove`) enquanto toca.
+- Correções feitas pelo caminho: o estado nunca chegava a `done` (1,4 H − H sobre 0,4 H dava 0,99999…); a mudança de tamanho
+  desenhava o estado antes de repor o sítio (ficava `on` no Weddings); o repouso no iOS esperava 300 ms depois de o dedo sair
+  (um dedo parado antes de levantar e o encaixe do iOS juntos levavam a página a 1922).
+- **Encontrado no passeio (Simulador) e corrigido:** depois do menu → Work estando já no Weddings, um gesto para cima ficava sem
+  resposta até ~1,5 s (o menu deixa o encaixe desligado 2,6 s e o scroll desse tempo era tomado pelo salto); agora um scroll só é do
+  salto se nada do visitante (dedo, roda, teclas) mexeu a página antes — 2/2 vai ao topo; saltos do menu e do nome continuam instantâneos.
+  E o 1.º gesto do passeio "ia para Artists": o toque do teste para acabar a entrada caiu na lâmina do Weddings (é um link) — não é bug.
+
+### Testado (build final; Chrome 1500 × 1000 e Safari 27.2 com trackpad/roda reais do `wheel`; Simulador iPhone 17 Pro com o dedo do `simtouch`)
+| | ↓ do topo e ↑ do Weddings | resultado |
+|---|---|---|
+| Chrome — trackpad normal, lento, rápido, muito rápido; roda 1, 2, 6 cliques; trackpad mínimo (60) | 16/16 | Weddings 1278 (+ até 68 px de resto da roda, ainda Weddings) / topo |
+| Safari — os mesmos | 16/16 | Weddings 1307 / topo |
+| Chrome — teclado real (espaço, setas, Page Down/Up) | 6/6 | |
+| Safari — espaço e Page Down/Up | certos | setas: ver abaixo |
+| Simulador — normal, lento (180 e 150 pt), rápido, dedo parado 0,3–0,4 s antes de levantar, mínimo (70 pt) | 16/16 | Weddings 1238 / topo |
+| Menu → Work (do Method), nome → topo, menu → Method | certos, sem passagem (saltos) | |
+| Mudar de tamanho no topo e no Weddings (Chrome 1100 × 800 e volta) | certo (`done` no novo 1,4 H) | |
+| Movimento reduzido (Chrome) | sem passagem, sem paragem, scroll normal | |
+| Sem JS | as marcas só existem com JS; CSS só com `data-js` | |
+- **Dois gestos seguidos:** desktop, 2.º gesto 0,5 s depois → fica no Weddings (o resto do 2.º passa depois de soltar, ainda no
+  Weddings: 1722 / 1751). iPhone: 2.º gesto 1,3 s depois → seguro (Weddings); **1,1 s depois → passa para Experiences** (ver abaixo).
+
+### Não resolvido / não verificado
+- **iPhone, 2.º gesto enquanto a página ainda está no encaixe do 1.º (~1,2 s):** o iOS não entrega esse toque à página (não há como
+  o segurar) e a próxima marca ativa é a de Experiences. Resolve-se com as paragens do Work (#2 do owner): passa a parar em Artists.
+- **Xiaomi:** não testado — ecrã bloqueado (acordado por adb, mas o desbloqueio é do owner).
+- **Setas no Safari:** com teclas sintéticas o Safari não faz scroll com as setas de forma fiável em nenhum sítio do Work (também
+  fora da passagem) — por verificar com um teclado real.
+- O iPhone do owner (os tempos 1,6 / 1,2 s são para ele julgar).
+- **Bug reportado pelo owner no iPhone (fim da noite, sem vídeo, por investigar):** "se começares a andar para trás e para a frente
+  (scroll) no Weddings ele buga a animação". Suspeitas e plano em `v5-handoff.md` (COMEÇAR AQUI). Não reproduzido ainda: os testes acima
+  fizeram ↓ e ↑ com 2–3 s de intervalo e só pares de gestos seguidos; alternâncias rápidas no Weddings não foram testadas.
+
+## Paragens no Work e o 2.º gesto durante a passagem (13/11) — README #110; bug 1 dos vídeos do owner
+
+### O bug (vídeo do owner, iPhone, 12/11 23:50)
+No vaivém entre a entrada e o Weddings, a foto voa até ao arco e logo a seguir aparece **III Experiences** (~0,5 s; 10,2–10,9 s passa
+também pelo Artists) antes de voltar ao Weddings.
+
+### Causa (medida no Simulador, gravador por fotograma: `scrollY`, `data-pass`, relógio da passagem, `data-ch` do Work)
+- Um 2.º gesto 0,4 e 0,9 s depois do 1.º: a página ia de 1238 a **4471** (a marca `out` do Method = Experiences), passagem cortada (`put(end)`), 2/2.
+- **O iOS não entrega à página os toques de um gesto começado enquanto ela ainda assenta** (ouvinte de `touchstart`: só o 1.º gesto
+  aparece), por isso `holdEvents` não o pode segurar. Solto além do Weddings, o encaixe procura a marca seguinte **no sentido do gesto,
+  à distância que for**: sem paragens no Work, a do Method.
+- Tentativa descartada: desligar, durante a passagem, todas as marcas abaixo do Weddings → o 2.º gesto voou até ao fim da página
+  (16106), 2/5. Sem marca à frente o iOS deixa a página livre.
+
+### O que mudou (`work-client.tsx`, `work.css`)
+- **Marca do Artists** (`.w-pass-snap[data-at='artists']`, topo do degrau + 1); Experiences usa a `out` do Method. Encaixe (`data-pass-zone`)
+  ligado em repouso do topo à marca do Experiences (era só no topo); desligado durante a retenção do desktop (`holdFor`).
+- **As marcas do Work estão sempre presentes; só o encaixe liga/desliga.** Primeira versão (marcas ligadas com a zona): Safari desktop,
+  do 7 um gesto para cima ia **ao topo** e do Experiences para baixo **ao 8c** — o WebKit repõe a página na marca pela ordem, e marcas a
+  aparecer/desaparecer acima mudam essa ordem. A retenção da volta do Contact (`data-c-hold`) tira-as com as outras acima das Questions.
+- **iPhone: a página parada no Weddings enquanto a passagem toca** (`lockPage`, `overflow: hidden`, a partir de 15 px do Weddings); um gesto
+  para trás é lido pelo dedo e inverte a passagem (a página vai ao topo, invisível).
+- Os endereços dos capítulos (`land`) aterram nas paragens (o Experiences na `out`: o topo do seu degrau ficava mais perto da marca do Artists).
+
+### Testado (build final)
+| | resultado |
+|---|---|
+| Simulador, 2.º gesto a 0,3 / 0,6 / 0,9 / 1,2 s | Weddings 4/4, passagem inteira (antes: Experiences 2/2 a 0,4 e 0,9) |
+| Simulador, gesto para trás com a página parada (0,8 e 1,2 s) | inverte, topo 2/2 |
+| Simulador, vaivém 5× a 0,3 / 0,5 / 0,8 s | nunca sai do Weddings, nenhum outro capítulo visto, 3/3 |
+| Simulador, normal (300 pt/120 ms), lento (180/400), forte (450/45) | topo → W → A → E → 7 → E → A → W → topo, uma paragem por gesto, 3/3 |
+| Simulador, percurso até ao 11 e de volta ao topo | uma fase por gesto, 20/20 |
+| Simulador, Contact → Questions → 14 → 13 → 12; 3 gestos rápidos do Contact | certo; ficam nas Questions |
+| Simulador, `#weddings` / `#artists` / `#experiences` do topo | 1238 / 2565 / 4471, nas paragens |
+| Chrome 1500 × 1000, trackpad normal e lento | uma paragem por gesto, ida e volta |
+| Safari 27.2 1500 × 934, trackpad normal e lento, roda 1 e 2 cliques | uma paragem por gesto, ida e volta (até ao 7) |
+
+### Não resolvido / não verificado
+- **Chrome, roda do rato:** entre o Artists e o Experiences (2,35 ecrãs) o Chrome avança no máximo um ecrã por gesto e pode parar a meio
+  (4280, ainda Experiences); o clique seguinte chega à marca. Antes eram ~20 cliques para atravessar o Work.
+- **Trackpad muito forte (1200 px):** Chrome salta o Artists (o #1, gestos rápidos fora do iOS); Safari 1× fica no Artists em vez de avançar.
+- **Xiaomi** (não ligado ao adb), **o iPhone do owner**, Firefox. Movimento reduzido e sem JS: sem alterações de código nesses caminhos
+  (as marcas só existem com JS e com movimento), não repassados.
+
+### Depois do vídeo do owner (iPhone, 13/11 00:45, build com as paragens): um gesto forte do topo passa o Weddings
+- No vídeo (2 de 2, 0,55 → 1,0 s e 7,0 → 7,5 s): a passagem começa, é cortada e a página pára no **Artists**. Os outros capítulos param bem.
+- **Não reproduz no Simulador** (21/21 no Weddings, até 540 pt em 15 ms): o dedo simulado nunca é tão rápido como um dedo real.
+- Leitura (a confirmar com a fita do owner): num iPhone real um gesto forte não é segurado pela `scroll-snap-stop: always`; o iOS pára
+  na marca mais perto de onde a inércia levaria. Do topo, com o Artists a 2565, o Artists; antes das paragens, a marca seguinte era a do
+  Experiences — o "Experiences" do primeiro vídeo era, provavelmente, um só gesto forte.
+- **Correção (`passHold`, `data-pass-hold`, só iOS):** do gesto que começa a passagem até ela acabar, as marcas depois do Weddings saem
+  (só marcas abaixo da página: a ordem do WebKit não muda); voltam logo que um dedo leva a página além do Weddings (2.º gesto → Artists).
+- Simulador: um gesto (normal e forte) → Weddings 5/5; 2.º gesto a 0,3 s → Artists, a 0,6 / 0,9 / 1,2 s → Weddings, a 1,6 s → Artists
+  (depois da passagem); percurso normal e forte topo → 8a → topo, uma paragem por gesto 2/2.
+- **Por verificar no iPhone do owner**, com a fita (`hud.js` ● rec; a coluna `pass` tem agora `Z` encaixe ligado, `H` paragens do Work
+  retidas, `L` página parada).
+
+## Questions: ler uma resposta sem a passagem para o Contact começar (13/11) — README #111; bug 4 dos vídeos do owner
+
+### O bug (vídeo do owner, iPhone, 12/11 23:53)
+Com *Is it only digital?* aberto, um gesto pequeno para ler sobe a página ~30 px (o título debaixo da barra) e às vezes as perguntas
+desbotam, a barra diz *CONTACT*, e tudo volta (0,9–1,5 s, 3 s, 12,5 s, 14 s).
+
+### Causa (Simulador, gravador por fotograma: `scrollY`, `c-dusk`, `data-c-run`/`c-hold`, opacidade de `.q-box`)
+- A passagem começa a 15 % do caminho entre as paragens (128 px de 856 no iPhone 17 Pro) — por desenho (#107).
+- Arrasto lento de 220 pt com o dedo parado 0,3 s antes de levantar: a passagem começou (f 0,17), as perguntas desceram a **0,01**, e o
+  encaixe levou a página de volta às Questions; voltaram. Gestos de 40–90 pt: nada (não chegam aos 15 %).
+
+### O que mudou (`contact-client.tsx`, `place()`)
+Com um dedo no ecrã (`fingerDown`, `lib/finger.ts`) a passagem só começa (ou volta) a meio caminho; com o dedo levantado, como antes.
+
+### Testado (Simulador, dedo do `simtouch`, uma resposta aberta)
+| gesto | antes | agora |
+|---|---|---|
+| ↓ 100 pt lento, parado antes de largar | nada | nada, fica nas Questions |
+| ↓ 220 pt lento, parado | perguntas a 0,01 e de volta às Questions | a passagem só começa depois de largar, com a página a ir para o Contact; Contact |
+| ↓ 160 / 300 / 400 pt lentos, parados | Contact | Contact, a passagem começa ao largar |
+| ↓ 60 pt / 80 ms, 300/120, 450/45 (rápidos) | Contact | Contact, a passagem começa logo |
+| ↑ do Contact 60 / 100 / 200 pt lentos, parados | — | ficam no Contact, sem a luz voltar |
+| ↑ do Contact 300 pt lento; 60/80; 300/120 | — | Questions, a volta começa ao largar / logo |
+| percurso 12 → fim → 11, gestos normais | — | uma paragem por gesto |
+
+### Não verificado
+Xiaomi (Chrome Android também tem dedo: o mesmo caminho), o iPhone do owner. Desktop sem mudança de código no seu caminho (sem dedo),
+não repassado.
+
+### Depois do vídeo do owner (iPhone, 13/11 01:16): o bug era outro — "quando abres uma pergunta e fazes scroll para avançar o texto todo vai para cima"
+- No vídeo: com *What about the domain and hosting?* aberta, cada gesto para avançar sobe a caixa ~40 px (o título debaixo da barra) e
+  volta; sem resposta aberta nada sobe. (A mudança do dedo acima fica: escolhida pelo owner, resolve o desbotar e voltar do 1.º vídeo.)
+- **Causa 1 (medida, Simulador, topo da caixa por fotograma):** a caixa subia até o fim da lista ficar 18 `--p` (~59 px) acima do fundo do
+  ecrã (`questions.css`, `top` com `--q-foot`). Com a resposta aberta o fim da lista estava só 5 px abaixo do ecrã: subia **65 px**
+  (−70 → −135) a cada gesto; fechada, 0. **Correção:** sem a margem — sobe só o que está escondido.
+- **Causa 2:** a caixa é segura durante um ecrã (o `::after` da secção, 884 px) e a paragem do Contact está onde esse ecrã começa; a
+  resposta aberta alonga a caixa (925 → 1019 px) e o caminho até ao Contact (856 → 949): solta, a caixa subia os últimos ~60 px enquanto
+  desbotava (opacidade 0,71 → 0). **Correção:** `--q-over` (`questions-client.tsx`, = caixa − papel, em `<html>`): o `::after` cresce isso
+  e o Contact começa outro tanto mais acima (`contact.css` `margin-top`), por isso nada no Contact muda de sítio (medido: `c-start`, o
+  colofão e o fim da página iguais aos de antes, para cada resposta).
+
+| resposta aberta (Simulador, gesto 300/120 para o Contact) | caixa enquanto se vê: antes | agora |
+|---|---|---|
+| nenhuma | −70 | −70 |
+| 0 / 4 / 7 | −96 / −114 / −114 | −70 / −70 / −70 |
+| 1 | −156 | −96 (26 px escondidos) |
+| 2 / 3 / 5 / 6 | −135 | −75 (5 px escondidos) |
+- Volta do Contact com a 6 aberta: caixa parada (−70). Percurso 12 → fim → 12 com a 6 aberta: uma paragem por gesto. Desktop (Chrome 1500):
+  `--q-over` 0 (a caixa tem altura fixa).
+- **Encontrado, não é desta mudança (também com o CSS antigo injetado):** depois de abrir e fechar uma resposta, o fim da página fica 114 px
+  além do colofão (`scrollHeight` 17024 com o colofão a acabar em 16910) — o WebKit não encolhe a página. Pode estar ligado ao bug 5 do
+  owner ("um 3.º scroll no Contact puxa tudo para cima"). Por investigar com o 5.
+- Não verificado: Xiaomi (Chrome Android, telemóvel sem `--q-lift`), o iPhone do owner, 320 × 640.
+
+### Refeito com a ideia do owner (vídeo 13/11 10:07: "ainda está igual e parece ter causado algum lag"): a resposta fecha ao avançar
+- **Ainda subia:** a 1.ª resposta (a mais longa) leva o fim da lista além de `100svh` (o ecrã com a barra do Safari à vista); a barra do
+  owner estava recolhida, a lista via-se toda, mas a caixa subia para a mostrar.
+- **O lag era meu:** `--q-over` era escrito em `<html>` a cada fotograma da resposta a abrir (0,7 s) — a página inteira recalculada.
+- **Cabe sempre?** (pedido do owner; Chrome emulado, a resposta mais longa aberta, barra à vista — alturas estimadas, exceto o iPhone 17 Pro
+  medido no Simulador): **não** — iPhone 17 Pro 26 px escondidos (cabe com a barra recolhida), 390 × 664 60, mini 375 × 629 124, SE
+  375 × 548 179 (fechada já 47), Xiaomi 392 × 700 35 (cabe sem a barra), Android 360 × 720 69, 360 × 640 117, 320 × 640 138; cabem Pro
+  Max 440 × 800, Pixel 412 × 780, tablet 768 × 1024. Com a resposta a fechar ao avançar, a lista volta inteira.
+- **O que mudou:** sai o `--q-over` (`questions.css` `::after`, `contact.css` como antes). `questions-client.tsx` mede a caixa **com as
+  respostas fechadas** (as alturas abertas descontadas): `--q-rest` (a altura da caixa num telemóvel — abrir uma resposta já não alonga
+  a página) e `--q-foot` (o fim da lista fechada: a caixa só sobe se nem fechada couber), escritos na secção e só quando mudam. E **a
+  resposta aberta fecha** quando a página passa 12 px além da paragem das Questions, a caminho do Contact (não para o About).
+
+| (Simulador, iPhone 17 Pro; Chrome emulado) | resultado |
+|---|---|
+| cada uma das 8 respostas aberta | caixa 925 e página 16910 sempre iguais (antes 925–1039 / 16910–17024); 392 × 700, 375 × 629, 320 × 640, 375 × 548 e o desktop também constantes |
+| gesto 300/120 para o Contact com a 0 / 1 / 2 / 6 / 7 aberta | caixa parada (−70) enquanto se vê; a resposta fecha ~9 fotogramas depois do início; Contact |
+| arrasto de 60 pt para baixo, parado, com a 0 aberta | a resposta fecha, fica nas Questions |
+| arrasto de 80 pt para cima com a 6 aberta | continua aberta, fica nas Questions |
+| Contact e volta | as Questions com tudo fechado |
+| percurso Questions → fim → 12 com a 1.ª aberta; forte 450/45 ida e volta | uma paragem por gesto |
+- Os 114 px a mais no fim depois de abrir/fechar uma resposta (ver acima) **deixaram de acontecer**: a página já não muda de altura.
+- Não verificado: o lag no iPhone do owner e no Xiaomi (o Simulador não mede isso); Xiaomi em geral.
+- **O título nunca passa para debaixo da barra (owner, 13/11):** sai também a subida que mostrava o fim de uma lista **fechada** mais
+  longa que o ecrã (`--q-foot`, só 375 × 548 com a barra à vista, 47 px: a última linha espera que a barra recolha). Simulador, topo de
+  *What do you actually create?* enquanto se vê, gesto 300/120 para o Contact e arrasto de 60 pt, sem resposta / 1.ª / 7.ª aberta:
+  **64–65 px em todos** (fundo da barra a 54).
+- **B (owner, 13/11): a resposta fecha quando a luz começa a baixar** (`c-dusk`, observado em `questions-client.tsx`), não nos primeiros
+  12 px do gesto (a A, primeira ideia do owner). Simulador, 1.ª e 7.ª abertas: arrastos de 60 e 200 pt parados (a página volta às
+  Questions) → **a resposta fica aberta**, 4/4; gestos 300/120, 120/120 e 200/500 → fecha **no fotograma em que a luz começa** (opacidade
+  das perguntas ainda 1), Contact, 5/5; arrasto para cima → fica aberta; Contact e volta → tudo fechado, 4/4 (uma 5.ª deu "aberta": o
+  gesto para baixo não chegou ao Simulador, a página nunca saiu das Questions). Título a 64–65 px em todos.
+- **Owner, no iPhone dele (13/11): "confirmado OK".** Não verificado: Xiaomi.
+
+## Questions ↔ Contact com gestos rápidos (13/11) — README #112; bug 3 dos vídeos do owner
+
+### O bug (vídeo do owner, iPhone, 12/11 23:52) e a medição (Simulador, gravador por fotograma: `scrollY`, secção, `c-dusk`, opacidades)
+- **Ida, 2 gestos fortes a 0,5 s:** Contact e logo o fim — **o colofão aos 0,85 s, a pergunta aos 1,15–1,25 s** (a passagem de 3 s apressada).
+- **Volta, 2 gestos a 0,4 s:** a barra *QUESTIONS* ainda no escuro (0,7 s); a pergunta sai aos 1,12 s e as perguntas voltam aos 1,73–1,87 s:
+  **~0,6 s de escuro vazio** (pelas rampas do E: as perguntas só com o papel aceso, x < 0,2; a pergunta sai em x 0,62).
+- A barra muda com o scroll, a luz com o relógio (*CONTACT* sobre o papel ainda claro). Owner escolheu corrigir a ida e a volta, não a barra.
+
+### O que mudou
+- **Ida** (`contact-client.tsx` `data-c-on`, `about-stage.ts` `data-past`, `method.css`): do início da passagem ao 1.º repouso depois de
+  ela acabar, as marcas além do Contact (colofão, fim da página) saem; um 2.º gesto volta a parar no Contact. Só marcas abaixo da página.
+- **Volta** (`contact-client.tsx` `run`): entre x 0,62 e 0,2 a três vezes a velocidade.
+
+### Testado
+| | resultado |
+|---|---|
+| Simulador, 2 gestos 450/45 a 0,3 / 0,5 / 1,0 / 2,0 s | Contact sempre (0,3 s 2/2); a pergunta aos ~2 s, no tempo dela; o colofão ainda espreita enquanto o dedo arrasta (como no 7 e no 12) |
+| Simulador, 2 gestos a 3,6 s (passagem acabada) | colofão |
+| Simulador, volta do Contact 300/120 e 450/45 | pergunta fora → perguntas de volta: **317 / 350 ms** (antes ~680) |
+| Simulador, percurso 12 → fim → 12 | uma paragem por gesto |
+| Chrome 1500, trackpad: 2 gestos a 0,5 s, depois ↓ ↑ ↑ | Contact → colofão → Contact → Questions, 2/2 |
+| Safari 27.2, trackpad, o mesmo | os 2 gestos rápidos → Contact 4/4; **encravamentos de um gesto no Contact** (↓ 1/3, ↑ 1/3) — **também com a retenção anulada por CSS injetado** (o comportamento antigo: os mesmos 1/3): antigos, o #1 do Safari, não desta mudança |
+
+### Não verificado
+O iPhone do owner, o Xiaomi.
+- **Owner (13/11): "parece-me ok".** Não verificado: Xiaomi.
+
+## O fim da página e a barra do browser (13/11) — README #113; bug 5 dos vídeos do owner
+
+### O bug (owner, 12/11 23:53: "no contacto existe um 2.º scroll que abre o Built around you, mas ainda existe um 3.º scroll que puxa tudo para cima")
+Simulador (iPhone 17 Pro): Contact → ↓ fim (y 16156, ecrã 754, barra recolhida) → ↓ o Safari mostra a barra (ecrã 714, a página fica) e a
+pergunta desce 11 px → ↓ **a página anda mais 40 px** (16196): o colofão 463 → 423, a pergunta volta 102 → 91. Com a barra à vista o fim
+da página está 40 px mais abaixo (`maxY` = altura − ecrã), e no fim do iOS um gesto sem marca à frente vai livre até lá.
+- Tentativa descartada: a última marca fixa no pé − `100lvh`, com `scroll-snap-align: start` — o iOS ignora-a, o gesto vai livre ao fundo.
+
+### O que mudou
+- `contact.css`: depois do colofão, `.c-hold::after` com `100lvh − 100svh` de altura (40 px iPhone, 0 desktop); o colofão `sticky`,
+  `top: calc(100svh − var(--c-colo))` — o seu pé no ecrã curto, e assim fica nos últimos píxeis; as animações da entrada do colofão
+  (colofão, filete, pergunta e ação a subir) acabam `100lvh − 100svh` antes (`animation-range: entry 0% entry calc(100% − …)`): com a
+  barra à vista o WebKit dava-as a 0,88 na paragem.
+- `about-stage.ts`: a última marca é o pé da página − `100lvh` (régua), `scroll-snap-align: start`; sai a marca alinhada pelo pé
+  (`data-align='end'`, `method.css`). O colofão tem 73 px vazios por baixo do texto: com a barra à vista não tapa texto nenhum.
+
+### Testado
+| | antes | agora |
+|---|---|---|
+| Simulador: Contact → ↓ ×4 e um forte, barra recolhida e à vista | colofão 463 → 423, pergunta 91 → 102 → 91 | colofão 423–424, pergunta 91 (progresso 1,00), *Talk to us* 313, opacidade 1 e filete em todos; o texto do colofão acaba a 641 (barra a 714) |
+| Simulador: voltar (↑ ↑) | | Contact → Questions |
+| Chrome 1500 × 857: Contact → ↓ ×3 → ↑ ↑ | | fim 12365, colofão 619 → 857 sempre; Contact → Questions — igual a antes |
+
+### Não verificado
+O iPhone do owner; o Xiaomi (barra de 56 px: o colofão tem de ter ≥ 56 px vazios por baixo do texto lá — a medir); Safari desktop.
+
+### Depois do iPhone do owner (13/11 11:51): "ainda dá um saltinho" e "o Built around you sobe demasiado … a ideia é quase ser um footer"
+- No vídeo: ao chegar ao fim o colofão parava e ainda subia ~40 pt devagar, e repousava ~113 pt acima do fundo: a margem do colofão num
+  telemóvel já contava a barra (`4svh + 100lvh − 100svh`) e o espaço novo contava-a outra vez.
+- **Correção:** com JavaScript e movimento, num telemóvel, a margem do colofão é só `4svh` (o espaço depois dele já é o da barra).
+- Simulador, Contact → ↓ fim: chegada contínua (os últimos 14 px em ~0,5 s, o encaixe do iOS), **texto do colofão a 681, 73 px acima do
+  fundo (754) — onde estava antes de #113**; com a barra à vista e com mais gestos: colofão 463–464, texto 681, pergunta 131, sem mexer.
+  A pergunta fica 40 px mais abaixo do que antes (131 em vez de 91): a cena sobe só o que o colofão (mais baixo) precisa.
+- **Owner: "ainda sobe muito comparada com a barra do browser".** Margem do colofão num telemóvel `max(10px, 1.5svh)`. Simulador: a
+  última linha a 699 — **15 px acima da barra do Safari** (714) e 55 px acima do fundo com a barra recolhida (o botão do Safari fica
+  por baixo); igual com a barra à vista e com mais gestos (colofão 481–482); volta: Contact → Questions → 14. Capturas no scratchpad
+  da sessão (end-a/b.png).
+- **Owner: "não vejo diferença"** (18 px) → escolheu **o colofão encostado ao fundo, a subir com a barra** (em vez de reservar o lugar da
+  barra). Tentativa descartada: colofão `sticky; bottom: 0` num invólucro com a altura da barra — o iOS segura um `sticky` ao ecrã grande e
+  a barra tapava o texto até ao gesto seguinte (Simulador). **Feito:** sai o espaço depois do colofão; a última marca volta a ser a do pé
+  (`scroll-snap-align: end`); `contact-client.tsx`: ao encurtar o ecrã com a página no fim (a barra do Safari a entrar), a página vai já
+  para o novo fim. Margem do colofão `max(10px, 1.5svh)`.
+  Simulador: fim com a barra recolhida — última linha **15 px acima do fundo** (o botão do Safari ao lado); ↓ a barra entra e o colofão
+  sobe **com ela** (521 → 481), linha 15 px acima da barra; ↓ ×2 e forte: nada se mexe; pergunta 149, progresso 1,00 sempre; volta Contact →
+  Questions. Capturas `f-a.png` / `f-b.png` no scratchpad da sessão.
+- **Owner (13/11): "está ok"** (o colofão como rodapé). Não verificado: Xiaomi.
+
+## O texto do Contact e o colofão mais suaves (13/11) — README #114
+- **Pedido (owner):** "as animações do contact estão muito bruscas e não smooth elegante como o resto do site" — o texto do Contact (a
+  pergunta, a linha, *Talk to us*) e o colofão.
+- **Medido antes:** a pergunta 0,66 s e a linha + ação 0,54 s, curva de entrada e saída cúbica (3× a velocidade média a meio), a subir 4 %
+  do ecrã; o colofão (opacidade, filete) e a subida da cena por `view-timeline` — à velocidade do gesto, no iPhone o encaixe do iOS.
+  O resto do site: as Questions 0,9 s / 0,6 s com `cubic-bezier(0.2, 0.7, 0.2, 1)`, 5 %.
+- **Feito:** `contact-client.tsx` — `settleIn` (essa curva), a pergunta em x 0,56–0,86 da passagem de 3 s, a linha 0,72–0,98, subida 2 %;
+  o colofão por tempo: `--c-in` 0 → 1 (1,1 s a entrar, 0,7 s a sair, a curva do site), logo que o colofão aparece no fundo do ecrã;
+  `contact.css` — o colofão, o filete (só no último quinto), a pergunta e a ação lidos de `--c-in`; saem os `view-timeline` e os
+  `@keyframes` (c-ask-up, c-now-up, c-colo-in, c-rule-in).
+- **Simulador (iPhone 17 Pro):** Questions → Contact — a pergunta 0,05 → 0,95 de 1,99 a 2,47 s, a linha de 2,47 a 2,89 s, máx. 1,1 px por
+  fotograma; Contact → fim — o colofão de 0,34 a 0,93 s, a cena sobe 22 px em ~0,9 s (máx. 1,4 px por fotograma); volta ~0,6 s.
+- **Chrome 1500:** o fim igual a antes (pergunta a 77 px, escala 0,79, colofão opaco com o filete); volta ao Contact.
+- Não verificado: o iPhone do owner (o veredicto), o Xiaomi, o Safari desktop.
+- **Owner (13/11): "parece-me bem".** Não verificado: Xiaomi, Safari desktop.
+
+## Method, telemóvel: o ecrã inteiro (9) para a capa *Your first chapter* (10) sem salto (13/11) — bug 2 dos vídeos do owner
+- **O bug (owner, iPhone, 12/11 23:51):** "a animação para o your first chapter parece estar a dar um salto e não está smooth".
+- **Medido (Simulador, fotograma a fotograma, o cartão do Weddings, a foto, o painel, o menu):** no fotograma em que 9 passa a 10 o cartão
+  ia de 954 a 884 px de altura, a foto de 600 a 530, **o painel de texto subia 70 px**, os cantos passavam de retos a redondos — tudo antes
+  de se mexer; depois ~100 ms parado. Causa: o ecrã inteiro tinha a sua própria forma (`.is-full`: a proporção do ecrã e da ilha, mais
+  70 px; cantos retos; sem sombra; foto e painel com alturas suas) e a classe saía de uma vez. Em 8c → 9 o menu do ecrã saltava 53 px.
+- **Feito (`method-stage.ts`, `method.css`):** o ecrã inteiro é o cartão na sua forma, ampliado por igual (`FULL`, ~1,08 no iPhone: os
+  lados ~16 px além do ecrã, os cantos e a sombra fora dele); saem as regras de forma, cantos, sombra e alturas do `.is-full`. O menu desce
+  por `translate` animado com o cartão (as suas palavras; 15cqw e a ilha no iOS) em vez de `top`. As palavras no topo do painel
+  (`.is-full`) entram logo e, em 9 → 10, saem aos 420 ms, já desvanecidas.
+- **Simulador:** 9 → 10 contínuo (o cartão sem degrau; a classe sai com as palavras e o menu a 0,04 de opacidade); o menu — maior passo
+  por fotograma enquanto se vê: 8c → 9 10 px (com o cartão a crescer), 9 → 10 3 px, 10 → 9 1 px, 9 → 8c 5 px; em 9 o menu e as palavras onde
+  estavam (menu y 110, palavras 533 em vez de 530). Ainda há um fotograma longo no início de cada mudança de fase (80–110 ms no Simulador,
+  nos dois sentidos, já antes): o custo de começar todas as animações da fase — **a medir no iPhone e no Xiaomi**, o Simulador não serve.
+- Não verificado: o iPhone do owner, o Xiaomi (Android: sem a ilha, `FULL` = 1 — a forma já era a mesma; muda só o menu, agora animado).
+- **Owner, no iPhone dele (13/11): "acho que está corrigido sim".** Não verificado: Xiaomi.
+
+## Xiaomi Mi 11 Lite: os 5 bugs e o Contact mais suave (13/11) — `finger/xiaomi-bugs.mjs`, `finger/xiaomi-drag.mjs`
+Chrome 157, 392 × 779 (barra) / 835 (sem barra), `adb forward tcp:9222 …`, `adb reverse tcp:3133 tcp:3133`. Gestos de toque com inércia
+por CDP (`Input.synthesizeScrollGesture`; ⚠ não dão eventos de toque à página — para o "dedo no vidro" usar `xiaomi-drag.mjs`,
+`Input.dispatchTouchEvent`; o `adb shell input swipe` precisa no MIUI de "Depuração USB (definições de segurança)").
+
+| | resultado |
+|---|---|
+| **1** um gesto do topo — normal / forte / muito forte | Weddings 9/9 |
+| **1** dois gestos a 0,3 / 0,6 / 0,9 / 1,2 s | Weddings 4/4 |
+| **1** percurso normal | topo → W → A → E → 7 → E → A → W → topo, uma paragem por gesto |
+| **1** percurso forte (700 px a 6000 px/s) | W → **E (passa o Artists)** → 7 → 8a; de volta 8a → 7 → **topo (passa o Work)** — o #1 dos gestos rápidos fora do iOS (já registado a 12/11 no Xiaomi), não destas mudanças |
+| **1** vaivém 5× a 0,3 / 0,5 / 0,8 s | só Weddings (a 0,8 s também Artists: um gesto depois da passagem acabar) |
+| **4** gesto para o Contact com a 1.ª / 7.ª aberta | título fixo (70) enquanto se vê; a resposta fecha no fotograma em que a luz começa |
+| **4** arrastos de 90 / 150 / 250 px com toque real, parados (7.ª aberta) | ficam nas Questions, a resposta aberta; um gesto rápido de 300 px → Contact, fechada |
+| **3** dois gestos fortes a 0,3 / 0,5 / 1,0 s das Questions | Contact 3/3 (o colofão espreita enquanto o dedo arrasta, como no iPhone) |
+| **3** volta do Contact, normal / forte | escuro entre a pergunta e as perguntas: 287 / 277 ms |
+| **5** fim: ↓ e mais 3 gestos | colofão encostado ao fundo (835), última linha a 16 px; nada se mexe; ↑ pequeno → Contact; ↓ → fim igual |
+| **2** 8c → 9 → 10 → 11 e volta | cartão: maior passo 11–17 px por fotograma; menu ≤ 6,5 px; um fotograma longo no início de cada fase, 42–95 ms (9 → 10: 87 ms; a 2/11 eram 122) |
+| **Contact** passagem Questions → Contact (3 s) | média 12,2 ms (~82 fps), mais longo 69 ms, 4 acima de 34 ms |
+| **Contact** chegada do colofão / volta | média 11,3 / 11,1 ms, mais longo 23 ms, nenhum acima de 34 ms |
+
+Não verificado: um dedo verdadeiro no Xiaomi (gestos sintéticos por CDP; o owner pode confirmar à mão).

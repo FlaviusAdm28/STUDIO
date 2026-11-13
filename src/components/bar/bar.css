@@ -118,16 +118,6 @@
   opacity: 0.8;
 }
 
-.bar-sec i {
-  margin-right: 0.4em;
-  font-family: var(--serif);
-  font-size: 1.6em;
-  font-style: normal;
-  font-variant-numeric: lining-nums; /* Cormorant's default old-style 01 read as "OI" */
-  letter-spacing: 0;
-  text-transform: none;
-}
-
 .bar-right {
   gap: 26px;
 }
@@ -212,6 +202,9 @@
 .bar-isl a:focus-visible {
   outline: 2px solid var(--linen);
   outline-offset: 3px;
+}
+.bar-isl a[data-quiet]:focus-visible {
+  outline: none;
 }
 
 /* narrow phones (measured 28 Oct with "04 Questions": the islands met at 360 px and overlapped at 320) */
@@ -302,6 +295,38 @@
 /* the dialog stays in the page while it closes (the drop shrinks), so it is shown by a state on <html>, not [open] */
 .menu:not([open]) {
   display: none;
+}
+
+.menu:focus {
+  outline: none;
+}
+
+/* the drop's room: the screen. On an iPhone the menu lies in the page while it is open (BarClient: absolute where the screen is, the
+   scroll held), and the room runs on into the band of the Dynamic Island and the one under Safari's bar: Safari draws there only
+   what is in the page, never a fixed box — the menu, fixed, left both bands the page's colour, light over the Questions (owner,
+   12 Nov; probes in the Simulator: a fixed box never reached them, a box in the page and its glass did) */
+.menu-room {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+@supports (-webkit-touch-callout: none) {
+  :root[data-menu='armed'] .menu,
+  :root[data-menu='open'] .menu {
+    position: absolute;
+    top: var(--menu-at, 0px);
+    bottom: auto;
+    height: var(--menu-h, 100%);
+    overflow: visible;
+  }
+  .menu-room {
+    top: calc(-1 * var(--menu-above));
+    bottom: calc(-1 * var(--menu-below));
+  }
+}
+:root {
+  --menu-above: 80px;
+  --menu-below: 160px;
 }
 
 /* the drop: a circle centred on the menu island's rounded right end, as large as the screen's diagonal, grown by

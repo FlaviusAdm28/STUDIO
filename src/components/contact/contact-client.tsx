@@ -111,6 +111,24 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
     const clamp = (v: number) => Math.min(1, Math.max(0, v))
     const ramp = (x: number, a: number, b: number) => clamp((x - a) / (b - a))
     const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+    // the site's own ease for words coming in (questions.css --q-ease, cubic-bezier(0.2, 0.7, 0.2, 1)): quick to start, a long settle.
+    // The Contact's words came in on the in-and-out ease above, three times the mean speed at their middle, and read as abrupt next to the
+    // rest of the site (owner, 13 Nov: "muito bruscas e não smooth elegante como o resto do site")
+    const settleIn = (() => {
+      const [x1, y1, x2, y2] = [0.2, 0.7, 0.2, 1]
+      const at = (a: number, b: number, t: number) => 3 * a * t * (1 - t) ** 2 + 3 * b * t * t * (1 - t) + t ** 3
+      return (x: number) => {
+        if (x <= 0 || x >= 1) return Math.min(1, Math.max(0, x))
+        let lo = 0
+        let hi = 1
+        for (let i = 0; i < 20; i++) {
+          const mid = (lo + hi) / 2
+          if (at(x1, x2, mid) < x) lo = mid
+          else hi = mid
+        }
+        return at(y1, y2, (lo + hi) / 2)
+      }
+    })()
     // iOS Safari paints the Dynamic Island's band and the band under its bar with the page's colour (sequence.ts paintEdges). Through the
     // passage they are drawn here, a frame at a time, as the colour really at the screen's top: the paper (#dcd5c8, the Questions' edge),
     // its dim (#141412) over it, the room (#1b1c1a, the Contact's edge) over both. Left to a timed CSS fade they ran ahead of the paper:
@@ -134,9 +152,11 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
     }
     // the storyboard's E (saida-mascara render, 'e'), at progress x
     const draw = (x: number) => {
-      const rise = innerHeight * 0.04
-      const a = ease(ramp(x, 0.62, 0.84))
-      const b = ease(ramp(x, 0.82, 1))
+      // the question over ~0.9 s of the 3, its line and the action after it (~0.8 s), each rising a little — as the Questions' words come
+      // (0.9 s and 0.6 s, a 5 % rise): it was 0.66 s and 0.54 s, from 4 % of the screen (~30 px)
+      const rise = innerHeight * 0.02
+      const a = settleIn(ramp(x, 0.56, 0.86))
+      const b = settleIn(ramp(x, 0.72, 0.98))
       const d = 0.97 * ease(ramp(x, 0.06, 0.46))
       const r = ease(ramp(x, 0.42, 0.7))
       edges(d, r)
@@ -164,7 +184,11 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
       runRaf = 0
       const dt = Math.min(64, last ? now - last : 16)
       last = now
-      const speed = hurry ? 4 : 1
+      // on the way back, the stretch between the question gone (0.56) and the questions back (0.2) — the room fading, the paper lighting —
+      // three times as fast: at the pace of the rest it was ~0.5 s of dark with nothing in it (owner's iPhone, 12 Nov 23:52; Simulator,
+      // 0.6 s between the question gone and the questions back, 13 Nov). The same order of the layers; back ~0.9 s in all (owner, 13 Nov)
+      const empty = target < x && x > 0.2 && x < 0.56 ? 3 : 1
+      const speed = (hurry ? 4 : 1) * empty
       x = target > x ? Math.min(target, x + (dt / ON_MS) * speed) : Math.max(target, x - (dt / BACK_MS) * speed)
       if (x === target) {
         last = 0
@@ -218,6 +242,27 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
         root.style.scrollSnapType = ''
       })
     }
+    // the hold of the way in (method.css, data-c-on): while the light goes down a stroke onwards rests on the Contact's stop again, as the
+    // way back's rests on the Questions'. It ends at the first rest once the way in is over (a finger on the glass, or a trackpad's
+    // momentum, is a stroke not yet over), or at once if the way turns back. Only marks below the page come and go: no snapping off for it
+    let onward = false
+    let onRaf = 0
+    const endOn = () => {
+      onward = false
+      cancelAnimationFrame(onRaf)
+      onRaf = 0
+      delete root.dataset.cOn
+    }
+    const watchOn = (now: number) => {
+      onRaf = 0
+      if (!onward) return
+      if (jumping() || target !== 1) return endOn()
+      if (runRaf || now - movedAt < 250 || fingerDown()) {
+        onRaf = requestAnimationFrame(watchOn)
+        return
+      }
+      endOn()
+    }
     const go = (to: number) => {
       target = to
       if (reduce) {
@@ -226,6 +271,11 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
         settle()
         return
       }
+      if (to && x < 1 && !onward && !jumping()) {
+        onward = true
+        root.dataset.cOn = ''
+        if (!onRaf) onRaf = requestAnimationFrame(watchOn)
+      } else if (!to && onward) endOn()
       if (!to && x > 0 && !holding && !jumping()) startHold()
       if (!runRaf && x !== target) {
         // sequence.ts leaves the edges to the passage while this is set (not in its watched attributes: setting it changes nothing there)
@@ -241,8 +291,47 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
     const lift = () => (questions ? parseFloat(getComputedStyle(questions).getPropertyValue('--q-lift')) || 0 : 0)
     let qLift = lift()
     let lastF = NaN
+    // 21, played: the colophon comes in and the scene draws up for it (contact.css --c-in, 0 → 1 eased) in their own time as the page goes
+    // on to its end, and back as it leaves. Drawn by the scroll they went at the speed of the stroke — on a phone iOS's stop, most of its
+    // way in its first tenth of a second — and read as abrupt (owner, 13 Nov: "o texto do contact … e o colofão todo"). A frame at a time
+    // here, as the passage: iOS cuts CSS transitions begun in the stop's momentum (above)
+    const IN_MS = 1100
+    const OUT_MS = 700
+    let cin = 0
+    let cinTarget = 0
+    let cinRaf = 0
+    let cinLast = 0
+    let cinRead = false
+    const paintIn = () => section.style.setProperty('--c-in', settleIn(cin).toFixed(4))
+    const runIn = (now: number) => {
+      cinRaf = 0
+      const dt = Math.min(64, cinLast ? now - cinLast : 16)
+      cinLast = now
+      cin = cinTarget > cin ? Math.min(1, cin + dt / IN_MS) : Math.max(0, cin - dt / OUT_MS)
+      paintIn()
+      if (cin !== cinTarget) cinRaf = requestAnimationFrame(runIn)
+      else cinLast = 0
+    }
+    const watchIn = () => {
+      if (!colophon) return
+      const top = colophon.getBoundingClientRect().top
+      // in as soon as it shows at the screen's foot, out once it is all below it again (at a fifth of a screen in, it had slid up unseen
+      // for ~0.6 s of the stroke, Simulator, 13 Nov)
+      const next = top < innerHeight * 0.97 ? 1 : top > innerHeight ? 0 : cinTarget
+      // the first reading, and with reduced motion: in place at once (a reload at the page's end)
+      if (!cinRead || reduce) {
+        cinRead = true
+        cin = cinTarget = next
+        paintIn()
+        return
+      }
+      if (next === cinTarget) return
+      cinTarget = next
+      if (!cinRaf) cinRaf = requestAnimationFrame(runIn)
+    }
     const place = () => {
       raf = 0
+      watchIn()
       if (!start || !questions) return
       const top = start.getBoundingClientRect().top
       const span = top - (questions.getBoundingClientRect().top + qLift)
@@ -250,12 +339,20 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
       const was = root.classList.contains('c-dusk')
       const df = f - lastF
       lastF = f
-      // the passage begins as soon as a stroke has taken the page a little way from either stop (0.15 of the way), towards the other, so
+      // the passage begins as soon as a stroke has taken the page a little way from either stop (0.15 of the way; with a finger still on
+      // the glass, halfway, below), towards the other, so
       // a slow one sees it answer at once: begun only with the Contact's start halfway up the screen, a slow or short stroke from the
       // Questions' stop moved nothing at all for half a screen (their paper and their questions are held there) and went back to it
       // (Simulator, 10 Nov). Between, the way the page is going decides; near a stop, the stop does (a jump, a finger resting there)
+      // With a finger on the glass, only halfway — where the page will rest on the other stop: a slow drag to read an open answer passed
+      // the 0.15 and the questions faded out and back as the stop took the page back (owner's iPhone, 12 Nov 23:53; Simulator, 220 pt drag
+      // held before lifting: the questions down to 0.01, 13 Nov). Once the finger is off, the way the page goes decides, as before
+      // (owner, 13 Nov). A mouse or a trackpad has no finger here: as before
       let dusk = was
-      if (f >= 0.85) dusk = true
+      if (fingerDown()) {
+        if (!was && f >= 0.5) dusk = true
+        else if (was && f < 0.5) dusk = false
+      } else if (f >= 0.85) dusk = true
       else if (f <= 0.15) dusk = false
       else if (df > 0.002) dusk = true
       else if (df < -0.002) dusk = false
@@ -276,8 +373,17 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
     place()
     if (questions) questions.dataset.lum = root.classList.contains('c-dusk') ? '0.1' : '0.8'
     root.classList.add('c-live')
+    // The page's end as Safari brings its bar out: the screen 40 px shorter, the page has 40 px more to go — taken there at once, so the
+    // colophon goes up with the bar and a stroke more has nothing left to move. Left there, a third stroke took it all up (owner's iPhone,
+    // 12 Nov 23:53: "um 3.º scroll que puxa tudo para cima"); the page's last stop is aligned by its foot (about-stage.ts), so this is
+    // where it rests anyway. Only from the end itself, never in a jump (owner, 13 Nov: the colophon as a footer, going up with the bar)
+    let lastInner = innerHeight
     const onResize = () => {
       qLift = lift()
+      const was = root.scrollHeight - lastInner
+      lastInner = innerHeight
+      const end = root.scrollHeight - innerHeight
+      if (end > was + 1 && scrollY >= was - 2 && !jumping()) scrollTo({ top: end, behavior: 'instant' })
       onScroll()
     }
     addEventListener('scroll', onScroll, { passive: true })
@@ -308,6 +414,9 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
       cancelAnimationFrame(raf)
       cancelAnimationFrame(runRaf)
       cancelAnimationFrame(holdRaf)
+      cancelAnimationFrame(cinRaf)
+      section.style.removeProperty('--c-in')
+      endOn()
       settle()
       root.classList.remove('c-live', 'c-dusk')
       delete root.dataset.cRun

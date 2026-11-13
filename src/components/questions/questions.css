@@ -500,12 +500,20 @@
     }
     /* the questions held where they are while the light goes down, as the storyboard's A ("no lugar"): in the flow they went on up with
        the page for the half screen before the light went down, and faded on their way out of the screen (owner's iPhone, 10 Nov 13:22).
-       Held as they are at their own stop (the 70 px of iOS's lift above the screen), or, with an answer open past the screen's foot,
-       once the list's foot is a margin above the screen's (--q-foot, where the list ends in the box, questions-client.tsx; the visible
-       screen, 100svh, so it is never under the browser's bar). Their last screen of paper is the room */
+       Held as they are at their own stop (the 70 px of iOS's lift above the screen), always: the title never goes up under the bar (owner,
+       13 Nov: "não quero que o título comece a passar acima da secção do menu"). Lifted to show a list's foot past the screen's, it went
+       up ~65 px at every stroke with an answer open and ~60 px as it faded (owner's iPhone, 13 Nov: "o texto todo vai para cima"); an open
+       answer now closes as the page goes on and never lengthens the page (questions-client.tsx, --q-rest). Where even the closed list
+       is longer than the screen with the browser's bar out (375 × 548, 47 px), its last line waits for the bar to go. Their last screen
+       of paper is the room */
     :root[data-js] .questions .q-box {
       position: sticky;
-      top: min(calc(-1 * var(--q-lift)), calc(100svh - var(--q-foot, 0px) - 18 * var(--p, 0px)));
+      top: calc(-1 * var(--q-lift));
+    }
+    @media (max-width: 899px) {
+      :root[data-js] .questions .q-box {
+        height: var(--q-rest, auto);
+      }
     }
   }
   @media (prefers-reduced-motion: no-preference) and (min-width: 900px) {

@@ -325,29 +325,39 @@
       display: block;
       height: calc(2 * var(--screen) + 50svh);
     }
-    /* it comes in faded, as the storyboard's colophon appears (opacity), and is whole once in: sliding in at full strength its rule went
-       up across the film as a line drawn over the screen (owner, Safari and Chrome desktop, 10 Nov: "um traço tipo risco"; it was the
-       only line across the screen in a recording of Chrome, 30 fps). Faded with the rest it still crossed ~50 rows at 70 % (the colophon
-       comes in within one stroke): the rule itself only comes over the last fifth of its way in */
-    :root[data-js] .colophon {
-      view-timeline: --c-end block;
-      animation:
-        c-colo-in linear both,
-        c-rule-in linear both;
-      animation-timeline: --c-end, --c-end;
-      animation-range: entry 0% entry 100%;
+    /* The page's end, a footer: the colophon rests with its foot at the screen's and only a little air under its last line, and as
+       Safari brings its bar out at the end it goes up with it (contact-client.tsx takes the page to its new end as the screen gets
+       shorter; the page's last stop is aligned by its foot, about-stage.ts). Before: the screen 40 px shorter let the page go 40 px
+       further, and a third stroke took it all up (owner's iPhone, 12 Nov 23:53: "um 3.º scroll que puxa tudo para cima e não é suposto");
+       held instead at the short screen's foot it rested 40–113 px above the screen's (owner, 13 Nov: "sobe demasiado … a ideia daquilo é
+       quase ser um footer"; "ainda sobe muito comparada com a barra do browser"), and the owner chose it going up with the bar. Sticky to
+       the screen's foot it did not: iOS holds a sticky box to the large screen, and the bar covered it (Simulator, 13 Nov) */
+    @media (max-width: 899px) {
+      :root[data-js] .colophon {
+        padding-bottom: max(10px, 1.5svh);
+      }
     }
-    /* 21: the scene draws up for the colophon with the scroll (storyboard: the question 18 % → 9 % and smaller, the times 53 % → 37 %) */
+    /* 21, played (owner, 13 Nov: "as animações do contact estão muito bruscas e não smooth elegante como o resto do site"): the colophon
+       comes in faded and the scene draws up for it (storyboard: the question 18 % → 9 % and smaller, the times 53 % → 37 %) in their own
+       time, the site's ease, as the page goes on to its end — not with the scroll, which on a phone is iOS's stop, most of its way in its
+       first tenth of a second. --c-in, 0 → 1 eased, drawn by contact-client.tsx. Its rule only over the last fifth: at full strength
+       while it slid in it was a line drawn across the film (owner, Safari and Chrome desktop, 10 Nov: "um traço tipo risco") */
+    :root[data-js] .colophon {
+      opacity: var(--c-in, 0);
+      border-top-color: rgb(238 232 221 / calc(0.18 * max(0, var(--c-in, 0) - 0.8) * 5));
+    }
     :root[data-js] .c-ask {
       transform-origin: 50% 0;
-      animation: c-ask-up linear both;
-      animation-timeline: --c-end;
-      animation-range: entry 0% entry 100%;
+      transform: translateY(calc(-9svh * var(--c-in, 0))) scale(calc(1 - 0.21 * var(--c-in, 0)));
     }
     :root[data-js] .c-now {
-      animation: c-now-up linear both;
-      animation-timeline: --c-end;
-      animation-range: entry 0% entry 100%;
+      transform: translateY(calc(-16svh * var(--c-in, 0)));
+    }
+    /* a phone: by what the colophon really covers (--c-up, below) */
+    @media (max-width: 899px) {
+      :root[data-js] :is(.c-ask, .c-now) {
+        transform: translateY(calc(-1 * var(--c-up) * var(--c-in, 0)));
+      }
     }
     /* 19–20, played: once the light is going down the question comes in where it stays, then its line and the action (contact-client.tsx
        plays the way, Web Animations: iOS cut CSS transitions here). Unseen before, and out of the keyboard's way. Only once the island
@@ -355,35 +365,8 @@
     :root[data-js].c-live:not(.c-dusk) :is(.c-ask, .c-now) {
       opacity: 0;
       visibility: hidden;
-      translate: 0 4svh;
+      translate: 0 2svh;
     }
-  }
-}
-@keyframes c-ask-up {
-  to {
-    transform: translateY(-9svh) scale(0.79);
-  }
-}
-@keyframes c-colo-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-@keyframes c-rule-in {
-  0%,
-  80% {
-    border-top-color: transparent;
-  }
-  100% {
-    border-top-color: rgba(238, 232, 221, 0.18);
-  }
-}
-@keyframes c-now-up {
-  to {
-    transform: translateY(-16svh);
   }
 }
 /* a phone: the scene goes up with the colophon, together, by what the colophon really covers (on the iPhone it is taller, the room under
@@ -392,16 +375,6 @@
    out, owner's iPhone, 10 Nov 16:35; measured with the screen as it is now, 100dvh, each stroke at the end brought the bar out or in and
    the question jumped 40 px, 17:03). --c-below and --c-colo measured by contact-client.tsx */
 @media (max-width: 899px) {
-  @keyframes c-ask-up {
-    to {
-      transform: translateY(calc(-1 * var(--c-up)));
-    }
-  }
-  @keyframes c-now-up {
-    to {
-      transform: translateY(calc(-1 * var(--c-up)));
-    }
-  }
   .contact {
     --c-up: max(0px, var(--c-below, 0px) - 100svh + var(--c-colo, 0px) + 24px);
   }

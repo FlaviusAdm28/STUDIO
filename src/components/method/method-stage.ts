@@ -219,7 +219,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   // 360 px on a 392 px Xiaomi), within a phone's range; the scene lives in a frame that wide, never wider than the screen (a tablet
   // upright keeps a phone's shape, centred by ox). The desktop's framed phones stay 9 : 19.5
   let AR = 9 / 19.5
-  let ARF = 9 / 19.5
+  let FULL = 1
   let LVH = 0
   let lift = 0
   let tempo = 1
@@ -305,8 +305,11 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     // the cards in the stage's shape, as before; the whole screen of 9 fills it (README #101, #103). A 9 : 16 card was tried and turned back
     // (owner, iPhone, 3 Nov: too short)
     AR = kind === 'phone' ? Math.min(9 / 16, Math.max(9 / 23, W / LVH)) : 9 / 19.5
-    // the whole screen of 9 runs up behind Safari's island too (iOS): its shape is the screen's and the lift's
-    ARF = kind === 'phone' && lift ? W / (LVH + lift) : AR
+    // The whole screen of 9 runs up behind Safari's island too (iOS): the card in its own shape, grown evenly to the screen's height and
+    // the lift (~8 %, its sides past the screen's). In the screen's and the lift's own shape it was 70 px taller than the card of 10, a
+    // layout: at 9 → 10 the card, its photograph and its cream panel jumped 70 px in the first frame, then a ~100 ms frame, then the move
+    // (owner's iPhone, 12 Nov 23:51: "a animação para o your first chapter parece estar a dar um salto"; Simulator, 13 Nov)
+    FULL = kind === 'phone' && lift ? ((LVH + lift) * AR) / F : 1
     F = kind === 'phone' ? Math.min(W, LVH * AR) : W
     // The deck of 7 where it was (64–66 % of the screen) — unless that puts it over Make it yours: after a refresh in 8 on iOS the screen
     // was measured shorter and the cards rose over the field (owner, iPhone, 3 Nov). Then it goes down just enough: its top 30 px under
@@ -331,7 +334,6 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     const put = (el: HTMLElement, k: string, v: string) => el.style.getPropertyValue(k) !== v && el.style.setProperty(k, v)
     put(section, '--mw', `${W}px`)
     put(section, '--m-ar', AR.toFixed(4))
-    put(section, '--m-ar-full', ARF.toFixed(4))
     const light = document.documentElement.dataset.light
     dir = light === 'morning' ? 'ltr' : light === 'evening' || light === 'night' ? 'rtl' : 'mid'
     cards = [...section.querySelectorAll<HTMLElement>('.m-card')].filter((c) => kind === 'desk' || c.hasAttribute('data-phone'))
@@ -344,9 +346,9 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     })
   }
   const centreOf = ([x, y]: Pos) => [ox + (x * F) / 100, (y * H) / 100] as const
-  const cardTransform = (card: HTMLElement, [x, y, w, r]: Pos, full = false) => {
+  const cardTransform = (card: HTMLElement, [x, y, w, r]: Pos) => {
     const bw = (Number(card.dataset.bw) * F) / 100
-    const bh = bw / (full ? ARF : AR)
+    const bh = bw / AR
     return `translate(${(ox + (x * F) / 100 - bw / 2).toFixed(1)}px, ${((y * H) / 100 - bh / 2).toFixed(1)}px) rotate(${r}deg) scale(${(w / Number(card.dataset.bw)).toFixed(4)})`
   }
   // the light: placed at its first place, moved by transform (#94)
@@ -741,10 +743,26 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     cards.forEach((card, i) => {
       const L = layout(kind, next, i, n, featured)
       card.style.zIndex = String(L.z)
-      card.classList.toggle('is-full', !!L.full)
-      // the whole screen: from the top, as tall as the screen with the bars away
-      const pos: Pos = L.full ? [L.pos[0], (100 * ((LVH + lift) / 2 - lift)) / H, L.pos[2], L.pos[3]] : L.pos
-      const to = { transform: cardTransform(card, pos, !!L.full), opacity: String(L.o) }
+      // The whole screen's words at the top of the cream panel, clear of the bar (method.css .is-full): on at once (the first line stays
+      // where it is), and off at 9 → 10 only once they have faded (becomeCover), so they never jump where they are seen
+      clearTimeout(Number(card.dataset.fullOff) || 0)
+      if (L.full) card.classList.add('is-full')
+      else if (card.classList.contains('is-full')) {
+        if (next === '10' && !instant) card.dataset.fullOff = String(window.setTimeout(() => card.classList.remove('is-full'), 420 * tempo))
+        else card.classList.remove('is-full')
+      }
+      // and its menu comes down, clear of the island and the bar's islands (15cqw, and on iOS the lift): moved with the card, its words
+      // one by one (the menu itself fades with the cover, becomeCover). Placed by the class, it jumped 53 px in the first frame of 8c → 9,
+      // its words fully seen (Simulator, 13 Nov)
+      const nav = card.querySelector<HTMLElement>('.s-wed-nav')
+      if (nav && (card.dataset.navDown === '1') !== !!L.full) {
+        card.dataset.navDown = L.full ? '1' : '0'
+        const down = L.full ? 0.15 * card.offsetWidth + lift : 0
+        nav.querySelectorAll<HTMLElement>(':scope > span').forEach((w) => fly(w, { translate: `0 ${down.toFixed(1)}px` }, MOVE, 0, instant))
+      }
+      // the whole screen: from the top, as tall as the screen with the bars away (grown evenly, FULL)
+      const pos: Pos = L.full ? [L.pos[0], (100 * ((LVH + lift) / 2 - lift)) / H, L.pos[2] * FULL, L.pos[3]] : L.pos
+      const to = { transform: cardTransform(card, pos), opacity: String(L.o) }
       // the light finds each screen in its place once it has passed the whole of it (never seen over what is still unlit); going
       // back, each is gone before the edge uncovers its first corner
       if (passage) fly(card, to, 350, Math.max(...cornersOf(L.pos).map(([x, y]) => reachAt(x, y))))

@@ -34,7 +34,7 @@ state by state with every approved line of copy, is **`docs/design/v5/storyboard
   A tap or key completes it; scroll does nothing until the camera is through (README #85).
 - **Work** (built, M5, README #43, #81–#92) — the Weddings blade grows into the stage's arch; one pinned stage,
   three chapters (Weddings, Artists, Experiences), three moments each; **scroll moves the chapters** (one screen
-  each, a 12 % dead band), **time moves the moments** (6 s; the word fills with the chapter's tone and arrives
+  each, a 12 % dead band, a stop per chapter: one stroke, one chapter — README #110), **time moves the moments** (6 s; the word fills with the chapter's tone and arrives
   empty), and **each moment shows one piece working** over the whole photograph, in a pile of cards always in
   view; every piece explained in one line. Tapping another moment goes to it, tapping the current one pauses it.
 - **Method** — "Made for whoever arrives" (README #30, #35–#39, #45, #47–#49; storyboard states 7–11): the

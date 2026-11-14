@@ -723,6 +723,9 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   const show = (next: Phase, instant = false) => {
     holdWhileLeaving(next === 'pre' && phase !== null && phase !== 'pre' && !instant)
     batch(() => showNow(next, instant))
+    // put in place at once (a jump, a refresh): what is at the top is read once the flights have settled. Read inside, before them, it was
+    // the phase it left — the dark of 11 over a lit 7, after the menu from the About or the Questions (Simulator, 13 Nov)
+    if (instant) setEdge(next)
   }
   const showNow = (next: Phase, instant = false) => {
     const from = phase
@@ -899,6 +902,9 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   }
   // a jump of the site's own (lib/address.ts marks it, lib/unsnapped.ts turns the stop off for it): never taken for a stroke
   const jumping = () => document.documentElement.dataset.jump !== undefined || document.documentElement.style.scrollSnapType === 'none'
+  // the jump itself, for a moment (lib/address.ts, work-client.tsx land: data-jump, 600 ms): the snapping stays off longer, and a stroke in
+  // that time is the visitor's
+  const leap = () => document.documentElement.dataset.jump !== undefined
   const choose = (): void => {
     const STARTS = starts()
     const top = sceneTop()
@@ -927,7 +933,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
           backing = true
           section.dataset.near = ''
         }
-        show('pre', phase === null)
+        show('pre', phase === null || leap())
       }
       return
     }
@@ -939,6 +945,9 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     if (phase === null) return show(at, true)
     if (phase === 'pre') {
       measure()
+      // a jump of the site's own (the menu, an address) lands with the scene in place: nothing built while it is watched (owner, 13 Nov:
+      // "deve apenas navegar para a zona da página sem mais nada a construir" — the light swept the studio after the menu had gone)
+      if (leap()) return show(at, true)
       show('7')
       // reached by the keyboard (the field focused from above): the field is there at once, not after the light
       if (document.activeElement === section.querySelector('#m-name')) hurry()
@@ -976,8 +985,8 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
       }
       let far = cur
       order.forEach((ph, i) => i > cur && p >= STARTS[ph] + BAND && (far = i))
-      if (far !== cur) show(order[far])
-    } else if (nxt < cur && p < STARTS[order[cur]] - BAND) show(at)
+      if (far !== cur) show(order[far], leap())
+    } else if (nxt < cur && p < STARTS[order[cur]] - BAND) show(at, leap())
   }
 
   // The first lights-on decoded the studio and every card's photograph in one frame: 182 ms on the Xiaomi (2 Nov). They are

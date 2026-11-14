@@ -152,3 +152,8 @@ summary {
   font-size: 1.25rem;
 }
 
+
+/* the rest of a wheel's or a trackpad's stroke once it has reached its stop, on a desktop (lib/finger.ts governWheel) */
+:root[data-wheel-held] {
+  overflow: hidden;
+}

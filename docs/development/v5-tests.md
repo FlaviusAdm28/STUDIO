@@ -3061,3 +3061,121 @@ por CDP (`Input.synthesizeScrollGesture`; ⚠ não dão eventos de toque à pág
 | **Contact** chegada do colofão / volta | média 11,3 / 11,1 ms, mais longo 23 ms, nenhum acima de 34 ms |
 
 Não verificado: um dedo verdadeiro no Xiaomi (gestos sintéticos por CDP; o owner pode confirmar à mão).
+
+## O menu: saltos que aterram prontos e as faixas da ilha e do fundo (13/11) — README #115
+- **Pedido (owner):** abrir o menu e navegar por todas as categorias: aterram no momento certo? E "aparecem as barras de cor antigas do
+  topo, zona da ilha, e do fim … deve apenas navegar para a zona da página sem mais nada a construir".
+- **Medido (Simulador, voltas de 13–20 saltos gravadas; `wh` = secção e fase; gravador da cor do fundo da página por fotograma):**
+  aterravam sempre certos (Work W0, Method 7, About 12, Questions e Contact nas paragens; a barra certa). Mas: o Method tocava a luz
+  (~0,5 s), o About ia do 14 ao 12 (o retrato aceso, depois o escuro e a luz), o Contact escurecia e a pergunta vinha aos 1,3–2 s; o salto
+  para o Work era um scroll suave pela página inteira; as faixas esbatiam da cor antiga 0,3–1,1 s.
+- **Feito:** com `data-jump` (600 ms; `lib/address.ts`, e agora também `work-client.tsx` `land`) — `method-stage.ts` `leap()` →
+  `show(fase, true)`; `about-stage.ts` também no 12; `contact-client.tsx` `go` instantâneo (e as faixas deixadas ao `sequence.ts`);
+  `questions-client.tsx` `q-now`; `work-client.tsx` o Work de fora dele de uma vez. `sequence.ts`: num salto pinta para o destino
+  (`data-jump` observado, a secção de destino), sem esbatimento, e para o Method e o About espera pela cor que a cena acabou de ler.
+- **Encontrado e corrigido pelo caminho:** a cor lida pelo Method e pelo About num salto era a da fase que deixavam (lida antes de a cena
+  estar no sítio): o escuro do 11 sobre o 7 aceso, o cinzento do retrato do 14 sobre o 12 escuro (o 12 sai do `show` por um `return`,
+  por isso a leitura passou para um `queueMicrotask`); o `contact-client` pintava o papel nas faixas ao saltar do Contact para o Work.
+- **Resultados (Simulador, 20 saltos):** a cor final certa sempre (Method 7 202,182,164; About 12 23,24,22; Questions 220,213,200;
+  Contact 27,28,26; Work 34,27,21), **uma só mudança, 35–190 ms depois do clique** (com o menu a fechar); à vista, o menu fecha sobre a secção
+  já pronta. **Chrome 1500:** 18/18 certos, nenhuma passagem tocada. **Com gestos as passagens tocam** (Experiences → 7, 11 → 12,
+  Questions → Contact). Ferramenta: `finger/xiaomi-menu.mjs` (Xiaomi; com a porta 9223 e um clique em vez do toque, o Chrome de teste).
+- **Xiaomi (Chrome 157, `finger/xiaomi-menu.mjs`, 18 saltos):** todos certos, nenhuma passagem tocada. A cor da barra do Chrome
+  (`theme-color`): ao fechar o menu, o código repunha a cor de onde se vinha (25–80 ms, no About duas) antes da do destino — num salto já
+  não a repõe (`sequence.ts`); e, quando o destino tem a mesma cor de onde se vinha, a barra volta do tom do menu a ela (`menuFilm`: o
+  1.º salto, do topo para o Work, ficava com o tom do menu). Agora: do tom do menu aberto direto à cor do destino, 27–95 ms, em todos.
+  Simulador repetido depois: igual (uma mudança direta).
+- Não verificado: Safari desktop, o iPhone do owner.
+- **Owner (vídeo 13/11 16:48): "as barras perto da ilha dinâmica e em baixo, sempre que mudo para qualquer categoria, têm uma cor … não são
+  simplesmente o background da categoria com o menu por cima — bastante evidente no questions".** Medido no vídeo (pixels pela margem
+  esquerda): em repouso o topo e o fundo continuam o papel; **enquanto o menu fecha**, topo e fundo lisos 214,205,192 (a cor da página)
+  com o vidro (149) ou o papel (194 em baixo) entre eles. Causa: aberto, o menu está na página (o Safari só desenha nas faixas o que está
+  na página, `bar.css` 12/11) e cobre as faixas; ao fechar voltava a `fixed`, e as faixas ficavam a cor da página à volta da gota a
+  encolher. **Correção (`bar.css`, `bar-client.tsx`):** na página também ao fechar (`data-menu='closing'`) e a seguir a página (`follow`)
+  até acabar de fechar, por isso o salto move a página e o menu fica onde está o ecrã. ⚠ Medir só depois de recarregar a página do
+  Simulador (a primeira medição foi na build anterior).
+  Simulador, 6 saltos gravados (pixels por fotograma, faixa vs o que está ao lado): **antes 37 fotogramas de faixas lisas num só salto;
+  agora 6 fotogramas isolados em 788** (um por salto, no fotograma em que o menu se fecha). À vista, o vidro cobre também as faixas
+  enquanto a gota encolhe, sobre qualquer categoria. Android e desktop sem mudança (só iOS).
+
+## O menu e a cor do topo: iOS, Android e desktop (13/11) — README #116
+- **Pedido (owner):** o menu aberto como um só vidro em ecrã inteiro, sem cores inventadas nas faixas; a cor de topo no Xiaomi; confirmar
+  iOS e desktop. Investigado antes de mudar; o owner aprovou as quatro correções (e a opção (a) para a entrada).
+- **Como:** Xiaomi (Chrome 157, CDP + `screencap`): a barra de estado (linha 30, `theme-color`) contra a página logo abaixo das barras
+  do Chrome, secção a secção, menu fechado e aberto (`…/bbf6a277-…/scratchpad/xtop.mjs`). Simulador (iPhone, iOS 27.3): a cor de fundo da
+  página contra a cena desenhada no topo (`simtop.sh`). Desktop: Chrome 157 headless 1440 × 900, volta pelo menu a todas as secções, erros
+  e exceções recolhidos (`desk.mjs`).
+- **Xiaomi, diferença barra ↔ página (distância RGB), antes → depois:** entrada 129 → 1 (de noite; o esbatimento novo); menu aberto 19–28 →
+  3–9 (About 13 com o menu: 14); About 12: o `#adaca8` parado → 0; About 13/14 36 → 3; Contact 23 → 2; fim da página 13 → 12 (o filme a
+  correr sobre o poster: a leitura usa o poster, que é um fotograma dele). Restantes secções 0–9, como antes.
+- **A causa do About 13/14 (e de parte das outras leituras):** `drawImage` com um recorte da fonte usa, no Chrome, os píxeis do ficheiro
+  (o retrato: 1440 × 2157), enquanto `naturalWidth` dá o tamanho corrigido pelo `srcset` (392 × 588): lia-se um canto da fotografia.
+  Verificado: o mesmo recorte em píxeis do ficheiro dá `#c0bfbc`, e o ecrã mostra `#c1c0be`. Agora a imagem inteira é desenhada com a
+  faixa a encher a tela (16 × 4). O Method 9 mudou pouco (`#a1b3bd` → `#a5b6be`, o ecrã `#a4b2bb`).
+- **Simulador, depois:** About 13/14 a página `rgb(196,195,191)` contra o topo `#bebcb6`–`#c9c7c3` (antes 176 contra 204). Menu aberto: a
+  página toma a cor do vidro (Work 21,21,21 contra 20,20,17; Method 9 61,65,65 contra 69,77,79; About 13 94,93,90 contra 110,109,105;
+  Questions 76,73,68 contra 94,90,82 — antes a cor da cena: Questions 220 contra 91). Ao fechar volta à cor da cena em todas (o caso em
+  que a cor da cena era igual à de antes do menu ficava no vidro: corrigido, `menuFilm`). Contact (iOS) fica `#1b1c1a`, o topo ~`#2b2a24`:
+  é também a faixa de baixo sobre o colofão.
+- **Desktop (Chrome 1440 × 900):** menu → Work, Method, About, Questions, Contact: todos aterram na secção, nenhum erro nem exceção; o
+  esbatimento da entrada não aparece (`display: none`); a cor do Contact fica `#1b1c1a` (a leitura só em ecrãs de toque).
+- typecheck, lint (0 avisos), build: passam.
+- **Não verificado:** o iPhone real do owner (o esbatimento do Safari tingido pela cor da página só aparece lá); Safari desktop; a entrada
+  no Xiaomi de dia (medida de noite: o filme é escuro no topo); as 5 larguras com o menu.
+- **14/11, owner (iPhone, vídeo 00:54): "abre o menu no contacts, faz mexer o *Built around you*".** No vídeo: ao tocar no ≡ no fim da
+  página, o colofão sobe ~40 px e fica (a barra do Safari não muda; a cena presa não mexe: é a página que anda). **Simulador, fim
+  alcançado com o dedo (ecrã 754 px), menu aberto por código, gravação por fotograma:** o documento passa de 16852 a 17012 px (a sala do
+  menu desce 160 px abaixo do ecrã, `bar.css` `--menu-below`), e a página anda 1 px a cada ~100 ms (16098 → 16117) com o documento a
+  crescer com ela (o WebKit volta a encaixar a última paragem, alinhada pelo pé da página, e o menu segue a página), +18 ao fechar
+  (16138, o colofão 521 → 481). **Correção (`bar-client.tsx` `placeDrop`):** no iPhone a sala só desce o que ainda há de página abaixo do
+  ecrã (no fim 0; a faixa sob a barra do Safari mostra o fundo da página, que com o menu aberto é a cor do vidro). **Depois:** documento
+  16852 sempre, página 16098 parada, colofão 521 parado, aberto e a fechar; faixa do fundo `#1b1c1a` com o fundo da página rgb(25,25,23);
+  a meio da página (Questions) a sala continua a descer 160 px. Android e desktop sem mudança (só iOS). Não verificado: o iPhone do owner.
+- Nota do laboratório: o `npm` da cópia do Node 22 no scratchpad antigo perdeu ficheiros; o build e o servidor correm com
+  `…/node-v22.23.4-darwin-arm64/bin/node node_modules/next/dist/bin/next build|start -p 3100`.
+- **14/11, owner (iPhone): "se o *Built around you* estiver mostrado, ao clicar para abrir o menu o primeiro click não funciona, só o
+  segundo".** Simulador, gravação de eventos na janela (captura): depois de um gesto até ao fim, **o primeiro toque em qualquer sítio
+  não chega à página (0 eventos; o segundo, 15)** — no ≡, num sítio vazio, 3/3; a meio da página (About 14) chega sempre. Com o
+  scroll-snap desligado chega à primeira (15). Causa: a marca do fim alinhada pelo pé (`scroll-snap-align: end`, 10/11) é medida
+  pelo WebKit com o ecrã da barra à vista (714 px): alvo 16138, mas com a barra recolhida (754) a página acaba em 16098 — um alvo fora
+  de alcance, para onde o iOS continua a deslizar (o arrastar de 1 px a cada ~100 ms também visto com o menu aberto) e o toque seguinte
+  serve para parar esse deslize. E o `scrollTo` do Contact para o novo fim (#113), quando a barra aparece: o Safari já lá estava a levar
+  a página; com ele o toque seguinte perdia-se mesmo 7 s depois, sem ele (`scrollTo` trocado em tempo de execução) chegava.
+  **Correção:** `about-stage.ts` — a marca do fim alinhada pelo topo em `altura da página − ecrã`, e só ela segue a altura do ecrã a cada
+  `resize` (`footMark`; as outras paragens não mexem); `method.css` sem a regra `data-align='end'`; `contact-client.tsx` sem o `scrollTo`.
+  **Depois (Simulador):** gesto até ao fim e toque no ≡: abre à primeira (2/2, mais a 1.ª volta que não partiu do Contact); a barra do
+  Safari a aparecer no fim (toque em baixo): a página vai sozinha de 16098 a 16138 (o colofão 521 → 481, sobe com a barra) e o toque
+  seguinte abre o menu (2/2); gesto forçado no fim: fica em 16138. **Xiaomi (toques reais por CDP):** a marca do fim segue a barra do
+  Chrome (15096 com ela, 15040 sem ela) e a página assenta nela; gestos forçados no fim não passam; voltar ao Contact e avançar outra vez,
+  certo. Visto 1 vez em 4: logo depois de um salto pelo menu para o Contact, o 1.º gesto curto (250 px) ficou no Contact (as outras 3
+  foram ao fim) — por ver se já acontecia antes desta mudança. Não verificado: o iPhone do owner; desktop com roda e trackpad no fim.
+
+## Ronda de testes do owner no desktop (14/11) — gravador `ios-lab/rec.js`; correção 1 (README #117)
+- **Gravações:** `ios-lab/out/2026-11-14T01-41-32-rec.jsonl` (Chrome 157, 1728×942, 11 marcas) e `…01-49-14-rec.jsonl` (Safari 27.2,
+  1500×934, 7 marcas). Lidas com `rec-read.mjs` e `rec-strokes.mjs` (um gesto por linha). Análise completa dos 18 no handoff
+  ("ÚLTIMO (14/11, madrugada)"), por causa: A, A2, B, C, D, E, F, G.
+- **Correção 1 = A + B.** A: `lib/finger.ts` `onWheelStroke` (gesto novo de roda/trackpad: pausa > 300 ms, inversão, ou a força a subir
+  outra vez depois de a inércia cair abaixo de 40 % do pico, 2,5× o evento anterior); `contact-client.tsx`: acabada a passagem, um gesto
+  novo solta `data-c-on` e `data-c-hold` (a volta com o mesmo "largar" de antes: encaixe desligado um fotograma, a página onde está).
+  B: `method.css`, a regra de encaixe do desktop inclui `[data-section='about']`.
+- **Como:** Chrome 157 sem janela, 1728×942, gestos do próprio Chrome (`Input.synthesizeScrollGesture`, fases de trackpad), seguidos com
+  50 ms entre eles (a página nunca parada 250 ms). Contraprova em tempo de execução: o detetor travado (um ouvinte de captura que pára a
+  propagação de `wheel`) e a lacuna do encaixe reposta por CSS.
+- **Resultados.** Ida, das Questions, 8 gestos seguidos: com a correção 2 gestos no Contact durante a passagem (como aprovado), o 3.º no
+  Contact já sem passagem, **o 4.º no colofão (13591)**; com o detetor travado, **8/8 no Contact** (o bug 10 do Chrome). Volta, do Contact,
+  7 gestos: com a correção, 3 nas Questions e depois About 14 → 13 → 12 → Method; travado, **7/7 nas Questions** (bugs 7, 8; Safari 6).
+  (Os gestos sintéticos têm velocidade constante, sem a inércia a cair, e só se separam por pausas: nos reais a regra separa-os como nas
+  gravações do owner.) B: gestos fortes do Method 11 (8855) — com a correção o encaixe nunca está desligado (amostras de 30 ms); com a
+  lacuna reposta aparece `none` com a secção `about` e o About `pre`. Os gestos sintéticos do Chrome só encaixam no fim, por isso a
+  ultrapassagem real (inércia) não se reproduz aqui: **por confirmar pelo owner no trackpad**.
+- Visto de passagem: um gesto forte sintético do About 12 passou o 13 e encaixou no 14 (o Chrome não respeita `scroll-snap-stop: always`
+  a meio de um gesto de trackpad) — o mesmo do 9 → 11 da gravação; fica para a correção 2.
+- typecheck, lint (0), build: passam. Não verificado: Safari do Mac (não automatizável daqui), o trackpad real, telemóveis (não mudam:
+  só eventos `wheel` e só a regra `min-width: 900px`).
+- **14/11, depois da correção 1 — 3 evidências do owner (Safari) e o regulador de gestos (EM CURSO, por validar).** 02-25/02-27: do Method
+  para o About com gestos extremos a página ia até ao fim e voltava ao About (as retenções tiram as paragens à frente; a inércia corre
+  livre). 02-30: `scrollY` 13237 num fim de 13014 (o elástico do Safari). Regulador `lib/finger.ts governWheel` (um gesto, uma paragem; sem
+  paragem à frente não mexe; segura o resto do gesto com `data-wheel-held`). Chrome 157 sem janela, 1728×942, gestos sintéticos fortes:
+  9 → 10 (máx. 8290), 11 → 12 (máx. 9373), 12 → 13, 14 → Questions, fim ↓ parado, fim ↑ → Contact, topo ↑ parado (sem disparar o
+  Weddings), Weddings → Artists, Artists → Weddings 2/4 (2/4 seguiu até à capa), Experiences ↓ → 8a (salta o 7), 8a ↑ → Experiences
+  (salta o 7). Por corrigir e medir (fotogramas) antes de dar como feito; não testado no Safari nem no trackpad real.

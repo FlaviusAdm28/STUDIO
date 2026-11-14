@@ -114,8 +114,14 @@ export function entranceSequence(c: EntranceConfig) {
   const QUESTIONS_EDGE = '#dcd5c8'
   // the Contact's room (contact.css: its own dark)
   const CONTACT_EDGE = '#1b1c1a'
+  // the Work's chapters' own addresses (work-client.tsx land): a jump there is a jump to the Work
+  const CHAPTERS = ['weddings', 'artists', 'experiences']
+  // Chrome's bar showing the open menu's film (Android): put back to the page's colour when the menu goes, even when that colour has not
+  // changed
+  let menuFilm = false
   const paintEdges = (colour: string) => {
-    if (colour === tone) return
+    if (colour === tone && !menuFilm) return
+    menuFilm = false
     tone = colour
     // written on the two elements: as a custom property on <html> every change restyled the whole page, on the phone's chapter change
     root.style.backgroundColor = colour
@@ -128,8 +134,14 @@ export function entranceSequence(c: EntranceConfig) {
     // The open menu is what is at the top of the screen (owner, 12 Nov: "o menu deve ficar completo no ecrã todo… não barras de cor"):
     // on Android the bar Chrome draws over the page takes its colour from theme-color, and stayed the paper's stone over the menu's dark
     // glass (Xiaomi, over the Questions). There it is the menu's film over the colour that was there (bar.css .menu-film, by the ground
-    // measured as it opens). On an iPhone the menu itself runs under the island and Safari's bar (bar.css .menu-room): nothing to paint
-    const FILM: Record<string, number> = { dark: 0.3, mixed: 0.5, light: 0.66 }
+    // measured as it opens). On an iPhone the menu runs under the island and Safari's bar itself (bar.css .menu-room), but Safari lays
+    // a fade of its own at the screen's top, behind the clock and the island, in the page's colour — ~35 % of it over what is there: the
+    // stone's or the studio's over the dark glass, a light band (owner's iPhone, 13 Nov 17:01, measured: 132 over a glass of 78 at the
+    // Questions, 121 over 75 at the Method). There too, then, the glass's colour while it is open.
+    // The film as the glass is seen through the blur, measured on the devices (the owner's iPhone and the Xiaomi, 13 Nov: 220 → 78 and
+    // 72 at the Questions, 202 → 75 and 72 at the Method, the Method's 9 161 → 56, the About's 13 173 → 66): ~0.72 over a light ground
+    // (the film's own 0.66 came 20–28 too light on the Xiaomi's bar)
+    const FILM: Record<string, number> = { dark: 0.3, mixed: 0.58, light: 0.72 }
     const rgbOf = (c: string) => {
       const h = c.trim().match(/^#([0-9a-f]{6})$/i)
       if (h) return [0, 2, 4].map((i) => parseInt(h[1].slice(i, i + 2), 16))
@@ -144,18 +156,48 @@ export function entranceSequence(c: EntranceConfig) {
       return `#${rgb.map((v, i) => Math.round(v * (1 - a) + film[i] * a).toString(16).padStart(2, '0')).join('')}`
     }
     let menuShown = false
-    const scene = () => {
+    // the drop's own time (bar.css): the page's colour goes to the glass's and back as the drop grows and shrinks
+    const dropSeconds = () => getComputedStyle(root).getPropertyValue('--menu-drop-seconds').trim() || '0.45s'
+    const dropTime = () => `background-color ${dropSeconds()} ${getComputedStyle(root).getPropertyValue('--menu-drop-ease').trim() || 'ease'}`
+    // while the drop shrinks (from the moment the menu starts closing, for the drop's time): any colour the page takes then — the jump's
+    // own too, which may come a moment later — goes in the drop's time
+    let menuClosedAt = -1e9
+    const closingMenu = () => performance.now() - menuClosedAt < parseFloat(dropSeconds()) * 1000
+    const scene = (records?: MutationRecord[]) => {
       const d = root.dataset
       const menuOn = d.menu === 'armed' || d.menu === 'open'
       if (menuOn || menuShown) {
-        if (!ios) themeMeta?.setAttribute('content', menuOn ? menuTone(tone) : tone)
+        // closed by a jump (data-jump), the colour of where it was is not put back: the jump's own follows (below) — put back, Chrome's bar
+        // showed it 25–80 ms between the menu's and the destination's (Xiaomi, menu tour, 13 Nov)
+        if (!ios && (menuOn || d.jump === undefined)) themeMeta?.setAttribute('content', menuOn ? menuTone(tone) : tone)
+        if (ios && menuOn) {
+          // the page's own colour (tone) stays what the scene says: the glass's is written beside it
+          const glass = menuTone(tone)
+          root.style.transition = dropTime()
+          document.body.style.transition = dropTime()
+          root.style.backgroundColor = glass
+          document.body.style.backgroundColor = glass
+        }
+        if (menuShown && !menuOn) menuClosedAt = performance.now()
+        // the page (iOS) or Chrome's bar (Android) shows the glass's colour, not the scene's: the next painting puts the scene's back even
+        // when it is the same as before the menu (paintEdges clears this)
+        if (menuOn) menuFilm = true
         menuShown = menuOn
         if (menuOn) return
       }
+      // A jump of the site's own (data-jump: lib/address.ts, the Work's chapters) is painted for where it goes from its first frame: the
+      // section said for a moment the one it left, and the edges went by its colour first — the dark of the Method's 11 for ~150 ms on the
+      // way from the Method to the Questions' stone (owner, 13 Nov, the menu: "aparecem as barras de cor antigas"; Simulator)
+      const jumpTo = d.jump === undefined ? undefined : CHAPTERS.includes(d.jump) ? 'work' : d.jump
+      const sec = jumpTo ?? d.section
       const work = document.querySelector<HTMLElement>('.work') // parsed after this script
       const ch = Number(work?.dataset.ch ?? 0)
       const ground = ch > 0 && d.pass === 'done' && work?.querySelectorAll('.w-ground')[ch]
-      const past = d.section && d.section !== 'top' && d.section !== 'work' && d.section !== 'method' && d.section !== 'about'
+      const past = sec && sec !== 'top' && sec !== 'work' && sec !== 'method' && sec !== 'about'
+      // the Method and the About say their colour once they are in place (data-edge): the one they said last time is not where the jump
+      // lands (the About's from 14, grey, over 12's dark, ~110 ms, as the section changed before the About had answered; Simulator, 13 Nov)
+      // — until the scene it lands on has said it, nothing is painted (the jump's mark going, 600 ms on, paints whatever is there)
+      if (jumpTo && (sec === 'method' || sec === 'about') && records && !records.some((r) => r.attributeName === 'data-edge' && (r.target as HTMLElement).id === sec)) return
       // The Method and the About say their own (data-edge): the colour of what is really at the top of the screen, read from the picture
       // drawn there when it is there (src/lib/top-colour.ts; owner, iPhone, 4 Nov) — the Work's ground until the light has covered the
       // screen, then the studio's top, the 9's own page, the dark of 11; the About's dark at 12, the portrait's sky (or the room) at 13.
@@ -163,7 +205,9 @@ export function entranceSequence(c: EntranceConfig) {
       // Just into the About, before its passage has started, its section is already the About's but what is seen is still the Method's 11.
       const methodEdge = document.getElementById('method')?.dataset.edge ?? ''
       const aboutEdge = document.getElementById('about')?.dataset.edge ?? ''
-      const edge = d.section === 'about' ? aboutEdge || methodEdge : d.section === 'method' || d.section === 'work' ? methodEdge : ''
+      // the scene left behind says nothing for a jump: only the one it lands on
+      const edge =
+        sec === 'about' ? aboutEdge || (jumpTo ? '' : methodEdge) : sec === 'method' || (sec === 'work' && !jumpTo) ? methodEdge : ''
 
       // in the Method and the About the edges cross-fade (0.3 s, as the light's edge passes the island), and so does the change that ends
       // it; elsewhere they change at once, as before
@@ -173,15 +217,23 @@ export function entranceSequence(c: EntranceConfig) {
       // back 0.9 s after 0.15 s): changed at once, the island and the band under Safari's bar stayed the paper's stone over a room
       // already dark, then went dark in one go (owner's iPhone, 10 Nov 13:22: "as cores das bordas topo e fundo ficam bugadas")
       const dusk = root.classList.contains('c-dusk')
-      const duskTurn = dusk !== wasDusk && (d.section === 'questions' || d.section === 'contact')
+      const duskTurn = dusk !== wasDusk && (sec === 'questions' || sec === 'contact')
       wasDusk = dusk
+      // a jump of the site's own (the menu, an address: data-jump) lands on its colour at once: faded, the island and the band under
+      // Safari's bar kept the colour of where the page had been — the stone's or the studio's over a scene already dark — for 0.3–1.1 s
+      // (owner, 13 Nov: "aparecem as barras de cor antigas do topo, zona da ilha, e do fim"; Simulator, menu tour)
+      // back from the menu's glass in the drop's time, as it shrinks (on an iPhone: Safari's fade at the top follows the page's colour)
       const fade = !ios
         ? ''
-        : duskTurn
+        : closingMenu()
+          ? dropTime()
+          : d.jump !== undefined
+            ? ''
+            : duskTurn
           ? dusk
             ? 'background-color 1.1s cubic-bezier(.33, 1, .68, 1) -0.1s'
             : 'background-color .9s cubic-bezier(.33, 1, .68, 1) .15s'
-          : d.section === 'method' || d.section === 'about' || edge || viaMethod
+          : sec === 'method' || sec === 'about' || edge || viaMethod
             ? 'background-color .3s linear'
             : ''
       viaMethod = !!edge
@@ -189,20 +241,21 @@ export function entranceSequence(c: EntranceConfig) {
       // charcoal once the light is down
       const colour =
         edge ||
-        (d.section === 'questions' || d.section === 'contact'
-          ? dusk || d.section === 'contact'
-            ? CONTACT_EDGE
+        (sec === 'questions' || sec === 'contact'
+          ? dusk || sec === 'contact'
+            ? // on Android the Contact says what is at the top of the screen (contact-client.tsx, data-edge), once it has settled there
+              (!ios && sec === 'contact' && document.getElementById('contact')?.dataset.edge) || CONTACT_EDGE
             : QUESTIONS_EDGE
-          : past || d.section === 'about'
+          : past || sec === 'about'
             ? '#1e1d1a'
             : ground
               ? getComputedStyle(ground).backgroundColor
               : frame)
       // a fade under way (the light's) is left to run while nothing changes the colour
-      if (colour === tone) return
+      if (colour === tone && !menuFilm) return
       // on iOS the Contact's passage draws the edges itself, a frame at a time with the paper's light (contact-client.tsx edges()): while
       // it runs (data-c-run) this colour is only where it ends
-      if (ios && (duskTurn || 'cRun' in d) && (d.section === 'questions' || d.section === 'contact')) {
+      if (ios && !jumpTo && (duskTurn || 'cRun' in d) && (sec === 'questions' || sec === 'contact')) {
         tone = colour
         return
       }
@@ -211,7 +264,7 @@ export function entranceSequence(c: EntranceConfig) {
       paintEdges(colour)
     }
     const watch = new MutationObserver(scene)
-    watch.observe(root, { attributes: true, attributeFilter: ['data-pass', 'data-section', 'class', 'data-menu'] })
+    watch.observe(root, { attributes: true, attributeFilter: ['data-pass', 'data-section', 'class', 'data-menu', 'data-jump'] })
     addEventListener('DOMContentLoaded', () => {
       const work = document.querySelector('.work')
       if (work) watch.observe(work, { attributes: true, attributeFilter: ['data-ch'] })
@@ -219,6 +272,8 @@ export function entranceSequence(c: EntranceConfig) {
       if (method) watch.observe(method, { attributes: true, attributeFilter: ['data-edge'] })
       const about = document.getElementById('about')
       if (about) watch.observe(about, { attributes: true, attributeFilter: ['data-edge'] })
+      const contact = document.getElementById('contact')
+      if (contact && !ios) watch.observe(contact, { attributes: true, attributeFilter: ['data-edge'] })
     })
   }
   const dedication = section.querySelector('.e-ded')

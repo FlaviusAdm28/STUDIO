@@ -291,3 +291,15 @@ custo das 2 camadas e do palco em fluxo no **Xiaomi** (está ligado ao PC, não 
 
 Regras de sempre: uma coisa de cada vez; testar cada passo antes de mostrar; gravar frame a frame o instante que o owner aponta;
 não reabrir decisões fechadas (README); dizer o custo de performance de cada escolha.
+
+## 5. Gravador de sessões no desktop (14 Nov) — a ronda de testes do owner no Chrome e no Safari
+
+- `node docs/development/ios-lab/proxy.mjs 3140 3100 rec` — a build de produção (3100) com `rec.js` em vez do HUD. O owner abre
+  `http://localhost:3140/`, carrega em **● gravar** (canto inferior esquerdo) e usa o site à sua maneira; **⚑ bug** (ou ⌥B) marca o
+  momento e abre uma caixa para uma nota curta (Enter). Continua a gravar depois de recarregar; **■ parar** fecha a gravação.
+- Vai para `out/<início>-rec.jsonl` a cada 5 s: roda/trackpad, teclas, cliques (em quê), toques, foco, resize, `scrollY` a cada
+  fotograma em que muda, o estado do site sempre que muda (secção, `pass`, capítulo do Work, fases do Method e do About, Questions,
+  Contact, menu, `data-jump`, encaixe, `overflow`, a palavra da barra, a cor da página e `theme-color`, `data-edge`), todos os atributos
+  do `<html>`, fotogramas > 50 ms, erros, rejeições, `console.error/warn`.
+- Ler: `node docs/development/ios-lab/rec-read.mjs out/<id>-rec.jsonl [--all]` — linha do tempo com segundos e hora do relógio (para
+  alinhar com uma gravação do ecrã do Mac, Cmd+Shift+5), gestos agrupados, marcas e notas, e um resumo no fim.

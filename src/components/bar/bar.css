@@ -312,7 +312,8 @@
 }
 @supports (-webkit-touch-callout: none) {
   :root[data-menu='armed'] .menu,
-  :root[data-menu='open'] .menu {
+  :root[data-menu='open'] .menu,
+  :root[data-menu='closing'] .menu {
     position: absolute;
     top: var(--menu-at, 0px);
     bottom: auto;

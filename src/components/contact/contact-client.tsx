@@ -1,7 +1,11 @@
 'use client'
 
 import { useEffect } from 'react'
-import { fingerDown, watchFinger } from '@/lib/finger'
+import { fingerDown, onWheelStroke, watchFinger } from '@/lib/finger'
+import { bandColour, hex, over, type Rgb } from '@/lib/top-colour'
+
+// the room's own dark (contact.css .contact, .c-veil)
+const ROOM_RGB: Rgb = [27, 28, 26]
 
 type Props = {
   film: { wide: string; tall: string }
@@ -233,6 +237,9 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
         holdRaf = requestAnimationFrame(watchHold)
         return
       }
+      letGo()
+    }
+    const letGo = () => {
       holding = false
       const y = scrollY
       root.style.scrollSnapType = 'none'
@@ -263,11 +270,30 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
       }
       endOn()
     }
+    // Both holds also let go at a new stroke of a wheel or a trackpad once their way is over (lib/finger.ts onWheelStroke): with strokes one
+    // after another the page never rested, and each stroke was taken back to the same stop — onwards to the Contact's ~7 s (Chrome, 14 Nov:
+    // "vários scroll normal não abriram o built around you"), back to the Questions' 5 s, one stroke up even pulled forward to it (Chrome
+    // and Safari: "não foi possível fechar o questions"). The stroke under way as the way ends (its momentum) is still held, as before. A
+    // finger is left as it was (phone, approved): a touch begun during iOS's momentum is not told to the page
+    const offWheel = onWheelStroke(() => {
+      if (runRaf || jumping()) return
+      if (onward) endOn()
+      if (holding) letGo()
+    })
     const go = (to: number) => {
       target = to
-      if (reduce) {
+      // reduced motion, and a jump of the site's own (the menu, an address: data-jump): the light is down, or up, at once — a jump lands on
+      // the scene as it rests (owner, 13 Nov: "deve apenas navegar para a zona da página sem mais nada a construir"; the menu to 05 Contact
+      // played the light going down and the question 1.3–2 s after it had gone)
+      if (reduce || root.dataset.jump !== undefined) {
+        cancelAnimationFrame(runRaf)
+        runRaf = 0
+        last = 0
+        delete root.dataset.cRun
         x = to
-        edges(to, to)
+        // a jump's edges are painted for where it goes (sequence.ts): painted here, the paper's stone stayed over the Work or the Method
+        // after the menu from the Contact (Simulator, 13 Nov)
+        if (reduce) edges(to, to)
         settle()
         return
       }
@@ -373,21 +399,49 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
     place()
     if (questions) questions.dataset.lum = root.classList.contains('c-dusk') ? '0.1' : '0.8'
     root.classList.add('c-live')
-    // The page's end as Safari brings its bar out: the screen 40 px shorter, the page has 40 px more to go — taken there at once, so the
-    // colophon goes up with the bar and a stroke more has nothing left to move. Left there, a third stroke took it all up (owner's iPhone,
-    // 12 Nov 23:53: "um 3.º scroll que puxa tudo para cima"); the page's last stop is aligned by its foot (about-stage.ts), so this is
-    // where it rests anyway. Only from the end itself, never in a jump (owner, 13 Nov: the colophon as a footer, going up with the bar)
-    let lastInner = innerHeight
+    // The page's end as Safari brings its bar out: the screen 40 px shorter, the page has 40 px more to go. The page's last stop follows
+    // the screen's height (about-stage.ts footMark) and the browser takes the page there itself: the colophon goes up with the bar and a
+    // stroke more has nothing left to move (owner's iPhone, 12 Nov 23:53: "um 3.º scroll que puxa tudo para cima"; 13 Nov: the colophon
+    // as a footer, going up with the bar). Taken there from here too (scrollTo, 13 Nov), it cut into the browser's own way there, and
+    // iOS kept the next tap to end a scroll that was over: the menu opened at the second tap (owner's iPhone, 14 Nov; Simulator: 0
+    // events at the first tap with it, 15 without)
     const onResize = () => {
       qLift = lift()
-      const was = root.scrollHeight - lastInner
-      lastInner = innerHeight
-      const end = root.scrollHeight - innerHeight
-      if (end > was + 1 && scrollY >= was - 2 && !jumping()) scrollTo({ top: end, behavior: 'instant' })
       onScroll()
     }
     addEventListener('scroll', onScroll, { passive: true })
     addEventListener('resize', onResize)
+
+    // The colour at the screen's top for Chrome's bar on Android (theme-color, entrance/sequence.ts: data-edge): the poster through the
+    // veil, where the page has settled. The room's flat #1b1c1a was 13–23 levels darker than what is there — the film's sky lets ~15 %
+    // through at the top (Xiaomi, 13 Nov: the bar #1b1c1a over #2a2a25 at the stop, #222521 at the end). Not on an iPhone: there the
+    // same colour is also the band under Safari's bar, over the colophon's own #1b1c1a. The film moves over its poster; the poster is
+    // its frame, read once per stop. The warm light (.c-veil's first gradient) is low in the room and never reaches the top
+    const poster = section.querySelector<HTMLImageElement>('.c-poster img')
+    const veil = section.querySelector<HTMLElement>('.c-veil')
+    let edgeLater = 0
+    const readEdge = () => {
+      if (!poster || !veil || root.dataset.section !== 'contact') return
+      const r = poster.getBoundingClientRect()
+      const v = veil.getBoundingClientRect()
+      if (r.top > 0 || r.bottom < 4) return
+      const c = bandColour(poster, { w: r.width, h: r.height }, { x0: innerWidth * 0.3 - r.left, x1: innerWidth * 0.7 - r.left, y0: -r.top, y1: 4 - r.top })
+      if (!c) return
+      // the veil's dark at the top's middle: radial-gradient(70% 60% at 50% 45%), 0.72 at its centre to 0.9 at its rim (contact.css)
+      const d = Math.hypot((innerWidth / 2 - v.left - 0.5 * v.width) / (0.7 * v.width), (-v.top - 0.45 * v.height) / (0.6 * v.height))
+      const dark = 0.72 + 0.18 * Math.min(1, d)
+      section.dataset.edge = hex(over(c, ROOM_RGB, dark))
+    }
+    const onSettle = () => {
+      clearTimeout(edgeLater)
+      edgeLater = window.setTimeout(readEdge, 150)
+    }
+    // only where theme-color is seen: a phone's Chrome (the desktop's toolbar never takes it)
+    if (!ios && matchMedia('(hover: none) and (pointer: coarse)').matches) {
+      addEventListener('scroll', onSettle, { passive: true })
+      poster?.addEventListener('load', onSettle)
+      onSettle()
+    }
 
     // seen: the film plays, the minute is kept — once the Contact's start is on the screen
     let clock = 0
@@ -411,10 +465,14 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
       sized.disconnect()
       removeEventListener('scroll', onScroll)
       removeEventListener('resize', onResize)
+      removeEventListener('scroll', onSettle)
+      poster?.removeEventListener('load', onSettle)
+      clearTimeout(edgeLater)
       cancelAnimationFrame(raf)
       cancelAnimationFrame(runRaf)
       cancelAnimationFrame(holdRaf)
       cancelAnimationFrame(cinRaf)
+      offWheel()
       section.style.removeProperty('--c-in')
       endOn()
       settle()

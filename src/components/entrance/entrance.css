@@ -18,29 +18,37 @@
   color: var(--linen);
 }
 
-/* iOS only (this property exists nowhere else). Safari keeps a strip above and below the page; the film cannot meet them, the page's
+/* iOS (this property exists nowhere else). Safari keeps a strip above and below the page; the film cannot meet them, the page's
    colour can. So the film rises out of that colour (--frame) on one smootherstep ramp. Colour alone: a live blur here popped as the ramp began to
-   leave, a flick of 2 levels across the top (iPhone, 1 Nov). It leaves with the film (WorkClient); the Work needs none. */
+   leave, a flick of 2 levels across the top (iPhone, 1 Nov). It leaves with the film (WorkClient); the Work needs none.
+   And a phone's Chrome (a finger, no hover): its bar is painted flat with theme-color — the same --frame — and met the film's light at a
+   hard line, the bar #221b15 over the film's #7a664e (Xiaomi, 13 Nov, the colour under the bar read from screenshots); the same ramp joins
+   them (owner, 13 Nov: option a). The desktop's toolbar never takes the page's colour: nothing there */
 .e-edge {
   display: none;
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  --edge: var(--frame, var(--charcoal));
+}
+.e-edge-top {
+  top: 0;
+  height: 130px;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--edge) 100%, transparent) 0.0%, color-mix(in srgb, var(--edge) 99%, transparent) 8.3%, color-mix(in srgb, var(--edge) 96%, transparent) 16.7%, color-mix(in srgb, var(--edge) 90%, transparent) 25.0%, color-mix(in srgb, var(--edge) 79%, transparent) 33.3%, color-mix(in srgb, var(--edge) 65%, transparent) 41.7%, color-mix(in srgb, var(--edge) 50%, transparent) 50.0%, color-mix(in srgb, var(--edge) 35%, transparent) 58.3%, color-mix(in srgb, var(--edge) 21%, transparent) 66.7%, color-mix(in srgb, var(--edge) 10%, transparent) 75.0%, color-mix(in srgb, var(--edge) 4%, transparent) 83.3%, color-mix(in srgb, var(--edge) 1%, transparent) 91.7%, color-mix(in srgb, var(--edge) 0%, transparent) 100.0%);
+}
+@media (hover: none) and (pointer: coarse) {
+  .e-edge {
+    display: block;
+  }
 }
 @supports (-webkit-touch-callout: none) {
   .e-edge {
     display: block;
-    position: absolute;
-    z-index: 3;
-    left: 0;
-    right: 0;
-    pointer-events: none;
-    --edge: var(--frame, var(--charcoal));
   }
   .e-tint {
     --tint-floor: rgba(20, 18, 15, 0.32); /* less veil over the film's foot: its names have their own shade */
-  }
-  .e-edge-top {
-    top: 0;
-    height: 130px;
-    background: linear-gradient(to bottom, color-mix(in srgb, var(--edge) 100%, transparent) 0.0%, color-mix(in srgb, var(--edge) 99%, transparent) 8.3%, color-mix(in srgb, var(--edge) 96%, transparent) 16.7%, color-mix(in srgb, var(--edge) 90%, transparent) 25.0%, color-mix(in srgb, var(--edge) 79%, transparent) 33.3%, color-mix(in srgb, var(--edge) 65%, transparent) 41.7%, color-mix(in srgb, var(--edge) 50%, transparent) 50.0%, color-mix(in srgb, var(--edge) 35%, transparent) 58.3%, color-mix(in srgb, var(--edge) 21%, transparent) 66.7%, color-mix(in srgb, var(--edge) 10%, transparent) 75.0%, color-mix(in srgb, var(--edge) 4%, transparent) 83.3%, color-mix(in srgb, var(--edge) 1%, transparent) 91.7%, color-mix(in srgb, var(--edge) 0%, transparent) 100.0%);
   }
 }
 

@@ -459,6 +459,10 @@
   :root[data-js] .questions.q-done .q-row {
     transition: none;
   }
+  /* reached by a jump (questions-client.tsx): in at once */
+  :root[data-js] .questions.q-now :is(.q-anchor, .q-row, .q-next) {
+    transition: none;
+  }
 }
 /* ================= the light goes down (#106; the Contact's passage, contact.css) =================
    After the last question the paper goes on for one more screen, and the Contact lies under it (its room behind, its question over it).

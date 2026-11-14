@@ -71,6 +71,12 @@ export function QuestionsClient() {
     let seen: IntersectionObserver | null = null
     let done = 0
     const arrive = () => {
+      // reached by a jump of the site's own (the menu, an address: data-jump): there at once, nothing built while it is watched (owner, 13 Nov)
+      if (document.documentElement.dataset.jump !== undefined) {
+        section.classList.add('q-now', 'q-in', 'q-done')
+        requestAnimationFrame(() => requestAnimationFrame(() => section.classList.remove('q-now')))
+        return
+      }
       section.classList.add('q-in')
       // the rows' delays are only for their entrance: after it, opening and closing never wait for them
       done = window.setTimeout(() => section.classList.add('q-done'), 1900)

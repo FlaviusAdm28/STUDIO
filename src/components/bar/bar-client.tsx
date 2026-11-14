@@ -5,6 +5,7 @@ import { lensMap } from '@/lib/lens'
 import { press } from '@/lib/press'
 import { landOnAddresses } from '@/lib/address'
 import { unsnapped } from '@/lib/unsnapped'
+import { governWheel } from '@/lib/finger'
 
 type Section = { readonly id: string; readonly number: string; readonly label: string }
 type Props = {
@@ -143,6 +144,8 @@ export function BarClient(props: Props) {
     cleanups.push(press(document.body, '.bar-menu, .menu-list a, .menu-go, .menu-channels a'))
     // the Method's and the About's addresses land where they are seen, not on their top (src/lib/address.ts)
     cleanups.push(landOnAddresses())
+    // one stroke of a wheel or a trackpad, one stop, on a desktop (lib/finger.ts): for the whole page, so here, with the bar
+    cleanups.push(governWheel())
 
     // ---- each island's darkness: measured under its words only (README #71) ----
     // The brightness of every image is read once, on a 24 × 24 grid (sRGB luma); the film is read from its poster (the
@@ -332,13 +335,17 @@ export function BarClient(props: Props) {
         window.removeEventListener('wheel', still)
         window.removeEventListener('touchmove', still)
         window.removeEventListener('keydown', stillKeys)
-        window.removeEventListener('scroll', follow)
+        // following the page goes on while the drop shrinks (finish): the menu stays where the screen is as a section chosen in it moves
+        // the page (bar.css: in the page until it has closed)
       }
     }
+    const unfollow = () => window.removeEventListener('scroll', follow)
+    cleanups.push(unfollow)
     cleanups.push(() => hold(false))
     on('resize', () => (root.dataset.menu === 'open' || root.dataset.menu === 'armed') && placeDrop())
     // the drop's place and size, from the menu island where it is now: as it opens, and again if the window changes while it is open
     // (made wider, a corner was left uncovered; made narrow, the island moved and the drop would have closed onto where it had been)
+    let belowNow = 0
     const placeDrop = () => {
       const isl = button?.closest<HTMLElement>('.bar-isl')?.getBoundingClientRect()
       if (!isl) return false
@@ -346,10 +353,17 @@ export function BarClient(props: Props) {
       // on an iPhone the menu lies in the page where the screen is, its room on into the bands above and below (bar.css)
       const px = (k: string) => parseFloat(getComputedStyle(root).getPropertyValue(k)) || 0
       const above = ios ? px('--menu-above') : 0
-      const below = ios ? px('--menu-below') : 0
+      // below the screen only as much as the page still has there: past the page's end the room made the page longer, and at the end
+      // WebKit took the page on into it, a pixel at a time (its stop at the end is aligned by the page's foot, and the menu followed the
+      // page): the colophon went up ~40 px with the menu open, and stayed (owner's iPhone, 14 Nov 00:54; the Simulator: 16098 → 16138,
+      // the page 160 px longer). There Safari paints the band under its bar with the page's own colour, which is the glass's while the
+      // menu is open (entrance/sequence.ts). Measured as it opens, the menu not yet in the page
+      if (ios && !root.dataset.menu) belowNow = Math.max(0, Math.min(px('--menu-below'), root.scrollHeight - scrollY - innerHeight))
+      const below = ios ? belowNow : 0
       if (ios) {
         dialog.style.setProperty('--menu-at', `${scrollY}px`)
         dialog.style.setProperty('--menu-h', `${innerHeight}px`)
+        dialog.style.setProperty('--menu-below', `${below}px`)
       }
       // just large enough to reach the farthest corner of its room: the drop covers it exactly as it stops growing. Larger
       // (the screen's diagonal), it covered the screen at ~0.94 and kept growing, and its blur grew with it — the owner saw
@@ -391,7 +405,11 @@ export function BarClient(props: Props) {
     cleanups.push(() => button?.removeEventListener('blur', unquiet))
     const close = (focusButton = true, quiet = false) => {
       if (root.dataset.menu !== 'open' && root.dataset.menu !== 'armed') return
-      // back to fixed where it is (bar.css: in the page only while open), so a section chosen in it moves the page and not the menu
+      // in the page still while the drop shrinks, following it (bar.css, follow): a section chosen in it moves the page, and the menu stays
+      // where the screen is. Back to fixed as it began to close, Safari no longer drew its glass in the bands of the Dynamic Island and
+      // under its bar, and they were the page's flat colour round the shrinking drop — the stone's over the Questions (owner's iPhone,
+      // 13 Nov 16:48: "as barras perto da ilha e em baixo … não são simplesmente o background da categoria com o menu por cima";
+      // measured in his video: 214,205,192 flat at the top and the foot, the glass 149 between)
       root.dataset.menu = 'closing'
       hold(false)
       // if the drop has nothing to shrink (closed before it grew), no transition ends: close anyway
@@ -406,6 +424,7 @@ export function BarClient(props: Props) {
     // once the drop has shrunk the dialog closes, so no blur is composed behind a closed menu (28 Oct: it lingered)
     function finish() {
       if (root.dataset.menu !== 'closing') return
+      unfollow()
       dialog?.close()
       delete root.dataset.menu
       queue()

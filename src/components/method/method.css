@@ -894,7 +894,10 @@
    Experiences was pulled back to its mark (owner, iOS, 7 Nov: "fica preso no Experiences") */
 /* a desktop (approved, owner, 8 Nov) */
 @media (min-width: 900px) {
-  :root[data-js]:is([data-section='work'], [data-section='method']):has(
+  /* the About's section too: just into it, its phase not yet 12, the Method's 11 still on stage, the snapping was off and a stroke's momentum
+     ran free — from 11 to the Questions' paper rising, past 12, 13 and 14 (Safari 27.2), or to 13 halfway through 12's passage (owner's
+     desktop round, Chrome 157 and Safari, 14 Nov: 4 of the 18 marks; ~80 ms in the recordings, enough for a trackpad's momentum) */
+  :root[data-js]:is([data-section='work'], [data-section='method'], [data-section='about']):has(
       .method:is([data-phase='7'], [data-phase^='8'], [data-phase='9'], [data-phase='10'], [data-phase='11'], [data-near])
     ),
   :root[data-js]:has(.about:is([data-phase='12'], [data-phase='13'], [data-phase='14'])) {
@@ -955,10 +958,6 @@
   pointer-events: none;
   scroll-snap-align: start;
   scroll-snap-stop: always;
-}
-/* the page's end (about-stage.ts): its foot at the screen's foot, whatever the browser's bar is doing */
-:root[data-js] .about .a-snap[data-align='end'] {
-  scroll-snap-align: end;
 }
 @media (max-width: 899px) {
   /* a longer scene on a phone: 7.8 screens (+ the half screen before it and the stage), ~1.1 screen a step (method-stage.ts

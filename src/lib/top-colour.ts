@@ -46,13 +46,18 @@ export function bandColour(
     const w = Math.max(1, x1 - x0)
     const h = Math.max(1, y1 - y0)
     canvas ??= document.createElement('canvas')
-    canvas.width = 8
-    canvas.height = 2
+    canvas.width = 16
+    canvas.height = 4
     ctx ??= canvas.getContext('2d', { willReadFrequently: true })
     if (!ctx) return null
-    ctx.clearRect(0, 0, 8, 2)
-    ctx.drawImage(img, x0, Math.min(y0, ih - h), w, h, 0, 0, 8, 2)
-    const d = ctx.getImageData(0, 0, 8, 2).data
+    ctx.clearRect(0, 0, 16, 4)
+    // the whole image drawn so that the band fills the canvas — never a source rectangle: Chrome reads one in the file's own pixels,
+    // while naturalWidth is the srcset's corrected size (the About's portrait: 392 natural, 1440 in the file). The band read was a
+    // corner of the photograph, darker: the edge #adaca8 over a top of #c1c0be at the About's 13 and 14 (Xiaomi, 13 Nov)
+    const kx = 16 / w
+    const ky = 4 / h
+    ctx.drawImage(img, -x0 * kx, -Math.min(y0, ih - h) * ky, iw * kx, ih * ky)
+    const d = ctx.getImageData(0, 0, 16, 4).data
     let r = 0
     let g = 0
     let b = 0

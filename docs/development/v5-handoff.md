@@ -1,20 +1,127 @@
 # Chapter One V5 — handoff
 
-## ▶ COMEÇAR AQUI · 13 de novembro de 2026 — bugs para produção: o 1 corrigido (paragens no Work), 2–5 por fazer
+## ▶ COMEÇAR AQUI · 14 de novembro de 2026 (fim da sessão, ~03:00) — correção 1 do desktop: feita em parte, o regulador de gestos EM CURSO
 
-### Estado (nada commitado desde `00a1462`)
-- Por commitar, tudo junto: o de 12/11 (abaixo) e **as paragens do Work** (README #110, `work-client.tsx`, `work.css`, storyboard
+### ⚠⚠ RETOMAR AQUI (14/11, ~03:00) — ler isto primeiro
+**Onde ficou:** a correção 1 da ronda de testes do desktop (A + B, abaixo em "ÚLTIMO"). O owner gravou 3 evidências depois dela (Safari,
+`ios-lab/out/2026-11-14T02-25-54`, `…02-27-37`, `…02-30-06-rec.jsonl`):
+- **02-25 e 02-27** ("se forçar scroll rápido longo do Method para o About vou até ao fim e depois ele volta para o About"): gestos de
+  trackpad extremos (até 1600 px por evento, Σ 28 878). Causa: durante as retenções (a passagem do 12, a história do 14, `c-on`) o site
+  tira as paragens à frente; com o encaixe obrigatório e nada à frente a inércia corre livre até ao fim e o encaixe traz a página de
+  volta. O mesmo mecanismo explica o Chrome a passar paragens (9 → 11).
+- **02-30** ("ainda consigo reproduzir tudo subir mais no fim"): `scrollY` 13237 para um fim de 13014 = o elástico do Safari no fim (o
+  ponto F da lista; não tinha sido tocado).
+**O que foi feito em resposta (por validar — NÃO dar como feito):** um **regulador de gestos** no desktop, `src/lib/finger.ts`
+`governWheel()` (ligado em `bar-client.tsx`; CSS `:root[data-wheel-held] { overflow: hidden }` em `globals.css`): onde o encaixe é
+obrigatório, um gesto de roda/trackpad vai até à próxima paragem ativa (`.w-pass-snap, .m-snap, .a-snap` com `scroll-snap-align` ≠ none)
+e não passa; sem paragem à frente não move a página (resolve também o elástico no fim e no topo). Como o Chrome só deixa cancelar o 1.º
+evento de cada gesto de trackpad, o resto do gesto é segurado com `data-wheel-held` (solto 150 ms depois do último evento ou num gesto
+novo), e a página é posta na paragem (`scrollTo` instantâneo) quando faltam menos de dois eventos para lá chegar ou se já a passou.
+Custo: ouvinte de `wheel` não passivo no desktop (o browser espera por ele a cada evento) — medir com o gravador.
+**Testes (Chrome 157 sem janela, 1728×942, gestos `Input.synthesizeScrollGesture`; `…/bbf6a277-…/scratchpad/gov.mjs`, `gov3.mjs`):**
+- Certo: Method 9 → 10 (8290, sem passar), 11 → 12 (9373, sem passar), 12 → 13, 14 → Questions, Weddings → Artists, Artists → Weddings
+  (às vezes), Experiences → Artists, fim: não se mexe (nem para baixo), fim ↑ → Contact, topo ↑: não se mexe e já não dispara o Weddings.
+- **Ainda falha:** Experiences ↓ forte → 8a (salta o 7); 8a ↑ forte → Experiences (salta o 7); Artists ↑ forte → Weddings e depois a capa
+  (2 de 4: a volta à capa do Work dispara pelo scroll acima do Weddings). Hipóteses a verificar primeiro: no Experiences/7 o encaixe pode não
+  estar `mandatory` no início do gesto (o regulador desliga-se: `stop = null` e não segura) ou a marca do 7 estar sem `scroll-snap-align`
+  (`.method[data-passage]`, `data-near`); para o Weddings, ver em `work-client.tsx` o que dispara a volta (scroll acima de `geo.top`) e
+  se o regulador deve segurar antes (ou o Work ignorar o scroll com `data-wheel-held`).
+- **Próximo passo amanhã:** 1) gravar cada caso que falha frame a frame (`gov.mjs` com o estado do encaixe e das marcas no início do gesto),
+  corrigir; 2) repetir `gov.mjs`, `gov3.mjs` e `padtest.mjs in|back|m11` (as retenções A); 3) medir fotogramas com o regulador
+  (gravador); 4) pedir ao owner para repetir as 3 evidências e a ronda (`http://localhost:3140/`, Chrome e Safari); 5) só depois
+  registar no README (#117 diz já A + B; acrescentar o regulador como #118 se o owner aprovar) e passar ao ponto 2 da lista.
+- Se o regulador não ficar fiável: desligá-lo é uma linha (`cleanups.push(governWheel())` em `bar-client.tsx`); A e B ficam.
+**Servidores para retomar:** produção `cd STUDIO && <node22> node_modules/next/dist/bin/next build && <node22> node_modules/next/dist/bin/next start -p 3100`
+(o Node do sistema é 20.5 e o Next 16 pede ≥ 20.9; `<node22>` = `/private/tmp/claude-502/-Users-flaviooliveira-WebstormProjects-STUDIO/10f08265-711f-412f-ba1c-1613338b5a75/scratchpad/node/node-v22.23.4-darwin-arm64/bin/node`
+— se a pasta temporária tiver sido limpa, instalar/usar um Node ≥ 20.9; o `npm` dessa cópia está partido, correr o `next` direto);
+gravador `node docs/development/ios-lab/proxy.mjs 3140 3100 rec` (owner: `http://localhost:3140/`); telemóveis `proxy.mjs 3130 3100`.
+Chrome sem janela para testes: `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --remote-debugging-port=9333 --user-data-dir=<scratchpad>/chd`.
+Os scripts de teste desta sessão foram copiados para **`docs/development/ios-lab/desk/`** (verificado por SHA-1): `gov.mjs` (gestos
+fortes, paragens), `gov3.mjs` (o Work), `padtest.mjs in|back|m11` (as retenções do Contact e o 11 → 12), `shot.mjs` (capturas por fase do
+Method), `cast.mjs`/`cast1.mjs` (fotogramas da passagem do Work), `rectest.mjs` (o gravador). Usam o Chrome sem janela na porta 9333 e o
+site em 3100; correr com o Node 22 a partir dessa pasta.
+**Nada commitado desde `8ac2c92`** (13/11): tudo de 13–14/11 está no disco (lista em `git status`). Commit só quando o owner pedir.
+
+**A lista completa do que falta (pela ordem combinada com o owner):**
+1. Correção 1 — A (retenções do Contact, FEITO e testado), B (encaixe entre o Method e o About, FEITO), **regulador de gestos (EM CURSO,
+   acima)**; e confirmar com o owner no trackpad real (Chrome e Safari).
+2. C (encaixe desligado ~1,6 s depois de um salto do menu) e D (a passagem do Work: o arco que salta ao chegar ao Weddings, ~40 px e ~10 %,
+   e o ajuste de 55 px da 1.ª passagem; a fotografia que muda no início da volta; a roda para trás ignorada durante a passagem; o elástico do
+   Safari no topo a disparar o Weddings — o regulador já o trava; o Work a passar inteiro para trás, Chrome 4 — pedir vídeo).
+3. E: a 1728×942 os cartões do Method ficam por baixo de *Your name* (crescem com a largura).
+4. F: o elástico do Safari no fim (o regulador trava-o; confirmar) e os cartões do Method na barra do Safari (pedir vídeo).
+5. G: abrir/fechar o menu sobre o Contact no Chrome: fotogramas de 108–250 ms.
+6. Por decidir com o owner: A2, a retenção da história do About 14 (1,6 s) — manter, encurtar ou soltar num gesto novo.
+7. Antes de produção (do plano): o iPhone do owner para tudo de 13–14/11 (menu e cor do topo, o toque no fim, README #116), tirar o medidor
+   de FPS de `page.tsx`, a imagem de partilha (M7), a validação final (M8), commit quando o owner pedir, pré-visualização no Vercel.
+
+### Estado
+- Commitado em `8ac2c92` (13/11): o de 12/11 (abaixo) e **as paragens do Work** (README #110, `work-client.tsx`, `work.css`, storyboard
   estado 5, `v5-tests.md` "Paragens no Work… 13/11"). typecheck, lint (0), build passam. Commit só quando o owner pedir.
 - Laboratório como a 12/11 (servidores e proxies a correr; Simulador `v5-iphone`; Chrome de teste pid 32221 CDP 9223 na 3131; Safari na
   3136). Ajudas desta sessão: `…/bbf6a277-…/scratchpad/b1.sh` (`fresh`, `top0`, `wrec`/`wdump` gravador por fotograma, `wst`). A janela do
   Device Hub fica atrás do WebStorm: trazê-la com `activate` + `AXRaise` (`front` em `b1.sh`) antes dos gestos.
+
+### ⚠ ÚLTIMO (14/11, madrugada): ronda de testes do owner no desktop — 18 bugs analisados; correção 1 (A + B) FEITA, por confirmar pelo owner
+- **Ordem combinada com o owner:** 1 = A + B (feito: README #117, `v5-tests.md` "Ronda de testes… 14/11"); 2 = C e a passagem do Work (D);
+  3 = layout 1728×942 (E); 4 = elástico do Safari (F); 5 = menu sobre o Contact (G). A2 (retenção do 14, 1,6 s) fica por decidir com o
+  owner. Por pedir ao owner: vídeo do Safari 2 e do Chrome 4. Nada commitado.
+- Servidores: `next start -p 3100` (Node 22: `…/10f08265-…/scratchpad/node/node-v22.23.4-darwin-arm64/bin/node node_modules/next/dist/bin/next`),
+  gravador `node docs/development/ios-lab/proxy.mjs 3140 3100 rec` → o owner abre `http://localhost:3140/`.
+### Os 18 bugs (análise)
+- Gravações: `ios-lab/out/2026-11-14T01-41-32-rec.jsonl` (Chrome 157, 1728×942 dpr 2, 11 marcas) e `…01-49-14-rec.jsonl` (Safari 27.2,
+  1500×934, 7 marcas). Ler com `rec-read.mjs` (linha do tempo) e `rec-strokes.mjs` (um gesto por linha: de onde → onde assentou).
+  Sem gravação do ecrã; o que é só visual foi reproduzido com capturas no Chrome sem janela (1728×942).
+- **A. Retenções do Contact que só acabam em repouso** (`data-c-on`, `data-c-hold`, contact-client): com gestos seguidos nunca acabam e
+  cada gesto volta à mesma paragem — Chrome 7, 8, 10 (c-on ~7 s, 281→288 s; um gesto para cima puxado para as Questions, 237 s), Safari 6.
+  **A2.** A retenção da história do 14 (1,6 s, `STORY_MS`): um gesto ~1 s depois de chegar ao 14 volta ao 14 — Chrome 9, Safari 3.
+- **B. O encaixe desliga-se no desktop na passagem Method → About** (method.css: a regra do desktop exige `data-section` work/method; a
+  secção já é `about` e o About ainda não está no 12): a inércia passa livre — Chrome 6 e 11, Safari 1 (de 11 até 11322, as Questions a
+  subir) e 5 (de 10 até ao 13 a meio da passagem do 12). E gestos fortes de trackpad passam paragens com o encaixe ligado (Chrome: 9→11).
+- **C. (não marcado)** Depois de um salto do menu o encaixe fica desligado ~1,6 s (`unsnapped`): um gesto nesse tempo atravessou o Method
+  inteiro até ao About (Safari 292,8 s) ou saltou o 8a (212,3 s).
+- **D. A passagem do Work:** Chrome 1 — no último fotograma do voo o arco está ~40 px abaixo e ~10 % menor que o arco real, que aparece no
+  seguinte (captura 1728×942); e na 1.ª passagem a página ficou presa em 1374 e foi para a paragem 1319 no fim (+55 px). Chrome 3 — no
+  início da volta a fotografia do arco muda de enquadramento e de luz em 1–2 fotogramas (a do palco, mais escura e afastada, pela cópia
+  que voa). Chrome 2 — um gesto da roda para trás durante a passagem para a frente é ignorado até ela acabar (só o dedo a inverte).
+  Safari (7.º, depois de recarregar) — no topo o elástico do Safari dá `scrollY` negativo e a volta a 0 é lida como scroll para a frente:
+  a passagem para o Weddings arranca com gestos para cima. Chrome 4 — para trás do Method 7 o Work passa inteiro (as paragens do Work só
+  ligam em repouso); e `data-near` fica ligado no 8c (`m=8cn`). Pedir vídeo para o que o owner viu exatamente.
+- **E. Chrome 5** — a 1728×942 a linha *Make it yours | Your name* fica por cima dos cartões (8a–8c): os cartões crescem com a largura;
+  a 1500×934 e 1440×900 não (capturas).
+- **F. Safari 4** — no fim `scrollY` 13498 > 13476: o elástico do Safari no fim (provável causa de "sobe tudo ainda mais"). **Safari 2** —
+  cartões do Method a mexer na barra de cima do Safari: só visual, Safari não automatizável daqui: pedir vídeo.
+- **G. (não marcado)** Chrome: abrir o menu sobre o Contact deu fotogramas de 250, 175, 151, 108 ms; fechar 184 e 158 ms.
+
+### (antes) 13/11, noite: o menu e a cor do topo — feito, medido no Xiaomi, Simulador e Chrome desktop; por testar no iPhone do owner, por commitar
+- README #116, `v5-tests.md` "O menu e a cor do topo". Menu aberto = a cor do vidro na página (iOS) e na barra do Chrome (Android), no tempo
+  da gota; About 12 seguido na passagem; `lib/top-colour.ts` lia a parte errada das fotos com `srcset` (About 13/14); Contact no Android
+  lê o poster pelo véu; entrada no Android com o esbatimento do topo do iPhone. **Próximo:** o owner testa no iPhone (menu aberto/fechado
+  sobre Questions, About 13, Method 9; entrada; Contact) e no Xiaomi (entrada de dia). Depois: a lista de bugs do menu do owner.
+- Ferramentas: `…/bbf6a277-…/scratchpad/xtop.mjs` (Xiaomi, barra ↔ página), `simtop.sh` (Simulador), `desk.mjs` (Chrome headless 9333).
+  Node 22 para o build: `rebuild`/`restart` de `b1.sh` (o Node do sistema é 20.5).
+
+### (antes) 13/11, tarde: o menu — saltos sem "construir" e as faixas da ilha/fundo (feito no Simulador e Chrome, README #115; por commitar)
+- **Feito e medido (ver `v5-tests.md`, "O menu…"):** a cor final certa e uma só mudança em 20/20 saltos. **Xiaomi verificado (18/18).** **Falta:** Safari
+  desktop, o iPhone do owner; e o resto da lista de bugs do menu do owner. O toque perdido num link a aparecer (iOS) continua à espera de decisão.
+- Pedido do owner: navegar pelo menu deve só ir à zona, sem passagens a tocar nem faixas de cor antigas. Volta de 13 saltos no
+  Simulador (gravação + `wh`): **aterram todos certos** (Work W0, Method 7, About 12, Questions, Contact). Visto: o Method tocava a luz,
+  o About ia do 14 ao 12 (retrato aceso, depois escuro), o Contact escurecia e a pergunta vinha aos 1,3–2 s; as faixas esbatiam da
+  cor antiga 0,3–1,1 s.
+- **Feito, por medir e commitar:** salto (`data-jump`) = estado final já: `method-stage.ts` (`leap()`, `show(at, true)`), `about-stage.ts`
+  (`jumped` inclui `data-jump`, também no 12), `contact-client.tsx` (`go` instantâneo com `data-jump`), `questions-client.tsx`
+  (`q-now`), `sequence.ts` (sem esbatimento com `data-jump`), `work-client.tsx` (`land` marca `data-jump`). typecheck/lint/build OK.
+- **Encontrado na 2.ª volta (gravador da cor do fundo):** a cor final das faixas nem sempre é a certa — Method 7 escuro (23,24,22) vindo
+  das Questions/About e claro vindo do Work; About 12 cinzento (176,175,171) uma vez; 3–4 cores intermédias em 0,13–0,48 s. Suspeita:
+  `data-edge` (top-colour) lido antes de a cena instantânea estar desenhada, ou o `data-edge` da fase anterior. Gravação em
+  `…/bbf6a277-…/scratchpad/tour2.mp4`, folha `jumps2.png`. **Próximo passo: ver isto, corrigir, repetir a volta; depois Xiaomi e owner.**
 
 ### Ponto da situação (13/11, fim)
 - **Os 5 bugs e o Contact mais suave: feitos e aprovados pelo owner no iPhone dele** (README #110–#114, `v5-tests.md` 13/11). O 1 tem um
   resto aceite pelo owner como caso-limite (rajadas de gestos muito rápidos no iPhone real).
 - **Xiaomi verificado (13/11, `finger/xiaomi-bugs.mjs`, `v5-tests.md`):** os 5 bugs e o Contact certos. Fica o #1 de sempre fora do iOS:
   gestos fortes passam paragens (W → E; do 7 ao topo). Endereço do Mac na rede agora **192.168.1.7**.
-- **Nada commitado desde `00a1462`.** Antes de produção (do plano): tirar o medidor de FPS de `page.tsx`, a imagem de partilha (M7), a
+- **Commitado: `8ac2c92` (13/11, branch `v5`)** — tudo até aqui; o push é do owner (GitHub Desktop: este terminal não tem credenciais). Antes de produção (do plano): tirar o medidor de FPS de `page.tsx`, a imagem de partilha (M7), a
   validação final (M8: 5 larguras, teclado, movimento reduzido, sem JS com `next start`, contraste), commit quando o owner pedir,
   pré-visualização no Vercel, depois o `master`. Em pausa por decisão do owner: o menu (lista de erros a pedir), a barra de cima.
 

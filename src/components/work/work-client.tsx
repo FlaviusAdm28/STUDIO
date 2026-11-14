@@ -1257,6 +1257,10 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       // Artists' stop than its own
       const top = restOf(k) ?? steps[k].getBoundingClientRect().top + scrollY + 1
       jumping = true
+      // a jump of the site's own, for the scenes it passes over or leaves (the Method, the About: put in place at once, data-jump), as
+      // lib/address.ts marks the others
+      root.dataset.jump = id
+      window.setTimeout(() => root.dataset.jump === id && delete root.dataset.jump, 600)
       setChapter(k)
       const done = () => {
         jumping = false
@@ -1272,7 +1276,10 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       if (a && chapters.includes(chapterOf(id))) {
         e.preventDefault()
         history.pushState(null, '', `#${id}`)
-        land(id, !a.closest('.e-blades'))
+        // smooth only within the Work (its chapters' own titles); from anywhere else (the menu, the colophon's index, the Questions' chapters)
+        // at once: smooth, the menu's 01 Work from the Contact scrolled through the whole page, every scene and edge colour on the way in
+        // ~0.5 s (owner, 13 Nov: "deve apenas navegar para a zona da página sem mais nada a construir"; Simulator, menu tour)
+        land(id, !a.closest('.e-blades') && !!a.closest('.work'))
       }
     })
     // the address changing on its own — back and forward, or a chapter typed in — lands too

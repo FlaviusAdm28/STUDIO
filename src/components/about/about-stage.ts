@@ -138,12 +138,15 @@ export function runStage(about: HTMLElement, release: () => void) {
     // only when it shows a good part of a screen more: 142 px below the Questions' own stop it was a step that showed nothing new (iOS)
     if (lastQuestions > out + 0.35 * innerHeight) below.push(lastQuestions)
     if (contactAt < end - 1) below.push(contactAt)
-    // the page's end: a mark at the page's foot that rests with its foot at the screen's (scroll-snap-align: end, method.css), so the
-    // stop is the true end whatever the browser's bar is doing. Placed at the end less the screen, it was the end with the bar as it was
-    // when placed: with the bar out the page went on 40 px (iPhone) or 56 px (Xiaomi) more under a forced stroke, at its end (owner's
-    // iPhone, 10 Nov 17:03: "se forçar continua a forçar"; Xiaomi, CDP strokes). As Safari brings its bar out there the page is taken to
-    // the new end at once (contact-client.tsx): the colophon goes up with the bar, not at a third stroke (owner, 13 Nov)
-    const foot = document.documentElement.scrollHeight - (top + scrollY) - 1
+    // the page's end: a mark where the page ends with the screen as it is now, start-aligned, and moved with the screen's height as the
+    // browser's bar comes and goes (footMark, onResize) — so the stop is the true end whatever the bar is doing, and always within reach.
+    // Placed once (the end less the screen at that time), with the bar out the page went on 40 px (iPhone) or 56 px (Xiaomi) more under
+    // a forced stroke (owner's iPhone, 10 Nov 17:03: "se forçar continua a forçar"); aligned by its foot instead (scroll-snap-align: end,
+    // 10–13 Nov), WebKit measured it with the screen as with the bar out (714 px at 402 × 874) while the page, the bar away, ended 40 px
+    // short of that (754): a stop out of reach, which iOS went on scrolling towards — the first tap after a stroke to the end was taken to
+    // stop that scroll and never reached the page (owner's iPhone, 14 Nov: "o primeiro click não funciona, só o segundo"; Simulator: 0
+    // events at the first tap, 15 at the second; with snapping off, 15 at the first) and, with the menu open, the page crept into it
+    const foot = end
     if (end > out + 1) below.push(foot)
     const tops = [...shares.map((share) => (LEAD + share) * H), out, ...below]
     tops.forEach((y, i) => {
@@ -160,8 +163,8 @@ export function runStage(about: HTMLElement, release: () => void) {
       // which is which, for the hold of the passage (method.css): 12's stays while the light finds the portrait; those below 14 (the
       // Questions' and on) go while 14's story comes in
       m.dataset.at = i === 0 ? '12' : i >= shares.length ? 'below' : ''
-      if (y === foot && i === tops.length - 1) m.dataset.align = 'end'
-      else delete m.dataset.align
+      if (y === foot && i === tops.length - 1) m.dataset.foot = ''
+      else delete m.dataset.foot
       // past the Contact's stop (the colophon's, the page's end): they go while the light goes down (method.css, data-c-on)
       if (i >= shares.length && y > contactAt + 1) m.dataset.past = ''
       else delete m.dataset.past
@@ -576,8 +579,14 @@ export function runStage(about: HTMLElement, release: () => void) {
     // the top's colour as the top changes: followed while the room comes up and the photograph opens over the top (to 13, 14), and
     // while it closes off it (back to 12). By the clock alone it was early or late on one screen or the other: the photograph reaches the
     // top between 1.2 and 1.5 s at 390 × 844, and leaves it by 0.4 s, by 0.65 s on the iPhone's taller portrait (timed, 4 Nov)
-    const moving = !instant && (((to === '13' || to === '14') && (was === '12' || was === 'pre')) || (to === '12' && (was === '13' || was === '14')))
-    setEdge(to, 0, moving ? 1800 : 0)
+    // and at the passage into 12 (from the Method's 11): read once as it started, the top kept what was there then — the light's grey
+    // over the room already dark (Chrome's bar #adaca8 over the page's #171816; Xiaomi, 13 Nov)
+    const moving =
+      !instant && (((to === '13' || to === '14') && (was === '12' || was === 'pre')) || (to === '12' && (was === '13' || was === '14' || was === 'pre')))
+    // put in place at once (a jump, a refresh): read once this has run whatever way it ends (12 returns early). Read here, before its
+    // flights, it was the phase it left — from 14 the lit portrait's grey over 12's dark, after the menu from the Contact (Simulator, 13 Nov)
+    if (instant) queueMicrotask(() => phase === to && setEdge(to))
+    else setEdge(to, 0, moving ? 1800 : 0)
 
     if (to === 'pre') {
       release()
@@ -743,14 +752,16 @@ export function runStage(about: HTMLElement, release: () => void) {
   // ---- the phase under the scroll, once a frame, with the dead band; 12's passage is played whole ----
   let wake = 0
   const progress = () => (-about.getBoundingClientRect().top - LEAD * H) / H
-  // A jump (the menu, an address, the bar's name) is not a scroll: what it leaves or passes over is put in place at once. Played, the
-  // way back from 14 held the About over the Method for 2 s after the menu had gone to 02 Method; only a landing on 12 plays its passage
+  // A jump (the menu, an address, the bar's name) is not a scroll: what it leaves, passes over or lands on is put in place at once. Played,
+  // the way back from 14 held the About over the Method for 2 s after the menu had gone to 02 Method; and a landing on 12 played its
+  // passage — from 14, the portrait lit and its words, then the dark and the light coming back to it (owner, 13 Nov: "deve apenas navegar
+  // para a zona da página sem mais nada a construir"; Simulator, menu tour)
   let lastP: number | null = null
   let viaJump = false
   let jumpAt = -1e9
   const choose = () => {
     const p = progress()
-    const jumped = lastP !== null && Math.abs(p - lastP) > 1.2
+    const jumped = (lastP !== null && Math.abs(p - lastP) > 1.2) || document.documentElement.dataset.jump !== undefined
     lastP = p
     // a jump can arrive in two frames (just short of the start, then on it): it counts for a moment after it is seen (the copy of 11 was
     // still made on the second frame, from the Method's 9, 4 Nov)
@@ -775,7 +786,7 @@ export function runStage(about: HTMLElement, release: () => void) {
     let at: (typeof ORDER)[number] = '12'
     ORDER.forEach((ph) => p >= startsOf()[ph] && (at = ph))
     if (phase === null) return show(at, true)
-    if (jumped && at !== '12') return at !== phase && show(at, true)
+    if (jumped) return at !== phase && show(at, true)
     if (phase === 'pre') return show(at === '12' ? '12' : at)
     const cur = ORDER.indexOf(phase as (typeof ORDER)[number])
     const nxt = ORDER.indexOf(at)
@@ -825,8 +836,16 @@ export function runStage(about: HTMLElement, release: () => void) {
   stage.addEventListener('focusin', onFocus)
 
   // a real change of size measures again and puts everything in place at once (the address bar alone does not)
+  // the page's end follows the screen's height (the browser's bar): only its mark, the others stay where they are
+  const footMark = () => {
+    const m = marks[marks.length - 1]
+    if (!m || m.dataset.foot === undefined) return
+    const at = `${Math.round(document.documentElement.scrollHeight - innerHeight - (about.getBoundingClientRect().top + scrollY))}px`
+    if (m.style.top !== at) m.style.top = at
+  }
   let sized = innerWidth
   const onResize = () => {
+    footMark()
     if (innerWidth === sized && Math.abs((stage.offsetHeight - lift() || innerHeight) - H) < 120) return
     sized = innerWidth
     measure()

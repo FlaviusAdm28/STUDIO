@@ -3,12 +3,13 @@
 // POST /__diag/log saves a tape, POST /__diag/file saves a photo or video from the phone, both in out/.
 import http from 'node:http'
 import { fileURLToPath } from 'node:url'
-import { readFileSync, writeFileSync, createWriteStream, mkdirSync } from 'node:fs'
-const [, , PORT = '3130', UP = '3100'] = process.argv
+import { readFileSync, writeFileSync, appendFileSync, createWriteStream, mkdirSync } from 'node:fs'
+const [, , PORT = '3130', UP = '3100', MODE = 'hud'] = process.argv
+// MODE 'rec' (14 Nov): the desktop session recorder (rec.js) instead of the phone's HUD — `node proxy.mjs 3140 3100 rec`
 // paths relative to this file, so it runs on the PC (D:\STUDIO-v5) and on the Mac alike; uploads and tapes land in out/ (git-ignored)
 const HERE = fileURLToPath(new URL('.', import.meta.url)).replace(/[\/]$/, ''), OUT = `${HERE}/out`
 mkdirSync(OUT, { recursive: true })
-const TAG = '<script src="/__diag/hud.js"></script>'
+const TAG = MODE === 'rec' ? '<script src="/__diag/rec.js"></script>' : '<script src="/__diag/hud.js"></script>'
 // keeps the screen on (Screen Wake Lock) on the test pages, and on the site only when its address carries ?wake (the Xiaomi's runs)
 const WAKE = `<script>(function(){var l=null,ask=function(){if(!navigator.wakeLock||document.visibilityState!=='visible')return;navigator.wakeLock.request('screen').then(function(x){l=x;document.title='☀ '+document.title.replace(/^☀ /,'')}).catch(function(){})};document.addEventListener('visibilitychange',ask);ask()})()</script>`
 const stamp = () => new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
@@ -30,6 +31,12 @@ http.createServer(async (req, res) => {
   if (req.url.startsWith('/__diag/run') && req.method === 'POST') {
     const id = ++seq; waiting.set(id, res); queue.push({ id, js: await body(req) }); send()
     setTimeout(() => { if (waiting.delete(id)) { res.writeHead(504); res.end('no page answered in 150 s\n') } }, 150000); return
+  }
+  if (req.url.startsWith('/__diag/rec.js')) { res.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8', 'cache-control': 'no-store' }); return res.end(readFileSync(`${HERE}/rec.js`)) }
+  // the recorder's lines (rec.js), appended to one file per recording
+  if (req.url.startsWith('/__diag/rec?') && req.method === 'POST') {
+    const rid = (new URL(req.url, 'http://x').searchParams.get('id') || 'rec').replace(/[^\w-]/g, '_'), lines = await body(req)
+    appendFileSync(`${OUT}/${rid}-rec.jsonl`, lines); res.writeHead(204); return res.end()
   }
   if (req.url.startsWith('/__diag/hud.js')) { res.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8', 'cache-control': 'no-store' }); return res.end(readFileSync(`${HERE}/hud.js`)) }
   // the test pages (/__diag/lab*) keep the screen on while open and visible (Screen Wake Lock; needs a secure context, so it works on

@@ -20,6 +20,7 @@
 import { fingerDown, strokeLately, watchFinger } from '@/lib/finger'
 import { bandColour, hex, over, parseColour } from '@/lib/top-colour'
 import { unsnapped } from '@/lib/unsnapped'
+import { cenasOn, goTo, registerScene, type How } from '@/lib/conductor'
 
 type Pos = readonly [number, number, number, number]
 type Mode = 'on' | 'lift' | 'gone'
@@ -246,13 +247,14 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   // A phase change starts many flights at once. Each reads where its element is, and reads interleaved with new animations
   // made the browser recompute the page between them (a 122 ms frame at 9 → 10 on the Xiaomi, 2 Nov): so a phase change
   // queues its flights, reads every starting point first, then starts them all.
-  type Flight = { el: HTMLElement; to: Keyframe; duration: number; delay: number; instant: boolean; from?: Keyframe; easing?: string }
+  // then: set once it has arrived, over what it arrived at (unseen there)
+  type Flight = { el: HTMLElement; to: Keyframe; duration: number; delay: number; instant: boolean; from?: Keyframe; easing?: string; then?: Keyframe }
   let queue: Flight[] | null = null
   const start = (f: Flight) => {
     const { el, to, duration, delay, instant } = f
     flights.get(el)?.cancel()
     flights.delete(el)
-    const settle = () => Object.entries(to).forEach(([p, v]) => el.style.setProperty(p, String(v)))
+    const settle = () => Object.entries({ ...to, ...f.then }).forEach(([p, v]) => el.style.setProperty(p, String(v)))
     if (instant) return settle()
     const a = el.animate([f.from ?? {}, to], { duration: duration * tempo, delay: delay * tempo, easing: f.easing ?? EASE, fill: 'both' })
     flights.set(el, a)
@@ -270,8 +272,8 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     f.from = {}
     for (const p of Object.keys(f.to)) f.from[p] = p === 'transform' ? (cs.transform === 'none' ? 'none' : cs.transform) : cs.getPropertyValue(p)
   }
-  const fly = (el: HTMLElement, to: Keyframe, duration = MOVE, delay = 0, instant = false, from?: Keyframe, easing?: string) => {
-    const f: Flight = { el, to, duration, delay, instant, from, easing }
+  const fly = (el: HTMLElement, to: Keyframe, duration = MOVE, delay = 0, instant = false, from?: Keyframe, easing?: string, then?: Keyframe) => {
+    const f: Flight = { el, to, duration, delay, instant, from, easing, then }
     if (queue) return void queue.push(f)
     read(f)
     start(f)
@@ -588,7 +590,12 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     const [a, b, c] = edgesOf(to)
     const f = fromAt ? edgesOf(fromAt) : null
     const now = !ms
-    fly(wipe, { ...a, opacity: seen === '0.001' ? '0.001' : '1' }, ms, 0, now, f ? { ...f[0], opacity: '1' } : undefined, easing)
+    // Gathered, the light is a band of no width on the hour's side — by day in the middle of the screen, where Safari drew it as a hairline
+    // over the Work once the light had gone back (owner, Safari, 16 Nov; lab: the band at x 816 → 624 px, opacity 1; Chrome draws nothing).
+    // As its spill, it goes once there: to 0.1 %, as it waits before the first passage (the room still painted ahead). Opened again it
+    // starts seen, from its gathered place (fromAt) or, turned back while closing, from where it is
+    const gone = seen === 'shut' ? { opacity: '0.001' } : undefined
+    fly(wipe, { ...a, opacity: seen === '0.001' ? '0.001' : '1' }, ms, 0, now, f ? { ...f[0], opacity: '1' } : undefined, easing, gone)
     fly(wipeB, b, ms, 0, now, f?.[1], easing)
     fly(wipeIn, c, ms, 0, now, f?.[2], easing)
     spill(to, ms, easing, seen === '0.001' ? '0.001' : seen === 'open' ? '1' : '0', fromAt)
@@ -897,6 +904,8 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
       if (m.style.top !== top) m.style.top = top
       // which is which, for the hold of the passage (method.css): 7 and the way out stay while the light crosses
       m.dataset.at = i === 0 ? '7' : i === tops.length - 1 ? 'out' : ''
+      // the conductor's stop (lib/conductor.ts): each phase, and Experiences' (the Work's last chapter rests on this mark)
+      m.dataset.stop = i === tops.length - 1 ? 'experiences' : PHASES[i + 1]
     })
     outAt = out * H
   }
@@ -1024,6 +1033,34 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   placeKey()
   section.classList.add('m-live')
   choose()
+  // Driven by the conductor (lib/conductor.ts, `?cenas`): the scroll no longer chooses the phase. The conductor says which stop the page is
+  // on, and the phase is that stop's — played (the light's passage whole, or the change from wherever every layer is) or at once (a jump).
+  // Above the scene (the Work's stops) it is 'pre'; below it (the About and on) the 11 stays, as the About's passage starts on it
+  const driven = cenasOn()
+  const IN = PHASES.slice(1) as readonly string[]
+  const ABOVE = ['top', 'weddings', 'artists', 'experiences']
+  if (driven)
+    cleanups.push(
+      registerScene({
+        name: 'method',
+        to: (stop: string, how: How) => {
+          const next: Phase = IN.includes(stop) ? (stop as Phase) : ABOVE.includes(stop) ? 'pre' : '11'
+          if (next !== phase) {
+            if (how === 'jump') show(next, true)
+            else {
+              if (phase === 'pre') measure()
+              show(next)
+              // reached by the keyboard (the field focused from above): the field is there at once, not after the light
+              if (next === '7' && document.activeElement === section.querySelector('#m-name')) hurry()
+            }
+          }
+          // the light going back: the stage held in place while it closes, now that the page has left the scene (holdWhileLeaving)
+          holdIfMoving()
+        },
+        // the light's passage plays whole before 8 may answer (README #102); a stroke back turns it back from where it is
+        busyUntil: (next: string) => (phase === '7' && next !== 'experiences' && passageEnds > performance.now() ? passageEnds : 0),
+      }),
+    )
   // a stroke back has come to rest when the scroll has been still a moment (scrollend where there is one; iOS fires scroll events through
   // its momentum and the snap's own glide)
   let still = 0
@@ -1040,11 +1077,13 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     clearTimeout(still)
     still = window.setTimeout(rested, 180)
   }
-  addEventListener('scrollend', rested)
-  cleanups.push(() => removeEventListener('scrollend', rested))
-  cleanups.push(watchFinger())
-  addEventListener('scroll', onScroll, { passive: true })
-  cleanups.push(() => removeEventListener('scroll', onScroll))
+  if (!driven) {
+    addEventListener('scrollend', rested)
+    cleanups.push(() => removeEventListener('scrollend', rested))
+    cleanups.push(watchFinger())
+    addEventListener('scroll', onScroll, { passive: true })
+    cleanups.push(() => removeEventListener('scroll', onScroll))
+  }
   // a real change of size measures again and puts everything in place at once (the address bar alone does not)
   let sized = `${innerWidth}`
   const onResize = () => {
@@ -1068,8 +1107,8 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
       unsnapped(() => scrollTo({ top: sceneTop() + scrollY + share * sceneTravel(), behavior: 'auto' }))
     })
   const input = section.querySelector('#m-name')
-  const onField = () => phase !== '7' && !phase?.startsWith('8') && to(starts()['7'] + 0.05)
-  const onEnd = () => phase !== '11' && to(starts()['11'] + 0.08)
+  const onField = () => phase !== '7' && !phase?.startsWith('8') && (driven ? goTo('7', 'jump') : to(starts()['7'] + 0.05))
+  const onEnd = () => phase !== '11' && (driven ? goTo('11', 'jump') : to(starts()['11'] + 0.08))
   input?.addEventListener('focus', onField)
   end.addEventListener('focusin', onEnd)
   cleanups.push(() => {

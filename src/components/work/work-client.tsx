@@ -4,8 +4,10 @@ import { useEffect } from 'react'
 import type { work } from '@content'
 import { lensMap } from '@/lib/lens'
 import { press } from '@/lib/press'
-import { strokeLately, watchFinger } from '@/lib/finger'
-import { unsnapped } from '@/lib/unsnapped'
+import { fingerDown, strokeLately, watchFinger } from '@/lib/finger'
+import { holdPage } from '@/lib/hold'
+import { siteJumps, unsnapped } from '@/lib/unsnapped'
+import { cenasOn, goTo, registerScene, type How } from '@/lib/conductor'
 
 type Props = {
   /** One moment, in seconds: the word fills in this time (#73). */
@@ -42,6 +44,13 @@ const LIFT = 'translate3d(0, 0, 0) scale(1.015)'
 const SIDE = 'translate3d(30%, -10%, 0) scale(0.9)'
 const OUT = 'cubic-bezier(0.4, 0, 0.3, 1)'
 const BACK = 'cubic-bezier(0.45, 0, 0.2, 1)'
+// The curve of the passage between the Weddings blade and the arch, both ways (the way back plays it backwards): smootherstep,
+// still at both ends in speed and in acceleration, so it lands as softly as the cubic before it. The cubic, measured on screen
+// (16 Nov, Chrome 120 Hz and Safari 60 Hz, no frame lost in either), left the box almost still for its first and last ~0.19 s
+// and crossed at three times its mean speed (896 px/s in, 1172 back; 17 and 22 px a frame at Safari's 60 Hz): smootherstep
+// 600–615 px/s, ~0.13 s. Compared with a sine (the most even, 501 px/s) on the owner's trackpad: "acho que noto menos lag na
+// suave" (owner, 16 Nov, README #121)
+const passCurve = (x: number) => x * x * x * (x * (6 * x - 15) + 10)
 // a damped spring sampled into linear(), so that the compositor can run it
 const spring = (damping: number, stiffness: number) => {
   const w = Math.sqrt(stiffness)
@@ -63,6 +72,9 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
     const section = document.getElementById('work')
     if (!section) return
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+    // driven by the conductor (lib/conductor.ts, `?cenas`): the scroll no longer chooses the chapter nor starts the passage; the conductor
+    // says which stop the page is on (the scene registered below)
+    const driven = cenasOn() && !reduce
     const phone = matchMedia('(max-width: 899px)')
     const root = document.documentElement
     const articles = [...section.querySelectorAll<HTMLElement>('.w-ch')]
@@ -239,7 +251,49 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       piece.classList.remove('on')
       gallery(piece, false)
     }
+    // The moment's text: the list of one moment went and the next one came in the same frame (screen, 16 Nov). The old list fades out
+    // (0.15 s), then the next fades in (0.3 s) — never both at once: in the same place they read as garbled (owner, 1 Nov) — and the line
+    // under them with them, as the lists differ in height and it moved at the change (owner, 16 Nov: "ok" to a short fade)
+    const TEXT_OUT = 150
+    const TEXT_IN = 300
+    let textT = 0
+    let textFades: Animation[] = []
+    let textShown: HTMLElement[] = []
+    const textDone = () => {
+      clearTimeout(textT)
+      textFades.forEach((f) => f.cancel())
+      textFades = []
+      textShown.forEach((el) => el.style.removeProperty('display'))
+      textShown = []
+    }
+    const swapText = (a: HTMLElement, from: number, to: number) => {
+      textDone()
+      const old = a.querySelector<HTMLElement>(`.w-mo[data-j="${from}"]`)
+      const next = a.querySelector<HTMLElement>(`.w-mo[data-j="${to}"]`)
+      const foot = a.querySelector<HTMLElement>('.w-foot')
+      if (!old || !next) return
+      const footO = foot ? getComputedStyle(foot).opacity : '1'
+      const ease = 'ease-in-out'
+      // the old list kept on screen for its fade (the moment's text is at 1, work.css), the next one kept out until then
+      old.style.display = 'block'
+      next.style.display = 'none'
+      textShown = [old, next]
+      textFades = [
+        old.animate([{ opacity: 1 }, { opacity: 0 }], { duration: TEXT_OUT, easing: ease, fill: 'forwards' }),
+        ...(foot ? [foot.animate([{ opacity: footO }, { opacity: 0 }], { duration: TEXT_OUT, easing: ease, fill: 'forwards' })] : []),
+      ]
+      textT = window.setTimeout(() => {
+        textFades.forEach((f) => f.cancel())
+        textShown.forEach((el) => el.style.removeProperty('display'))
+        textShown = []
+        textFades = [
+          next.animate([{ opacity: 0 }, { opacity: 1 }], { duration: TEXT_IN, easing: ease }),
+          ...(foot ? [foot.animate([{ opacity: 0 }, { opacity: footO }], { duration: TEXT_IN, easing: ease })] : []),
+        ]
+      }, TEXT_OUT)
+    }
     const landed = () => {
+      textDone()
       drop()
       clearTimeout(swapTimer)
       clearTimeout(swapEnd)
@@ -254,6 +308,7 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       const from = m
       m = j
       a.dataset.m = String(j)
+      if (from !== j && !reduce) swapText(a, from, j)
       const place = (card: HTMLElement, shown: number) => (Number(card.dataset.j) - shown + 3) % 3
       const cards = [...a.querySelectorAll<HTMLElement>('.w-ph')]
       cards.forEach((card) => {
@@ -416,7 +471,7 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
     }
     // half a screen before the slit opens: the Method's section starts half a screen before its scene (README #99)
     const checkBridge = () => bridge(ch === articles.length - 1 && !!methodEl && methodEl.getBoundingClientRect().top < 0)
-    listen(window, 'scroll', checkBridge, { passive: true })
+    if (!driven) listen(window, 'scroll', checkBridge, { passive: true })
     articles.forEach((a) =>
       a
         .querySelectorAll<HTMLButtonElement>('.w-mom')
@@ -484,9 +539,13 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
     let settled = false
     const settle = () => (settled = true)
     ;['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach((k) => listen(window, k, settle, { once: true, passive: true }))
-    const setChapter = (next: number) => {
+    // the chapter's own passage, for the conductor: the photographs of the arriving pile still rising and the titles still flying until
+    // then; and the way it went (+1 onwards, -1 back)
+    let chapterUntil = 0
+    let chapterWay = 0
+    const setChapter = (next: number, instant = false) => {
       if (next === ch) return
-      const quiet = !settled && performance.now() - born < 700
+      const quiet = instant || (!settled && performance.now() - born < 700)
       if (quiet) {
         section.classList.add('w-now')
         requestAnimationFrame(() => requestAnimationFrame(() => section.classList.remove('w-now')))
@@ -501,7 +560,11 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       section.dataset.ch = String(ch)
       held = false
       m = 0
-      if (from >= 0 && !reduce) passage(from, ch)
+      if (from >= 0 && !reduce) {
+        passage(from, ch)
+        chapterUntil = performance.now() + Math.max(STACK_MS, moveMs)
+        chapterWay = Math.sign(ch - from)
+      }
       // The arriving words appear 0.3 s after the change and are mostly there by ~0.45 s: the word started filling at the change and
       // came in with half its first letter lit, a jump (owner, iPhone video, 2 Nov, README #89). It starts empty once it is seen, and the
       // moment's 6 s count from there.
@@ -517,7 +580,9 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
     const titleFlights = new WeakMap<HTMLElement, Animation>()
     const rootStyle = getComputedStyle(root)
     const moveMs = (parseFloat(rootStyle.getPropertyValue('--chapter-move-seconds')) || 1.2) * 1000
-    const moveEase = rootStyle.getPropertyValue('--ease').trim() || 'ease-out'
+    // The change of chapter's curve (work.css --chapter-ease): the site's --ease, quick at the start (23 % at 70 ms, 60 % at 0.2 s).
+    // Compared on screen with the passage's smootherstep, the owner kept it (16 Nov: "para os capítulos prefiro a atual", README #122)
+    const moveEase = getComputedStyle(section).getPropertyValue('--chapter-ease').trim() || 'ease-out'
     const scaleOf = (el: HTMLElement) => {
       const t = getComputedStyle(el).transform
       return t && t !== 'none' ? new DOMMatrix(t).a : 1
@@ -545,24 +610,55 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
           o: Number(getComputedStyle(el).opacity),
         })
       })
-      articles[to].querySelectorAll<HTMLElement>('.w-nav-ch').forEach((el) => {
+      const names = [...articles[to].querySelectorAll<HTMLElement>('.w-nav-ch')]
+      names.forEach((el) => titleFlights.get(el)?.cancel())
+      const seat = new Map(names.map((el) => [el, el.getBoundingClientRect()]))
+      // The arriving chapter's name sweeps from its place in the leaving title to its own, and a name whose way crosses that sweep was
+      // drawn over it: "II Artistsweddings" from ~0.2 to 0.5 s (screen recordings, 16 Nov). Side by side they are ~38 px apart, and with the
+      // chapter's quick curve they met within ~25 ms. Now that name fades where it is, unmoved (CROSS_MS), while the arriving one waits
+      // as long before it flies (ending when it always did); unseen, it goes to its own place and comes back there over the last quarter
+      // (owner, 16 Nov: "concordo")
+      const CROSS_MS = 120
+      const span = (a: DOMRect, b: DOMRect) => [Math.min(a.left, b.left), Math.max(a.right, b.right)]
+      const arriving = names.find((el) => el.dataset.k === String(to))
+      const aw = arriving && was.get(arriving.dataset.k ?? '')
+      const ar = arriving && seat.get(arriving)
+      const sweep = aw && ar ? span(aw.r, ar) : null
+      const crossed = (el: HTMLElement) => {
         const w = was.get(el.dataset.k ?? '')
-        if (!w) return
-        titleFlights.get(el)?.cancel()
-        const r = el.getBoundingClientRect()
+        const r = seat.get(el)
+        if (el === arriving || !sweep || !w || !r) return false
+        const own = span(w.r, r)
+        return own[0] < sweep[1] - 2 && own[1] > sweep[0] + 2
+      }
+      const crossing = names.some(crossed)
+      names.forEach((el) => {
+        const w = was.get(el.dataset.k ?? '')
+        const r = seat.get(el)
+        if (!w || !r) return
         const s = w.fs / parseFloat(getComputedStyle(el).fontSize)
         const o = getComputedStyle(el).opacity
-        const a = el.animate(
-          [
-            {
-              transformOrigin: '0 100%',
-              transform: `translate(${w.r.left - r.left}px, ${w.r.bottom - r.bottom}px) scale(${s})`,
-              opacity: w.o,
-            },
-            { transformOrigin: '0 100%', transform: 'none', opacity: o },
-          ],
-          { duration: moveMs, easing: moveEase },
-        )
+        const crosses = crossed(el)
+        const start = {
+          transformOrigin: '0 100%',
+          transform: `translate(${w.r.left - r.left}px, ${w.r.bottom - r.bottom}px) scale(${s})`,
+          opacity: w.o,
+        }
+        const end = { transformOrigin: '0 100%', transform: 'none', opacity: o }
+        const a = crosses
+          ? // on the clock, not along the flight: out in CROSS_MS where it is, in at its own place over the last quarter
+            el.animate(
+              [
+                { ...start, easing: 'ease-in-out' },
+                { ...start, opacity: 0, offset: CROSS_MS / moveMs },
+                { ...end, opacity: 0, offset: 0.75, easing: 'ease-in-out' },
+                end,
+              ],
+              { duration: moveMs },
+            )
+          : el === arriving && crossing
+            ? el.animate([start, end], { duration: moveMs - CROSS_MS, delay: CROSS_MS, easing: moveEase, fill: 'backwards' })
+            : el.animate([start, end], { duration: moveMs, easing: moveEase })
         titleFlights.set(el, a)
       })
     }
@@ -588,7 +684,7 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
         if (far !== ch) setChapter(far)
       } else if (k < ch && tops[ch] > mid + band) setChapter(k)
     }
-    listen(window, 'scroll', chooseChapter, { passive: true })
+    if (!driven) listen(window, 'scroll', chooseChapter, { passive: true })
     chooseChapter()
     // the rotation runs only while the stage is on screen
     const seen = new IntersectionObserver((es) => {
@@ -653,6 +749,8 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
           const mark = document.createElement('div')
           mark.className = 'w-pass-snap'
           mark.dataset.at = at
+          // the conductor's stop (lib/conductor.ts)
+          mark.dataset.stop = at
           mark.setAttribute('aria-hidden', 'true')
           ;(i < 2 ? holder : section).append(mark)
           marks.push(mark)
@@ -690,18 +788,117 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
     let goal = 0
     const endOf = () => 1.4 * (geo?.H ?? 0)
     const rateNow = () => (goal > prog ? 1 : goal < prog ? -PASS_MS / BACK_MS : 0)
-    const syncOne = (a: Animation) => {
+    // Played: a new animation each time, the same keyframes and timing, from where the old one is — never the same one turned round or
+    // played again. Turned round while running, or played again once finished, the owner's Chrome did not draw it (the arch's box gone
+    // for the rest of a passage turned back halfway; missing 0.6 s back from Weddings — on screen, 16 Nov). Cancelled and played again,
+    // Safari ran it to its end in one frame (the way back done at once; the first way in started 73 % through), and a fade laid over the
+    // box was taken by Safari as replacing the box's own, which it then removed for good (the box invisible in every passage after). A new
+    // one is new to both. Paused, it stays the same animation
+    const renew = (a: Animation) => {
+      const e = a.effect as KeyframeEffect | null
+      const el = e?.target
+      if (!e || !el) return a
+      const frames = e.getKeyframes().map((k) => {
+        const { computedOffset, ...own } = k
+        void computedOffset
+        return own as Keyframe
+      })
+      const n = el.animate(frames, e.getTiming())
+      a.cancel()
+      return n
+    }
+    const syncOne = (old: Animation) => {
       const end = endOf()
-      a.currentTime = end ? (prog / end) * PASS_MS : 0
+      const t = end ? (prog / end) * PASS_MS : 0
       const rate = rateNow()
+      const a = rate ? renew(old) : old
       if (rate) {
+        a.currentTime = t
         a.playbackRate = rate
-        a.play()
-      } else a.pause()
+      } else {
+        // paused first, then placed: placed first, the pause (done at the next frame) let it play on one frame at its old rate — after the
+        // way back to the top, a jump to the Work left every flight at 1578 of 1600 ms, the arch's box at ~70 % over the stage (lab, 16 Nov:
+        // the menu or an address a moment after a stroke back; the site without the conductor too). Placed after, the pause is done at once
+        a.pause()
+        a.currentTime = t
+      }
+      return a
     }
     const lifted: HTMLElement[] = []
     let shadow: HTMLElement | null = null
     const SAMPLES = 32
+    // The way between the blade and the arch, from the blade as it is now: where its shape is and how its photograph is drawn in it. The
+    // pointer moves the blade (its depth, up to ±6 px, sequence.ts) and, resting on it, zooms its photograph 1.08 and shifts it (2.2 s,
+    // entrance.css); measured once at load, the box began where the blade had been — a jump of up to 20 px and 8 % as the blade became the
+    // box (owner, Chrome and Safari, 16 Nov: "um ligeiro tremor"; lab: the pointer on the blade, the photograph 20.7 px narrower and 19.5 px
+    // aside). So it is measured again as each whole passage starts (aim), and the photograph's own transform is part of its framing.
+    const pathNow = (r: { left: number; top: number; width: number; height: number }) => {
+      const shape = entrance?.querySelector<HTMLElement>('.e-blade .e-blade-shape')
+      const shown = shape?.querySelector('img')
+      if (!entrance || !shape || !shown?.naturalWidth) return null
+      // The blade where the passage starts, at the top of the held entrance. Measured where the page happens to be (a reload
+      // down the page, a change of size, the blade's file arriving late), past the hold the entrance had gone up with the page,
+      // and the photograph flew to a card thousands of pixels above the screen: a square box crossing the top-left on the way
+      // back and the same coming down (owner's iPhone, 12 Nov; the Simulator, built at 9204 px: the start at −9427 px).
+      const seen = shape.getBoundingClientRect()
+      const lift = entrance.getBoundingClientRect().top
+      const b = {
+        left: seen.left,
+        top: seen.top - lift,
+        width: seen.width,
+        height: seen.height,
+      }
+      const lean = matchMedia('(orientation: portrait)').matches ? 0.06 : 0.14
+      // The photograph starts exactly as the blade shows it: both framings computed from its own proportions, the blade's
+      // cover and the arch's. Assuming it filled the arch's width, it jumped as the blade took over (owner, 31 Oct).
+      const cs = getComputedStyle(shown)
+      const [px, py] = cs.objectPosition.split(' ').map((v) => parseFloat(v) / 100)
+      const nw = shown.naturalWidth
+      const nh = shown.naturalHeight
+      const inBlade = Math.max(b.width / nw, b.height / nh)
+      const inArch = Math.max(r.width / nw, r.height / nh)
+      const cw = nw * inArch
+      const ch2 = nh * inArch
+      // its own transform (a scale and a shift, about its middle): the content's frame, the pointer's zoom
+      const t = cs.transform === 'none' ? new DOMMatrix() : new DOMMatrix(cs.transform)
+      const zoom = t.a
+      const ix0 = b.left + b.width / 2 + zoom * ((b.width - nw * inBlade) * px - b.width / 2) + t.e
+      const iy0 = b.top + b.height / 2 + zoom * ((b.height - nh * inBlade) * py - b.height / 2) + t.f
+      // The boxes end on the device pixel where the blade ends. On a fraction the last row was half covered and flickered
+      // light; cut 2 px short, the shade alone showed there as a dark bar (owner, 31 Oct).
+      const dpr = devicePixelRatio
+      const flush = Math.floor((b.top + b.height) * dpr) / dpr - b.top
+      const smooth = passCurve
+      const outer: Keyframe[] = []
+      const inner: Keyframe[] = []
+      for (let i = 0; i <= SAMPLES; i++) {
+        const g = smooth(i / SAMPLES)
+        const mix = (a: number, z: number) => a + (z - a) * g
+        const x = mix(b.left + lean * b.width, r.left)
+        const y = mix(b.top, r.top)
+        const sx = mix((1 - lean) * b.width, r.width) / r.width
+        const sy = mix(flush, r.height) / r.height
+        const sh = (-lean * b.width * (1 - g)) / r.height
+        const k = mix((zoom * inBlade) / inArch, 1)
+        const ix = mix(ix0, r.left + (r.width - cw) / 2)
+        const iy = mix(iy0, r.top + (r.height - ch2) / 2)
+        outer.push({ transform: `matrix(${sx}, 0, ${sh}, ${sy}, ${x - r.left}, ${y - r.top})` })
+        const v = (iy - y) / sy
+        inner.push({
+          transform: `matrix(${k / sx}, 0, ${(-sh * k) / (sx * sy)}, ${k / sy}, ${(ix - x - sh * v) / sx}, ${v})`,
+        })
+      }
+      return { outer, inner, cw, ch2, flush, dpr }
+    }
+    // the flights that follow that way (the boxes' and the photograph's), so it can be taken again from the blade as it is now
+    // (by their place in flights: each play makes them anew, syncOne)
+    let ways: { outer: number[]; inner: number[] } | null = null
+    const aim = () => {
+      const path = ways && geo ? pathNow(geo.r) : null
+      if (!ways || !path) return
+      ways.outer.forEach((i) => (flights[i]?.effect as KeyframeEffect | null)?.setKeyframes(path.outer))
+      ways.inner.forEach((i) => (flights[i]?.effect as KeyframeEffect | null)?.setKeyframes(path.inner))
+    }
     const flight = () => {
       flights.forEach((a) => a.cancel())
       flights = []
@@ -717,6 +914,7 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       const cards = [...section.querySelectorAll<HTMLElement>('.w-ch[data-c="weddings"] .w-ph')]
       if (!shape || !photo || !firstText) return
       const shown = shape.querySelector('img') as HTMLImageElement
+      ways = null
       // No sizes yet: a resize that swaps the blade's file, or a slow network. Every number below came out NaN and the photograph
       // flew unframed, jumping as it landed (owner, 1 Nov, 768). Until it arrives the passage runs on the main thread (passageFrame).
       if (!shown.naturalWidth) {
@@ -750,52 +948,9 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
         a.pause()
         return a
       }
-      // The blade where the passage starts, at the top of the held entrance. Measured where the page happens to be (a reload
-      // down the page, a change of size, the blade's file arriving late), past the hold the entrance had gone up with the page,
-      // and the photograph flew to a card thousands of pixels above the screen: a square box crossing the top-left on the way
-      // back and the same coming down (owner's iPhone, 12 Nov; the Simulator, built at 9204 px: the start at −9427 px).
-      const seen = shape.getBoundingClientRect()
-      const lift = entrance.getBoundingClientRect().top
-      const b = {
-        left: seen.left,
-        top: seen.top - lift,
-        width: seen.width,
-        height: seen.height,
-      }
-      const lean = matchMedia('(orientation: portrait)').matches ? 0.06 : 0.14
-      // The photograph starts exactly as the blade shows it: both framings computed from its own proportions, the blade's
-      // cover and the arch's. Assuming it filled the arch's width, it jumped as the blade took over (owner, 31 Oct).
-      const crop = parseFloat(getComputedStyle(shown).objectPosition.split(' ')[1]) / 100
-      const nw = shown.naturalWidth
-      const nh = shown.naturalHeight
-      const inBlade = Math.max(b.width / nw, b.height / nh)
-      const inArch = Math.max(r.width / nw, r.height / nh)
-      const cw = nw * inArch
-      const ch2 = nh * inArch
-      // The boxes end on the device pixel where the blade ends. On a fraction the last row was half covered and flickered
-      // light; cut 2 px short, the shade alone showed there as a dark bar (owner, 31 Oct).
-      const dpr = devicePixelRatio
-      const flush = Math.floor((b.top + b.height) * dpr) / dpr - b.top
-      const smooth = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2)
-      const outer: Keyframe[] = []
-      const inner: Keyframe[] = []
-      for (let i = 0; i <= SAMPLES; i++) {
-        const g = smooth(i / SAMPLES)
-        const mix = (a: number, z: number) => a + (z - a) * g
-        const x = mix(b.left + lean * b.width, r.left)
-        const y = mix(b.top, r.top)
-        const sx = mix((1 - lean) * b.width, r.width) / r.width
-        const sy = mix(flush, r.height) / r.height
-        const sh = (-lean * b.width * (1 - g)) / r.height
-        const k = mix(inBlade / inArch, 1)
-        const ix = mix(b.left + (b.width - nw * inBlade) / 2, r.left + (r.width - cw) / 2)
-        const iy = mix(b.top + (b.height - nh * inBlade) * crop, r.top + (r.height - ch2) / 2)
-        outer.push({ transform: `matrix(${sx}, 0, ${sh}, ${sy}, ${x - r.left}, ${y - r.top})` })
-        const v = (iy - y) / sy
-        inner.push({
-          transform: `matrix(${k / sx}, 0, ${(-sh * k) / (sx * sy)}, ${k / sy}, ${(ix - x - sh * v) / sx}, ${v})`,
-        })
-      }
+      const path = pathNow(r)
+      if (!path) return
+      const { outer, inner, cw, ch2, flush, dpr } = path
       if (!lifted.length) {
         for (const round of [true, false]) {
           const box = document.createElement('div')
@@ -859,21 +1014,27 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
         // the film's last light with a hard edge under the Dynamic Island (owner marked it on the iPhone, 0.77–0.85 H, 1 Nov).
         ...[...entrance.querySelectorAll('.e-edge')].map((el) => fly(el, [{ opacity: 1 }, { opacity: 0 }], 0.9 * H, 0.98 * H)),
       ]
+      ways = { outer: [0, 1, 4], inner: [2, 3] }
       flyText = () => {
         const held = [
           fly(firstText, [{ opacity: 0 }, { opacity: 1 }], 0.95 * H, END),
-          ...cards.map((card) => fly(card, [{ opacity: 0 }, { opacity: 0, offset: 0.9 }, { opacity: 1 }], 0, END)),
+          // whole before the box starts to fade (0.98): fading together, the box at half and the card at 0.9, the back of the pile and
+          // the ground showed through the sky for a frame or two — a flicker as the stage took over, both browsers, every curve (screen
+          // recordings, 16 Nov: the arch's inside 4.8–7.7 levels off its rest for 1–2 frames, against 1–2.7 before and after)
+          ...cards.map((card) => fly(card, [{ opacity: 0 }, { opacity: 0, offset: 0.89 }, { opacity: 1, offset: 0.975 }, { opacity: 1 }], 0, END)),
           ...(aura ? [fly(aura, [{ opacity: 0 }, { opacity: 0, offset: 0.55 }, { opacity: glow }], 0, END)] : []),
         ]
-        textFlight = held
-        held.forEach(syncOne)
+        textFlight = held.map(syncOne)
       }
       // arriving past the passage (a chapter's address, a refresh down the page) the stage is already the stage's own
       if (prog < END) flyText()
-      flights.forEach(syncOne)
+      flights = flights.map(syncOne)
     }
     // once the entrance's own timeline has ended: an animation made here would cover it
     const composited = () => canComposite && !root.dataset.entrance
+    // leaving the stage: it goes back to where the passage arrives, the first moment, the first photograph, no piece. Also on
+    // a jump straight to the top (the name, the browser's back): without it the next landing brought the blade's photograph
+    // into a pile turned to another moment, with the piece on (audit, 31 Oct)
     // leaving the stage: it goes back to where the passage arrives, the first moment, the first photograph, no piece. Also on
     // a jump straight to the top (the name, the browser's back): without it the next landing brought the blade's photograph
     // into a pile turned to another moment, with the piece on (audit, 31 Oct)
@@ -945,6 +1106,7 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       }
       if (was !== 'done' && d >= 1) {
         firstText?.removeAttribute('style')
+        entrance.style.removeProperty('visibility')
         // the text belongs to the stage now: its chapter's own rules take over
         textFlight.forEach((a) => a.cancel())
         textFlight = []
@@ -972,31 +1134,112 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       if (ios && goal === end && prog < end && geo && scrollY - geo.top >= end - 15) lockPage(true)
       if (prog !== goal) tickRaf = requestAnimationFrame(tick)
       else {
+        // arrived: every flight paused where it ended, as at the top, never left finished — played again from a finish, the way back
+        // was not drawn or froze (syncOne, go)
+        flights = flights.map(syncOne)
+        textFlight = textFlight.map(syncOne)
         holdEvents(false)
         lockPage(false)
         passHold(false)
       }
     }
+    // the way back from Weddings, waiting for its held entrance to be shown (go)
+    let showing = 0
+    const play = () => {
+      flights = flights.map(syncOne)
+      textFlight = textFlight.map(syncOne)
+      lastT = 0
+      if (!tickRaf) tickRaf = requestAnimationFrame(tick)
+    }
+    // The way back from another moment: its photograph and its piece dissolve into the blade's, the arch's box coming in over them where
+    // it is, and only then does the box go home — the way in, played backwards (owner, 16 Nov: "faz dissolução"; "quero que a animação do
+    // card a entrar e a sair seja a mesma em reverso"). Folded into the passage, the dissolve was first a cut (the pile turned to the
+    // first photograph at once) and then left the moment's piece around a box already leaving (the owner's Chrome on screen). From the
+    // first moment, with no piece, there is nothing to dissolve and the way back starts at once
+    const DISSOLVE_MS = 260
+    let dissolving = 0
+    let dissolveFade: Animation | null = null
+    const dissolve = () => {
+      const box = lifted[0]
+      const a = articles[ch]
+      if (!box || !a) return play()
+      // the piece leaves now, with the box's time and curve (work.css .w-quick), under the box coming in; its gallery's count is left as
+      // it is (put back to 0 here, the change showed in the dissolve's first frame; it starts again from 0 when the piece is next shown)
+      section.classList.add('w-quick')
+      a.dataset.demo = 'false'
+      a.querySelectorAll<HTMLElement>('.w-dm.on').forEach((d) => d.classList.remove('on'))
+      dissolveFade = box.animate([{ opacity: 0 }, { opacity: 1 }], { duration: DISSOLVE_MS, easing: 'ease-in-out', fill: 'forwards' })
+      dissolving = window.setTimeout(() => {
+        dissolving = 0
+        // covered: the stage set back unseen to the blade's photograph, the same as the box's; then this fade goes, before the passage's
+        // own fade is made anew (left on, Safari took the newer fade as replacing the box's own and removed that one), and the way in
+        // backwards begins
+        leaveStage()
+        dissolveFade?.cancel()
+        dissolveFade = null
+        play()
+        window.setTimeout(() => section.classList.remove('w-quick'), 200)
+      }, DISSOLVE_MS)
+    }
+    // turned in again (or a jump) while it dissolves: the stage as it was, its moments going on
+    const undissolve = () => {
+      if (!dissolving) return
+      clearTimeout(dissolving)
+      dissolving = 0
+      dissolveFade?.cancel()
+      dissolveFade = null
+      section.classList.remove('w-quick')
+      run(true)
+    }
     // played: towards an end, from wherever it is (turned back halfway it goes back from there)
     const go = (to: number) => {
-      if (goal === to && (prog === to || tickRaf)) return
+      if (goal === to && (prog === to || tickRaf || showing || dissolving)) return
       goal = to
+      cancelAnimationFrame(showing)
+      showing = 0
+      undissolve()
       if (!to) {
         lockPage(false)
         passHold(false)
       }
-      flights.forEach(syncOne)
-      textFlight.forEach(syncOne)
-      lastT = 0
-      if (!tickRaf) tickRaf = requestAnimationFrame(tick)
+      // a whole passage, from the top or from Weddings: its way taken again from the blade as it is now (pathNow); turned back halfway it
+      // goes back along the way it was on
+      if (prog === 0 || prog === endOf()) aim()
+      // Back from Weddings: the held entrance, hidden there (work.css), is shown first, and its flights play two frames later, once the
+      // browser has its layers again. Shown and played in one go, the owner's Chrome froze the arch's box at its full size for ~0.4 s and
+      // then jumped it half way home, more often than not (his screen recording, 16 Nov 15:45: 130 × 98 px unchanged from 0.22 to 0.59 s,
+      // then 82 × 41 in one frame; the lab's Chrome, the same build, smooth). The way in, from a shown entrance and paused flights, was
+      // smooth. Hidden again once the passage is done (passageFrame), or cleared with the rest at the top
+      if (root.dataset.pass === 'done' && to < endOf()) {
+        entrance?.style.setProperty('visibility', 'visible')
+        // the moments wait; another moment's photograph, or a piece on it, is dissolved first (dissolve)
+        stop()
+        const a = articles[ch]
+        const other = ch === 0 && !!a && (a.dataset.m !== '0' || a.dataset.demo === 'true')
+        showing = requestAnimationFrame(() => {
+          showing = requestAnimationFrame(() => {
+            showing = 0
+            if (other) dissolve()
+            else play()
+          })
+        })
+        return
+      }
+      // a way back still waiting, turned in again: the entrance hidden as it was
+      if (root.dataset.pass === 'done' && to === prog) entrance?.style.removeProperty('visibility')
+      play()
     }
     // put: a jump of the site's own (the menu, an address, the name), a reload down the page — no passage to watch
     const put = (to: number) => {
+      cancelAnimationFrame(showing)
+      showing = 0
+      undissolve()
+      if (root.dataset.pass === 'done' && to === endOf()) entrance?.style.removeProperty('visibility')
       cancelAnimationFrame(tickRaf)
       tickRaf = 0
       goal = prog = to
-      flights.forEach(syncOne)
-      textFlight.forEach(syncOne)
+      flights = flights.map(syncOne)
+      textFlight = textFlight.map(syncOne)
       holdEvents(false)
       lockPage(false)
       passHold(false)
@@ -1053,7 +1296,7 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       { passive: true },
     )
     const notTheFinger = (way: number) => fingerWay === -way && strokeLately(1500)
-    // On iOS the page is held while the passage plays, by its events, as the other browsers are by overflow (holdFor, below): a second
+    // On iOS the page is held while the passage plays, by its events, as the desktops are by hold.ts (holdFor, below): a second
     // stroke during it carried the page on into the Work, to Experiences, with the passage cut (Simulator, 12 Nov). Listening only then.
     const ios = CSS.supports('-webkit-touch-callout', 'none')
     const still = (e: Event) => {
@@ -1131,30 +1374,39 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
     // Outside iOS the stop does not hold a strong stroke: Chrome and Safari on a Mac, and Chrome on Android, let a fling run past a
     // scroll-snap-stop (the #1 of 11 Nov), and a fast trackpad stroke from the top crossed the Work to Experiences with the passage cut
     // (Chrome, 12 Nov). There the stroke that starts the passage takes the page straight to its end — unseen: the entrance is held
-    // there — and the page is held while it plays (overflow, so the rest of the stroke and its momentum go nowhere), as the entrance
+    // there — and the page is held while it plays (hold.ts: the rest of the stroke and its momentum go nowhere), as the entrance
     // holds it until the camera is through. iOS keeps the stop: it holds there, and with this a finger still on the glass went on
     // scrolling from the page's new place, 50–700 px past Weddings with the passage playing (Simulator, 12 Nov, 6 strokes of 6).
     let freeT = 0
+    let heldJumps = 0
+    let letGo: (() => void) | null = null
     const holdFor = (to: number) => {
       if (ios || !geo) return
       // the stop off at once: on, Safari took the next click of a mouse wheel to the next mark, the Experiences' one, overflow or not
       // (Safari 27.2, 12 Nov)
       holding = true
+      heldJumps = siteJumps()
       zone(false)
-      root.style.scrollbarGutter = 'stable'
-      root.style.overflow = 'hidden'
+      // held by hold.ts, let go once the wheel is quiet: overflow taken off by the clock while a strong stroke's momentum still ran crashed
+      // Safari (15 Nov)
+      letGo ??= holdPage()
       scrollTo({ top: geo.top + to, behavior: 'instant' })
       lastY = to
       clearTimeout(freeT)
-      freeT = window.setTimeout(
-        () => {
-          root.style.removeProperty('overflow')
-          root.style.removeProperty('scrollbar-gutter')
-          holding = false
-          zone(inWork())
-        },
-        to ? PASS_MS : BACK_MS,
-      )
+      // not while a finger is still on the glass: with the stops back under a finger held still at the top, Chrome on Android took that
+      // finger's gesture for the one to snap and Weddings for its target, and as the finger lifted the page went back to Weddings
+      // (Xiaomi, 14 Nov: 10 of 10 with the finger held 1.5 s after the stroke; 0 of 40 when it lifted before the hold ended)
+      const free = () => {
+        if (fingerDown()) {
+          freeT = window.setTimeout(free, 120)
+          return
+        }
+        letGo?.()
+        letGo = null
+        holding = false
+        zone(inWork())
+      }
+      freeT = window.setTimeout(free, to ? PASS_MS : BACK_MS)
     }
     const NUDGE = 12
     let passQueued = false
@@ -1168,6 +1420,21 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       const y = scrollY - geo.top
       const dy = y - lastY
       lastY = y
+      // while a desktop holds the page for the passage (holdFor, hold.ts) no stroke can move it, so a scroll seen then is not
+      // the visitor's unless it is a jump of the site's own: held at the top for the way back, Chrome moved the page 0 → 121 a frame
+      // after the hold's own scrollTo (a trackpad event's delta the other way round), and read as a stroke forward that sent the page
+      // back to Weddings with the passage turned again (lab, real trackpad, 14 Nov: 1 of 29 strokes from Weddings to the top). The page
+      // stays at the end the passage is going to
+      // A jump of the site's is one made since the hold began: the stops left off for 1.6 s by the one before it (the bar's name, then a
+      // stroke at once) are not one — read as one, the page stayed where Chrome had moved it, 13 px past Weddings, all through the
+      // passage, and went back to Weddings as the hold let go (owner's Chrome, 15 Nov: the "first card jumped up" a second after the passage)
+      if (holding && !jumping && root.dataset.jump === undefined && siteJumps() === heldJumps) {
+        if (Math.abs(y - goal) > 0.5) scrollTo({ top: geo.top + goal, behavior: 'instant' })
+        lastY = goal
+        movedAt = performance.now()
+        if (!restRaf) restRaf = requestAnimationFrame(atRest)
+        return
+      }
       if (siteJump()) {
         if (y >= end - 2) put(end)
         else if (y <= 2) put(0)
@@ -1194,7 +1461,7 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       passQueued = true
       requestAnimationFrame(watch)
     }
-    listen(window, 'scroll', onPassScroll, { passive: true })
+    if (!driven) listen(window, 'scroll', onPassScroll, { passive: true })
     // the phone's address bar hides and shows as one scrolls: only a real change of size measures again (and keeps where it is)
     let sized = `${innerWidth}x${entrance?.clientHeight}`
     listen(window, 'resize', () => {
@@ -1213,7 +1480,7 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       goal = to * end
       if (geo && composited()) flight()
       passageFrame()
-      onPassScroll()
+      if (!driven) onPassScroll()
     })
     const ended = new MutationObserver(() => {
       if (root.dataset.entrance || flights.length) return
@@ -1227,8 +1494,9 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       cancelAnimationFrame(restRaf)
       clearTimeout(freeT)
       holdEvents(false)
+      letGo?.()
+      letGo = null
       root.style.removeProperty('overflow')
-      root.style.removeProperty('scrollbar-gutter')
       zone(false)
       delete root.dataset.passHold
       marks.forEach((mark) => mark.remove())
@@ -1241,7 +1509,48 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       const end = endOf()
       put(end && -holder.getBoundingClientRect().top >= end - 2 ? end : 0)
       movedAt = 0
-      restRaf = requestAnimationFrame(atRest)
+      if (!driven) restRaf = requestAnimationFrame(atRest)
+    }
+
+    // ---- the scene, for the conductor (lib/conductor.ts, `?cenas`) ----
+    // Its stops: the top (the entrance), Weddings (the passage's end), Artists, and Experiences — the Method's mark just before its scene
+    // (method-stage.ts). Below them the Work stays on Experiences, its moment held while the Method's light passes over it (the bridge):
+    // only from the Method on — held at Experiences' own stop, its moments stood still there (the bug of 12–16 Nov)
+    const STOPS = ['top', 'weddings', 'artists', 'experiences']
+    if (driven) {
+      cleanups.push(
+        registerScene({
+          name: 'work',
+          to: (stop: string, how: How) => {
+            const i = STOPS.indexOf(stop)
+            const end = endOf()
+            const atTop = i === 0
+            if (how === 'jump') put(atTop ? 0 : end)
+            else go(atTop ? 0 : end)
+            // at the top the passage's own end puts the stage back on Weddings (leaveStage)
+            if (!atTop) setChapter(i < 0 ? articles.length - 1 : i - 1, how === 'jump')
+            bridge(i < 0)
+          },
+          busyUntil: (next: string) => {
+            const now = performance.now()
+            let until = 0
+            const end = endOf()
+            // the passage plays whole, onwards or back; turned back halfway it goes back from where it is (as it always has)
+            if (end && prog !== goal) {
+              const back = goal === 0 ? next === 'weddings' : next === 'top'
+              if (!back) until = now + (Math.abs(goal - prog) / end) * (goal > prog ? PASS_MS : BACK_MS)
+            }
+            // into the Method only once Experiences' photographs have landed: the Method's light pushes in the photograph it finds
+            // (method-stage.ts pushPhoto), and found halfway risen it stayed there, 5 % low, through the whole Method
+            if (next === '7' && ch === articles.length - 1) until = Math.max(until, chapterUntil)
+            // A chapter's own passage plays whole too, onwards (owner, 16 Nov: "faz sentido"): a hand that kept going crossed Artists in
+            // 0.13 s, its titles and photographs cut halfway (lab). Turned back, it goes back from where it is (passage()), as before
+            const k = next === '7' ? STOPS.length : STOPS.indexOf(next)
+            if (k >= 0 && now < chapterUntil && Math.sign(k - (ch + 1)) === chapterWay) until = Math.max(until, chapterUntil)
+            return until
+          },
+        }),
+      )
     }
 
     // ---- a chapter's address (#44): the blades, the title and the menu land on that chapter's step ----
@@ -1253,6 +1562,9 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
     const land = (id: string, smooth: boolean) => {
       const k = chapters.indexOf(chapterOf(id))
       if (k < 0) return false
+      // the conductor's stop for the chapter: its titles within the Work play the chapter's passage (the page goes there unseen); from
+      // anywhere else, at once (README #115)
+      if (driven) return goTo(STOPS[k + 1], smooth ? 'play' : 'jump')
       // on the chapter's stop: landed elsewhere, the stop coming back took the page to the nearest — Experiences' step lies nearer
       // Artists' stop than its own
       const top = restOf(k) ?? steps[k].getBoundingClientRect().top + scrollY + 1

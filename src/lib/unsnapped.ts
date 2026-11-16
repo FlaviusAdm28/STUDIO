@@ -5,10 +5,15 @@
   once the scenes have answered the jump and their light has gone back (the Method's way back, 1.4 s on a phone).
 */
 let back = 0
+let jumps = 0
+
+/** how many jumps the site has made: a hold can tell a jump made after it began from one whose stops are still off (work-client.tsx) */
+export const siteJumps = () => jumps
 
 export function unsnapped(jump: () => void, ms = 1600) {
   const root = document.documentElement
   root.style.scrollSnapType = 'none'
+  jumps++
   clearTimeout(back)
   jump()
   back = window.setTimeout(() => root.style.removeProperty('scroll-snap-type'), ms)

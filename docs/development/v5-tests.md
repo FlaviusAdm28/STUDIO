@@ -3179,3 +3179,466 @@ Não verificado: um dedo verdadeiro no Xiaomi (gestos sintéticos por CDP; o own
   9 → 10 (máx. 8290), 11 → 12 (máx. 9373), 12 → 13, 14 → Questions, fim ↓ parado, fim ↑ → Contact, topo ↑ parado (sem disparar o
   Weddings), Weddings → Artists, Artists → Weddings 2/4 (2/4 seguiu até à capa), Experiences ↓ → 8a (salta o 7), 8a ↑ → Experiences
   (salta o 7). Por corrigir e medir (fotogramas) antes de dar como feito; não testado no Safari nem no trackpad real.
+
+## O regulador de gestos no desktop, medido com trackpad real e vídeo (14/11, manhã) — por aprovar (README #118 a escrever)
+
+**O que:** `src/lib/finger.ts` `governWheel()` (um gesto, uma paragem, com roda ou trackpad num desktop) e a sua retenção
+(`globals.css`, `:root[data-wheel-held]`). O owner pediu medição **visual**, não com o Chrome sem janela: os testes de 14/11 de
+madrugada (`gov.mjs`, CDP `Input.synthesizeScrollGesture`) não reproduziam o trackpad.
+
+**Como:** Chrome 157 **com janela** (1728×1029, perfil próprio, CDP 9223 só para ler o estado), o site pelo proxy gravador em 3141,
+**eventos de trackpad reais do macOS** (`desk/stroke.swift`: fases, inércia, perfis de `desk/gen.py` — passadas de 60/120/300/800 px de
+pico com inércia, sem inércia, e as **cadeias do owner replicadas** das gravações de 14/11, Σ 15 945 e 26 171 px em 5,5 s), gravação do
+ecrã (`screencapture -V`) e fita de `scrollY` por fotograma, eventos de roda, `scrollsnapchanging` (`desk/walk.mjs`, `desk/case.mjs`).
+Resultados e vídeos em `ios-lab/out/2026-11-14-desk-governor/` (ignorado pelo git).
+
+**O que se encontrou (antes da correção, build `430c924`):**
+1. Os meus primeiros gestos sintéticos tinham eventos de **delta 0** (fases de início/fim); o trackpad real não os envia (0 em 8624 no
+   Chrome e 0 em 11 616 no Safari do owner). Com eles o regulador perdia o "gesto novo" e segurava a página na paragem anterior.
+   Robustez acrescentada: `onWheel` ignora eventos sem `deltaY`. Os perfis foram refeitos sem delta 0.
+2. **O bug real, visto no vídeo:** `walk3`, 18 passadas simples: 16 certas; em 2 (Weddings ↓ 300 e Method 7 ↑ 300) a página chegou à
+   paragem certa e **1,2 s depois, sem gesto, passou à seguinte** (Artists → Experiences; Experiences → Artists). Fita: `2733H` durante a
+   retenção, largada aos 150 ms sem roda, e logo a seguir `scrollsnapchanging → out@4946`. Causa: a inércia continua a chegar durante a
+   retenção (`overflow: hidden`), e no fim do gesto o Chrome escolhe um alvo de encaixe a partir dela, aplicado ao largar. Prova: as
+   mesmas passadas **sem inércia** nunca saltam (5 de 5); uma retenção sem gesto não move nada.
+3. Primeira tentativa (encaixe desligado durante a retenção) **piorou**: o próprio regulador lê "sem encaixe obrigatório" e desliga-se;
+   a inércia fugia em degraus de 165 ms (fita: 2733 → 3231 → 3241 → 3422 → 4310 → 4682) até à paragem seguinte à seguinte.
+
+**Correção (por commitar):** `globals.css` — `:root[data-wheel-held] { overflow: hidden; scroll-snap-type: none !important }` (os
+regras das secções são mais específicas); `finger.ts` — a retenção é do próprio gesto: com `data-wheel-held` o regulador continua
+(mantém a paragem e repõe `scrollTo(stop)` a cada evento), e ignora eventos com `deltaY` 0.
+
+**Depois da correção (`walk7`, mesma sequência de 18):** 18 em 18 na paragem seguinte e só nela (topo → Weddings → Artists →
+Experiences → 7 → 8a e volta; fortes 800: idem até 9 e volta ao topo); **0 fotogramas fora da paragem durante a retenção, 0 movimentos
+depois de largar.** Topo ↑ e fim: não se mexe. `walk8`, as 4 cadeias do owner (16–26 k px cada): Method 7 → About 12, 12 → Contact,
+Contact ↑ → Method 9, 9 ↑ → topo — várias paragens por cadeia (uma por passada do dedo), nunca até ao fim nem a correr livre.
+typecheck e lint (0 avisos) passam; build feito e servido na 3100.
+
+### Não verificado
+- ~~A página inteira para lá do Method 9 e o Safari real~~ — feitos à tarde: secção seguinte.
+- O trackpad do owner (Chrome e Safari, `http://localhost:3140/`), as 3 evidências de 14/11 02:25–02:30 repetidas.
+- iOS Safari: não testável daqui (o regulador não corre em ecrãs tácteis nem iPad).
+
+## A página inteira com trackpad real, Chrome e Safari; a retenção do Work no topo e com o dedo no vidro (14/11, tarde) — por aprovar
+
+**O que:** o ponto 2 e 3 da lista da manhã: a página inteira (topo → Weddings → Artists → Experiences/Method pre → 7 → 8a → 8b → 8c →
+9 → 10 → 11 → About 12 → 13 → 14 → Questions → Contact → fim, e a volta) com passadas reais de 300 e 800 px de pico, no Chrome 157 e no
+**Safari 27.2 real**; as 4 cadeias do owner nos dois browsers; e **um bug novo do Work** apanhado pela fita, corrigido em
+`src/components/work/work-client.tsx` (por commitar).
+
+**Como:** o laboratório de `desk/` depois do reinício do Mac (Acessibilidade confirmada com `axcheck`: `trusted`). Chrome com janela
+1728×1029 pelo proxy 3141; Safari pelo proxy 3142 (hud) com a consola remota; `walk.mjs` guarda agora o registo completo por gesto em
+`$S/rec/<label>.json` (fita por fotograma com `data-pass` e `overflow` da raiz, todos os eventos de roda, eventos de encaixe). Em zsh a
+lista de gestos repetidos passa-se com `${=VAR}` (sem isso o zsh entrega a lista como um só argumento: só correm 3 gestos). Fitas em
+`ios-lab/out/2026-11-14-desk-governor/` (`walk9`–`walk16`, `saf1`–`saf3`).
+
+**Chrome, antes da correção do Work (`walk9`, 45 passadas de 300):** 44 paragens certas, uma por passada, em toda a página e na volta;
+Questions → Contact (12 859) → fim (13 591) → fica; topo ↑ fica. Fotogramas > 50 ms: 3 em ~30 000 (máx. 59 ms) — o ouvinte não passivo
+não custa. **1 falha:** Weddings ↑ 300 ao fim da volta (216 s): fita `1319 → 1204 → 0 → 121 → 1319`, encaixe `end 0` e logo `end 1319`.
+A página chegou ao topo (o Work segura-a lá para a passagem ao contrário: `pass: on`, `overflow: hidden`), **um fotograma depois o Chrome
+moveu-a 0 → 121** — nenhum código do site produz esse valor: é o delta do 3.º evento do gesto (−121) aplicado ao contrário depois do
+`scrollTo(0)` do Work — e o `watch` do Work leu `dy = +121 > 12 px` como uma passada para a frente: `go(end)`, `holdFor(end)`, a página de
+volta a Weddings com a passagem a tocar outra vez. O regulador (`finger.ts`) não interveio (sem `H`; a sua paragem era 0). Não reproduz
+à vontade: 0 em 6 ciclos topo ↔ Weddings ↔ Artists (`walk10`), 0 em 40 gestos topo ↔ Weddings (`walk12`), 0 na página inteira repetida
+(`walk11`): **1 em 29** passadas Weddings → topo.
+
+**Correção (`work-client.tsx`, `watch`):** enquanto o desktop segura a página para a passagem (`holding`, `overflow: hidden`) nenhuma
+passada a pode mover, logo um scroll visto nesse tempo não é do visitante — salvo um salto do site (`jumping`, `data-jump`, encaixe
+desligado por `unsnapped`): a página fica no fim para onde a passagem vai (`scrollTo(geo.top + goal)`), `lastY = goal`, e o resto do
+`watch` não corre. Vale para a passagem nos dois sentidos. typecheck, lint (0 avisos), build OK.
+
+**Depois da correção, Chrome:** `walk13` 20 de 20 (topo ↔ Weddings); `walk14` **45 de 45** a 300 px (1 fotograma de 52 ms em ~30 000);
+`walk15` **45 de 45** a 800 px (0 fotogramas > 50 ms); `walk16` as 4 cadeias do owner aterram onde ontem: Method 7 → About 12, 12 →
+Contact, Contact ↑ → Method 9, 9 ↑ → topo, sem correr até ao fim. 0 movimentos depois de largar em todas as voltas.
+
+**Safari 27.2 real (`saf1` 300 px, `saf2` 800 px, `saf3` cadeias):** **45 de 45 e 45 de 45**, as mesmas paragens do Chrome (valores de
+`scrollY` maiores porque a janela do Safari é mais alta: Weddings 1367, fim 14 096). Diferenças medidas: o Safari deixa a página cancelar
+**todos** os eventos de um gesto, não só o primeiro — no fim e no topo os eventos vêm `cancelable` e saem `defaultPrevented` do 1.º ao
+último (`34cP 81cP …`), e **a página não sai do lugar: 0…0 e 14 096…14 096, a 300 e a 800 px**, sem o elástico de 223 px da ronda do
+owner. A retenção (`H`) aparece e larga como no Chrome; o Safari junta eventos (um de 760 na 2.ª passada) sem efeito na paragem. As
+cadeias aterram em About 12, Contact, Method 9 e topo, como no Chrome. O `safari.mjs` não conta fotogramas (sem CDP).
+
+**Xiaomi Mi 11 Lite (Chrome 157 Android, 392 × 779, CDP por `adb`; ligado às 14:15):** `finger/xiaomi-pass.mjs` (a passagem do Work
+nos dois sentidos: 3 passadas normais, 3 fortes, 3 arrastos com toques reais, 2 arrastos lentos, cada uma ↓ e ↑) e
+`finger/xiaomi-pass-drag.mjs <n> [px] [ms] [dedo parado ms]` (só arrastos reais, com os eventos de encaixe e os tempos do dedo na página).
+- Com a correção da retenção (`holding`): passadas normais e fortes **12 de 12** (topo → Weddings 1169 → topo), fotogramas > 50 ms: 1–3 por
+  bateria (máx. 67 ms). Arrastos reais 300 px/400 ms: **0 de 40** errados quando o dedo sai antes de a retenção largar.
+- **Bug pré-existente do Android, apanhado pela fita:** com o dedo ainda no vidro quando a retenção larga (1,2 s na volta ao topo), ao voltar
+  o encaixe (`data-pass-zone`) o Chrome escolhe **Weddings** como alvo (`scrollsnapchanging → weddings`, no mesmo fotograma) e, quando o
+  dedo levanta, anima a página de 0 a 1169 em ~90 ms — o visitante arrastou até ao topo, parou, levantou, e a página voltou a Weddings.
+  Reproduzido de propósito com o dedo parado 1,5 s: **10 de 10**; ao acaso (arrastos do laboratório esticados pela latência do CDP a ~1,2 s):
+  2 de 30 **sem** a correção da retenção (linha de base, build sem o `holding`) e 2 de 10 com ela — a mesma taxa, não é da correção.
+  Causa: a retenção larga por tempo, sem olhar ao dedo.
+- **Correção (`work-client.tsx`, `holdFor`):** a retenção só larga (overflow, `holding`, zona) depois de o dedo sair do vidro (`fingerDown()`,
+  sondado a cada 120 ms só enquanto está). Depois: dedo parado 1,5 s **0 de 20**; dedo parado 2,5 s (cobre a passagem para a frente, 1,6 s)
+  **0 de 16**; arrastos simples **0 de 40**; a bateria inteira 22 de 22. No desktop o dedo nunca está no vidro: `walk17` 16 de 16 no Chrome.
+- O arrasto lento (250 px em 1,2 s) que no primeiro ensaio seguiu até Artists era o laboratório: cada `touchMove` esperava a resposta do
+  CDP e o arrasto durava ~3 s, com o dedo a mover-se depois de a retenção largar — a página segue o dedo, como deve. Postados ao ritmo
+  certo (dedo ~0,5 s), 0 de 6 e 0 de 4.
+
+### Não verificado
+- iOS Safari: nenhuma das duas correções corre lá (`holdFor` sai no iOS); nada muda, mas sem teste daqui.
+- A causa do 0 → 121 **dentro do Chrome** (compositor vs. thread principal) não foi provada: só a fita; o vídeo do `walk9` tinha
+  180 s e a falha deu-se aos 216 s.
+- O trackpad do owner, Chrome e Safari, em `http://localhost:3140/`.
+
+## A ronda do owner no Chrome (15/11) e a passada pelos browsers: dois bugs corrigidos — por aprovar
+
+**O que:** a gravação do owner `ios-lab/out/2026-11-15T11-57-21-rec.jsonl` (Chrome 157, 1728×942, trackpad), "pareceu-me bem de forma
+geral", com uma marca aos 26,4 s e a nota *"pagina arrastou para cima no scroll a entrar no work e primeiro card do weddings tbm saltou
+para cima meio que bugado"*. A sequência: clique em *Chapter One* (20,09 s) → passada para baixo 1,24 s depois (passagem para o Weddings)
+→ passada para cima **durante** a passagem (ignorada, ponto D) → 139 ms depois um arrasto lento de ~100 px para baixo (picos de 4 px) →
+a página no Artists.
+
+**Como:** os três gestos do owner cortados da gravação para perfis de trackpad (`desk/cut.py` → `desk/strokes/o15-*`) e repostos no
+Chrome de teste **no tempo exato do owner** (`desk/chain.mjs`: passos `nome@ms` lançados sem esperar, fita por fotograma de `scrollY`,
+retenções, `data-pass`, capítulo e encaixe, todos os eventos de roda e cada `scrollTo` com quem o chamou). Evidências em
+`ios-lab/out/2026-11-15-owner-chrome/`.
+
+**Bug 1 — o regulador punha a página na paragem com um evento ao contrário (`finger.ts`).** Reposto: o arrasto de 100 px levou a página
+Weddings → **Artists → Experiences em 30 ms** (`scrollTo` do regulador, 4 de 4 ensaios). Causa: o teste "já passou a paragem?"
+(`way * (to - stop) >= 0`) usava o sinal **do evento**; um evento de 1–3 px ao contrário dava verdadeiro e punha a página na paragem
+de imediato; e um evento > 3 px no sentido do gesto, depois desse, era lido como gesto novo (mudança de sentido) e a paragem seguinte vinha
+logo. Os trackpads reais fazem estes eventos: **13** na ronda de hoje, **36** e **56** nas de 14/11 — sempre onde começa um gesto no
+sentido contrário, a menos de 300 ms do anterior (`1, 1, 1, -1, -4, -11`), nunca a meio de um gesto. **Correção:** o gesto guarda o seu
+sentido (`strokeWay`) quando acha a paragem; um evento ao contrário não decide nada (segurado se o gesto está segurado, senão move os
+seus píxeis); um evento > 3 px ao contrário acha a paragem de novo. E (defensivo) um evento pequeno ao contrário não conta como "o gesto
+a abrandar" na regra que deteta um gesto novo pela subida da força.
+
+**Bug 2 — 13 px fora do Weddings toda a passagem depois de um salto do site (`work-client.tsx`, `unsnapped.ts`).** Na gravação a passagem
+aterrou em 1332 (a paragem é 1319) e ficou lá até a retenção largar (23,72 s), quando a página voltou a 1319 — o cartão a saltar. A
+correção de ontem (o `watch` repõe a página no fim da passagem enquanto o desktop a segura) desligava-se com o encaixe desligado
+(`root.style.scrollSnapType === 'none'`), e o clique em *Chapter One* deixa-o desligado 1,6 s (`unsnapped`): a passada veio 1,24 s depois.
+**Correção:** `unsnapped.ts` conta os saltos (`siteJumps()`); o `watch` só deixa passar um salto feito **depois** de a retenção começar.
+Não reproduz sozinho no laboratório (o Chrome de teste aterrou em 1319 nas 7 repetições); provocado com `scrollBy(0, 13)` duas vezes
+durante a passagem, 300 ms depois do clique: **a página volta a 1319 no fotograma seguinte (8 ms), 2 de 2** (antes ficava lá).
+
+**Depois das correções (typecheck, lint 0 avisos, build; 3100):**
+- A cadeia do owner no tempo dele (`fix1`–`fix3`): **3 de 3** — o arrasto de 100 px move ~95 px e o encaixe volta ao Weddings; nenhum
+  `scrollTo` do regulador. (No Chrome do owner o mesmo arrasto foi até Artists por um movimento suave do próprio Chrome, sem retenção:
+  um gesto, um capítulo — README #110.)
+- Chrome, a página inteira com eventos de 1 px ao contrário a cada 6 (`desk/strokes/*-jit`, o caso mais duro, não visto em trackpads
+  reais): **34 de 34** a 300 px e **34 de 34** a 800 px, uma paragem por passada, nos dois sentidos; topo e fim não se mexem. Antes da
+  regra defensiva: Weddings → Method 7 numa passada.
+- Chrome, gatilhos com tempo marcado: inversão 100 ms depois de um gesto (W → A → W; W → A → E → A → W); rajada de 5 passadas a 1,3 s
+  (W → A → E → 7, uma cada); passada 300 ms e 700 ms depois do clique em *Chapter One* (Weddings exato; e ↑ → topo). Certos.
+- As 4 cadeias do owner (16–26 k px): Method 7 → About 12, 12 → Contact como ontem; Contact ↑ (32 impulsos de dedo) vai agora até ao
+  topo/Weddings — **igual com o regulador de ontem** (A/B no mesmo build: topo 3, Weddings 1 de 4), logo não é desta correção; ontem a
+  cadeia chegava ao Contact pela anterior, com a luz do Contact ainda a reter impulsos.
+- Fora da paragem: só a entrada no Work, 1 fotograma (121–539 px) antes de a passagem segurar a página; gravado a 60 fps
+  (`entry1-sheet.png`): **não se vê** — a entrada está presa no ecrã e a lâmina começa a crescer sem salto.
+- **Safari 27.2 real** (`saf4`): o arrasto do owner nos dois sentidos e a página inteira com eventos ao contrário, **36 de 36**; as
+  cadeias (`saf5`) aterram como no Chrome.
+
+### Não verificado
+- **Xiaomi**: não estava ligado (`adb devices` vazio). O regulador não corre em ecrãs tácteis, mas a correção do Work (`watch`) corre no
+  Android: repetir `finger/xiaomi-pass.mjs` e `xiaomi-pass-drag.mjs`.
+- iOS Safari: o `holdFor` sai no iOS e o regulador não corre lá; sem teste daqui.
+- O que o owner viu exatamente (sem vídeo do ecrã, só a gravação): confirmar no trackpad dele em `http://localhost:3140/`.
+
+## Fase 0 da estratégia do scroll: a matriz do desktop (15/11, 13:12–14:10)
+
+**O quê:** a página inteira percorrida em Chrome e Safari (macOS, 1728 px) com gestos reais de trackpad (120/300/800 px, o arrasto lento
+do owner, rajadas, inversões a meio de cada passagem, as cadeias do owner), o menu, *Chapter One*, PageDown/PageUp/Espaço/End/Home;
+build da 3100 com as correções #12/#13 por aprovar. **Como:** `desk/phase0.sh` (M1–M8) → `sweep.mjs` (fita visual `vtape.js` + vídeo
+60 fps), revisto com `vscan.py`, `vdiff.py` e `frames.py`. **Números:** posições — Chrome 102/102 passadas simples, 64/64 inversões,
+rajadas uma paragem por gesto; Safari 101/102 (uma passada Artists ↑ foi ao topo). Teclas: End/Home erradas nos dois; uma tecla perdida
+no Weddings do Safari. Contact → Questions: as Questions entram em 67 ms (para a frente 490 ms). A volta Weddings → topo: o arco some e
+reaparece (Chrome) ou troca de fotografia (Safari). 0 crashes do Safari em 33 min. Fotogramas > 50 ms: Chrome 2 em toda a matriz,
+Safari 52–89 ms nos saltos do menu e nas passagens do Method/About. Tudo em `v5-scroll-catalogue.md` (#15–#22).
+**Xiaomi (depois, ligado):** passagem do Work 24/24 (`xiaomi-pass.mjs`), dedo parado 1,5 s 12/12 (`xiaomi-pass-drag.mjs 6 300 400 1500`), página inteira normal certa, forte salta uma paragem no Method/About/Contact (#14 reproduzido, `xiaomi-walk.mjs`).
+**Não verificado:** iPhone, os vídeos de M4–M8 fotograma a fotograma (só por amostra), o custo da própria fita no Safari.
+
+**#7 (15/11 15:20, `sweep.mjs <b> p0-<b>-M7b`):** menu → work/method/about/questions/contact e uma passada de 300 px 0,3/0,7/1,2 s depois, para baixo e para cima, 24 por browser. Até 0,7 s: 15 de 16 erradas em cada browser, a atravessar paragens; a 1,2 s: Chrome 7/8 certas, Safari 1/8 (para entre paragens). Reproduzido; causa R3 (catálogo #7). Safari: crash #1 outra vez às 14:49, fora do laboratório.
+
+**iPhone Simulador (15/11 15:41, `desk/simsweep.mjs`):** página inteira normal 34/34; #7 a 0,3 s 3/8 errados (uma paragem), a 0,7–1,2 s 16/16; a troca do arco na volta (#19) e o clarão Contact → Questions (#6) iguais aos do Safari do Mac. S3/S4 por correr: o iOS simulado caiu inteiro às 15:47 (runtime ilegível, não o site).
+
+## Fase 3, passo 1 — o crash do Safari: a página segurada por um só sítio, largada só com a roda parada (15/11, por aprovar)
+
+**O quê:** `src/lib/hold.ts` (novo) segura a página para o regulador (`finger.ts`) e para a passagem do Work (`work-client.tsx`
+holdFor): `overflow: hidden` + `scrollbar-gutter: stable`, contadas as retenções, e **largada só quando a roda está parada há 200 ms**
+(ou quando começa um gesto novo: `strokeBegan()`, chamado pelo regulador). O Work largava ao relógio (1,6 s / 1,2 s), com a inércia de um
+gesto forte ainda a correr — o gatilho do crash (`ScrollAnimationMomentum::updateScrollExtents` ← `didAddScrollbar`). `globals.css`:
+`:root[data-wheel-held]` só desliga o encaixe (o `overflow` é do `hold.ts`).
+
+**Tentado e desfeito:** segurar no Safari só pelos eventos (sem `overflow`). O Safari só deixa cancelar os eventos seguintes de um gesto
+cujo 1.º cancelou; o regulador deixa o 1.º mover a página — o resto veio `cancelable: false` (sonda), a inércia levou a página 26 px além
+do Weddings, a passagem do Work leu um gesto para trás e os dois disputaram a página 1 s (60 `scrollTo`): Artists ↑ → topo 3 vezes em
+~60 (`p3s1-safari-*`).
+
+**Como:** `phase0.sh` com `TAG=p3s1b` e `PROBE=probe-owners.js` (cada `scrollTo`, cada mudança da raiz, cada evento da roda), Safari M2/M5/M6/M8
+e Chrome M2/M6; Xiaomi `xiaomi-pass.mjs`, `xiaomi-pass-drag.mjs 4 300 400 1500` e 8 arrastos lentos.
+
+**Números:** posições iguais às da fase 0 (M2+M6, passadas simples: Safari 1/66 fora — o #15, o regulador; Chrome 0/66). Safari, 208
+largadas: as 178 das passadas normais (M2, M5, M6) **todas com a roda parada ≥ 200 ms**; 30 no início de um novo empurrão dentro das cadeias
+do owner (M8; as gravações não têm as fases, não se sabe se havia inércia). 0 crashes novos (nunca reproduzido no laboratório: a prova é o
+uso do owner no Safari). Xiaomi: passagem 21/22 + dedo parado 8/8; o que falhou é o #23 (anterior a esta mudança). typecheck, lint (0
+avisos), build: passam.
+
+**Não verificado:** o crash em si (não se reproduz no laboratório); iPhone (sem alteração no iOS: `holdFor` não corre lá).
+
+**Correção depois do crash do owner (15/11 17:48, Safari):** a pilha mostrou o caminho — um evento da roda com a inércia a correr, lido
+como gesto novo; o `strokeBegan()` largou a página nesse instante; o regulador mediu as paragens (`getBoundingClientRect`), o layout repôs a
+barra de scroll a meio da inércia → `ScrollAnimationMomentum::updateScrollExtents`. As de 12:55 (dentro de um evento da roda, `scrollY`) e
+14:49 (na pintura a seguir à largada do Work pelo relógio) são o mesmo. Agora a página só é largada com a roda parada ≥ 200 ms, sem exceções;
+um gesto que começa enquanto a largada espera é levado à paragem pelo regulador (`letGoPending()`). Verificado (`TAG=p3s1c`, sonda): Safari
+M2 34/34 e Chrome M2 34/34 na paragem seguinte; **todas as largadas (74) com a roda parada ≥ 216 ms**; Safari M8 (cadeias do owner) sem
+largadas antecipadas. O crash continua sem se reproduzir no laboratório: a prova é o owner no Safari.
+
+**Owner no Safari (15/11, depois das 18:00, build `p3s1c`):** "o Safari não partiu" — viu outros bugs (por descrever; ficam para os passos seguintes, catálogo).
+
+**O owner: "se estiver sempre a dar scroll saio do Work para o About, nem vejo o Method" (Safari, 15/11 ~18:05)** — regressão do
+`letGoPending()` (cada gesto novo com a página à espera da largada ia logo à paragem seguinte). A cadeia do owner do topo: fase 0 → 8c;
+17:50 → About 12. Correção (`finger.ts`): só um gesto **novo** e só depois de a página estar **600 ms** na paragem onde está (DWELL); antes
+disso o gesto não faz nada. Verificado (`TAG=p3s1d`): cadeia do topo → 8a (Safari e Chrome; fase 0: 8c / 8b); rajadas M5 **iguais à fase 0
+nos dois browsers** (uma paragem por gesto); M2 34/34 nos dois; largadas com a roda a mexer: 0 em 116; 0 crashes.
+
+## O motor de scroll no desktop — protótipo `?motor` (15/11, noite; por aprovar pelo owner)
+
+**O quê:** `src/lib/motor.ts` (novo): no desktop e só com `?motor` (fica na sessão; `?motor=0` desliga), o browser nunca move a página — a
+roda/trackpad e as teclas de scroll são canceladas desde o 1.º evento e o motor desliza a página de marca em marca (0,62–1,05 s, curva
+suave; a passagem do Work topo ↔ Weddings vai de imediato e toca pelo seu relógio, como sempre). Paragens = as marcas das secções
+(`.w-pass-snap, .m-snap, .a-snap`, todas as que estão dispostas); barreiras: topo, Weddings, Method 7, About 12, Questions, Contact. Regra
+b: um gesto = uma paragem; gestos durante um deslize levam mais uma paragem cada, nunca além de uma barreira; numa barreira a página fica
+≥ 1,2 s e enquanto a cena tocar (os sinais das secções: `entrance=run`, `pass=on`, `data-passage` do Method e do About, `cRun`). Teclas:
+PageDown/PageUp/Espaço/setas = uma paragem, End = fim, Home = topo. Com o motor: o regulador (`finger.ts`) e as retenções (`hold.ts`) não
+agem; `:root[data-motor]` desliga o encaixe do browser. Telemóveis: sem alteração.
+**Medido e mudado:** a "força" de um gesto não se lê dos eventos — o macOS acelera gestos seguidos (a mesma passada de 300 px chegou com
+eventos de 300 e de 760–1455 px, Safari e Chrome): a regra "gesto forte → barreira" foi tirada. As marcas que o CSS desliga durante as
+passagens (travões antigos) contam como paragens. Pousar sempre na marca medida de perto, nunca antes dela.
+**Números (`TAG=mot3`/`mot4`, QS=&motor, trackpad real):** M2 34/34 Chrome e Safari; M3 (800 px) 34/34 nos dois (um gesto, uma paragem);
+M6 inversões 32/32 nos dois; M5 rajadas uma paragem por gesto (as barreiras pedem um gesto a mais); M8 cadeias do owner: a 1.ª pára no
+Method 7 (fase 0: 8c/8b), descansos de 2,9 s no Weddings (passagem), ≥ 1,25 s nas barreiras; 0 crashes; `overflow` nunca tocado.
+**Não verificado:** o vídeo fotograma a fotograma dos deslizes (as passagens são as mesmas); o owner (sensação, curva, duração); Firefox;
+o arrasto da barra de scroll e ⌘F (o motor adota a posição e pousa na marca mais próxima — não testado).
+
+## O condutor (`?cenas`) — protótipo com o Work e o Method (16/11, manhã; por aprovar pelo owner)
+
+**O quê:** `src/lib/conductor.ts` (novo; README #119). No desktop e só com `?cenas` (fica na sessão; `?cenas=0` desliga): a roda, o trackpad e
+as teclas são pedidos; **o Work e o Method deixam de ler o scroll** (`work-client.tsx`, `method-stage.ts`: os ouvintes de scroll só existem sem o
+condutor) e recebem a paragem (`registerScene`: `to(paragem, 'play' | 'jump')`, `busyUntil(próxima)`). Entre as paragens do topo ao 11 a página muda
+sem se ver e a cena toca pelo relógio; abaixo do 11 (About, Questions, Contact, ainda a ler o scroll) desliza como o motor. Barreiras: topo,
+Weddings, 7, 11, 14, Questions, Contact (≥ 1,2 s, só para quem continua no mesmo sentido). Paragens = marcas com `data-stop` (o Work, o Method, o
+About). Telemóveis e movimento reduzido: sem alteração.
+**Como:** Chrome 157 sem janela (CDP, porta 9333, 1440 × 900), eventos de roda com os perfis do laboratório; `docs/development/ios-lab/desk/cenas/`
+(README lá). Depois de cada passo: a paragem, o estado de cada cena (`data-pass`, `data-ch`, `data-phase`) e animações paradas a meio.
+**Números:**
+- Paragem a paragem (`walk1.mjs`, gentle300 e swipe800): 33 + 33 gestos, cada um na paragem seguinte, ida e volta; 0 estados errados, 0 paradas a meio.
+- Scroll rápido (`fast.mjs`): 30 passadas a 0,3 s e 60 a 0,15 s desde o topo → páram nas barreiras e acabam no About 13/14, estados certos; para
+  cima até ao topo, certos. As cadeias gravadas do owner: 15 paragens a descer e 15 a subir, 3 vezes, tudo certo no fim. 0 fotogramas > 50 ms.
+- Casos (`cases.mjs`): 28 de 28 — inverter a meio da passagem do Work (nos dois sentidos) e da luz do 7; teclas; menu → secção + passada 250 e
+  700 ms depois (o #7: certo); `scrollTo` de fora (5 posições → paragem mais próxima); título do Work; mudar o tamanho a meio da passagem; foco no
+  campo do nome; recarregar no 8b; chegar com `#about`.
+- `smoke.mjs`: os dois modos sem erros na consola; o site normal igual (5 × PageDown → 8a).
+**Encontrado e corrigido pelo caminho:**
+1. A deteção de passada nova (a do motor) **perdia passadas começadas devagar** quando a inércia da anterior se acabava: 4 de 12 numa das rondas
+   gravadas do owner (`owner-chrome-3`: "1 3 1 7 11 12 15 25"), e 30 passadas a 0,3 s davam uma só paragem. Regra nova: uma inércia só desce;
+   duas subidas seguidas até ao dobro do seu mínimo é uma mão outra vez. Simulada sobre todos os perfis (`strokes-sim.mjs`): cada gesto único conta
+   1, com e sem tremura. **E um bug do motor:** um gesto que começa com eventos de 1–3 px contava duas vezes (o sentido ainda não estava fixado).
+2. **A passagem do Work ficava a 1578 de 1600 ms** (o arco a ~70 % por cima do palco) com um salto logo depois de uma volta ao topo:
+   `syncOne` posicionava e depois pausava, e a pausa (feita no fotograma seguinte) deixava a animação andar um fotograma para trás. Agora pausa e
+   depois posiciona. **Também no site normal** (o menu ou um endereço logo depois de uma passada para cima).
+3. O descanso da barreira bloqueava voltar para trás: agora só trava quem continua no mesmo sentido.
+4. O bug do Experiences (a "ponte" congelava o momento na própria paragem do Experiences): com o condutor, a ponte só liga do 7 em diante.
+**Vídeo para o owner:** `~/.local/share/v5-lab/rec/cenas-rapido-2026-11-16.mp4` (82 s, fotogramas do próprio Chrome: um gesto de cada vez, o
+scroll super rápido para baixo e para cima, mudar de ideias a meio, menu + passada).
+**Não verificado:** trackpad real e vídeo do ecrã (o owner pediu-o para o desktop; o Chrome do laboratório é o dele, aberto) — **o Safari nada**
+(o comportamento dos saltos sem se ver e do `scrollTo` instantâneo no WebKit está por medir); rato com roda (uma roda a girar sem pausa conta como
+uma passada só: medir); o Xiaomi e o iPhone (o condutor não corre no toque ainda); Firefox; leitores de ecrã.
+
+### Passo 1 — os dois bugs da avaliação do owner (16/11, tarde)
+
+O owner experimentou `?cenas` no Chrome e no Safari: "parece-me bem, especialmente no scroll rápido", mas ainda via **(a)** lag ao transformar a
+lâmina do Weddings no arco, **sobretudo para trás**, e **(b)** no Safari, ao passar para o Method, às vezes um **risco muito fino** da passagem
+preso no Work. Combinado: passo a passo, paragem a paragem (Work, depois Method, depois o resto), casos normais e "estúpidos", eu a testar antes.
+
+**(a) O regresso Weddings → topo** (`desk/cenas/back.mjs`: o brilho do meio do arco, fotograma a fotograma, nos fotogramas do próprio Chrome).
+- **Medido:** 0 fotogramas lentos (nenhum intervalo > 20 ms, nenhuma tarefa longa) — não era lag de processamento. **Era a caixa da fotografia
+  que não era desenhada:** voltando até ~4 s depois de chegar ao Weddings, a fotografia aparece aos ~70 ms (brilho 204); **a partir de ~4,5 s, o
+  arco escurece e fica ~0,6 s sem fotografia** (brilho ~45, o chão do palco), e ela surge a meio do caminho, já pequena, quando a caixa de cantos
+  retos entra (673 ms em todas as corridas). Por isso parecia ao acaso: dependia do tempo passado no Weddings.
+- **Postos de lado, medidos:** não é a imagem (`decode()` 0 ms; JPEG, 640 px, `decoding=sync`: igual), nem a ordem de pintura (entrada por cima:
+  igual), nem o vídeo, nem a peça do momento, nem o recorte redondo, nem memória da GPU (`--force-gpu-mem-available-mb=2048`: igual), nem a
+  caixa mantida a 0,1 % / 2 %. Um bloco vermelho posto na caixa nessa altura também não era desenhado.
+- **A causa:** as animações do voo **terminadas** há mais de ~4,5 s e tocadas outra vez para trás **enquanto a entrada ainda está escondida**
+  (`visibility: hidden` em `data-pass='done'`, work.css) não são desenhadas pelo Chrome até o tempo da animação passar outra mudança. Só as duas
+  coisas juntas resolvem: **cancelar a animação terminada antes de a tocar** (`syncOne`) **e mostrar a entrada antes** (`go`: `visibility: visible`
+  inline, retirado quando a passagem volta a 'done' ou com o resto no topo). Cada uma sozinha: a caixa continua a faltar (medido).
+- **Depois:** o regresso inteiro ao fim de 1,5 s, 7,5 s e 12 s no Weddings (a fotografia aos ~90 ms, brilho 204 até começar a encolher). O
+  site sem o condutor (`?cenas=0`): inteiro nos dois casos. A ida depois de 9 s no topo já estava inteira (uma pausa não é um fim).
+- A regra que esconde a entrada no Weddings fica: tira da ordem do Tab os links das lâminas.
+
+**(b) O risco no Safari** (`desk/cenas/light.mjs`). Depois de voltar do 7 ao Experiences a luz recolhe-se numa **faixa de largura zero no lado
+da hora** — de dia, **no meio do ecrã** (x 816 → 624 px, inclinada) — **com opacidade 1**; o Chrome não a desenha, o Safari desenha as duas
+arestas sobrepostas como um fio. O brilho da luz (`m-spill`) já se escondia ali pela mesma razão; a luz não. Agora acaba a 0,001 (como espera
+antes da primeira passagem, a sala pintada à frente) e reabre vista a partir do sítio onde se recolheu (`method-stage.ts`, `blade`: `then`).
+**Não verificado no Safari** (o ecrã do owner): é a explicação geométrica que bate com "de vez em quando, ao passar para o Method".
+
+**Bateria depois das duas correções (16/11, tarde, `next start`):** `walk1` gentle300 e swipe800 — 0 falhas; `cases` 28/28; `smoke` os dois modos
+sem erros; `fast` 30 × 0,3 s e 60 × 0,15 s e as cadeias do owner — estados certos no fim, nos dois sentidos; 0 fotogramas > 50 ms corrido sozinho (um
+de 167 ms só com os dois Chromes do laboratório a correr ao mesmo tempo). Typecheck e lint dos dois ficheiros: 0. Imagem antes/depois do regresso:
+`scratchpad/lab/antes-depois-regresso.png` (enviada ao owner). **Visto nela:** voltando depois de os momentos rodarem, a fotografia do momento
+passa à da lâmina num instante (as cartas do palco desaparecem em 0,12 s do regresso) — pergunta ao owner.
+
+**Segunda ronda do owner (16/11, tarde).** O risco fino: "acho que ficou corrigido". Ainda: **(c)** entrando e saindo do Work muitas vezes
+seguidas, "começa a lagar" (Chrome); **(d)** "um ligeiro tremor" da lâmina a transformar-se no cartão do Weddings (Chrome e Safari); **(e)**
+interromper a luz do Method com um scroll rápido para trás leva ao Weddings — "é suposto?".
+
+**(d) O tremor — medido e corrigido.** A interpolação do Chrome está limpa (`probe-interp`: a fotografia nunca se inclina, 0,0002; oscila
+≤ 0,2 px). **O salto estava no arranque:** a caixa que voa partia da lâmina **medida ao carregar a página**, e a lâmina viva mexe-se: o rato dá-lhe
+profundidade (até ±6 px, `sequence.ts`) e, pousado nela, faz o zoom lento da fotografia (1,08 e um desvio, 2,2 s). Medido no início da
+passagem: rato à direita → a caixa 5,9 px ao lado; rato na lâmina → a fotografia 20,7 px mais estreita e 19,5 px desviada (8 % de zoom a
+desaparecer num fotograma). **Agora** (`work-client.tsx` `pathNow` / `aim`): o caminho é medido outra vez quando começa cada passagem inteira
+(do topo ou do Weddings), já com a transformação da própria fotografia; a profundidade da lâmina pára enquanto a passagem corre (`sequence.ts`).
+Depois: a caixa começa exatamente sobre a fotografia da lâmina nos três casos (diferença 0 em x e largura); visto fotograma a fotograma.
+Lição: uma falha de 267 ms no screencast a meio do voo **não era do ecrã** — o traço completo mostrou o ecrã a desenhar sempre (≤ 43 ms); o
+screencast deixa de entregar imagens por instantes. Para saltos curtos, o traço (`Display::DrawAndSwap`), não só as imagens.
+
+**(c) O lag ao entrar e sair muitas vezes — não reproduzido no laboratório.** 16 passadas a 0,7 s e 10 a 1,9 s: 1 fotograma > 20 ms em 3015,
+as animações vivas não crescem (30/23); traçado (14 passadas cortadas a 0,8 s, a passagem sempre invertida a meio): **nenhum buraco > 25 ms no
+ecrã** durante o vaivém; 2–3 fotogramas "parciais" do compositor por regresso, sem perda de conteúdo. É preciso medir no Chrome do owner:
+`desk/cenas/owner-trace.mjs <s>` liga-se ao separador `localhost:3100` do Chrome do laboratório com janela (CDP 9223), grava enquanto o owner faz
+o gesto com o trackpad dele, e diz onde o ecrã ficou sem fotograma, o que o compositor perdeu, quantos gestos o trackpad deu e o caminho do condutor.
+
+**(e) A luz do Method interrompida.** Medido (cortando a passada para baixo como uma mão faz, e passando para cima): **uma passada rápida para
+trás → Experiences, e fica** (swipe800, swipe300); duas → Artists; três → Weddings; as cadeias gravadas do owner → topo. Cada passada é uma
+paragem, e dentro do Work as mudanças de capítulo não seguram a seguinte (Artists → Weddings em 0,23 s numa cadeia). Se o owner chega ao Weddings
+com "um" gesto, ou o gesto dele tem várias passadas, ou a deteção lê uma como várias — o `owner-trace` mostra qual. Proposta ao owner: voltar
+atrás a meio de uma passagem leva onde se estava e **segura lá como uma barreira** (1,2 s).
+
+**Terceira ronda (16/11, ~15:45): a gravação do owner.** "Não é bem lag: é a animação partida — para a frente vai smooth, para trás anda aos
+saltos, toda buga, mais vezes faz isso do que faz bem" (Chrome; `~/Desktop/Screen Recording 2026-11-16 at 15.45.26.mov`, 20 s, 3548 × 2150, até
+120 fps). **Medido nela** (a caixa da fotografia: a região clara na metade esquerda, fotograma a fotograma, nos tempos da própria gravação): no
+regresso a caixa fica **exatamente 130 × 98 px de 0,22 s a 0,59 s** — nem um píxel — e passa a **82 × 41 num só fotograma**; o ecrã nunca parou (o
+maior intervalo entre fotogramas da gravação: 58 ms). Ou seja: **a animação do movimento congelada e depois a apanhar o tempo**, não um ecrã lento.
+O laboratório (Chrome sem janela, o mesmo build) **não o reproduz**: a caixa encolhe 133 → 72 px continuamente ao longo de 1 s. O gatilho que a
+solta (~0,6 s) é o mesmo do primeiro bug: a caixa de cantos retos a começar a aparecer.
+**A causa provável:** no Weddings a entrada está escondida (`visibility: hidden`) e as animações do voo **terminadas**; o regresso mostrava a entrada e
+arrancava-as no mesmo instante — o Chrome cria as camadas da entrada nesse mesmo fotograma e o compositor pode não as ter quando o movimento
+arranca. A ida não tem isso (a entrada visível, as animações em pausa) e está bem.
+**Corrigido** (`work-client.tsx`): (1) no fim de cada passagem as animações ficam **em pausa** onde acabaram, como no topo, nunca "terminadas"
+(`tick`); (2) no regresso a entrada aparece primeiro e o voo arranca **dois fotogramas depois** (`go`, `showing`; ~17 ms a 120 Hz); voltar a
+descer nesse intervalo esconde-a outra vez. **Por verificar no Chrome do owner** (o laboratório já estava bem antes).
+**A dissolução (README #120):** o regresso a partir de outro momento passava a fotografia num fotograma; agora a caixa entra em 0,24 s e as
+fotografias do palco saem por baixo de 0,15 a 0,3 s (`FADE_BACK`, `flyText`); para a frente igual (`FADE_IN`). Visto no laboratório no 3.º
+momento com a peça: dissolve em ~0,2 s e só depois a caixa encolhe, contínua (133 px até 0,27 s, depois a descer sem saltos).
+**Voltar atrás segura (README #120, `conductor.ts` `turnHold`):** a luz do Method cortada aos 0,5 s por uma mão rápida para trás (3 passadas a cada
+0,3 s) → **Experiences, "held", as outras ignoradas**; 6 passadas (a mão continua ~2 s) → depois da pausa de 1,2 s segue: Artists e, 0,13 s depois,
+Weddings — **dentro do Work as mudanças de capítulo não seguram a passada seguinte** (pergunta ao owner).
+**Os capítulos do Work tocam inteiros (README #120 (3), "faz sentido"):** `busyUntil` do Work segura quem continua no sentido da mudança de capítulo
+até ela acabar (`max(STACK_MS, moveMs)` = 1,2 s); voltar atrás não espera. A mesma mão rápida (12 passadas a cada 0,3 s a partir da luz cortada):
+Experiences "held" → Artists → **Weddings 1,22 s depois** → topo 1,22 s depois (antes: Artists → Weddings em 0,13 s).
+
+**Quarta ronda (16/11, ao fim da tarde): "passar do E4 para o 2 e do 2 para o E4 está a partir a página, faz restart; ao chegar ao 2 a imagem dá
+um salto para ajustar a posição correta" (Chrome e Safari).** O owner: "estamos sempre a piorar" — com razão: o laboratório sem janela não
+reproduzia o que ele via, e eu testava a primeira ida.
+- **O salto ao chegar ao 2 — encontrado:** as fotografias do palco eram preparadas no regresso já com o tempo da dissolução (`CARDS_BACK`,
+  aos 75–87,5 %) e **a ida seguinte reaproveitava-o**: a fotografia do palco aparecia aos 75 % do caminho, por baixo de uma caixa ainda 3 % mais
+  pequena e a chegar, e via-se a "ajustar". Na gravação das 15:45 (antes da dissolução) a chegada era suave (a caixa até 129 × 98 sem salto). O
+  laboratório não o mostrava porque media a primeira ida. **Corrigido:** o tempo das fotografias passa a ser posto em cada passagem inteira, como a
+  caixa (`aim`: `CARDS_IN` / `CARDS_BACK`). Medido depois de uma ida e volta: a fotografia do palco começa aos 90 % com a caixa assente.
+- **O "restart":** não reproduzido no laboratório (dezenas de idas e voltas, nenhuma falha da página). Para não depender de mais palpites: **o
+  gravador** (`src/lib/rec.ts`, `?rec`, só em localhost, como o medidor de FPS — sai antes do lançamento): a cada fotograma da passagem a caixa
+  como a página a calcula, as notas do condutor, a roda e as teclas, os estados (`data-pass`, capítulo, fase), erros, fotogramas lentos, M = marca;
+  um relógio no canto para alinhar com uma gravação de ecrã. Guardado de 0,5 em 0,5 s em localStorage e enviado ao coletor
+  (`desk/cenas/collector.mjs`, porta 3199 → `~/.local/share/v5-lab/rec/live/`); uma página que morre sem `pagehide` é anotada pela seguinte
+  (`PREVIOUS-DIED`), que envia o que ela guardou. Testado: 4 passagens, M, **a página rebentada de propósito** (`Page.crash`) e recarregada → a
+  sessão nova marcou `PREVIOUS-DIED` e a gravação da morta chegou até à marca 0,2 s antes do rebentamento. Leitura: `desk/cenas/rec-read.mjs`.
+  **Limite:** o gravador vê o que a página calcula, não o que o compositor desenha — o congelamento visto às 15:45 só aparece numa gravação de
+  ecrã; o relógio do canto liga as duas.
+
+**Quinta ronda (16/11, noite): testes no ecrã, no Chrome e no Safari a sério** (owner: "conduz testes no Chrome e Safari pelo ecrã! deves
+sempre fazer isso agora"; "quero simplesmente que a animação do card a entrar no Work e a sair seja a mesma em reverso").
+- **O banco de ensaio:** `desk/cenas/screen.mjs` (o site com `?cenas&rec` no Chrome do laboratório com janela ou no Safari, passadas reais de
+  trackpad pelo macOS — `bin/stroke` —, a janela gravada com `screencapture -V`), `screen-read.mjs` (a caixa da fotografia medida em cada
+  fotograma da gravação: parada a meio, saltos, chegada), `strip.mjs` (tiras de fotogramas entre dois tempos). Validado na gravação do owner das
+  15:45: apanha o salto de cada regresso (largura 116 → ~74 num fotograma). ⚠ O perfil `gentle300` de manhã não tinha as fases do dedo (só
+  "changed"): o Chrome real ignora passadas assim (0 eventos na página); regenerado com began/ended/momentum (`gen.py`).
+- **Encontrado só no ecrã, corrigido, medido outra vez no ecrã:**
+  1. **A dissolução era um corte** no Chrome real (a pilha voltava ao 1.º momento no primeiro fotograma; 25 ms). Depois, adiando, **a peça do
+     momento ficava à vista à volta da caixa a encolher** (retângulos claros). Agora: dissolve primeiro com a caixa parada no arco, o palco é
+     reposto por baixo dela, e só então a caixa faz a ida ao contrário (`dissolve`; README #120 (2)).
+  2. **Chrome — inversão a meio:** a caixa **desaparecia** o resto do caminho (a página tinha-a a opacidade 1 a recuar; o ecrã nada).
+  3. **Safari — cancelar e voltar a tocar a mesma animação fazia-a correr até ao fim num fotograma** (o regresso feito de uma vez; a 1.ª ida a
+     começar em 1166 de 1600 ms) e **a dissolução fez o Safari remover a animação de opacidade da caixa** (substituição automática das animações:
+     a caixa invisível em todas as passagens seguintes). Página de teste `desk/cenas/pages/waapi.html` (servida pelo coletor em
+     `/t/waapi.html`): cinco maneiras de virar/recomeçar, os dois browsers.
+  Correção de 2 e 3: **cada passagem cria animações novas** (os mesmos keyframes e tempos, a partir de onde as antigas estão) e cancela as
+  antigas (`renew` em `syncOne`); a da dissolução sai antes. As vias da caixa passam a ser lidas pela posição em `flights` (`ways`).
+- **Depois, no ecrã, os dois browsers** (`screen.mjs … "d3000 u3000 d3000 w6000 u3000 n500 N3000 n800 N3000 d3000 u3000"`): primeira ida,
+  regresso logo, regresso com dissolução depois de 6 s (a galeria do 2.º momento → a fotografia da lâmina, depois o caminho inverso), duas
+  inversões a meio (aos ~0,5 e ~0,8 s), outra ida e volta — **contínuo em todos, a caixa sempre visível, a chegada ao píxel** (resolução total:
+  a fotografia da caixa e a do palco no mesmo sítio). No registo da página: todas as passagens começam do início (25–46 ms), a caixa sempre com
+  as suas duas animações, as inversões partem de onde estavam (833, 845, 1136, 1150 ms).
+
+**Sexta ronda (16/11, noite): "do início até à entrada do Method finalmente tudo parece bom! … ainda há margem para deixar a animação da
+entrada no Work pelo Weddings um pouco mais smooth — avalia".** Medido no ecrã (`screen.mjs`, Chrome do laboratório e Safari, passadas reais),
+no registo da página (`?rec`) e fotograma a fotograma em resolução total (o interior do arco comparado com o palco já assente: `settle`).
+- **A cadência está limpa:** Chrome a 120 Hz sem nenhum fotograma acima de 13 ms em toda a passagem; Safari a 60 Hz, 16–17 ms; sem saltos.
+- **Encontrado e corrigido — um piscar na chegada (os dois browsers, todas as curvas):** nos últimos 2 % a caixa desaparece (0,98 → 1) enquanto
+  as fotografias do palco ainda estavam a aparecer (0,9 → 1): a meio, caixa a 0,5 e cartão a 0,9, **o fundo da pilha e o chão viam-se pelo
+  céu durante 1–2 fotogramas** (o interior do arco 4,8–7,7 níveis longe do repouso, contra 1–2,7 antes e 0,3–0,6 depois; seis gravações).
+  Agora os cartões estão inteiros aos 0,975, antes de a caixa começar a sair (`flyText`). Depois: a diferença desce sempre até ao repouso, sem
+  pico, nas quatro gravações (Chrome e Safari, cúbica e seno). A volta é o espelho: a caixa já opaca antes de os cartões saírem.
+- **Encontrado e corrigido — no Chrome a fotografia descia 1 px ao assentar:** a caixa acabava em y 149,5 e o palco em 150,7. Não era a
+  medida (o arco está em 150,7 dentro do capítulo desde o início, e no fim da entrada também): **o Chrome mexia a página 1319 → 1320 no fim
+  do momentum da passada**, com todos os eventos da roda cancelados (64 de 64), e a entrada presa — onde vive a caixa — subia 1,2 px. Sem
+  momentum (passada só de dedo) ou sem roda (`__cenas.go`) não acontece; no Safari nunca (1368 sempre, 30 chegadas). Nas gravações do dia, o
+  Chrome acabou 1–2 px ao lado em quase todas as chegadas com momentum. O condutor ignorava-o (menos de 2 px de onde pôs a página = o seu
+  próprio eco). **Agora põe a página de volta logo** (`conductor.ts` `onScroll`): 1319 → 1320 → 1319 em 8 ms (um fotograma a 120 Hz, a meio do
+  voo). A caixa e o palco no mesmo sítio (melhor encaixe a 0 px; ±0,4 px de dispositivo). ⚠ Os perfis sintéticos acabam o momentum com 1 px
+  (`16 1 me`); um trackpad real talvez acabe com 0 — a correção cobre os dois.
+- **A curva — para o owner escolher (README, decisões abertas):** com a cúbica de hoje a caixa fica quase parada ~0,19 s em cada ponta e cruza a
+  3× a velocidade média: medido na ida 896 px/s no Chrome, 931 no Safari (17 px por fotograma), na volta 1172 / 1156 px/s (22 px por fotograma
+  no Safari). **suave** (smootherstep): 600–615 px/s, pontas ~0,13 s; **seno**: 501–512 px/s, pontas ~0,05–0,08 s. Mesma duração e caminho; a
+  volta é sempre a ida ao contrário. Seletor só no localhost: `?curva=suave|seno|cubica` (`passCurve`); o site publicado fica com a cúbica até à
+  escolha. Vídeo lado a lado (Chrome): `~/.local/share/v5-lab/rec/curvas-chrome-2026-11-16.mp4`.
+- **Ferramentas:** `screen.mjs` aceita `Q=…` (mais do endereço); `screen-read.mjs` lê a gravação numa só passagem do ffmpeg (eram minutos).
+- **A escolha do owner: suave** ("acho que noto menos lag na suave"; README #121). O seletor saiu; `passCurve` é a smootherstep. Depois, no ecrã,
+  Chrome e Safari, o plano inteiro (ida, volta logo, ida, 6 s, volta com dissolução, duas inversões a meio, ida e volta): **8 passagens em cada,
+  todas contínuas**, a caixa sempre visível (a opacidade só nos 2 % do fim, como desenhado), as inversões a partir de onde estavam; pico na ida
+  591–651 px/s, na volta 775–829 px/s; maior passo 6–8 px por fotograma no Chrome, 11–17 px no Safari (antes 17–22); no Chrome o píxel do fim
+  do momentum reposto em 8 ms nas três chegadas. ⚠ Safari, só na primeira passagem depois de carregar: dois fotogramas longos do processo
+  principal (45 e 38 ms, aos 1,04 s) — **o ecrã não os mostra** (a caixa corre no compositor; a gravação contínua, 1–2 px por fotograma sem salto).
+- **Bateria depois das correções (headless, `next start`):** `walk1` gentle300 e swipe800 — 0 falhas, 0 fotogramas longos; `cases` 28 de 28;
+  `smoke` os dois modos sem erros (5 × PageDown → 8a). typecheck e lint (0 avisos) limpos.
+- **Não verificado:** a curva com o trackpad do owner (é ele que escolhe); se um trackpad real também acaba o momentum com 1 px (a correção cobre
+  os dois casos); as outras paragens (Artists, Experiences, Method) com esta lupa de chegada; o telemóvel.
+
+### Passo 1, resto — Weddings ↔ Artists ↔ Experiences no ecrã (16/11, noite; owner: "ok avança")
+**Ferramenta nova:** `desk/cenas/glitch.mjs <dir>` — qualquer animação numa gravação de `screen.mjs`, não só a caixa do arco: cada fotograma
+comparado com os vizinhos numa grelha 6 × 4 da página (o relógio do gravador fora). FLICKER = um fotograma (ou dois) que não pertence (difere
+dos dois vizinhos, que são parecidos); JUMP = um passo muito maior que os à volta. Validado na gravação de antes da correção do piscar
+(apanha-o aos 2095 ms) e na de depois (nada).
+- **Normal** (`d d d u u u`: topo → Weddings → Artists → Experiences → … → topo), Chrome e Safari: o condutor no caminho certo, sem erros.
+- **Encontrado e corrigido — a dissolução acendia o arco de uma vez:** no regresso Weddings → topo com a peça à vista, **45 % (Chrome) e 63 %
+  (Safari) da mudança no primeiro fotograma** e o resto em ~0,1 s: a peça saía com a curva do site (rápida à cabeça) em 0,2 s, a caixa entrava
+  em 0,26 s suave. Agora a peça sai com o tempo e a curva da caixa (`work.css` `.w-quick`, 0,26 s ease-in-out) e o contador da galeria já não
+  volta a 0 à vista (`dissolve`). Depois: Chrome 98 → 100 → 104 → 113 → … → 168, Safari 97 → 102 → 111 → … → 166 em ~0,2 s; o detetor nada.
+- **Estúpidos** (`d n300 N n150×4 n N150×3 N`): voltar a meio de Weddings → Artists volta logo de onde está; 5 toques rápidos para baixo →
+  Artists → Experiences → 7, cada capítulo inteiro (1,22 s; "1 dropped / 1 kept"); para cima, passo a passo, igual nos dois browsers.
+- **Observado, por decidir pelo owner (design aprovado, não mexido):** (a) a mudança de capítulo usa a curva do site, `--ease`
+  cubic-bezier(0.2, 0.7, 0.2, 1): 23 % aos 70 ms, 60 % aos 0,2 s — as pilhas cruzam-se quase todas no primeiro quinto (um "pop" à cabeça;
+  o detetor marca o arranque de cada mudança); (b) os títulos FLIP (#73) cruzam-se na mesma linha e sobrepõem-se entre ~0,2 e 0,5 s
+  ("II Artistsweddings"); (c) de 6 em 6 s, a lista do momento troca de uma vez (BEFORE → ON THE DAY: um fotograma).
+- **Para o passo 2:** a subir do 7 (luz do Method para trás), o condutor só esperou 0,54 s em Experiences antes de ir para Artists — a volta da
+  luz pode estar a ser cortada. O Safari tem fotogramas longos do processo principal (58–86 ms) ao chegar a Experiences e no 7; no ecrã não se
+  viram saltos nesses momentos.
+
+**As três do owner (16/11, noite: "1. faz a comparação só da curva suave 2. concordo 3. ok"):**
+1. **A curva da mudança de capítulo — por escolher:** `--chapter-ease` (work.css, lido por `work-client.tsx` para os voos das pilhas e dos
+   títulos) é a do site; `?capitulo=suave` (só no localhost) põe a smootherstep da passagem em `linear()`. No ecrã: com a atual o detetor marca
+   o arranque de cada mudança nos dois browsers; com a suave, **nada no Chrome** e no Safari só mudanças pequenas no limiar. Vídeo, a página
+   inteira, cada mudança alinhada pela sua passada: `~/.local/share/v5-lab/rec/capitulo-chrome-2026-11-16.mp4`.
+2. **Os títulos já não se sobrepõem:** o nome cujo caminho cruza o do capítulo que chega apaga-se no seu lugar, sem se mexer, até 12 % do
+   movimento (lado a lado estão a ~38 px e encontram-se aos ~12 %), viaja invisível e volta nos últimos 12 % (`passage`, ao longo da curva do
+   voo). Visto no Chrome e no Safari: "I Weddings" apaga-se onde está, "II Artists" cresce sozinho, "I Weddings" volta à direita no fim. ⚠ Com a
+   curva atual esses 12 % passam em ~25 ms (um piscar); com a suave em ~0,3 s.
+3. **O texto do momento esbate-se:** a lista que sai apaga-se em 0,15 s, depois a seguinte acende em 0,3 s (nunca as duas ao mesmo tempo), a
+   linha de baixo com elas (`swapText` em `change`; `textDone` em `landed`, também nas mudanças de capítulo). Visto: Artists ALWAYS → FOR A
+   MOMENT sem salto.
+
+**A escolha (16/11, noite): "para os capítulos prefiro a atual" (README #122).** O seletor saiu; `--chapter-ease` é a do site. Com esta curva os
+nomes encontravam-se em ~25 ms, e apagar o que sai ao longo do voo seria um piscar: agora apaga-se no lugar em 0,12 s (no relógio) e o que chega
+espera 0,12 s antes de voar. No ecrã: Chrome (Weddings → Artists) e Safari (Artists → Weddings), de 33 em 33 ms — o que sai some-se em ~0,1 s sem
+se mexer, o que chega cresce sozinho, nunca sobrepostos; o detetor só marca o arranque das pilhas (a curva escolhida).

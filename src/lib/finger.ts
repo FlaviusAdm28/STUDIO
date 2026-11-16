@@ -6,6 +6,7 @@
   flying, a quick stroke from the Work ran past 7 (Simulator, finger strokes, 8 Nov). The Method takes such a stroke back to 7's mark once
   the finger is off, unseen under its held stage — only after a stroke: Safari putting the place back on a reload, or a jump, is left alone.
 */
+import { holdPage, letGoPending } from './hold'
 let down = false
 let lifted = -1e9
 let bound = false
@@ -53,6 +54,7 @@ const strokeListeners = new Set<() => void>()
 // the stroke's one stop (governWheel): where this stroke may go, found at its start; null: nowhere (no stop ahead)
 let governed = false
 let stop: number | null = null
+let strokeWay = 0
 const fine = () => matchMedia('(hover: hover) and (pointer: fine)').matches && !CSS.supports('-webkit-touch-callout', 'none')
 const SNAPS = '.w-pass-snap, .m-snap, .a-snap'
 const nextStop = (way: number) => {
@@ -66,6 +68,10 @@ const nextStop = (way: number) => {
   return best
 }
 const onWheel = (e: WheelEvent) => {
+  // an event that moves nothing (a trackpad's phase marks on some setups: deltaY 0) says nothing of the stroke — counted, it reset the
+  // stroke's peak and the next real event was not seen as a new stroke, so the one before's stop held the page where it was (lab, 14 Nov:
+  // posted events; the owner's Chrome and Safari recordings have none, 0 of 8624 and 11616)
+  if (!e.deltaY) return
   const now = performance.now()
   const a = Math.abs(e.deltaY)
   const way = Math.sign(e.deltaY)
@@ -74,40 +80,82 @@ const onWheel = (e: WheelEvent) => {
   if (a > 3 && way !== 0) wheelWay = way
   if (fresh) wheelPeak = 0
   wheelPeak = Math.max(wheelPeak, a)
-  wheelPrev = a
+  // a tremor the other way round is not the stroke slowing down: taken as its last event, the next one "rose" from it and the same stroke
+  // was read as a new one, stop after stop (lab, posted strokes with a 1 px event the other way round every six: Weddings → the Method's
+  // 7 in one stroke, 15 Nov). The owner's trackpads make them only where a stroke the other way round begins, never inside one
+  if (fresh || a > 3 || way === wheelWay) wheelPrev = a
   if (fresh) strokeListeners.forEach((f) => f())
   if (!governed || !way) return
   const root = document.documentElement
-  // only where the page stops at marks (scroll-snap mandatory), and never in a jump of the site's own or with the menu open
-  if (!getComputedStyle(root).scrollSnapType.includes('mandatory') || root.dataset.jump !== undefined || root.dataset.menu) {
+  // only where the page stops at marks (scroll-snap mandatory), and never in a jump of the site's own or with the menu open. While this
+  // holds the page the snapping is off (globals.css): the hold is this stroke's own and goes on — read as "no marks" it let go, and the
+  // stroke's momentum leaked through in steps, 165 ms apart, to the next mark but one (Chrome 157, 14 Nov)
+  const held = root.dataset.wheelHeld !== undefined
+  if ((!held && !getComputedStyle(root).scrollSnapType.includes('mandatory')) || root.dataset.jump !== undefined || root.dataset.menu) {
     stop = null
     return
   }
-  if (fresh) {
+  // the stop is found for the stroke's way, and a clear event the other way round (more than a tremor) finds it again
+  if (fresh || (a > 3 && way !== strokeWay)) {
     release()
     stop = nextStop(way)
+    strokeWay = way
+  }
+  // A trackpad's stray event the other way round (1–3 px; 13 in the owner's Chrome round of 15 Nov, 36 and 56 in those of 14 Nov) says
+  // nothing of where the stroke goes. Measured with its own sign, "past the stop" came out true for it: the page was put on the stop at
+  // once, and a second one took it on to the next — a slow 100 px stroke from Weddings went to Artists and to Experiences in 30 ms
+  // (lab, the owner's stroke replayed, 15 Nov). It is held where the stroke is held, and otherwise left to move its few pixels
+  if (way !== strokeWay) {
+    if (held || stop === null) hold(e)
+    return
   }
   const px = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1
   // two of the stroke's events ahead: a wheel event that cannot be cancelled moves the page before this sees it, and past Weddings by a
   // few pixels the Work took that for a stroke back and went on to the top (Chrome, a strong stroke up from Artists, 14 Nov)
   const to = scrollY + 2 * e.deltaY * px
   if (stop === null) hold(e)
-  else if (way * (to - stop) >= 0) {
+  else if (strokeWay * (to - stop) >= 0) {
     hold(e)
     // short of it, or already past it (a wheel event that could not be cancelled moved the page first): at the stop
     if (Math.abs(stop - scrollY) > 1) scrollTo({ top: stop, behavior: 'instant' })
+    landed(stop, now)
+  } else if (letGoPending()) {
+    // The page still held from the stroke before (hold.ts lets go only once the wheel is quiet) cannot move under this one, so the stroke
+    // is taken to its stop — a new stroke only, and only once the page has been DWELL ms on the stop it is on. Taken there at every new
+    // stroke, strokes one after another went stop to stop at once: the owner's chain from the top crossed the whole Method to the About's
+    // 12 (lab, 15 Nov 17:52; the 8c before), and kept scrolling the owner went from the Work to the About "without seeing the Method"
+    // (owner, Safari, 15 Nov). A stroke sooner than that does nothing, as one during a passage does
+    hold(e)
+    if (fresh && now - landedAt >= DWELL && Math.abs(stop - scrollY) > 1) {
+      scrollTo({ top: stop, behavior: 'instant' })
+      landed(stop, now)
+    }
   }
 }
-// Held for the rest of the stroke by <html data-wheel-held> (globals.css: overflow hidden), as the Work's passage holds the page: Chrome
-// lets a page cancel only a trackpad stroke's first wheel event, and that one has to move the page to its stop. Let go once the stroke
-// is over (no wheel for 150 ms) or a new one begins
+// when the page was put on the stop it is on (by the governor)
+const DWELL = 600
+let landedAt = -1e9
+let landedOn: number | null = null
+const landed = (at: number, now: number) => {
+  if (at === landedOn) return
+  landedOn = at
+  landedAt = now
+}
+// Held for the rest of the stroke by holdPage (hold.ts: overflow, let go only once the wheel is quiet — Chrome lets a page cancel only a
+// trackpad stroke's first wheel event, Safari only the later ones of a stroke whose first it cancelled, and the first has to move the page
+// to its stop), with <html data-wheel-held> turning the snapping off meanwhile (globals.css). Let go once the stroke is over (no wheel for
+// 150 ms) or a new one begins
 let heldUntil = 0
+let letGo: (() => void) | null = null
 const release = () => {
   clearTimeout(heldUntil)
+  letGo?.()
+  letGo = null
   delete document.documentElement.dataset.wheelHeld
 }
 const hold = (e: WheelEvent) => {
   if (e.cancelable) e.preventDefault()
+  letGo ??= holdPage()
   document.documentElement.dataset.wheelHeld = ''
   clearTimeout(heldUntil)
   heldUntil = window.setTimeout(release, 150)
@@ -138,7 +186,8 @@ export function onWheelStroke(f: () => void) {
   Not on touch screens (no wheel there) nor on an iPad (its trackpad is left to iOS).
 */
 export function governWheel() {
-  if (!fine()) return () => {}
+  // the motor (motor.ts, `?motor`) drives the page itself: nothing to govern
+  if (!fine() || document.documentElement.dataset.motor !== undefined) return () => {}
   bindWheel()
   governed = true
   return () => {

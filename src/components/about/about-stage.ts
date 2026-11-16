@@ -149,6 +149,14 @@ export function runStage(about: HTMLElement, release: () => void) {
     const foot = end
     if (end > out + 1) below.push(foot)
     const tops = [...shares.map((share) => (LEAD + share) * H), out, ...below]
+    // the conductor's stops (lib/conductor.ts): 12–14, the Questions, their steps, the Contact, the page's end
+    const stopIds = [
+      ...ORDER,
+      'questions',
+      ...below.map((y, j) =>
+        y === foot && j === below.length - 1 && end > out + 1 ? 'end' : y === contactAt && contactAt < end - 1 ? 'contact' : `q${j + 1}`,
+      ),
+    ]
     tops.forEach((y, i) => {
       let m = marks[i]
       if (!m) {
@@ -163,6 +171,7 @@ export function runStage(about: HTMLElement, release: () => void) {
       // which is which, for the hold of the passage (method.css): 12's stays while the light finds the portrait; those below 14 (the
       // Questions' and on) go while 14's story comes in
       m.dataset.at = i === 0 ? '12' : i >= shares.length ? 'below' : ''
+      m.dataset.stop = stopIds[i] ?? ''
       if (y === foot && i === tops.length - 1) m.dataset.foot = ''
       else delete m.dataset.foot
       // past the Contact's stop (the colophon's, the page's end): they go while the light goes down (method.css, data-c-on)

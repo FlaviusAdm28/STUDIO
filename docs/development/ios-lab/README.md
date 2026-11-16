@@ -303,3 +303,24 @@ não reabrir decisões fechadas (README); dizer o custo de performance de cada e
   do `<html>`, fotogramas > 50 ms, erros, rejeições, `console.error/warn`.
 - Ler: `node docs/development/ios-lab/rec-read.mjs out/<id>-rec.jsonl [--all]` — linha do tempo com segundos e hora do relógio (para
   alinhar com uma gravação do ecrã do Mac, Cmd+Shift+5), gestos agrupados, marcas e notas, e um resumo no fim.
+
+## 5. Desktop com janela, trackpad real e vídeo (14 Nov, manhã) — `desk/`
+
+O owner pediu medição visual: nada de Chrome sem janela. `desk/stroke.swift` posta **eventos de trackpad reais** a partir de um ficheiro
+de perfil (`dt dy fase`, fases do dedo e da inércia, sem eventos de delta 0 — o trackpad real não os envia); `desk/gen.py` gera os perfis
+em `desk/strokes/` (passadas de 60–800 px de pico, com e sem inércia, e as cadeias do owner replicadas das gravações do `rec.js`).
+`desk/desk.mjs` (CDP 9223 só para ler, janela por pid em `$S/chrome.pid`, gravação do ecrã com `screencapture -V`), `desk/walk.mjs`
+(uma volta: recarrega, entrada, gestos; por gesto: onde começou e assentou, fita de `scrollY` por fotograma, eventos de roda,
+`scrollsnapchanging`, fotogramas longos), `desk/case.mjs` (um gesto a partir de um `scrollTo` — ⚠ o `place()` imita um salto do site e
+baralha o Method; preferir a volta), `desk/safari.mjs` (o mesmo no Safari real pela consola remota do proxy em modo hud, porta 3142),
+`desk/rebuild.sh` (build + restart da 3100 com o Node 22 de `~/.local/share/node22`), `desk/axcheck.swift` (a Acessibilidade do macOS:
+sem ela não há gestos nem leitura da janela). Resultados em `v5-tests.md` ("O regulador de gestos no desktop…", 14/11).
+À tarde (14 Nov): `walk.mjs` guarda o registo completo por gesto em `$S/rec/<label>.json` (fita por fotograma com `data-pass` e o
+`overflow` da raiz, todos os eventos de roda, os de encaixe) — foi o que mostrou o 0 → 121 do Chrome na retenção do Work (`v5-tests.md`,
+"A página inteira com trackpad real…"). Em zsh uma lista repetida de gestos passa-se `${=VAR}`; a gravação só fica em disco se `sec` for
+menor que a volta (o script mata o `screencapture` 8 s depois do último gesto).
+Xiaomi, tarde de 14 Nov: `finger/xiaomi-pass.mjs` (a passagem do Work ↓ e ↑: passadas sintéticas normais e fortes, arrastos reais, arrastos
+lentos; fita com `data-pass` e `overflow`) e `finger/xiaomi-pass-drag.mjs <n> [px] [ms] [dedo parado ms]` (só arrastos reais, eventos de
+encaixe e tempos do dedo). ⚠ Os `touchMove` são postados sem esperar a resposta: esperando, um arrasto de 400 ms durava ~1,2 s pela
+latência do CDP e o "lento" ~3 s — foi assim que se apanhou o re-encaixe com o dedo no vidro. Abas antigas de `localhost:3133` descartadas
+pelo Chrome prendem o CDP (`Runtime.evaluate` nunca responde): fechar com `/json/close/<id>`, abrir nova com `am start … VIEW`.

@@ -1,5 +1,329 @@
 # Chapter One V5 — handoff
 
+## ▶ COMEÇAR AQUI · 16 de novembro de 2026, fim da sessão (noite) — passo 1 (Entrada ↔ Work) fechado no ecrã; a seguir o passo 2 (Experiences ↔ Method)
+
+**Estado numa frase.** O condutor (`?cenas`, só desktop; README #119) leva a página e as cenas tocam pelo relógio. Do topo à entrada do Method o
+owner testou no Chrome e no Safari: **"finalmente tudo parece bom!"**. O passo 1 (topo, Weddings, Artists, Experiences — normal e estúpido, os dois
+sentidos) está fechado no ecrã, nos dois browsers. **Nada em commit** (commit só quando o owner pedir).
+
+**O processo combinado com o owner (16/11):** paragem a paragem — (1) Entrada ↔ Work ✅; (2) Work ↔ Method ← **próximo**; (3) Method → About,
+ligar o About ao condutor; (4) Questions e Contact; (5) limpar o código do scroll antigo; (6) o telemóvel, só depois do desktop firme. Em cada
+passo testar casos normais e "estúpidos". **Regra nova (owner: "deves sempre fazer isso agora"): todo o movimento é testado no ecrã, no Chrome e
+no Safari a sério, com trackpad real e a janela gravada, antes de o mostrar** (memória `test-motion-on-screen`); o Chrome sem janela é só um
+primeiro filtro — hoje deixou passar defeitos que o ecrã mostrou.
+
+### Como retomar o laboratório
+1. Servidor de produção: `zsh docs/development/ios-lab/desk/rebuild.sh` (mata o 3100, faz o build, arranca `next start -p 3100`).
+2. Coletor do gravador `?rec`: `~/.local/share/node22/bin/node docs/development/ios-lab/desk/cenas/collector.mjs &` (porta 3199 →
+   `~/.local/share/v5-lab/rec/live/`). Node 22: `~/.local/share/node22/bin/node`.
+3. Chrome do laboratório com janela no CDP 9223 (pid em `~/.local/share/v5-lab/chrome.pid`), o Safari; Chrome headless no CDP 9333 para a
+   bateria lógica (comando em `desk/cenas/README.md`).
+4. No ecrã (`docs/development/ios-lab/desk/cenas/`): `node screen.mjs chrome|safari "<plano>" <nome>` (passadas reais: d/u suave, D/U forte,
+   n/N só dedo, h ponteiro na lâmina, `wNNNN` espera; `Q=…` acrescenta ao endereço) → **`glitch.mjs <dir>`** (qualquer animação: fotogramas a
+   mais e saltos, numa grelha da página — novo hoje) · `screen-read.mjs <dir>` (a caixa do arco) · `strip.mjs` (tiras) · `rec-read.mjs` (o registo da
+   própria página). Bateria lógica: `walk1.mjs gentle300|swipe800`, `cases.mjs` (28 casos), `smoke.mjs`, `back.mjs 6000`.
+5. ⚠ **zsh:** `echo ===` falha; `$F:text` e `$Y[a]` são modificadores do zsh e estragam filtros do ffmpeg — escrever esses comandos num script bash.
+
+### Decidido hoje pelo owner (README #120–#122)
+- **#120 (1)** voltar atrás a meio de uma passagem leva à paragem de onde se vinha e **segura lá 1,2 s** ("concordo"); **(2)** o regresso do
+  Weddings **dissolve e depois é a ida ao contrário**, igual ("quero que a animação do card a entrar e a sair seja a mesma em reverso"); **(3)** cada
+  mudança de capítulo do Work **toca inteira (~1,2 s)** para quem continua ("faz sentido").
+- **#121** a curva da passagem lâmina → arco é a **suave** (smootherstep; "acho que noto menos lag na suave"), comparada com a cúbica e a senoidal.
+- **#122** a mudança de capítulo **mantém a curva do site** ("prefiro a atual"); **os títulos não se cruzam** ("concordo"); **a lista do momento
+  esbate-se** em vez de trocar num fotograma ("ok").
+
+### Corrigido hoje (medido e verificado no ecrã, Chrome e Safari; números em `v5-tests.md`, de "Passo 1" a "A escolha")
+- O regresso Weddings → topo sem fotografia ~0,6 s; a luz do Method recolhida com um fio no Safari (`method-stage.ts`, opacidade 0,001).
+- O tremor da lâmina ao virar caixa (a caixa partia de onde a lâmina estava ao carregar; agora medida em cada passagem — `pathNow`/`aim`).
+- O salto ao chegar ao 2 (tempos do regresso reaproveitados na ida). A dissolução que era um corte; a peça à volta da caixa.
+- Chrome: a caixa sumia numa inversão a meio. Safari: a passagem corria ao fim num fotograma e a opacidade da caixa era removida. Cura comum:
+  **cada passagem cria animações novas** (`renew` em `syncOne`, `work-client.tsx`).
+- Um **piscar de 1–2 fotogramas ao assentar** no arco (cartões inteiros aos 0,975, antes de a caixa sair).
+- Chrome: **a fotografia descia 1 px ao assentar** — o Chrome mexia a página 1 px no fim do momentum, com a roda cancelada; o condutor agora repõe
+  logo (`conductor.ts` `onScroll`, ≤ 2 px de onde pôs a página).
+- **A dissolução acendia o arco de uma vez** (45–63 % no 1.º fotograma): a peça sai com o tempo e a curva da caixa (`.w-quick`, 0,26 s).
+- **Os títulos "II Artistsweddings"**: o nome que sai apaga-se no lugar em 0,12 s e o que chega espera esse tempo (`passage`, `CROSS_MS`).
+- **A lista do momento** troca com esbatimento: sai em 0,15 s, entra em 0,3 s, nunca as duas (`swapText`).
+
+### O que ficou bem (verificado)
+E4 ↔ 2 em todos os casos (ida, volta logo, volta com dissolução depois de uma estadia, duas inversões a meio), a chegada no mesmo píxel; os
+capítulos normais e estúpidos (voltar a meio volta logo; 5 toques rápidos → um capítulo de cada vez até ao 7); cadência limpa (Chrome 120 Hz sem
+fotogramas > 13 ms, Safari 60 Hz); bateria lógica verde (walk1 0 falhas e 0 fotogramas longos, cases 28/28, smoke sem erros); typecheck e lint limpos.
+
+### Por fazer, por esta ordem
+1. **Passo 2 — Experiences ↔ Method, no ecrã e nos dois browsers.** Começar pela suspeita: **a subir do 7, o condutor só esperou 0,54 s em
+   Experiences antes de ir para Artists** — a luz do Method a voltar pode estar a ser cortada (ver o `busyUntil` do Method em `method-stage.ts` para
+   7 → Experiences). O Safari tem fotogramas longos do processo principal (58–86 ms) ao chegar a Experiences e no 7 (no ecrã não se viram saltos).
+2. Passo 3 (Method → About, ligar o About ao condutor), passo 4 (Questions, Contact), passo 5 (limpar o scroll antigo), depois o telemóvel
+   (o mesmo condutor no toque está por decidir: README #119).
+3. **Antes do lançamento:** tirar o gravador (`src/lib/rec.ts`, `src/lib/rec-on.ts`, o import em `bar-client.tsx`) e o medidor de FPS (`page.tsx`).
+
+### Não verificado
+O telemóvel (o condutor é só desktop); o "restart" que o owner viu uma vez (nunca reproduzido — o gravador `?rec` está pronto para o apanhar);
+se um trackpad real também acaba o momentum com 1 px (os perfis sintéticos sim; a correção cobre os dois); dois fotogramas longos do Safari na
+primeira passagem depois de carregar (não se veem no ecrã: a caixa corre no compositor).
+
+### Ficheiros mexidos (nada em commit)
+`src/lib/conductor.ts` (novo: o condutor; `turnHold`; `onScroll` repõe), `src/components/work/work-client.tsx` (`renew`/`syncOne`, `pathNow`/`aim`,
+`dissolve`, `passCurve`, cartões, títulos, `swapText`), `src/components/work/work.css` (`--chapter-ease`, `.w-quick`),
+`src/components/method/method-stage.ts`, `src/components/entrance/sequence.ts`, `src/components/bar/bar-client.tsx`, `src/lib/rec.ts` e
+`rec-on.ts` (novos, gravador — sair antes do lançamento), `docs/development/ios-lab/desk/cenas/` (ferramentas). Mais os de dias anteriores que
+`git status` mostra (`hold.ts`, `motor.ts`, `finger.ts`, …).
+
+## 16 de novembro de 2026 (tarde e noite) — o diário do dia: rondas 1–6 do owner e o passo 1 (detalhe; o resumo está acima)
+
+**O owner avaliou `?cenas` no Chrome e no Safari:** "parece-me bem, especialmente no scroll rápido, acho que resolvemos o problema", mas quer
+afinar e ainda via bugs: o lag da lâmina → arco do Weddings, sobretudo para trás; no Safari, ao passar para o Method, às vezes um risco fino
+preso no Work. Propôs (e eu concordei) **ir paragem a paragem**: garantir a passagem para o Work, depois o Method, depois o resto, com casos
+normais e "estúpidos", eu a testar antes de mostrar. Perguntou se o telemóvel vai já (recomendei: depois de o desktop estar firme no Work e no
+Method; ver a resposta na conversa).
+
+**Feito (nada em commit):** os dois bugs, medidos e corrigidos — `v5-tests.md`, "Passo 1". (a) O regresso Weddings → topo ficava ~0,6 s sem
+a fotografia depois de ~4,5 s no Weddings (Chrome: animações terminadas tocadas para trás com a entrada ainda escondida) — `work-client.tsx`
+`syncOne` + `go`; também no site sem condutor. (b) A luz do Method recolhida ficava a opacidade 1 numa faixa de largura zero (de dia no meio
+do ecrã): o fio do Safari — `method-stage.ts` `blade`. Sondas novas: `desk/cenas/back.mjs`, `light.mjs`.
+
+**Depois (rondas 2 e 3 do owner, mesma tarde):** o risco fino ficou corrigido (owner). O tremor da lâmina era a caixa a partir da lâmina medida ao carregar (o rato mexe-a): agora medida em cada passagem (`pathNow`/`aim`). O regresso "aos saltos" — gravação do owner: a caixa congelada 0,37 s e depois um salto — corrigido com as animações em pausa no fim e o regresso a arrancar dois fotogramas depois de mostrar a entrada (**o laboratório não o reproduz: confirmar no Chrome do owner**). Decididos (README #120): a dissolução no regresso; voltar atrás a meio de uma passagem segura onde se estava. Aberto: dentro do Work uma mão rápida atravessa capítulos em ~0,13 s (segurar cada capítulo?). Gravador para o Chrome do owner: `desk/cenas/owner-trace.mjs`.
+
+**Ao fim da tarde (ronda 4):** "E4 ↔ 2 parte a página, faz restart; ao chegar ao 2 a imagem salta". O salto: as fotografias do palco ficavam com o tempo do regresso na ida seguinte — corrigido (`aim`, `CARDS_IN`/`CARDS_BACK`). O restart: não reproduzido; **feito o gravador** `?rec` (`src/lib/rec.ts`, coletor `desk/cenas/collector.mjs` na porta 3199, leitura `rec-read.mjs`; sobrevive a uma página rebentada). **Tirar `rec.ts`/`rec-on.ts` do site antes do lançamento**, com o medidor de FPS. O coletor tem de estar a correr.
+
+**À noite (ronda 5): testes no ecrã, a pedido do owner, e assim daqui em diante** (memória `test-motion-on-screen`). Banco: `desk/cenas/screen.mjs` (Chrome 9223 com janela ou Safari, trackpad real, gravação) + `screen-read.mjs` + `strip.mjs`. Encontrados e corrigidos só lá: a dissolução era um corte; a peça à volta da caixa; no Chrome a caixa sumia numa inversão a meio; no Safari a passagem corria ao fim num fotograma e a opacidade da caixa era removida. Agora: cada passagem cria animações novas (`renew`), a dissolução vem antes do caminho inverso. **E4 ↔ 2 limpo nos dois browsers** em todos os casos testados (`v5-tests.md`, "Quinta ronda").
+
+**À noite (ronda 6):** o owner testou do início até à entrada do Method: "finalmente tudo parece bom!"; pediu para avaliar se a entrada no Work
+pelo Weddings pode ficar mais suave. Medido no ecrã (`v5-tests.md`, "Sexta ronda"): cadência limpa nos dois browsers; **corrigidos** um piscar
+de 1–2 fotogramas na chegada (cartões inteiros antes de a caixa sair, `flyText`) e, no Chrome, a fotografia a descer 1 px ao assentar (o
+Chrome mexia a página 1 px no fim do momentum; o condutor agora repõe, `conductor.ts` `onScroll`). **O owner escolheu a curva suave** (README #121); o
+seletor saiu.
+
+**Depois (passo 1, resto):** Weddings ↔ Artists ↔ Experiences no ecrã, normal e estúpido, Chrome e Safari — o caminho certo; corrigido o arco a
+acender de uma vez no início da dissolução (`.w-quick`); por decidir pelo owner: a curva da mudança de capítulo, os títulos que se sobrepõem, a
+lista do momento que troca de uma vez (`v5-tests.md`, "Passo 1, resto"). Ferramenta nova `desk/cenas/glitch.mjs`.
+
+**E (owner: "1. comparação só da suave 2. concordo 3. ok"):** os títulos já não se sobrepõem, o texto do momento esbate-se; a curva da
+mudança de capítulo fica a atual (README #122; o seletor saiu). `v5-tests.md`, "As três do owner".
+
+**Próximo:** no ecrã e nos dois browsers, o resto do passo 1 (Weddings ↔ Artists ↔ Experiences) e o passo 2 (Experiences ↔ Method). Depois fechar o passo 1 (Entrada ↔ Work: topo,
+Weddings, Artists, Experiences — normal e estúpido, os dois sentidos; Safari e trackpad reais com o ecrã do owner); passo 2 Work ↔ Method;
+passo 3 Method → About (ligar o About ao condutor); passo 4 Questions e Contact; a limpeza; o toque.
+
+## ▶ COMEÇAR AQUI · 16 de novembro de 2026 (manhã) — o condutor (`?cenas`) com o Work e o Method; falta o owner, o Safari e o telemóvel
+
+**Decidido hoje (README #119):** um só condutor; as cenas deixam de ler o scroll; barreiras **topo, Weddings, 7, 11, 14, Questions, Contact**
+(owner: "confirmo as barreiras"; o 13 não). O owner pediu para ver depois a solução do scroll rápido e avaliar; o telemóvel com o mesmo condutor
+fica para provar no Work, lado a lado com o nativo.
+
+**Feito, por aprovar, nada em commit:** `src/lib/conductor.ts` (novo) + o Work e o Method ligados (`work-client.tsx`, `method-stage.ts`: sem
+ouvintes de scroll com `?cenas`), `data-stop` nas marcas (`about-stage.ts` também), `bar-client.tsx` (arranca o condutor), `motor.ts` (não corre
+com `?cenas`). Bateria em `docs/development/ios-lab/desk/cenas/` — tudo verde; números e o que foi corrigido em `v5-tests.md` ("O condutor").
+Vídeo para o owner: `~/.local/share/v5-lab/rec/cenas-rapido-2026-11-16.mp4`. Experimentar: `http://localhost:3100/?cenas` (Chrome e Safari;
+`?cenas=0` volta ao normal).
+
+**Próximo, por esta ordem:**
+1. O owner experimenta no trackpad (Chrome e Safari) e vê o vídeo: a sensação, o scroll rápido (as fases do Method passam em ~1,5 s numa rajada),
+   o que fazer a uma passada feita durante uma passagem (hoje: guardada só nos últimos 0,45 s).
+2. Safari real e trackpad real no laboratório (`desk/safari.mjs`, `stroke`; a janela tem de estar à frente: pedir ao owner o ecrã).
+3. O toque: o mesmo condutor no Work, lado a lado com o nativo (`?cenas&toque`), iPhone (Simulador e o do owner) e Xiaomi.
+4. O About, as Questions e o Contact ligados ao condutor; depois a limpeza (`finger.ts` governWheel, `hold.ts`, `unsnapped.ts`, as regras de
+   encaixe, `motor.ts`).
+
+## ▶ COMEÇAR AQUI · 16 de novembro de 2026, fim da noite — as animações ficam como o site as tem; falta só o scroll
+
+**O que o owner decidiu (README #118):** o site em `localhost:3100` com o scroll de antes (`?motor=0`) "está bem": **as animações ficam
+todas como o site as tem** (as ideias delas; algumas partem-se em certos momentos do scroll). As Questions entram com tudo (15 e 16 juntos),
+o Contact também (19 e 20 numa passagem), o menu como no site. **O único problema do site é o scroll.**
+
+**A referência:** o storyboard redesenhado com o site de hoje, https://claude.ai/artifact/MrVKhKY5daJD12KHTALDhs (fonte:
+`docs/design/v5/storyboards/storyboard-hoje.html`; as fotografias em `storyboards/img/` e `img/site/`, fora do Git como as outras — o
+publicado tem-nas todas; as peças do Work foram trazidas do site por `docs/development/ios-lab/desk/port_work.py`). Feito a partir do aprovado de 25/10 (+ os ajustes de 4/11): as nove
+peças do Work com o HTML e o CSS do site (`work.css`, as demonstrações), as fotografias do site, o vidro líquido com a lente, a passagem da
+lâmina como o site a toca (o 2 é o voo a meio), a capa do 10, a passagem E do Contact, a barra sem números, e **nove quadros novos com
+todos os estados do Work**. Comparado estado a estado com capturas do site (28 estados, desktop 1440 × 900 e telemóvel 390 × 844).
+Também há o site gravado gesto a gesto: https://claude.ai/artifact/VnSZoJG9JbDaEYaDEwyN67 (430c924; mostra os bugs de scroll).
+
+**O pedido do owner para a próxima sessão (16/11, palavras dele resumidas):** encontrar **uma ideia de scroll eficiente para desktop e
+telemóvel, Safari e Chrome**, que funcione bem com as animações e os estados que já temos. **Smooth e à prova de bala: não parte nem no
+telemóvel nem no desktop.** O scroll **dispara as animações de entrada; nunca é o scroll a comandar a animação**. Definir **zonas de
+paragem estratégicas** ao longo do site, e pensar **como funcionam o scroll super rápido e os vários inputs** (trackpad, rato, teclado,
+dedo, menu, links, barra de scroll) para nada partir. Começar por aqui: propor a solução e as paragens sobre o storyboard novo, com
+prós e contras, antes de tocar no código (`v5-scroll-options.md` tem a análise de 15/11: motor no desktop, toque nativo no telemóvel,
+regra b com barreiras).
+
+**A proposta de 16/11 (aceite pelo owner como plano da próxima sessão: "ok"): o site muda de cena, não faz scroll entre paragens.**
+- Uma lista de **cenas = as paragens do storyboard novo**. Cada gesto (passada, roda, tecla, dedo, menu) é só um pedido de *cena seguinte* /
+  *anterior* a **um condutor**; as cenas **deixam de ler o scroll**: o condutor diz "estás na cena N, vieste de cima/baixo" e a cena toca a
+  sua animação de entrada por tempo e avisa quando acabou.
+- Regras do condutor: (1) **uma cena de cada vez** — um gesto durante uma animação não a corta; guarda-se só o último pedido e corre quando
+  ela acaba; (2) **barreiras** no scroll rápido: salta as cenas pequenas, pára sempre nas grandes (Weddings, Method 7, About 12, Questions,
+  Contact — a confirmar com o owner sobre os quadros); (3) **saltos** (menu, links) vão direitos à cena final, já montada, sem animação
+  (README #115).
+- **Desktop:** o condutor é dono do gesto (cancela a roda e as teclas desde o 1.º evento; o browser nunca move a página sozinho: sem
+  inércia a fugir, sem o crash do Safari). Base: o protótipo `src/lib/motor.ts` (`?motor`), medido 34/34 no Chrome e no Safari, 0 crashes.
+- **Telemóvel:** o scroll nativo com paragens fica (o owner gosta dele no Safari); o condutor só lê onde a página aterra e dispara a cena.
+  Tomar também o dedo foi posto de lado: perde a sensação nativa e mexe com a barra do browser.
+- Teste automático em cada passo: para cada gesto e cada browser, **cada cena tocou inteira** (não só "parou no sítio").
+
+**Estimativa dada ao owner (pode falhar; o código das cenas está muito ligado ao scroll), 5–7 sessões:**
+1. **Protótipo no desktop, 1 sessão (3–4 h): o condutor + a Entrada e o Work inteiros** (passagem, capítulos, momentos), atrás de
+   `?cenas`, o site normal intacto; o owner experimenta no Chrome e no Safari. Começar pelo Work: é a passagem mais complexa e onde estão os
+   bugs vistos (o do Experiences: `work-client.tsx` `checkBridge`).
+2. O resto do desktop — Method, About, Questions, Contact ligados ao condutor; o papel das Questions (hoje `animation-timeline`, com o
+   scroll) passa a tocar por tempo: 2–3 sessões.
+3. O telemóvel — o mesmo condutor a ler as aterragens do scroll nativo; medido no iPhone (Simulador e o do owner) e no Xiaomi: 1–2 sessões.
+4. Limpeza — tirar o governador (`finger.ts` governWheel), `hold.ts`, os remendos de `unsnapped.ts`/retenções e as regras de encaixe do
+   desktop; bateria final nos quatro sítios: 1 sessão.
+Antes do passo 1: mostrar ao owner as paragens e barreiras propostas sobre os quadros do storyboard novo e o que acontece em cada caso
+(scroll rápido, menu, teclas, dedo); ele escolhe antes de se tocar no código.
+
+**Estado em que ficou (16/11, noite):** nada em commit desde 430c924; o servidor do site (3100, código atual, `?motor=0` = o scroll de
+antes) e os Chromes do laboratório fechados com o Mac; as gravações e capturas de referência desta sessão estavam na pasta temporária e
+perdem-se (os publicados ficam: o storyboard novo, o site gravado). Ferramentas novas desta sessão: `docs/development/ios-lab/desk/port_work.py`
+(traz as peças do Work do site para o storyboard). O Chrome sem janela usado para gravar/medir: `Google Chrome --headless=new
+--remote-debugging-port=9333` (uma roda sintética é suavizada pelo Chrome e lutou com a passagem do Work: gravar com PageDown no desktop e
+`Input.synthesizeScrollGesture` no telemóvel).
+
+**Por fazer, nesta ordem:**
+1. Rever no storyboard novo, com o owner: as Questions e o Contact como um só estado cada (o storyboard ainda mostra 15/16 e 19/20
+   separados), e o menu igual ao do site (capturado, não comparado).
+2. **O motor de scroll** (`v5-scroll-options.md`, rule b com barreiras; protótipo `src/lib/motor.ts`, `?motor`): o owner marca as paragens
+   e as barreiras sobre os quadros do storyboard novo; as cenas deixam de ler o scroll e só são disparadas pelo motor; teste automático de
+   que cada animação toca inteira. O bug do Experiences (a "ponte" para o Method congela o momento na paragem: `work-client.tsx`
+   `checkBridge`, presente desde 12/11) entra aqui.
+3. Nada está em commit desde 430c924: `finger.ts`, `hold.ts`, `motor.ts`, `work-client.tsx`, `unsnapped.ts`, `globals.css`,
+   `bar-client.tsx` (scroll, 15/11) e o `storyboard-principal.html` local (a versão publicada de 4/11 + as seis correções de 16/11;
+   o ficheiro do Git era mais antigo do que o publicado). Commit só quando o owner pedir.
+
+## ▶ COMEÇAR AQUI · 15 de novembro de 2026 — a ronda do owner no Chrome: dois bugs corrigidos; falta o Xiaomi e o owner
+
+**Onde ficou:** o owner gravou uma ronda no Chrome (`ios-lab/out/2026-11-15T11-57-21-rec.jsonl`, "pareceu-me bem de forma geral") com uma
+nota: *a página arrastou para cima a entrar no Work e o 1.º cartão do Weddings saltou*. Reposta no tempo dele (`desk/chain.mjs`), deu dois
+bugs, **corrigidos, por aprovar, nada commitado**:
+1. `finger.ts` — o regulador usava o sinal de cada evento: um evento de 1–3 px ao contrário (os trackpads reais fazem-nos onde começa um
+   gesto no sentido contrário) punha a página na paragem de imediato, às vezes duas: Weddings → Artists → Experiences em 30 ms. Agora o
+   gesto guarda o seu sentido.
+2. `work-client.tsx` + `unsnapped.ts` (`siteJumps()`) — depois de um clique em *Chapter One*/menu o encaixe fica 1,6 s desligado e a
+   retenção da passagem não repunha a página: 13 px fora do Weddings toda a passagem, e o salto quando largava.
+Depois: Chrome e Safari reais, página inteira 34/34, 34/34 e 36/36, os gatilhos com tempo marcado e as cadeias do owner; pormenor em
+`v5-tests.md`, secção "A ronda do owner no Chrome (15/11)". typecheck, lint (0), build OK.
+
+**Depois (12:51–12:55), o owner:** nova ronda no Chrome (`out/2026-11-15T12-51-52-rec.jsonl`): *"vários bugs na animação do Weddings…
+lag, inconsistências"* (vaivém topo ↔ Weddings: posições e estados certos, 0 fotogramas > 50 ms — o problema é visual, dentro da
+passagem) e *"animação muito rápida do Contact para as Questions"*. **O Safari rebentou** ("a página foi recarregada porque ocorreu um
+problema"): `~/Library/Logs/DiagnosticReports/com.apple.WebKit.WebContent-2026-11-15-125533.ips` — SIGSEGV em
+`WebCore::ScrollAnimationMomentum::updateScrollExtents()` ← `didAddScrollbar` ← layout forçado por `scrollY`/`getClientRects`; **o mesmo
+crash a 14/11 01:54** (ronda Safari do owner). Um defeito do WebKit que o site dispara ao tirar `overflow: hidden` da raiz (a barra de scroll
+volta) com uma inércia de trackpad a correr: `holdFor` do Work, `data-wheel-held` (globals.css), o menu. O owner pediu **uma estratégia
+para o site todo antes de mexer em código**: **`docs/development/v5-scroll-strategy.md`** (fases 0–3; aprovada: começar pela fase 0).
+**Estado ao fim de 15/11:** fases 0 e 1 fechadas (catálogo #1–#23; causas e sondas em `v5-scroll-strategy.md`); decisões do owner:
+condutor **sim**, Android fica como está até medir o travão, #6 **sim** (o papel das Questions mais lento). **Fase 3 passo 1 feito, por
+aprovar:** `src/lib/hold.ts` (a página segurada num só sítio, largada só com a roda parada — o gatilho do crash do Safari), usado por
+`finger.ts` e `work-client.tsx`; `globals.css` sem `overflow` no `data-wheel-held`. Números em `v5-tests.md`. Próximo: o owner usa o Safari
+(o crash não se reproduz no laboratório); depois o passo 2 (o condutor). Nada commitado.
+Fase 0, desktop: matriz corrida e revista a 15/11 (14:10) → `docs/development/v5-scroll-catalogue.md` (#15–#22 novos; as posições
+quase limpas, os problemas que se veem são das passagens — R5 — e das teclas End/Home). Ferramentas novas: `desk/frames.py` (folha de
+fotogramas de um momento da fita), `desk/vdiff.py` (picos de mudança de imagem no vídeo, calibrados à fita).
+Nenhuma correção de scroll fora dela.
+
+**Próximo:** 1) Xiaomi (não estava ligado): `finger/xiaomi-pass.mjs` e `xiaomi-pass-drag.mjs`; 2) o owner repete no trackpad dele
+(`http://localhost:3140/`, Chrome e Safari) incluindo *Chapter One* → passada logo a seguir; 3) se aprovar: README #118 e commit quando
+pedir; 4) a lista abaixo (C–G, A2, produção). Ferramentas novas: `desk/chain.mjs`, `desk/from.mjs` (colocar a página e um gesto, n vezes),
+`desk/cut.py` (gestos do owner de uma gravação para perfis), perfis `desk/strokes/o15-*` e `*-jit`.
+
+## ▶ COMEÇAR AQUI · 14 de novembro de 2026, fim da sessão (~15:30) — desktop e Xiaomi medidos e corrigidos; falta o owner no trackpad, o README #118 e a lista C–G
+
+### ⚠⚠ RETOMAR AQUI — ler isto primeiro
+**Onde ficou (hoje):** o Mac foi atualizado e o laboratório voltou inteiro (Acessibilidade `trusted`, Node 22 em `~/.local/share/node22`,
+Xcode-beta). Tudo registado em `v5-tests.md`, secção "A página inteira com trackpad real, Chrome e Safari; a retenção do Work no topo e
+com o dedo no vidro (14/11, tarde)". Três coisas feitas, **nenhuma commitada, nenhuma aprovada pelo owner ainda**:
+1. **O regulador de gestos** (`finger.ts`, manhã) validado na página inteira: Chrome 157 e Safari 27.2 reais, 300 e 800 px, 45 de 45 nos
+   dois sentidos em cada volta; as 4 cadeias do owner aterram onde ontem; o ouvinte não passivo não custa (≤ 3 fotogramas > 50 ms em
+   ~30 000). O Safari cancela todos os eventos nas bordas e **não sai do lugar no topo nem no fim** (o elástico de 223 px desapareceu).
+2. **Bug 1 do Work, corrigido** (`work-client.tsx`, `watch`): 1 em 29 passadas Weddings → topo no Chrome, a página voltava sozinha a
+   Weddings (o Chrome aplicou 0 → 121 um fotograma depois da retenção do Work, lido como passada para a frente). Agora, enquanto o desktop
+   segura a página (`holding`), um scroll que não seja salto do site é devolvido ao fim da passagem. Depois: 20/20, 45/45, 45/45.
+3. **Bug 2 do Work, Android, corrigido** (`work-client.tsx`, `holdFor`): com o dedo parado no vidro quando a retenção larga, o Chrome
+   re-encaixava em Weddings ao levantar (10 de 10 provocado; pré-existente). Agora a retenção só larga depois de o dedo sair
+   (`fingerDown()`). Xiaomi depois: 0 de 20, 0 de 16, 0 de 40, passadas sintéticas 12 de 12; desktop 16 de 16.
+typecheck, lint (0 avisos) e build passam.
+
+**Por commitar (desde `430c924`):** `src/lib/finger.ts`, `src/app/globals.css`, `src/components/work/work-client.tsx`,
+`docs/development/ios-lab/desk/` (laboratório do desktop, novo), `ios-lab/finger/xiaomi-pass.mjs`, `ios-lab/finger/xiaomi-pass-drag.mjs`,
+`ios-lab/README.md`, `v5-tests.md`, este ficheiro. **Commit só quando o owner pedir.**
+
+### A lista completa do que falta (pela ordem combinada com o owner; os pontos A–G são da ronda do desktop de 14/11)
+1. **O owner no trackpad dele**, Chrome e Safari, `http://localhost:3140/` (proxy gravador; levantar o laboratório primeiro, abaixo):
+   repetir as 3 evidências de 14/11 02:25–02:30 (Method → About forçado; o fim a subir no Safari) e a ronda inteira. Se aprovar, **README
+   #118**: o regulador (uma passada, uma paragem; sem paragem à frente não se mexe) + as duas retenções do Work. Se o regulador não ficar
+   fiável para o owner, desligá-lo é uma linha (`cleanups.push(governWheel())` em `bar-client.tsx`); A e B (#117) ficam.
+2. **C** — o encaixe desligado ~1,6 s depois de um salto do menu. **D** — a passagem do Work: o arco que salta ao chegar ao Weddings
+   (~40 px e ~10 %), o ajuste de 55 px da 1.ª passagem, a fotografia que muda no início da volta, a roda para trás ignorada durante a
+   passagem, o Work a passar inteiro para trás (Chrome 4 — **pedir vídeo ao owner**). O elástico do Safari no topo a disparar o Weddings já
+   está travado pelo regulador (medido hoje).
+3. **E** — a 1728×942 os cartões do Method ficam por baixo de *Your name* (crescem com a largura).
+4. **F** — o elástico do Safari no fim: travado pelo regulador (medido hoje: 14 096…14 096 a 300 e a 800 px); os cartões do Method na barra
+   do Safari (Safari 2 — **pedir vídeo ao owner**).
+5. **G** — abrir/fechar o menu sobre o Contact no Chrome: fotogramas de 108–250 ms.
+6. **A2**, por decidir com o owner: a retenção da história do About 14 (1,6 s) — manter, encurtar ou soltar num gesto novo.
+7. **Antes de produção** (do plano): o iPhone do owner para tudo de 13–14/11 (menu e cor do topo, o toque no fim, README #116, e as duas
+   retenções do Work — no iOS nenhuma das duas corre, `holdFor` sai no iOS, mas confirmar que nada mudou); tirar o medidor de FPS de
+   `page.tsx`; a imagem de partilha (M7); a validação final (M8: viewports, teclado, reduced motion, sem JS contra `next start`, contraste,
+   overflow, `v5-tests.md`); commit quando o owner pedir; pré-visualização no Vercel.
+8. Opcional: provar em vídeo a causa do 0 → 121 do Chrome (gravar uma volta com `sec` **menor** que a duração da volta: o `walk.mjs` mata
+   a gravação 8 s depois do último gesto e um `.mov` mais longo que a volta não fica em disco).
+
+### Laboratório (perde-se no reinício; está de pé agora: 3100, proxies 3140/3141/3142/3133, Chrome de teste, Xiaomi ligado)
+- `S=~/.local/share/v5-lab` (**durável**: `bin/` com `stroke`, `wheel`, `axcheck` compilados; `strokes/`; `rec/`; `chrome.pid`;
+  `chrome-profile/`). Os `.mov` em `$S/rec/` pesam ~8 GB e podem ser apagados; as fitas estão em `ios-lab/out/2026-11-14-desk-governor/`.
+- Arranque: `S=~/.local/share/v5-lab zsh docs/development/ios-lab/desk/rebuild.sh` (build + 3100); proxies
+  `~/.local/share/node22/bin/node docs/development/ios-lab/proxy.mjs 3140 3100 rec` (owner), `3141 3100 rec` (Chrome de teste),
+  `3142 3100 hud` (Safari), `3133 3100 rec` (Xiaomi); Chrome de teste `open -na "Google Chrome" --args --user-data-dir=$S/chrome-profile
+  --remote-debugging-port=9223 --window-position=0,0 --window-size=1728,1117 --no-first-run "http://localhost:3141/"` e o pid do processo
+  principal em `$S/chrome.pid`; Acessibilidade: `$S/bin/axcheck` → `trusted` (senão Definições → Privacidade → Acessibilidade, a app
+  `ClaudeCode.app`). A janela de teste tem de estar à frente. Em zsh, listas de gestos repetidos passam-se com `${=VAR}`.
+- Xiaomi: `adb reverse tcp:3133 tcp:3133`, `adb forward tcp:9222 localabstract:chrome_devtools_remote`, página por
+  `adb shell am start -a android.intent.action.VIEW -d "http://localhost:3133/" com.android.chrome`. ⚠ Abas antigas de `3133` descartadas
+  pelo Chrome prendem o CDP (`Runtime.evaluate` nunca responde): fechar com `curl localhost:9222/json/close/<id>` antes.
+- Voltas: `node desk/walk.mjs <label> <seg> <gesto:espera>…` (Chrome), `node desk/safari.mjs …` (Safari),
+  `node finger/xiaomi-pass.mjs` e `node finger/xiaomi-pass-drag.mjs <n> [px] [ms] [dedo parado ms]` (Xiaomi), sempre com o Node 22 e `S` definido.
+
+## ▶ COMEÇAR AQUI · 14 de novembro de 2026, 12:20 (o Mac vai ser atualizado) — o regulador corrigido e medido com trackpad real; falta a página inteira, o Safari e o owner
+
+### ⚠⚠ RETOMAR AQUI — ler isto primeiro
+**Onde ficou:** o owner pediu para testar e medir **visualmente** (nada de Chrome sem janela). Feito: Chrome 157 com janela, eventos de
+trackpad reais do macOS, gravação do ecrã, fita por fotograma. **O regulador tinha um bug real, visto no vídeo:** um gesto levava à
+paragem certa e 1,2 s depois, sem gesto, a página passava à seguinte (Weddings → Artists → Experiences sozinha). Causa e correção em
+`v5-tests.md`, secção "O regulador de gestos no desktop, medido com trackpad real e vídeo (14/11, manhã)". **Depois da correção: 18 em 18
+gestos certos, 0 movimentos depois de largar, as 4 cadeias do owner sem correr até ao fim.** typecheck, lint (0), build OK.
+**Por commitar:** `src/lib/finger.ts`, `src/app/globals.css`, `docs/development/ios-lab/desk/` (ferramentas novas), `v5-tests.md`, este
+ficheiro. Commit só quando o owner pedir. README #118 (o regulador) só depois de o owner aprovar.
+
+**O que ficou por fazer, pela ordem:**
+1. **Acessibilidade do macOS**: o Claude Code reiniciou numa versão nova (`~/.local/share/claude/ClaudeCode.app`) e o macOS deixou de lhe
+   dar Acessibilidade — sem ela `osascript` não lê a janela e `stroke`/`wheel` não enviam gestos. Confirmar depois do reinício com
+   `desk/axcheck.swift` (compilar com `xcrun swiftc`; imprime `trusted` ou faz o macOS pedir a permissão com o nome certo da app) e com
+   `osascript -e 'tell application "System Events" to get name of first process'`. Se falhar: Definições → Privacidade e Segurança →
+   Acessibilidade, ativar a entrada do Claude Code/claude (a do WebStorm já não chega).
+2. **A página inteira no Chrome** (`walk9`): `node desk/walk.mjs walk9 180 swipe120:3500 swipe300:3800 ×22 swipe300-up:3800 ×22` — ver
+   11 → 12 (a retenção da passagem), a história do 14, Questions → Contact → fim e a volta; ler a linha `frames:` de cada gesto (fotogramas
+   > 50 ms = custo do ouvinte não passivo). Depois o mesmo com `swipe800`.
+3. **Safari real**: `node desk/safari.mjs saf1 100 swipe120:3500 swipe300:3000 …` (proxy `node ios-lab/proxy.mjs 3142 3100 hud`; a página
+   em `localhost:3142` responde à consola remota — só uma página nessa porta). Ver se o Safari deixa cancelar o 1.º evento e se a
+   retenção/encaixe se comportam como no Chrome; o elástico no topo e no fim.
+4. **O owner no trackpad dele**, Chrome e Safari, `http://localhost:3140/` (proxy gravador): repetir as 3 evidências de 14/11 02:25–02:30
+   e a ronda. Depois README #118 se aprovar, e o ponto 2 da lista de 14/11 (C e D), 3 (E), 4 (F), 5 (G), 6 (A2), 7 (produção).
+
+**Laboratório depois do reinício (tudo se perde no reinício: servidores, Chrome de teste, scratchpads):**
+- Node 22 agora em **`~/.local/share/node22/bin/node`** (cópia durável; o `npm` dessa cópia está partido: correr os binários direto —
+  `node node_modules/next/dist/bin/next build|start -p 3100`, `node node_modules/typescript/bin/tsc --noEmit`,
+  `node node_modules/eslint/bin/eslint.js . --max-warnings 0`). `desk/rebuild.sh` faz build + restart da 3100 com ele.
+- Proxies: `node docs/development/ios-lab/proxy.mjs 3140 3100 rec` (owner), `… 3141 3100 rec` (Chrome de teste), `… 3142 3100 hud` (Safari).
+- Chrome de teste: `open -na "Google Chrome" --args --user-data-dir=<pasta> --remote-debugging-port=9223 --window-position=0,0
+  --window-size=1728,1117 --no-first-run "http://localhost:3141/"`; escrever o pid em `$S/chrome.pid` (`desk/desk.mjs` lê-o; `S` = pasta
+  de trabalho com `bin/`, `strokes/`, `rec/`). Compilar `desk/stroke.swift`, `finger/wheel.swift`, `desk/axcheck.swift` para `$S/bin/`
+  (`DEVELOPER_DIR=~/Downloads/Xcode-beta.app/Contents/Developer xcrun swiftc -O x.swift -o $S/bin/x`). Perfis de gestos: `desk/strokes/`
+  (ou `python3 desk/gen.py` com `S` definido). **A janela de teste tem de estar à frente**: os gestos caem na janela da frente.
+- Evidências desta manhã: `ios-lab/out/2026-11-14-desk-governor/` (fitas `walk3.txt` antes, `walk7.txt` depois, `walk89.txt` cadeias;
+  `w3s2.png` folha de fotogramas do bug; dois clipes mp4: o salto sozinho e o mesmo gesto corrigido).
+
 ## ▶ COMEÇAR AQUI · 14 de novembro de 2026 (fim da sessão, ~03:00) — correção 1 do desktop: feita em parte, o regulador de gestos EM CURSO
 
 ### ⚠⚠ RETOMAR AQUI (14/11, ~03:00) — ler isto primeiro

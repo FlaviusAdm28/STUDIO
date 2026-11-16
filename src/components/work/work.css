@@ -17,6 +17,8 @@
 }
 
 .work {
+  /* the change of chapter's own curve: the piles, the light, the text and the titles (work-client.tsx reads it for its flights) */
+  --chapter-ease: var(--ease);
   position: relative;
   /* one unit for every size: 1 % of the storyboard's frame — the width, but never more than the height allows (16 : 10
      on the desktop, 9 : 19.5 on the phone), so a short screen (the Xiaomi, 392 × 779) or a tablet keeps the frame's
@@ -248,20 +250,20 @@
   opacity: 0;
   transform: translate3d(0, 5%, 0);
   transition:
-    opacity 1.1s var(--ease),
-    transform 1.1s var(--ease);
+    opacity 1.1s var(--chapter-ease),
+    transform 1.1s var(--chapter-ease);
 }
 :root[data-js] .w-ch .w-ground {
   transform: none;
 }
 :root[data-js] .w-ch :is(.w-moments, .w-mo, .w-foot) {
   opacity: 0;
-  transition: opacity var(--chapter-text-out-seconds) var(--ease);
+  transition: opacity var(--chapter-text-out-seconds) var(--chapter-ease);
 }
 :root[data-js] .w-ch .w-nav-ch {
   transition:
-    transform var(--chapter-move-seconds) var(--ease),
-    opacity var(--chapter-move-seconds) var(--ease);
+    transform var(--chapter-move-seconds) var(--chapter-ease),
+    opacity var(--chapter-move-seconds) var(--chapter-ease);
 }
 :root[data-js] .work:not([data-ch]) .w-ch[data-c='weddings'],
 :root[data-js] .work[data-ch='0'] .w-ch[data-c='weddings'],
@@ -273,7 +275,7 @@
   }
   & :is(.w-moments, .w-foot) {
     opacity: 1;
-    transition: opacity var(--chapter-text-in-seconds) var(--ease) 0.3s;
+    transition: opacity var(--chapter-text-in-seconds) var(--chapter-ease) 0.3s;
   }
 }
 /* the leaving title disappears at once: its names are drawn moving in the arriving one */
@@ -552,12 +554,12 @@
 :root[data-js] .work[data-ch='1'] .w-ch:not([data-c='artists']) .w-mo,
 :root[data-js] .work[data-ch='2'] .w-ch:not([data-c='experiences']) .w-mo {
   opacity: 0;
-  transition: opacity 0.22s var(--ease);
+  transition: opacity 0.22s var(--chapter-ease);
 }
 :root[data-js] .work[data-ch='0'] .w-ch[data-c='weddings'] .w-mo,
 :root[data-js] .work[data-ch='1'] .w-ch[data-c='artists'] .w-mo,
 :root[data-js] .work[data-ch='2'] .w-ch[data-c='experiences'] .w-mo {
-  transition: opacity 0.6s var(--ease) 0.24s;
+  transition: opacity 0.6s var(--chapter-ease) 0.24s;
 }
 
 .w-list {
@@ -642,6 +644,13 @@
 }
 .w-dm:not(.on) {
   transition-duration: 0.4s;
+}
+/* the way back from another moment: the piece leaves within the dissolve, under the arch's box coming in (work-client.tsx dissolve),
+   with the box's own time and curve. With the site's ease over 0.2 s the arch lit up by 45 % (Chrome) and 63 % (Safari) of the whole
+   change in the dissolve's first frame (screen recordings, 16 Nov) */
+:root[data-js] .w-quick .w-dm:not(.on) {
+  transition-duration: 0.26s;
+  transition-timing-function: ease-in-out;
 }
 /* a piece that leaves fades as a whole, then its parts return to their start unseen (owner, 29 Oct: at the end of the
    guide a dark square was left for an instant) */

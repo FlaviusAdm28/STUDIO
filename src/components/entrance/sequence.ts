@@ -384,6 +384,12 @@ export function entranceSequence(c: EntranceConfig) {
     // Two easings in a row, on the clock and not per frame: one passed a shaken pointer through as a tremor, worse the more hertz
     // the screen has (owner, 1 Nov).
     const ease = (t: number) => {
+      // still from the moment the passage starts: the Work measures the blade then and flies from there (work-client.tsx, pathNow); one
+      // still gliding went on under the photograph as it took the blade's place. The next movement of the pointer at the top goes on from here
+      if (root.dataset.pass) {
+        frame = 0
+        return
+      }
       const k = 1 - Math.exp(-Math.min(0.05, (t - last) / 1000) * 7)
       last = t
       mid += (aim - mid) * k

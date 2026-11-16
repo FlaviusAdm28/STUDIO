@@ -153,7 +153,16 @@ summary {
 }
 
 
-/* the rest of a wheel's or a trackpad's stroke once it has reached its stop, on a desktop (lib/finger.ts governWheel) */
+/* the rest of a wheel's or a trackpad's stroke once it has reached its stop, on a desktop (lib/finger.ts governWheel; the page itself is
+   held by lib/hold.ts, let go only once the wheel is quiet: overflow taken off during momentum crashed Safari, 15 Nov). The snapping off
+   meanwhile: the stroke's momentum still arrives while the page is held, and at its end Chrome chose a snap target from it — a mark past the
+   stop — and went there as the page was let go: one stroke, Weddings to Artists, then Experiences by itself 1.2 s later (Chrome 157, real
+   trackpad events, 14 Nov: 2 of 18 strokes; none without momentum). With no snapping there is nothing to choose; put back on at rest exactly
+   on the stop, the page stays (measured). !important: the sections' rules for the snapping are more specific (method.css, work.css) */
 :root[data-wheel-held] {
-  overflow: hidden;
+  scroll-snap-type: none !important;
+}
+/* the motor (lib/motor.ts, `?motor`, a desktop) puts the page on its stops itself: the browser's snapping would be a second driver */
+:root[data-motor] {
+  scroll-snap-type: none !important;
 }

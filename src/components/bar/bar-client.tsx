@@ -6,6 +6,9 @@ import { press } from '@/lib/press'
 import { landOnAddresses } from '@/lib/address'
 import { unsnapped } from '@/lib/unsnapped'
 import { governWheel } from '@/lib/finger'
+import { startMotor } from '@/lib/motor'
+import { startConductor } from '@/lib/conductor'
+import { recOn } from '@/lib/rec-on'
 
 type Section = { readonly id: string; readonly number: string; readonly label: string }
 type Props = {
@@ -145,6 +148,19 @@ export function BarClient(props: Props) {
     // the Method's and the About's addresses land where they are seen, not on their top (src/lib/address.ts)
     cleanups.push(landOnAddresses())
     // one stroke of a wheel or a trackpad, one stop, on a desktop (lib/finger.ts): for the whole page, so here, with the bar
+    // the conductor first (`?cenas`, a desktop: lib/conductor.ts), else the motor (`?motor`): with either on, the governor stands down
+    cleanups.push(startConductor())
+    // the flight recorder, a test instrument: localhost and ?rec only (lib/rec.ts), loaded apart so the page never carries it otherwise
+    if (recOn()) {
+      let stopRec: (() => void) | null = null
+      let gone = false
+      import('@/lib/rec').then((m) => !gone && (stopRec = m.startRec()))
+      cleanups.push(() => {
+        gone = true
+        stopRec?.()
+      })
+    }
+    cleanups.push(startMotor())
     cleanups.push(governWheel())
 
     // ---- each island's darkness: measured under its words only (README #71) ----

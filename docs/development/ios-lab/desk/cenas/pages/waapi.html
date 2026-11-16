@@ -1,0 +1,45 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>WAAPI turn test</title>
+<style>body{background:#222;color:#eee;font:14px monospace} .b{width:200px;height:200px;background:#c33;margin:10px;display:inline-block;will-change:transform,opacity}</style>
+<body>
+<div id="out">running…</div>
+<script>
+// How each browser takes an animation turned round or played again: four ways, each on a fresh box, the time read every frame for 300 ms.
+// The passage needs: from where it is (t), at the new rate, smoothly — never at its end at once.
+const D = 1600
+const frames = [{ transform: 'translateX(0)', opacity: 0 }, { transform: 'translateX(300px)', opacity: 1 }]
+const mk = () => { const b = document.createElement('div'); b.className = 'b'; document.body.append(b); const a = b.animate(frames, { duration: D, fill: 'both' }); a.pause(); return [b, a] }
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+const watch = (get, ms = 300) => new Promise((ok) => { const out = []; const t0 = performance.now(); const f = () => { const a = get(); out.push(`${Math.round(performance.now() - t0)}:${a.playState[0]}${Math.round(Number(a.currentTime ?? -1))}`); if (performance.now() - t0 < ms) requestAnimationFrame(f); else ok(out.filter((_, i) => i % 3 === 0).join(' ')) }; requestAnimationFrame(f) })
+const ways = {
+  'old (time, rate, play)': (a, t, r) => { a.currentTime = t; a.playbackRate = r; a.play(); return a },
+  'cancel, time, rate, play': (a, t, r) => { a.cancel(); a.currentTime = t; a.playbackRate = r; a.play(); return a },
+  'cancel, rate, time, play': (a, t, r) => { a.cancel(); a.playbackRate = r; a.currentTime = t; a.play(); return a },
+  'pause, time, updateRate, play': (a, t, r) => { a.pause(); a.currentTime = t; a.updatePlaybackRate(r); a.play(); return a },
+  'new animation': (a, t, r, b) => { const kf = a.effect.getKeyframes().map(({ computedOffset, ...k }) => k); const tm = a.effect.getTiming(); a.cancel(); const n = b.animate(kf, tm); n.currentTime = t; n.playbackRate = r; return n },
+}
+const cases = [
+  ['IDLE 3 s at 0, forward', async () => { const [b, a] = mk(); a.currentTime = 0; await sleep(3000); return [b, a, 0, 1] }],
+  ['IDLE 3 s at the end, back', async () => { const [b, a] = mk(); a.currentTime = D; await sleep(3000); return [b, a, D, -1.333] }],
+  ['from paused at 0, forward', async (way) => { const [b, a] = mk(); a.currentTime = 0; return [b, a, 0, 1] }],
+  ['from paused at the end, back', async (way) => { const [b, a] = mk(); a.currentTime = D; return [b, a, D, -1.333] }],
+  ['running forward, turned back at 800', async (way) => { const [b, a] = mk(); a.play(); await sleep(800); return [b, a, Number(a.currentTime), -1.333] }],
+  ['finished, back', async (way) => { const [b, a] = mk(); a.play(); a.finish(); await sleep(100); return [b, a, D, -1.333] }],
+]
+;(async () => {
+  const res = [navigator.userAgent]
+  for (const [name, set] of cases) for (const [wn, way] of Object.entries(ways)) {
+    const [b, a0, t, r] = await set(wn)
+    if (!name.startsWith('IDLE')) await sleep(50)
+    let a = a0
+    a = way(a0, t, r, b)
+    const tl = Math.round(document.timeline.currentTime - performance.now())
+    const line = await watch(() => a)
+    res.push(`${name} · ${wn}: from ${Math.round(t)} at ${r} (timeline − now ${tl} ms) → ${line}`)
+    b.remove()
+  }
+  document.getElementById('out').textContent = res.join('\n')
+  await fetch('http://localhost:3199/rec', { method: 'POST', body: `waapi-${/Chrome/.test(navigator.userAgent) ? 'chrome' : 'safari'} 0\n` + res.map((x) => JSON.stringify([0, x])).join('\n') })
+})()
+</script>

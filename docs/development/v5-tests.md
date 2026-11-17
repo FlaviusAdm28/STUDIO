@@ -3740,3 +3740,118 @@ selecionado aterra". Seletor só no localhost, `?titulos=a|b|c` (sem ele, como h
   o regresso calhou no início da peça.
 - **Nada mudado.** Fica o comportamento aprovado. Um refinamento possível, não feito: parar a entrada da peça no instante da passada (hoje
   continua ~2 fotogramas, a espera de `go`, e a curva da dissolução arranca devagar) — pouparia ~50 ms de escurecimento depois da passada.
+
+### Verificação depois do commit `0bb2541`: o site normal, o Xiaomi e o iOS (17/11, fim da tarde; owner: "verificar o site normal e o xiaomi…
+### liga o simulador e testar no iOS Safari… liga servidor para eu testar no meu iPhone")
+- **O que mudou para quem não tem o condutor:** a fila de nomes em ordem e que roda (só com os nomes numa linha: ≥ 900 px), a correção de 1 ms
+  no regresso (todos os aparelhos), a ordem dos nomes no HTML. O passo 2 (a luz) só existe com `?cenas`.
+- **Desktop, site normal** (`CENAS=0 screen.mjs`, trackpad real): Chrome e Safari — topo → Weddings → Artists → Experiences → Artists → Weddings
+  → topo e ida e volta, uma paragem por passada, sem erros; a fila roda nos dois. **Encontrado — Safari, raro:** numa de 7 mudanças (Artists →
+  Weddings) a fila apareceu ~2 fotogramas já na disposição final antes de a rotação começar do início. Detetor novo `desk/cenas/names-flash.py`
+  (cada fotograma da fila contra a fila assente): Safari 1 de 20 mudanças (normal 1/7, normal com sonda 0/9, condutor 0/4), Chrome 0 de 11. O
+  registo da página (sonda temporária em `rec.ts`, `chf`: 12 fotogramas de cada nome depois de cada mudança) mostra os nomes no estado inicial
+  certo desde o primeiro fotograma, com as animações pendentes (`P`) nos dois primeiros: é o compositor do Safari a desenhar antes de as
+  animações estarem prontas. O código anterior criava-as da mesma forma (provavelmente não é de hoje; não comparado com a build anterior).
+- **Xiaomi, site normal** (`finger/xiaomi-hoje.mjs`, toques por CDP, gravação `adb screenrecord`): os nomes no telemóvel empilhados (`row=false`
+  nos três capítulos: a fila que roda não se aplica); topo → Weddings → Artists → Experiences → 7 e de volta, uma paragem por passada, sem erros;
+  mudanças de capítulo 70–76 fps, 1–6 fotogramas > 50 ms (pior 133 ms) com a gravação a correr; a passagem para o 7 um de 199 ms. O código que o
+  telemóvel corre é o de antes (exceto 1 ms e a ordem no HTML). Visto na gravação: no telemóvel os outros nomes somem e voltam quando o novo
+  aterra (#122 (2), desde 16/11) — **o que o owner não quis no desktop; rever no passo do telemóvel.** Com capturas de ecrã pelo CDP a meio, os
+  fps caíam (63–69, até 221 ms) e uma passada não mudou de capítulo: o peso das capturas, não o site.
+- **iOS, Simulador** (`v5-iphone`, iOS 27.3, Device Hub, dedo real `simtouch`, consola pelo proxy 3130): topo → Weddings → Artists →
+  Experiences → 7 → 8a e de volta ao topo, uma paragem por passada; com o coletor de erros confirmado (um erro de teste apanhado): nenhum erro.
+  Os nomes como no Xiaomi. O regresso Weddings → topo: a peça dissolve-se, o texto sempre visível.
+- **iPhone do owner:** servidor `http://192.168.1.5:3100/` (a firewall do Mac está ligada e o `node` em uso não está na lista: pode pedir
+  autorização). Por ver pelo owner.
+
+### Os nomes no telemóvel — duas variantes para o owner (17/11, noite; owner: "no telemóvel a animação atual … está lenta, feia"; "não podemos
+### ter a sensação de deslocar o texto para cima e baixo"; "deve ser uma solução eficiente para mobile")
+- **Seletor** (só em endereços privados — localhost, 192.168.x.x, 10.x — para o iPhone do owner na rede do laboratório): `?titulos=esbater` —
+  cada nome troca no seu lugar, a fila antiga apaga-se em 0,15 s e só depois a nova acende em 0,3 s, nunca as duas; `?titulos=passo` — o
+  mesmo com um passo de 12 px no sentido da fila (a descer: o antigo sai para a esquerda, o novo entra pela direita). 0,45 s em vez de 1,2 s;
+  só opacidade e transform. Só no telemóvel (nomes empilhados); sem o seletor, como estava (#122 (2)). `work-client.tsx` (`phoneNames`,
+  `flyFrom`, `passage`).
+- **Robustez:** cada nome começa já no estado inicial **posto no próprio elemento** (`flyFrom`), para um fotograma desenhado antes de a animação
+  estar pronta mostrar o início e não o fim (o piscar raro do Safari no desktop); seguro no fim (`fill: forwards`) e largado quando acaba ou
+  quando volta a voar. **Encontrado no iOS e corrigido:** os nomes têm ainda transições de CSS de 1,2 s (`work.css .w-nav-ch`, de antes das
+  Web Animations, #90); pôr o início no elemento disparava-as, e uma transição passa à frente de uma animação — no Simulador os nomes novos
+  entravam, sumiam e voltavam fracos (`esbater`, Weddings → Artists). Agora as transições ficam desligadas enquanto o nome voa (`transition:
+  none`) e voltam um fotograma depois de ser largado.
+- **iOS, Simulador** (dedo real, as duas variantes, 6 mudanças de capítulo cada, nos dois sentidos; `scratchpad valleys.py`: o "texto" da fila
+  fotograma a fotograma): cada mudança com **um só vale** — a fila antiga sai, ~0,1 s vazia, a nova entra uma vez; percurso certo (uma paragem por
+  passada), sem erros (coletor confirmado). **Xiaomi** (CDP + `adb screenrecord`): percurso certo, sem erros, 71–79 fps nas mudanças (como sem o
+  seletor: os fotogramas longos são das fotografias); Weddings → Artists visto fotograma a fotograma nas duas: limpo.
+- Não visto: o iPhone do owner (`http://192.168.1.5:3100/?titulos=esbater` / `?titulos=passo`).
+- **Recusadas pelo owner** ("não gosto de nenhuma"): `esbater` e `passo` saíram do seletor.
+
+### Os nomes no telemóvel — a roda (17/11, noite; owner: "andar em roda… existe de certa forma uma ordem lógica de fila mas em roda… a mudança
+### de capítulo deve sempre ser elegante… não quero ficar muito tempo com um ecrã vazio"; "parece-me bem, vamos aplicar isso em mobile"; o desktop
+### fica como está, #124)
+- **Antes do trabalho do scroll** (até 13/11, `8ac2c92`): todos os nomes iam a direito para o novo lugar (FLIP, 1,2 s), cruzando-se. A regra
+  "os outros apagam-se onde estão e voltam nos novos lugares" (storyboard `work-capitulos.html`, #62) entrou a 16/11 (#122 (2)) para todos;
+  hoje fica só no telemóvel sem seletor.
+- **A roda** (`?titulos=roda` com profundidade, `?titulos=plana` sem ela; endereços privados): os três lugares — o grande à esquerda, "o outro"
+  em cima à direita, "o seguinte" em baixo à direita — numa roda; cada nome anda um lugar, sempre em ordem; a descer para um lado, a subir para o
+  outro. Cada um pelo seu lado: entre o grande e o de cima **por cima** (arco de 0,9 da letra grande; com profundidade a 88 % e 55 % de
+  opacidade a meio), entre o grande e o de baixo **pela linha**, entre os dois da direita **a direito**. 0,8 s, curva suave (smootherstep, #121),
+  25 fotogramas-chave; `flyFrom` (o início no elemento, as transições antigas desligadas). O lugar grande nunca fica vazio.
+- **Afinado no ecrã:** a subir, o grande a ir pela linha para o lugar de baixo chocava com o nome ainda lá (Simulador, 0,25–0,33 s, "II
+  ArtistsIII Experiences"): o nome entre os dois lugares da direita tem relógio próprio — a subir sai na primeira metade, a descer entra depois
+  de 0,35. Depois: as 6 mudanças de cada versão no iOS sem a fila vazia em nenhum fotograma (`valleys.py`: 0 vales) e vistas fotograma a fotograma
+  (Experiences → Artists, Artists → Weddings, Artists → Experiences): nada se cruza nem toca. Xiaomi: percurso certo, sem erros, 70–78 fps nas
+  mudanças (os de sempre); Experiences → Artists visto fotograma a fotograma: limpo (a página ainda a correr no scroll nativo enquanto muda).
+- Não visto: o iPhone do owner (`http://192.168.1.5:3100/?titulos=roda` / `?titulos=plana`).
+- **Bug do owner no iPhone** ("ao mudar ele muda, assenta e volta a fazer a animação de mudar para a mesma categoria"). Não se reproduziu no
+  Simulador (passadas variadas, toques no nome seguinte, gravador `?rec`: uma só mudança de capítulo por gesto; uma experiência isolada no
+  motor do Simulador também não repetiu a transição). **A gravação do owner** (`ios-lab/out/…ScreenRecording_11-17-2026_17-04-19_1.mp4`,
+  enviada pela página nova `/__diag/enviar`): Experiences → Artists aos 7,5–7,9 s, os nomes assentam, e aos 8,3–8,5 s **voltam à partida e voam
+  outra vez** com a fotografia parada; igual em Artists → Experiences (9,2–10,6 s). A repetição começa quando a roda acaba (0,8 s): ao largar o
+  nome, `flyFrom` voltava a ligar um fotograma depois a transição antiga de 1,2 s (`work.css .w-nav-ch`), e o Safari do iPhone tomou o início
+  acabado de tirar como uma mudança e animou-a outra vez. **Corrigido:** nos nomes que voam pela roda a transição antiga fica desligada de vez
+  (nada mais mexe os nomes por CSS desde #90). Depois: Simulador, 3 toques + 4 passadas, um só movimento da fila por mudança (~0,65 s) e nada
+  depois; Xiaomi, as mudanças a subir vistas: uma volta e paradas. **Por confirmar no iPhone do owner.**
+- **Página para o owner enviar gravações:** `http://192.168.1.5:3130/__diag/enviar` (`ios-lab/enviar.html`, rota no `proxy.mjs`): escolher
+  vídeos/fotos da galeria + uma nota; cada um vai por streaming para `ios-lab/out/` (fora do git) com o progresso.
+- **A roda mais calma** (owner, 17/11: "o problema está corrigido… gosto da ideia mas está a saltar muito, especialmente a arrastar os títulos
+  de baixo da direita para a esquerda… queria algo mais elegante, senão parece muita animação"): `?titulos=calma`. Um só relógio e uma curva
+  uniforme para todos (seno: velocidade máxima 1,57× a média contra 1,88× da smootherstep), 1,0 s; só os dois nomes do topo e da base da roda
+  viajam — o que passa por cima com metade do arco (0,5 da letra grande), 6 % mais pequeno e 25 % mais claro no alto —; o nome pequeno da
+  direita não salta: apaga-se onde está (até 0,4) e acende no outro lugar (de 0,5), com um deslize de 4 px. Visto: Simulador (dedo real, 6
+  mudanças, a descer e a subir, fotograma a fotograma: sem choques, a subir os dois nomes passam juntos, em linhas diferentes) e Xiaomi
+  (Weddings → Artists fotograma a fotograma; percurso certo, sem erros, 71–78 fps). Por ver pelo owner, ao lado da `roda`.
+- **O salto no arranque** (owner, 17/11: "logo no início, especialmente nos que ficam pequenos no lado direito, parece que dá um salto
+  esquisito e depois começa a mexer… devia ser apenas um deslizar mais simples, até podia usar um fade"). **Medido** (Simulador): o "seguinte"
+  tem uma margem de toque à volta da palavra — caixa 13 px à esquerda e 8 px abaixo das letras — e a caixa do grande fica 3 px acima das
+  letras; os voos partiam das caixas, por isso cada nome que passava a ser, ou deixava de ser, o "seguinte" começava uns píxeis ao lado de onde
+  estava desenhado. Na gravação da `roda`, cada mudança: um primeiro passo de 5,5–12,9 (diferença média por píxel da fila), 2–5 fotogramas
+  parados, depois o movimento (`scratchpad jump.py`); fotograma a fotograma, "II Artists" desce ~9 px de uma vez. **Corrigido:** no telemóvel
+  os nomes partem das suas letras (`textOf`, um Range), escalados à volta do canto da caixa (`tx`, `ty`); e o voo anterior é largado antes de
+  se medirem os lugares. Depois: primeiro passo 0,5–1,4 (`simples`, `calma`), sem salto visto fotograma a fotograma (Simulador e Xiaomi); os
+  passos grandes que ficaram eram o fundo do capítulo a mudar de cor (Experiences é azul), não os nomes. Vale também para `roda` e `plana`.
+- **`?titulos=simples`** (o owner: "um deslizar mais simples… um fade"): só o nome que chega desliza até ao lugar grande (0,9 s, curva
+  uniforme); os outros dois apagam-se onde estão (até 0,35) e acendem nos lugares novos (de 0,5), com um deslize de 4 px. Simulador: percurso
+  certo, sem erros; Xiaomi: percurso certo, sem erros, 70–77 fps.
+- **Aprovada (owner, 17/11: "acho que gosto da calma assim") — README #125.** A roda calma é o comportamento do telemóvel; o seletor e as
+  outras versões (`roda`, `plana`, `simples`) saíram, e o caminho de 16/11 (o nome que se cruzava apagava-se) também — no desktop nunca era
+  usado (só com os nomes fora de uma linha). A sonda `chf` do gravador saiu. **Visto sem seletor:** Simulador (dedo real, 8 passadas, a descer
+  e a subir; os separadores antigos postos em branco para só o novo responder à consola): percurso certo, sem erros, primeiros passos
+  0,6–1,8, Weddings → Artists fotograma a fotograma limpo; Xiaomi: percurso certo, sem erros, 72–80 fps nas mudanças; desktop (o site normal,
+  trackpad real): Chrome e Safari, a fila que roda como em #124, 0 piscares em 4 mudanças cada (`names-flash.py`); bateria lógica: walk1 0
+  falhas, cases 0 falhas, smoke sem erros; typecheck e lint limpos.
+
+### Toques nos nomes do Work no telemóvel: o capítulo ia e voltava (17/11, noite; owner, gravação do iPhone: "um bug ao usar o click nas palavras do lado direito")
+- **Visto na gravação** (`ios-lab/out/…ScreenRecording_11-17-2026_18-11-02_1.mp4`, 5 toques no nome seguinte, ~1,35–1,55 s de intervalo):
+  em 2 dos 5 o capítulo começava a mudar (fotografia e texto para Artists), voltava a Weddings ~0,15 s e mudava outra vez (6,47–6,80 s e
+  3,48–3,67 s, fotograma a fotograma).
+- **A causa, reproduzida no Simulador** (pares de toques com intervalo controlado, registo `data-ch` da página): cada toque (`land`) marca
+  "a saltar" e larga a marca no primeiro `scrollend` **ou num temporizador de 1,5 s que o toque seguinte não cancelava**. Um toque ~1,4 s
+  depois do anterior via a sua marca largada pelo temporizador do anterior logo que o seu deslize começava, e o capítulo lido da página pelo
+  caminho: Weddings → Artists → Weddings → Artists; de Experiences para Weddings passava pelos três (2 → 0 → 2 → 1 → 0). A 1,4 s: 3 de 3
+  pares; com toques a ~1,9 s (os meus testes anteriores) nunca.
+- **Corrigido** (`work-client.tsx`, `land`/`jumpEnd`): cada salto tem o seu fim — quando a página chega ao destino (um `scrollend` noutro
+  sítio não conta), quando o visitante pega na página (dedo, roda) ou 1,5 s depois **desse** salto (e então o capítulo é lido de onde a página
+  está); um salto novo acaba primeiro o anterior.
+- **Depois:** Simulador, 24 toques a 1,0 / 1,4 / 1,5 / 1,6 s — uma mudança por toque; passadas depois dos toques normais; um toque seguido de
+  uma passada para cima 0,4 s depois — fica no capítulo da página. Xiaomi (`finger/xiaomi-taps.mjs`, toques reais por CDP), 18 toques a 1,0 /
+  1,4 / 1,5 s — uma mudança por toque. Desktop (headless, cliques nos nomes, com e sem o condutor) — uma mudança por clique. Bateria lógica
+  verde; typecheck e lint limpos. **Confirmado no iPhone do owner (17/11: "confirmo que está corrigido").**

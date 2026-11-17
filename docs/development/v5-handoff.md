@@ -1,6 +1,21 @@
 # Chapter One V5 — handoff
 
-## ▶ COMEÇAR AQUI · 17 de novembro de 2026, fim da tarde — passo 2 (Work ↔ Method) fechado e aprovado; os nomes do Work numa fila que roda; em commit. A seguir: passo 3 (Method → About)
+## ▶ COMEÇAR AQUI · 17 de novembro de 2026, noite — os nomes do Work no telemóvel: a roda calma (#125), aprovada no iPhone do owner. A seguir: passo 3 (Method → About)
+
+**Depois do commit `0bb2541` (mesmo dia):** a verificação pedida pelo owner — o site normal no desktop, o Xiaomi, o iOS no Simulador e o iPhone
+dele (`http://192.168.1.5:3100/`). O telemóvel não tinha sido afetado, mas o owner não gostou da animação dos nomes lá (a de 16/11, #122 (2):
+"está lenta, feia"). Depois de cinco versões comparadas no iPhone, **a roda calma** (README #125); pelo caminho, com uma gravação do owner, o
+movimento que se repetia no fim (a transição antiga dos nomes) e o salto no arranque (a margem de toque do "seguinte"). O desktop ficou como
+estava (#124). **Em commit** (owner, 17/11). Ferramentas novas: `ios-lab/enviar.html` + rota `/__diag/enviar` no
+`proxy.mjs` (o iPhone do owner envia gravações para `ios-lab/out/`: `http://192.168.1.5:3130/__diag/enviar`), `finger/xiaomi-hoje.mjs`,
+`desk/cenas/names-flash.py`, `desk/cenas/arch-tone.py`, `screen.mjs` com `CENAS=0`.
+**Corrigido (gravação do owner):** tocar no nome seguinte a ~1,4 s do toque anterior fazia o capítulo ir e voltar — o temporizador de
+1,5 s do salto anterior largava o novo (`land`/`jumpEnd`; `v5-tests.md`, "Toques nos nomes"). Confirmado no iPhone do owner.
+**Encontrado, por decidir:** no Safari do desktop, raro (1 em 20 mudanças), a fila dos nomes aparece ~2 fotogramas já no fim antes de rodar
+(o compositor desenha antes de as animações estarem prontas); a técnica do telemóvel (`flyFrom`: o início posto no próprio nome, a transição
+antiga desligada) resolve-o — por aplicar no desktop se o owner quiser (mexe na #124: testar com ~40 mudanças antes e depois).
+
+## (antes) COMEÇAR AQUI · 17 de novembro de 2026, fim da tarde — passo 2 (Work ↔ Method) fechado e aprovado; os nomes do Work numa fila que roda; em commit. A seguir: passo 3 (Method → About)
 
 **Estado numa frase.** O passo 2 está fechado: a luz do Method já não é cortada a subir do 7 (o regresso da luz toca inteiro, README #123); os
 nomes dos capítulos do Work estão sempre em ordem e rodam (README #124, substitui #122 (2)); o texto do Weddings já não pisca no Safari no

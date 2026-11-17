@@ -52,6 +52,11 @@ http.createServer(async (req, res) => {
       res.writeHead(200, { 'content-type': 'text/plain' }); res.end(file) })
     return
   }
+  // 17 Nov: a page of its own for the owner's iPhone to send screen recordings (and a note) to the Mac, without the site or the HUD
+  if (req.url.startsWith('/__diag/enviar')) {
+    res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' })
+    return res.end(readFileSync(`${HERE}/enviar.html`))
+  }
   if (req.url.startsWith('/__diag/file') && req.method === 'POST') {
     const name = (new URL(req.url, 'http://x').searchParams.get('name') || 'file').replace(/[^\w.-]/g, '_'), file = `${stamp()}-${name}`
     const w = createWriteStream(`${OUT}/${file}`); req.pipe(w); w.on('finish', () => { console.log('saved', file, w.bytesWritten); res.writeHead(200, { 'content-type': 'text/plain' }); res.end(file) })

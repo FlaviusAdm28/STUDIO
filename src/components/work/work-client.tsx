@@ -583,6 +583,30 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
     // The change of chapter's curve (work.css --chapter-ease): the site's --ease, quick at the start (23 % at 70 ms, 60 % at 0.2 s).
     // Compared on screen with the passage's smootherstep, the owner kept it (16 Nov: "para os capítulos prefiro a atual", README #122)
     const moveEase = getComputedStyle(section).getPropertyValue('--chapter-ease').trim() || 'ease-out'
+    // A flight that cannot show its end before it begins: its first keyframe is put on the element itself, so a frame drawn before the
+    // animation is ready shows the start (Safari's compositor drew a new row in its end layout for ~2 frames, 1 change in 20, 17 Nov);
+    // held at its end and let go once ended, or when the element flies again
+    const landName = new WeakMap<HTMLElement, () => void>()
+    const PROPS = ['opacity', 'transform', 'visibility'] as const
+    // The names' own CSS transitions (work.css .w-nav-ch, 1.2 s, from before the flights were Web Animations, #90) are off for good once
+    // a name flies here: the start put on the element set them going, and a transition outranks an animation — on iOS the arriving names
+    // came in, vanished and came back faint (Simulator, 17 Nov). Turned back on a frame after the name was let go, the owner's iPhone took
+    // the start just removed as a change and played the whole move again with them, as the wheel ended (his screen recording, 17 Nov,
+    // 7.9–8.5 s and 10.3–10.6 s: the names back at their start and flying again, the photograph still). Nothing else moves the names by CSS
+    const flyFrom = (el: HTMLElement, frames: Keyframe[], timing: KeyframeAnimationOptions) => {
+      landName.get(el)?.()
+      el.style.setProperty('transition', 'none')
+      for (const k of PROPS) if (frames[0][k] !== undefined) el.style.setProperty(k, String(frames[0][k]))
+      const a = el.animate(frames, { ...timing, fill: 'forwards' })
+      const done = () => {
+        landName.delete(el)
+        PROPS.forEach((k) => el.style.removeProperty(k))
+        a.cancel()
+      }
+      landName.set(el, done)
+      a.onfinish = done
+      return a
+    }
     const scaleOf = (el: HTMLElement) => {
       const t = getComputedStyle(el).transform
       return t && t !== 'none' ? new DOMMatrix(t).a : 1
@@ -602,16 +626,26 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
     const passage = (from: number, to: number) => {
       fly(articles[from].querySelector('.w-stack'), 0, 'translate3d(0, 5%, 0)')
       fly(articles[to].querySelector('.w-stack'), 1, 'translate3d(0, 0, 0)')
-      const was = new Map<string, { r: DOMRect; fs: number; o: number }>()
+      // a name's letters, not its box (the phone's "next" has a touch margin round its word)
+      const textOf = (el: HTMLElement) => {
+        const range = document.createRange()
+        range.selectNodeContents(el)
+        return range.getBoundingClientRect()
+      }
+      const was = new Map<string, { r: DOMRect; t: DOMRect; fs: number; o: number }>()
       articles[from].querySelectorAll<HTMLElement>('.w-nav-ch').forEach((el) => {
         was.set(el.dataset.k ?? '', {
           r: el.getBoundingClientRect(),
+          t: textOf(el),
           fs: parseFloat(getComputedStyle(el).fontSize) * scaleOf(el),
           o: Number(getComputedStyle(el).opacity),
         })
       })
       const names = [...articles[to].querySelectorAll<HTMLElement>('.w-nav-ch')]
-      names.forEach((el) => titleFlights.get(el)?.cancel())
+      names.forEach((el) => {
+        landName.get(el)?.()
+        titleFlights.get(el)?.cancel()
+      })
       const seat = new Map(names.map((el) => [el, el.getBoundingClientRect()]))
       // The row turns one place (README #124; owner, 17 Nov: "ficar sempre em ordem… e elas ir rodando em ordem"). Each chapter's row
       // starts with it and goes on in turn, I → II → III → I (work.tsx), so a change is always one step: onwards (scrolling down, or the
@@ -624,26 +658,75 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       // it, still shrinking (0.2–0.32 s)
       const arriving = names.find((el) => el.dataset.k === String(to))
       const step = (to - from + 3) % 3 === 1 ? 1 : -1
+      // one line (a desktop): each name right of the one before. The phone stacks the others beside the large one (work.css)
+      const row = names.every((el, i) => i === 0 || (seat.get(el)?.left ?? 0) >= (seat.get(names[i - 1])?.right ?? 0) - 1)
+      if (!row) {
+        // The phone: a calm wheel (README #125; owner, 17 Nov: "andar em roda… existe de certa forma uma ordem lógica de fila mas em roda";
+        // "a mudança de capítulo deve sempre ser elegante… não quero ficar muito tempo com um ecrã vazio"; "gosto da calma assim"). Its
+        // three places — the large one at the left, "the other" small at the top right, "the next" at the bottom right — lie round it and
+        // every name goes one place on, always in turn, onwards one way and back the other. The two names at the wheel's top and bottom
+        // travel on one even curve, 1 s (the sine's top speed 1.57× its mean: a name crossing the line no longer lurches halfway, as on the
+        // smootherstep, 1.88×) — the one between the large place and the top one over the top, on an arc of half the large letter, 6 %
+        // smaller and 25 % paler at its top; the one between the large place and the bottom one along the line. The small one between the
+        // two places at the right does not hop: it fades where it is (by 0.35) and comes in where it goes (from 0.5), a 4 px drift, so
+        // nothing meets it. The large place is never empty. Compared with the owner on his iPhone: a fade in place (with or without a
+        // step), the same wheel at 0.8 s on the smootherstep with all three travelling, only the arriving name sliding (17 Nov).
+        // Each name is placed by its letters, not its box: "the next" has a touch margin round its word (13 px at its left, 8 px under it
+        // at 402 × 874) and the large one's box sits 3 px above its letters; placed by the boxes, each name that became or stopped being
+        // "the next" started a few pixels off where it had been drawn — a jump, then the move (owner's iPhone, 17 Nov: "logo no início…
+        // parece que dá um salto esquisito e depois começa a mexer")
+        const roleWas = new Map([...articles[from].querySelectorAll<HTMLElement>('.w-nav-ch')].map((e) => [e.dataset.k ?? '', e.dataset.role]))
+        const big = parseFloat(getComputedStyle(arriving ?? names[0]).fontSize)
+        const even = (t: number) => (1 - Math.cos(Math.PI * t)) / 2
+        const WHEEL_MS = 1000
+        const N = 30
+        names.forEach((el) => {
+          const w = was.get(el.dataset.k ?? '')
+          const box = seat.get(el)
+          if (!w || !box) return
+          const now = textOf(el)
+          const s0 = w.fs / parseFloat(getComputedStyle(el).fontSize)
+          // scaled about its box's bottom left (work.css), the letters start where they were drawn
+          const tx = w.t.left - box.left - s0 * (now.left - box.left)
+          const ty = w.t.bottom - box.bottom - s0 * (now.bottom - box.bottom)
+          const o = Number(getComputedStyle(el).opacity)
+          const roles = new Set([roleWas.get(el.dataset.k ?? ''), el.dataset.role])
+          const at = (e: number, lift = 0, shrink = 1) =>
+            `translate(${(tx * (1 - e)).toFixed(2)}px, ${(ty * (1 - e) - lift).toFixed(2)}px) scale(${((s0 + (1 - s0) * e) * shrink).toFixed(4)})`
+          let frames: Keyframe[]
+          if (roles.has('current')) {
+            const over = roles.has('other')
+            frames = Array.from({ length: N + 1 }, (_, i) => {
+              const e = even(i / N)
+              const k = over ? Math.sin(Math.PI * e) : 0
+              return { opacity: ((w.o + (o - w.o) * e) * (1 - 0.25 * k)).toFixed(3), transform: at(e, 0.5 * big * k, 1 - 0.06 * k) }
+            })
+          } else {
+            const drift = Math.sign(-ty) * 4
+            frames = [
+              { opacity: String(w.o), transform: at(0), easing: 'ease-in' },
+              { opacity: '0', transform: `translate(${tx.toFixed(2)}px, ${(ty + drift).toFixed(2)}px) scale(${s0.toFixed(4)})`, offset: 0.35 },
+              { opacity: '0', transform: `translate(0px, ${-drift}px)`, offset: 0.5, easing: 'ease-out' },
+              { opacity: String(o), transform: 'translate(0px, 0px)' },
+            ]
+          }
+          titleFlights.set(el, flyFrom(el, frames, { duration: WHEEL_MS }))
+        })
+        return
+      }
+      // The desktop: the row turns one place (README #124; owner, 17 Nov: "ficar sempre em ordem… e elas ir rodando em ordem"). Each
+      // chapter's row starts with it and goes on in turn, I → II → III → I (work.tsx), so a change is always one step: onwards (scrolling
+      // down, or the name after) the row turns to the left and the leaving name goes round to the end; back (up, or the name before) to the
+      // right and the arriving one goes round to the front. Nothing crosses: the name going round slides out past its end of the row and
+      // fades in 0.12 s, before the name taking its place gets there, goes round unseen, and comes in at the other end from 1.2 of the large
+      // name's size beyond its place, from 0.26 s. The rest slide with the chapter's curve. Before (16 Nov, #122 (2)) the rows were mixed and
+      // the names had to cross: the crossing ones hid until the arriving one landed ("os outros desaparecem", owner). Measured on screen,
+      // Chrome and Safari (17 Nov): coming in from 0.42 s the front stood empty ~0.3 s going back; from 0.6 of the size it touched the name
+      // leaving it, still shrinking (0.2–0.32 s)
       const round = String(step > 0 ? from : to)
       const OUT = 0.1
       const IN = 0.22
       const far = 1.2 * parseFloat(getComputedStyle(arriving ?? names[0]).fontSize)
-      // one line (a desktop): each name right of the one before. The phone stacks the others beside the large one (work.css): there
-      // the names keep their way of 16 Nov, the one crossing the arriving name's sweep fading where it is (#122 (2)), until the phone's turn
-      const row = names.every((el, i) => i === 0 || (seat.get(el)?.left ?? 0) >= (seat.get(names[i - 1])?.right ?? 0) - 1)
-      const CROSS_MS = 120
-      const span = (a: DOMRect, b: DOMRect) => [Math.min(a.left, b.left), Math.max(a.right, b.right)]
-      const aw = arriving && was.get(arriving.dataset.k ?? '')
-      const ar = arriving && seat.get(arriving)
-      const sweep = aw && ar ? span(aw.r, ar) : null
-      const crossed = (el: HTMLElement) => {
-        const w = was.get(el.dataset.k ?? '')
-        const r = seat.get(el)
-        if (row || el === arriving || !sweep || !w || !r) return false
-        const own = span(w.r, r)
-        return own[0] < sweep[1] - 2 && own[1] > sweep[0] + 2
-      }
-      const crossing = names.some(crossed)
       names.forEach((el) => {
         const w = was.get(el.dataset.k ?? '')
         const r = seat.get(el)
@@ -654,31 +737,18 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
         const dy = w.r.bottom - r.bottom
         const start = { transformOrigin: '0 100%', transform: `translate(${dx}px, ${dy}px) scale(${s})`, opacity: w.o }
         const end = { transformOrigin: '0 100%', transform: 'none', opacity: o }
-        let a: Animation
-        if (row && el.dataset.k === round)
-          a = el.animate(
-            [
-              { ...start, easing: 'ease-in' },
-              { transformOrigin: '0 100%', transform: `translate(${dx - step * far}px, ${dy}px) scale(${s})`, opacity: 0, offset: OUT },
-              { transformOrigin: '0 100%', transform: `translate(${step * far}px, 0px)`, opacity: 0, offset: IN, easing: moveEase },
-              end,
-            ],
-            { duration: moveMs },
-          )
-        else if (crossed(el))
-          // the phone: out in CROSS_MS where it is, in at its own place over the last quarter
-          a = el.animate(
-            [
-              { ...start, easing: 'ease-in-out' },
-              { ...start, opacity: 0, offset: CROSS_MS / moveMs },
-              { ...end, opacity: 0, offset: 0.75, easing: 'ease-in-out' },
-              end,
-            ],
-            { duration: moveMs },
-          )
-        else if (el === arriving && crossing)
-          a = el.animate([start, end], { duration: moveMs - CROSS_MS, delay: CROSS_MS, easing: moveEase, fill: 'backwards' })
-        else a = el.animate([start, end], { duration: moveMs, easing: moveEase })
+        const a =
+          el.dataset.k === round
+            ? el.animate(
+                [
+                  { ...start, easing: 'ease-in' },
+                  { transformOrigin: '0 100%', transform: `translate(${dx - step * far}px, ${dy}px) scale(${s})`, opacity: 0, offset: OUT },
+                  { transformOrigin: '0 100%', transform: `translate(${step * far}px, 0px)`, opacity: 0, offset: IN, easing: moveEase },
+                  end,
+                ],
+                { duration: moveMs },
+              )
+            : el.animate([start, end], { duration: moveMs, easing: moveEase })
         titleFlights.set(el, a)
       })
     }
@@ -1582,6 +1652,11 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
     // #work is the first chapter's step: the section's own box starts under the entrance, at the top of the page, so the index's
     // 01 Work went back to the entrance (test round, 1 Nov)
     const chapterOf = (id: string) => (id === 'work' ? chapters[0] : id)
+    // The end of the site's jump under way (land), if any. Each jump has its own: ended by the first scrollend, or by a 1.5 s timer that
+    // the next jump did not clear, a jump begun less than 1.5 s after the one before was let go by that one's timer just as its own
+    // smooth scroll began, and the chapter read from the page on the way — Weddings → Artists → Weddings → Artists, and from Experiences up
+    // through all three (owner's iPhone, 17 Nov, 2 of 5 taps on the next name ~1.45 s apart; Simulator, taps 1.4 s apart: 3 of 3)
+    let jumpEnd: (() => void) | null = null
     const land = (id: string, smooth: boolean) => {
       const k = chapters.indexOf(chapterOf(id))
       if (k < 0) return false
@@ -1591,20 +1666,41 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       // on the chapter's stop: landed elsewhere, the stop coming back took the page to the nearest — Experiences' step lies nearer
       // Artists' stop than its own
       const top = restOf(k) ?? steps[k].getBoundingClientRect().top + scrollY + 1
+      jumpEnd?.()
       jumping = true
       // a jump of the site's own, for the scenes it passes over or leaves (the Method, the About: put in place at once, data-jump), as
       // lib/address.ts marks the others
       root.dataset.jump = id
       window.setTimeout(() => root.dataset.jump === id && delete root.dataset.jump, 600)
       setChapter(k)
+      // This jump ends once the page is there (a scrollend anywhere else is not its own), once the visitor takes the page (a finger, a
+      // wheel: the scroll it makes chooses from then on), or 1.5 s after it began, the chapter then read from where the page is — and only
+      // this jump: a later one ends it first (jumpEnd above)
+      let timer = 0
+      const arrived = () => {
+        if (Math.abs(scrollY - top) <= 2 || scrollY >= document.documentElement.scrollHeight - innerHeight - 2) done()
+      }
       const done = () => {
+        if (jumpEnd !== done) return
+        jumpEnd = null
+        clearTimeout(timer)
+        removeEventListener('scrollend', arrived)
+        removeEventListener('touchstart', done)
+        removeEventListener('wheel', done)
         jumping = false
       }
-      addEventListener('scrollend', done, { once: true })
-      window.setTimeout(done, 1500)
+      jumpEnd = done
+      addEventListener('scrollend', arrived)
+      addEventListener('touchstart', done, { passive: true })
+      addEventListener('wheel', done, { passive: true })
+      timer = window.setTimeout(() => {
+        done()
+        chooseChapter()
+      }, 1500)
       unsnapped(() => scrollTo({ top, behavior: smooth && !reduce ? 'smooth' : 'auto' }), 2600)
       return true
     }
+    cleanups.push(() => jumpEnd?.())
     listen(document, 'click', (e) => {
       const a = (e.target as Element).closest<HTMLAnchorElement>('a[href^="#"]')
       const id = a?.getAttribute('href')?.slice(1) ?? ''

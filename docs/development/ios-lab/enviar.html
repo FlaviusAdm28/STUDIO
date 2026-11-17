@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Enviar gravações</title>
+<style>
+  :root { color-scheme: dark; --bg: #1e1d1a; --ink: #eee8dd; --dim: #a8a196; --line: #3a3833; --ok: #9fc59a; --bad: #e39a8f; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.45 -apple-system, system-ui, sans-serif;
+    padding: max(24px, env(safe-area-inset-top)) 20px max(32px, env(safe-area-inset-bottom)); }
+  main { max-width: 520px; margin: 0 auto; }
+  h1 { font-weight: 600; font-size: 24px; margin: 0 0 6px; }
+  p { color: var(--dim); margin: 0 0 20px; }
+  label.pick { display: block; text-align: center; padding: 18px; border-radius: 14px; background: var(--ink); color: var(--bg);
+    font-weight: 600; font-size: 18px; }
+  input[type=file] { display: none; }
+  textarea { width: 100%; min-height: 84px; margin: 18px 0 0; padding: 12px; border-radius: 12px; border: 1px solid var(--line);
+    background: #262520; color: var(--ink); font: inherit; }
+  button { width: 100%; margin-top: 12px; padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: none;
+    color: var(--ink); font: inherit; }
+  ul { list-style: none; padding: 0; margin: 22px 0 0; }
+  li { padding: 12px 0; border-top: 1px solid var(--line); }
+  .name { word-break: break-all; }
+  .bar { height: 6px; border-radius: 3px; background: var(--line); margin-top: 8px; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--ink); transition: width 0.2s; }
+  .state { font-size: 15px; color: var(--dim); margin-top: 4px; }
+  .ok { color: var(--ok); }
+  .bad { color: var(--bad); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Enviar gravações</h1>
+  <p>Escolhe um ou mais vídeos (ou fotos) da galeria. Ficam no Mac, no laboratório, para eu os ver fotograma a fotograma.</p>
+  <label class="pick" for="files">Escolher vídeos</label>
+  <input id="files" type="file" accept="video/*,image/*" multiple>
+  <textarea id="note" placeholder="Opcional: o que se vê e quando (ex.: ao subir de Artists para Weddings, aos 3 s, os nomes rodam outra vez)"></textarea>
+  <button id="send-note" type="button">Enviar só a nota</button>
+  <ul id="list"></ul>
+</main>
+<script>
+  // POST each file to the lab's proxy (/__diag/file, streamed to docs/development/ios-lab/out/), one at a time, with its progress
+  const list = document.getElementById('list')
+  const note = document.getElementById('note')
+  const row = (name) => {
+    const li = document.createElement('li')
+    li.innerHTML = '<div class="name"></div><div class="bar"><i></i></div><div class="state">à espera</div>'
+    li.querySelector('.name').textContent = name
+    list.prepend(li)
+    return { bar: li.querySelector('i'), state: li.querySelector('.state') }
+  }
+  const mb = (n) => (n / 1048576).toFixed(1) + ' MB'
+  const send = (blob, name) =>
+    new Promise((done) => {
+      const r = row(name)
+      const x = new XMLHttpRequest()
+      x.open('POST', '/__diag/file?name=' + encodeURIComponent(name))
+      x.upload.onprogress = (e) => {
+        if (!e.lengthComputable) return
+        r.bar.style.width = (100 * e.loaded) / e.total + '%'
+        r.state.textContent = mb(e.loaded) + ' de ' + mb(e.total)
+      }
+      x.onload = () => {
+        const ok = x.status === 200
+        r.bar.style.width = '100%'
+        r.state.className = 'state ' + (ok ? 'ok' : 'bad')
+        r.state.textContent = ok ? 'Recebido no Mac ✓ ' + mb(blob.size) : 'Falhou (' + x.status + ')'
+        done(ok)
+      }
+      x.onerror = () => {
+        r.state.className = 'state bad'
+        r.state.textContent = 'Falhou: sem ligação ao Mac'
+        done(false)
+      }
+      x.send(blob)
+    })
+  const sendNote = () => {
+    const t = note.value.trim()
+    if (!t) return Promise.resolve(true)
+    return send(new Blob([t + '\n'], { type: 'text/plain' }), 'nota.txt').then((ok) => {
+      if (ok) note.value = ''
+      return ok
+    })
+  }
+  document.getElementById('files').addEventListener('change', async (e) => {
+    const files = [...e.target.files]
+    e.target.value = ''
+    await sendNote()
+    for (const f of files) await send(f, f.name)
+  })
+  document.getElementById('send-note').addEventListener('click', sendNote)
+</script>
+</body>
+</html>

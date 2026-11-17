@@ -605,6 +605,8 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   // by every scroll event, a finger still moving (or iOS's momentum) pushed the end on and on, and the scene stood at 7 through the
   // whole Method (owner, iPhone, 3 Nov)
   let passageEnds = 0
+  // the light's way back (7 → Experiences) ends then: the conductor holds the page at Experiences until it has (busyUntil)
+  let backEnds = 0
   let passageHold = 0
   // the hold let go: the page first on 7's mark, if a stroke's momentum left it elsewhere within 7 (iOS carried on after the pull back,
   // and the stop then took the page to 8a's mark, the nearer, Simulator, 8 Nov); with a finger on the screen, its stroke decides. By then
@@ -742,6 +744,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     // the passage, and its way back (README #102)
     const passage = from === 'pre' && next === '7' && !instant
     const goingBack = next === 'pre' && from !== null && from !== 'pre' && !instant
+    backEnds = goingBack ? performance.now() + BACK_MS * tempo : 0
     // for the bar's words (bar-client.tsx): the Method is seen once the light has crossed the middle of the screen's top, and until it
     // leaves it going back — at phase 7 alone the bar said 02 Method over the whole Work for half a second (Simulator, 7 Nov)
     clearTimeout(seenLater)
@@ -1057,8 +1060,16 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
           // the light going back: the stage held in place while it closes, now that the page has left the scene (holdWhileLeaving)
           holdIfMoving()
         },
-        // the light's passage plays whole before 8 may answer (README #102); a stroke back turns it back from where it is
-        busyUntil: (next: string) => (phase === '7' && next !== 'experiences' && passageEnds > performance.now() ? passageEnds : 0),
+        busyUntil: (next: string) => {
+          const now = performance.now()
+          // the light's passage plays whole before 8 may answer (README #102); a stroke back turns it back from where it is
+          if (phase === '7' && next !== 'experiences' && passageEnds > now) return passageEnds
+          // and its way back plays whole before the Work goes on to Artists; a stroke down turns it back from where it is. Gone on at
+          // once, the page left for Artists' stop with the light still over half the screen, and the stage, fixed at its section's top a
+          // screen below (holdIfMoving), took the light off in one frame (Chrome and Safari, a second stroke up 0.37 s after the first, 17 Nov)
+          if (phase === 'pre' && next !== '7' && backEnds > now) return backEnds
+          return 0
+        },
       }),
     )
   // a stroke back has come to rest when the scroll has been still a moment (scrollend where there is one; iOS fires scroll events through

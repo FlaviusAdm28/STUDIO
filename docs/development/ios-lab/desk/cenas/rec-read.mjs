@@ -41,11 +41,11 @@ let prev = null
 for (const x of e) {
   const [t, k, ...r] = x
   if (k === 'f') {
-    // a passage's frame: [left, top, width, opacity, clocks, card, card opacity, scrollY]
-    const [l, tp, w, op, clocks, card, cop, y] = r
+    // a passage's frame: [left, top, width, opacity, clocks, card, card opacity, scrollY, the first chapter's words: opacity and clocks]
+    const [l, tp, w, op, clocks, card, cop, y, words = '', stage = ''] = r
     const jump = prev && Math.abs(w - prev[2]) > 25 ? '   ← JUMP ' + (w - prev[2]) + ' px' : ''
     const still = prev && w === prev[2] && l === prev[0] && clocks !== prev[4] && inPass ? '   (still)' : ''
-    if (more === 'frames' || jump) console.log(`${String(t).padStart(7)}  box ${l},${tp} w${w} op${op}  ${clocks}  card ${card} op${cop}  y${y}${jump}${still}`)
+    if (more === 'frames' || jump) console.log(`${String(t).padStart(7)}  box ${l},${tp} w${w} op${op}  ${clocks}  card ${card} op${cop}  y${y}${words ? '  words ' + words : ''}${stage ? '  ' + stage : ''}${jump}${still}`)
     prev = r
     continue
   }

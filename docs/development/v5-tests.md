@@ -3642,3 +3642,101 @@ dos dois vizinhos, que são parecidos); JUMP = um passo muito maior que os à vo
 nomes encontravam-se em ~25 ms, e apagar o que sai ao longo do voo seria um piscar: agora apaga-se no lugar em 0,12 s (no relógio) e o que chega
 espera 0,12 s antes de voar. No ecrã: Chrome (Weddings → Artists) e Safari (Artists → Weddings), de 33 em 33 ms — o que sai some-se em ~0,1 s sem
 se mexer, o que chega cresce sozinho, nunca sobrepostos; o detetor só marca o arranque das pilhas (a curva escolhida).
+
+### Passo 2 — Experiences ↔ Method no ecrã (17/11, manhã; owner: "começa pelo passo 2 a investigar a tua suspeita")
+- **A suspeita confirmada — a luz cortada a subir do 7.** Uma segunda passada para cima 0,37 s depois da primeira (passadas só de dedo, `N0`)
+  levava a página a Artists com a luz ainda sobre metade do ecrã, e a luz desaparecia num fotograma (Chrome: ~45 % → 0 entre dois fotogramas de
+  16 ms; Safari: ~40 % → 0). Aos 0,53 s (`N150`) a luz já tinha saído (~0,5 s) e Experiences via-se um fotograma. **Causa** (sonda
+  `desk/cenas/probe-back.mjs`, headless): em Experiences o palco do Method está no lugar (topo 0, secção −405 px); em Artists a página sobe 2114 px,
+  a secção fica a 1709 px e `holdIfMoving` fixa o palco no topo da secção — 1709 px, fora do ecrã — com a luz dentro. O condutor não esperava: o
+  `busyUntil` do Method só cobria a ida (fase 7).
+- **Corrigido** (`method-stage.ts`): `backEnds`, o fim do regresso da luz (BACK_MS, 0,8 s); `busyUntil` devolve-o para paragens acima de
+  Experiences; para baixo (o 7) nada — a luz volta a abrir de onde está. Com a regra do condutor: uma passada nos últimos 0,45 s fica guardada, as
+  de antes são ignoradas (como as mudanças de capítulo, README #120 (3)). Sonda: segunda passada aos 0,3 s → ignorada (fica em Experiences); aos
+  0,4 s → Artists aos 825 ms.
+- **No ecrã, Chrome e Safari** (`screen.mjs`, plano `d2800 d1800 d1800 d3800 N0 N2500 d1800 d3800 N150 N2500 d1800 d3800 N100 n3800 u2500 u2000
+  u2000 u2500`): (1) aos 0,37 s: "kept 418 / 411 ms", Artists aos 819 / 817 ms; a luz fecha inteira até ao fio, Experiences fica à vista ~0,07 s e
+  só então Artists; (2) aos 0,5 s: "kept 292 / 271", Artists aos 820 / 824 ms, igual; (3) uma passada para baixo a meio do regresso: de volta ao 7
+  aos 467 / 452 ms, a luz volta a abrir de onde está, as palavras e os cartões encontrados de novo.
+- **Estúpidos** (`d2800 d1800 d1800 d300 N0 N3000 d300 d2400 d2500 u2500 u3800 u2500 u2000 u2500`), os dois browsers: voltar a meio da luz a entrar
+  (1,54 s) → Experiences "held", a passada seguinte ignorada (817 / 816 ms), a luz recua inteira; uma passada para baixo a meio da ida ignorada
+  (1052 / 1071 ms); 7 → 8a → 7 → Experiences → Artists → Weddings → topo, uma paragem por passada.
+- **Fortes** (`D`/`U`, inércia longa): uma paragem por passada nos dois sentidos, Chrome e Safari.
+- `glitch.mjs`: nenhum FLICKER nos troços do Method (6 gravações, Chrome e Safari); os JUMP são as arestas da luz e os arranques de capítulo
+  (vistos nos fotogramas).
+- Bateria lógica: walk1 gentle300 0 falhas (1 fotograma longo), cases 0 falhas, smoke sem erros. typecheck e lint limpos (3 avisos de imports
+  não usados em `desk/cenas/screen.mjs`, tirados); build ok.
+- **Os fotogramas longos do Safari** (56–107 ms ao chegar a um capítulo, 59–66 ms no 7): uma sonda temporária no condutor (tirada) mediu o código
+  das cenas em **2–6 ms** por chegada; o resto é o Safari a desenhar cada capítulo **pela primeira vez** — Artists 87 ms, Experiences 64 ms; nas
+  chegadas seguintes 24–42 ms. No ecrã: a mudança de capítulo começa ~4 fotogramas mais tarde, com um primeiro passo maior, só da primeira vez; no
+  7 nada se vê (a luz corre no compositor). Não mexido; por medir: descodificar de antemão as fotografias do capítulo seguinte, como o Method faz.
+- **Encontrado no passo 1, por corrigir — Safari, regresso Weddings → topo:** o texto do Weddings (título, lista, a linha de baixo) **desaparece
+  1–2 fotogramas** no arranque do regresso: 4 de 5 regressos (`w-top`, passadas fortes e suaves) e 4 de 4 (`w-top-sem`); o Chrome nunca (3 de 3).
+  Pelo relógio da página: no fim da dissolução (~0,3 s depois da passada), quando `leaveStage` cria as animações do texto (`flyText`) e `play`
+  as renova (`renew`) no mesmo instante. No mesmo fotograma a caixa do arco fica a opacidade 0 (registo `?rec`: `box op0.00` aos 9083 ms, depois
+  0,79, 1,00) — por baixo está a mesma fotografia, não se vê. Ainda por confirmar: 3–4 fotogramas com o arco ligeiramente lavado (7–11 níveis) ao
+  mostrar a entrada, antes de a dissolução começar. Não estava nas medições de ontem (o detetor só correu nas mudanças de capítulo).
+- **Não verificado:** o telemóvel (o condutor é só desktop); o trackpad do owner no passo 2.
+
+### O piscar do Safari no regresso Weddings → topo (17/11, tarde; owner: "podes corrigir o piscar")
+- **Medido** (o gravador `?rec` passou a registar a opacidade do bloco de texto do Weddings, `.w-tx`, e as suas animações em cada
+  fotograma): no fotograma em que o regresso arranca, as animações renovadas (`renew`) postas **exatamente no fim (1600 ms)** a tocar para trás
+  davam no Safari o valor do início — **o texto a 0,00**; no fotograma seguinte (1576 ms) 0,95. O Chrome dá 1,00 no mesmo ponto. Não era a criação
+  das animações nem a dissolução: é o limite exato do fim de uma animação ao contrário.
+- **Corrigido** (`work-client.tsx`, `syncOne`): a voltar do fim, as animações começam 1 ms antes dele (1599 ms, 1/1600 do caminho).
+- **Visto:** Safari, 5 regressos (`d3000 U3000 d3000 u3000 d1600 u3000 d3000 U3000 d3000 u3000`): o texto a 1,00 no arranque dos cinco
+  (antes 0,00), nenhum piscar do texto no detetor (antes 8 de 9). Chrome, 3 regressos: texto 1,00, nenhum piscar.
+- **Ainda por corrigir — o arco "lavado" no Safari:** no arranque do regresso, logo que a entrada volta a ser mostrada (`visibility: visible`) e
+  antes da dissolução, a fotografia do arco fica mais cinzenta e com menos contraste durante **3 fotogramas (~50 ms)** (relógio da página
+  26166–26245 ms; o processo principal com um fotograma de 57 ms nesse instante). O registo da página não mostra nada a mudar (caixa a 0, cartão a
+  1): é desenho do Safari ao mostrar a entrada. Próximo: sonda com cores de teste nas camadas da entrada (caixas, sombra, filme) para saber qual é.
+
+### Os nomes dos capítulos — três variantes para o owner (17/11, tarde; owner: "gostava mais da animação estilo rotação de palavras")
+O owner não gostou ao vivo da correção de 16/11 (#122 (2)): "sempre que mudo o capítulo os outros desaparecem e só voltam a aparecer quando o
+selecionado aterra". Seletor só no localhost, `?titulos=a|b|c` (sem ele, como hoje):
+- **a** — todos os nomes deslizam para o seu lugar, como antes de 16/11. Visto (Chrome e Safari): os nomes sobrepõem-se ilegíveis de ~0,04 a
+  ~0,4 s ("IWeddingsArtists").
+- **b** — uma roda: o nome que se cruza com o que chega passa por cima dele, num arco que sobe logo, fica no alto enquanto se cruzam e pousa no
+  fim (0,8 da letra do nome que chega: ~53 px a 1440 × 900; a barra fica ~110 px acima). Com dois nomes a cruzar (Artists ↔ Experiences) o que vai
+  mais longe vai mais alto e o outro faz um arco mais baixo (0,45) e esbatido (até 50 %): num só arco chocavam no ar (Chrome, 1.ª versão). Os
+  arcos seguem a curva da mudança (amostrada, 25 fotogramas-chave). Visto: Weddings ↔ Artists limpo; Artists ↔ Experiences o nome do meio passa
+  esbatido sobre o topo das letras do que chega (~0,1–0,25 s) e os dois pequenos tocam-se ao pousar (~0,45–0,6 s) — afinar se for a escolhida.
+- **c** — todos deslizam; o que se cruza esbate até 25 % enquanto passa por trás do que chega e volta. Visto: um fantasma claro por trás, o nome
+  que chega sempre legível.
+- Chrome e Safari no ecrã (`Q=titulos=… screen.mjs … "d2800 d1800 d1800 u1800 u1800"`), as quatro mudanças; detetor de piscares: nada (b no
+  Chrome e no Safari, c no Safari). Só transform e opacidade, uma animação por nome, como antes. Não visto: o telemóvel (o seletor serve lá também).
+
+### Os nomes em ordem — variante d, a fila que roda (17/11, tarde; owner: "ficar sempre em ordem… weddings > artists > experiences e elas
+### ir rodando em ordem… em desktop devo conseguir selecionar qualquer uma… gostei mais do esbater mas ainda assim acho que conseguimos melhorar")
+- **A ordem** (`work.tsx`): a fila de cada capítulo começa nele e segue I → II → III → I — Weddings "I II III", Artists "II III I", Experiences
+  "III I II" (antes Artists era "II I III": a fila misturava-se e os nomes tinham de se cruzar). Como o "seguinte" do telemóvel (cuja disposição
+  vem do `order` por papel e não muda). No desktop todos continuam a ser ligações.
+- **A rotação** (`?titulos=d`, `work-client.tsx` `passage`): a fila roda um lugar — a descer para a esquerda (o nome da frente sai pela
+  esquerda e volta no fim, pela direita), a subir para a direita (o que chega entra à frente, pela esquerda). Qualquer mudança é um passo (três
+  capítulos): Weddings → Experiences por clique é um passo para a direita. Os outros nomes deslizam com a curva do capítulo. O nome que dá a
+  volta: some em 0,12 s (`OUT` 0,1) a deslizar para fora, viaja invisível, entra aos 0,26 s (`IN` 0,22) de 1,2 em além do seu lugar (~80 px a
+  1440), a esbater-se para dentro.
+- **Afinado no ecrã:** com a entrada aos 0,42 s a frente ficava vazia ~0,3 s a subir; com 0,6 em o nome que chega tocava o que sai, ainda a
+  encolher (0,2–0,32 s). Final: nada se cruza nem se toca, nas quatro mudanças, Chrome e Safari; detetor de piscares: nada nos dois.
+- As variantes a, b, c continuam no seletor, agora sobre a fila em ordem. Não visto: o telemóvel com `d` (o seletor serve lá; a rotação foi
+  pensada para a fila do desktop).
+- **Aprovada (owner, 17/11: "aprovo o TITULOS D") — README #124.** O seletor e as variantes a–c saíram; a fila que roda é o comportamento do
+  desktop. Só quando os nomes estão numa linha (cada um à direita do anterior): no telemóvel, empilhados ao lado do grande, fica o caminho de
+  16/11 (#122 (2)) até ao passo do telemóvel. Visto sem seletor no ecrã, Chrome e Safari, as quatro mudanças: a rotação, nada cruzado; detetor
+  de piscares: nada. Bateria lógica: walk1 0 falhas, cases 0 falhas, smoke sem erros; typecheck e lint limpos.
+
+### O "arco cinzento" no arranque do regresso Weddings → topo (17/11, tarde) — não é um defeito: é a peça a entrar, dissolvida
+- **O que se via:** no Safari, no arranque de alguns regressos, o arco 30–40 níveis mais escuro durante 2–10 fotogramas.
+- **Duas leituras erradas pelo caminho (registadas para não as repetir):** (1) "o Safari refaz as camadas da entrada ao mostrá-la" — duas sondas
+  de cor não mostraram nenhuma camada da entrada; manter a entrada mostrada no Weddings (`visibility: visible` + `inert`, só desktop) pareceu
+  reduzir o cinzento de 4–6 para 2 fotogramas, mas era o acaso do instante do regresso; **desfeito**. (2) O salto da página (1260 → 0) e o
+  recálculo do caminho (`aim`): sondas `?sonda=tarde` e `?sonda=semaim` — o cinzento ficou; desfeitas.
+- **A causa, medida** (o gravador com o estado de cada camada do palco em cada fotograma — sonda temporária, tirada): no primeiro fotograma do
+  regresso a **peça do momento estava a entrar** (`.w-dm` 0,35 → 0,47, `.on`): cada peça entra aos 1,2 s do momento, primeiro o véu escuro
+  (work.css, 0,6 s). O regresso apanha-a a meio e a dissolução (#120 (2)) tira-a: o arco escurece com o véu e volta a clarear.
+- **Igual nos dois browsers** (regressos a tempos controlados, o tom do céu do arco fotograma a fotograma, `desk/cenas/arch-tone.py`): peça
+  ausente — nada (Chrome 221 constante, Safari 224 constante); peça a 0,05 — Chrome 221 → 211 → 221; 0,38 — Safari 224 → 172 → 224; 0,63/0,68 —
+  Chrome 221 → 153, Safari 224 → 147; 0,83/0,77 — Chrome 221 → 134, Safari 224 → 139. Parecia só do Safari porque nas primeiras gravações só lá
+  o regresso calhou no início da peça.
+- **Nada mudado.** Fica o comportamento aprovado. Um refinamento possível, não feito: parar a entrada da peça no instante da passada (hoje
+  continua ~2 fotogramas, a espera de `go`, e a curva da dissolução arranca devagar) — pouparia ~50 ms de escurecimento depois da passada.

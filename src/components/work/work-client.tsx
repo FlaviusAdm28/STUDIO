@@ -613,21 +613,33 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       const names = [...articles[to].querySelectorAll<HTMLElement>('.w-nav-ch')]
       names.forEach((el) => titleFlights.get(el)?.cancel())
       const seat = new Map(names.map((el) => [el, el.getBoundingClientRect()]))
-      // The arriving chapter's name sweeps from its place in the leaving title to its own, and a name whose way crosses that sweep was
-      // drawn over it: "II Artistsweddings" from ~0.2 to 0.5 s (screen recordings, 16 Nov). Side by side they are ~38 px apart, and with the
-      // chapter's quick curve they met within ~25 ms. Now that name fades where it is, unmoved (CROSS_MS), while the arriving one waits
-      // as long before it flies (ending when it always did); unseen, it goes to its own place and comes back there over the last quarter
-      // (owner, 16 Nov: "concordo")
+      // The row turns one place (README #124; owner, 17 Nov: "ficar sempre em ordem… e elas ir rodando em ordem"). Each chapter's row
+      // starts with it and goes on in turn, I → II → III → I (work.tsx), so a change is always one step: onwards (scrolling down, or the
+      // name after) the row turns to the left and the leaving name goes round to the end; back (up, or the name before) to the right and
+      // the arriving one goes round to the front. Nothing crosses: the name going round slides out past its end of the row and fades in
+      // 0.12 s, before the name taking its place gets there, goes round unseen, and comes in at the other end from 1.2 of the large name's
+      // size beyond its place, from 0.26 s. The rest slide with the chapter's curve. Before (16 Nov, #122 (2)) the rows were mixed and the
+      // names had to cross: the crossing ones hid until the arriving one landed ("os outros desaparecem", owner). Measured on screen, Chrome
+      // and Safari (17 Nov): coming in from 0.42 s the front stood empty ~0.3 s going back; from 0.6 of the size it touched the name leaving
+      // it, still shrinking (0.2–0.32 s)
+      const arriving = names.find((el) => el.dataset.k === String(to))
+      const step = (to - from + 3) % 3 === 1 ? 1 : -1
+      const round = String(step > 0 ? from : to)
+      const OUT = 0.1
+      const IN = 0.22
+      const far = 1.2 * parseFloat(getComputedStyle(arriving ?? names[0]).fontSize)
+      // one line (a desktop): each name right of the one before. The phone stacks the others beside the large one (work.css): there
+      // the names keep their way of 16 Nov, the one crossing the arriving name's sweep fading where it is (#122 (2)), until the phone's turn
+      const row = names.every((el, i) => i === 0 || (seat.get(el)?.left ?? 0) >= (seat.get(names[i - 1])?.right ?? 0) - 1)
       const CROSS_MS = 120
       const span = (a: DOMRect, b: DOMRect) => [Math.min(a.left, b.left), Math.max(a.right, b.right)]
-      const arriving = names.find((el) => el.dataset.k === String(to))
       const aw = arriving && was.get(arriving.dataset.k ?? '')
       const ar = arriving && seat.get(arriving)
       const sweep = aw && ar ? span(aw.r, ar) : null
       const crossed = (el: HTMLElement) => {
         const w = was.get(el.dataset.k ?? '')
         const r = seat.get(el)
-        if (el === arriving || !sweep || !w || !r) return false
+        if (row || el === arriving || !sweep || !w || !r) return false
         const own = span(w.r, r)
         return own[0] < sweep[1] - 2 && own[1] > sweep[0] + 2
       }
@@ -638,27 +650,35 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
         if (!w || !r) return
         const s = w.fs / parseFloat(getComputedStyle(el).fontSize)
         const o = getComputedStyle(el).opacity
-        const crosses = crossed(el)
-        const start = {
-          transformOrigin: '0 100%',
-          transform: `translate(${w.r.left - r.left}px, ${w.r.bottom - r.bottom}px) scale(${s})`,
-          opacity: w.o,
-        }
+        const dx = w.r.left - r.left
+        const dy = w.r.bottom - r.bottom
+        const start = { transformOrigin: '0 100%', transform: `translate(${dx}px, ${dy}px) scale(${s})`, opacity: w.o }
         const end = { transformOrigin: '0 100%', transform: 'none', opacity: o }
-        const a = crosses
-          ? // on the clock, not along the flight: out in CROSS_MS where it is, in at its own place over the last quarter
-            el.animate(
-              [
-                { ...start, easing: 'ease-in-out' },
-                { ...start, opacity: 0, offset: CROSS_MS / moveMs },
-                { ...end, opacity: 0, offset: 0.75, easing: 'ease-in-out' },
-                end,
-              ],
-              { duration: moveMs },
-            )
-          : el === arriving && crossing
-            ? el.animate([start, end], { duration: moveMs - CROSS_MS, delay: CROSS_MS, easing: moveEase, fill: 'backwards' })
-            : el.animate([start, end], { duration: moveMs, easing: moveEase })
+        let a: Animation
+        if (row && el.dataset.k === round)
+          a = el.animate(
+            [
+              { ...start, easing: 'ease-in' },
+              { transformOrigin: '0 100%', transform: `translate(${dx - step * far}px, ${dy}px) scale(${s})`, opacity: 0, offset: OUT },
+              { transformOrigin: '0 100%', transform: `translate(${step * far}px, 0px)`, opacity: 0, offset: IN, easing: moveEase },
+              end,
+            ],
+            { duration: moveMs },
+          )
+        else if (crossed(el))
+          // the phone: out in CROSS_MS where it is, in at its own place over the last quarter
+          a = el.animate(
+            [
+              { ...start, easing: 'ease-in-out' },
+              { ...start, opacity: 0, offset: CROSS_MS / moveMs },
+              { ...end, opacity: 0, offset: 0.75, easing: 'ease-in-out' },
+              end,
+            ],
+            { duration: moveMs },
+          )
+        else if (el === arriving && crossing)
+          a = el.animate([start, end], { duration: moveMs - CROSS_MS, delay: CROSS_MS, easing: moveEase, fill: 'backwards' })
+        else a = el.animate([start, end], { duration: moveMs, easing: moveEase })
         titleFlights.set(el, a)
       })
     }
@@ -809,8 +829,11 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
     }
     const syncOne = (old: Animation) => {
       const end = endOf()
-      const t = end ? (prog / end) * PASS_MS : 0
       const rate = rateNow()
+      // Going back from the very end: 1 ms in. Placed on the end exactly and played backwards, Safari drew the first frame as the start —
+      // Weddings' words (fading in over the passage's last stretch) at opacity 0 for a frame as the way back began (Safari 27.2, 17 Nov:
+      // the words 0.00 at 1600 ms back, 0.95 at 1576; 8 of 9 ways back on screen; Chrome 1.00)
+      const t = end ? Math.min((prog / end) * PASS_MS, rate < 0 ? PASS_MS - 1 : PASS_MS) : 0
       const a = rate ? renew(old) : old
       if (rate) {
         a.currentTime = t

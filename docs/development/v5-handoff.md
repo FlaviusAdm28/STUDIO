@@ -1,6 +1,48 @@
 # Chapter One V5 — handoff
 
-## ▶ COMEÇAR AQUI · 16 de novembro de 2026, fim da sessão (noite) — passo 1 (Entrada ↔ Work) fechado no ecrã; a seguir o passo 2 (Experiences ↔ Method)
+## ▶ COMEÇAR AQUI · 17 de novembro de 2026, fim da tarde — passo 2 (Work ↔ Method) fechado e aprovado; os nomes do Work numa fila que roda; em commit. A seguir: passo 3 (Method → About)
+
+**Estado numa frase.** O passo 2 está fechado: a luz do Method já não é cortada a subir do 7 (o regresso da luz toca inteiro, README #123); os
+nomes dos capítulos do Work estão sempre em ordem e rodam (README #124, substitui #122 (2)); o texto do Weddings já não pisca no Safari no
+arranque do regresso. Tudo visto no ecrã, Chrome e Safari, e aprovado pelo owner ("a passagem do work para o method parece-me bem tanto chrome
+como safari"; "aprovo o TITULOS D"). **Em commit a pedido do owner (17/11).** Detalhe e números: `v5-tests.md`, de "Passo 2" a "O arco cinzento".
+
+**Owner (17/11):** "quando for para começar a trabalhar no telemóvel diz" — **avisar antes do passo 6** (memória `announce-phone-step`);
+"vamos fazendo por ordem"; "prefiro qualidade e segurança robusta de animações sempre à entrega com tempo mais rápido" (memória
+`quality-over-speed`: nunca propor um tempo-limite para uma correção).
+
+### Feito hoje
+- **Passo 2 — a luz cortada:** a subir do 7, uma segunda passada aos ~0,37 s levava a página a Artists e o palco do Method, fixado no topo da
+  sua secção (um ecrã abaixo), levava a luz num fotograma. Agora o `busyUntil` do Method cobre o regresso da luz (`backEnds`, 0,8 s): uma
+  passada nos últimos 0,45 s fica guardada, antes é ignorada; para baixo a luz volta a abrir de onde está (`method-stage.ts`). README #123.
+- **Os nomes do Work:** a fila de cada capítulo começa nele e segue I → II → III → I (`work.tsx`); cada mudança roda a fila um lugar — a descer
+  para a esquerda (o da frente sai e volta no fim), a subir para a direita (o que chega entra à frente); nada se cruza (`work-client.tsx`,
+  `passage`). Comparadas quatro variantes com o owner. Só no desktop (nomes numa linha); **no telemóvel ficou como em 16/11 — rever no passo 6.**
+- **O piscar do texto no Safari:** animações renovadas postas no fim exato e tocadas ao contrário davam no Safari o valor do início (o texto a
+  0 um fotograma). Agora começam 1 ms antes do fim (`syncOne`).
+- **O "arco cinzento" do Safari: não era defeito** — a peça do momento a entrar quando o regresso começa, dissolvida como aprovado (#120 (2));
+  igual no Chrome. Duas leituras erradas pelo caminho ficaram registadas em `v5-tests.md` para não as repetir. Nada mudado.
+- **Os fotogramas longos do Safari** (56–107 ms): o código das cenas leva 2–6 ms; é o primeiro desenho de cada capítulo. Não mexido (item 3).
+
+### Por fazer, por esta ordem
+1. **Passo 3 — Method → About:** ligar o About ao condutor (hoje ainda lê o scroll: `legacyBusy` em `conductor.ts`); casos normais e
+   estúpidos, no ecrã, Chrome e Safari.
+2. Passo 4 (Questions, Contact), passo 5 (limpar o scroll antigo: `finger.ts` governWheel, `hold.ts`, `unsnapped.ts`, `motor.ts`, as regras de
+   encaixe). **Depois avisar o owner: o telemóvel** (o condutor no toque, README #119; os nomes do Work lá).
+3. Opcional, por medir: os ~4 fotogramas de atraso do Safari na **primeira** chegada a cada capítulo — descodificar de antemão as fotografias do
+   capítulo seguinte. Opcional, não pedido: parar a entrada da peça no instante da passada de regresso (~50 ms; o owner: "não vale a pena").
+4. **Antes do lançamento:** tirar o gravador (`src/lib/rec.ts`, `rec-on.ts`, o import em `bar-client.tsx`) e o medidor de FPS (`page.tsx`).
+
+### Ferramentas novas do laboratório (`docs/development/ios-lab/desk/cenas/`)
+`probe-back.mjs` (o palco do Method no regresso da luz, headless), `tile.sh` (fotogramas de uma gravação em grelha), `clock.sh` (o relógio da
+página no canto de cada fotograma), `arch-tone.py` (o tom do arco fotograma a fotograma à volta de cada regresso). O gravador `?rec` regista
+agora também a opacidade do texto do Weddings em cada fotograma (`rec.ts`, `rec-read.mjs`).
+
+### Não verificado
+O telemóvel (o condutor é só desktop; a ordem nova dos nomes no HTML vale lá também, a disposição não muda — `order` por papel); o iPhone e o
+Xiaomi; uma passagem só de teclado e de movimento reduzido nesta ronda (a página sem JavaScript foi vista: as três filas em ordem).
+
+## 16 de novembro de 2026, fim da sessão (noite) — passo 1 (Entrada ↔ Work) fechado no ecrã; a seguir o passo 2 (Experiences ↔ Method)
 
 **Estado numa frase.** O condutor (`?cenas`, só desktop; README #119) leva a página e as cenas tocam pelo relógio. Do topo à entrada do Method o
 owner testou no Chrome e no Safari: **"finalmente tudo parece bom!"**. O passo 1 (topo, Weddings, Artists, Experiences — normal e estúpido, os dois

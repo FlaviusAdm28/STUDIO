@@ -152,6 +152,18 @@ export function startRec() {
   const entrance = document.getElementById('top')
   const host = entrance?.querySelector('.e-window')
   const card = document.querySelector('.w-ch[data-c="weddings"] .w-ph[data-j="0"]')
+  // the first chapter's words (Safari, 17 Nov: gone for 1–2 frames at the start of the way back)
+  const words = document.querySelector('.w-ch[data-c="weddings"] .w-tx')
+  const clocksOf = (el: Element | null | undefined) =>
+    (el?.getAnimations() ?? [])
+      .map((x) => {
+        // which property it moves (o opacity, t transform), its state, its time, back (-), and R if the browser removed it
+        const k = (x.effect as KeyframeEffect | null)?.getKeyframes?.()[0] ?? {}
+        const what = 'opacity' in k ? 'o' : 'transform' in k ? 't' : '?'
+        const gone = (x as Animation & { replaceState?: string }).replaceState === 'removed' ? 'R' : ''
+        return `${what}${x.playState[0]}${Math.round(Number(x.currentTime ?? -1))}${x.playbackRate < 0 ? '-' : ''}${gone}`
+      })
+      .join(' ')
   let raf = 0
   let last = 0
   const frame = (t: number) => {
@@ -164,7 +176,6 @@ export function startRec() {
       const box = host?.querySelector<HTMLElement>(':scope > div[aria-hidden][style*="border-radius"]')
       if (box) {
         const r = box.getBoundingClientRect()
-        const a = box.getAnimations()
         const c = card?.getBoundingClientRect()
         log(
           'f',
@@ -172,18 +183,11 @@ export function startRec() {
           Math.round(r.top),
           Math.round(r.width),
           Number(getComputedStyle(box).opacity).toFixed(2),
-          a
-            .map((x) => {
-              // which property it moves (o opacity, t transform), its state, its time, back (-), and r if the browser removed it
-              const k = (x.effect as KeyframeEffect | null)?.getKeyframes?.()[0] ?? {}
-              const what = 'opacity' in k ? 'o' : 'transform' in k ? 't' : '?'
-              const gone = (x as Animation & { replaceState?: string }).replaceState === 'removed' ? 'R' : ''
-              return `${what}${x.playState[0]}${Math.round(Number(x.currentTime ?? -1))}${x.playbackRate < 0 ? '-' : ''}${gone}`
-            })
-            .join(' '),
+          clocksOf(box),
           c ? `${Math.round(c.left)},${Math.round(c.top)},${Math.round(c.width)}` : '',
           card ? Number(getComputedStyle(card).opacity).toFixed(2) : '',
           Math.round(scrollY),
+          words ? `${Number(getComputedStyle(words).opacity).toFixed(2)} ${clocksOf(words)}` : '',
         )
       }
     }

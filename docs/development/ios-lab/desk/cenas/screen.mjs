@@ -8,7 +8,7 @@
 //   finger alone, to turn a passage back halfway), then the ms to wait; h = the pointer on the
 //   Weddings blade first (its zoom); c = the pointer back to the middle
 import { execFileSync, spawn } from 'node:child_process'
-import { mkdirSync, readdirSync, statSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, writeFileSync } from 'node:fs'
 const [browser = 'chrome', plan = 'd2500 u2500', label = 'run'] = process.argv.slice(2)
 const S = `${process.env.HOME}/.local/share/v5-lab`
 const OUT = `${S}/rec/screen/${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}-${browser}-${label}`

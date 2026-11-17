@@ -321,9 +321,10 @@ export function Work() {
               ))}
             </div>
             <div className="w-tx">
-              {/* the title is the chapters' navigation (#62): this chapter large, the others small */}
+              {/* the title is the chapters' navigation (#62): this chapter large, the others small — always in their turn, I → II → III → I,
+                  from this one (owner, 17 Nov: "ficar sempre em ordem… e elas ir rodando em ordem"; as the phone's next one) */}
               <nav className="w-nav" aria-label={work.chaptersLabel}>
-                {[ci, ...[0, 1, 2].filter((k) => k !== ci)].map((k) => {
+                {[ci, (ci + 1) % 3, (ci + 2) % 3].map((k) => {
                   const o = work.chapters[k]
                   return (
                     <a

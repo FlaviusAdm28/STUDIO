@@ -3,7 +3,7 @@
 // recorded (screencapture -V). Then every recorded frame is measured: the flying photograph's box (the bright region where the blade and
 // the arch are) — a passage must change it smoothly, never stand still mid-way, never jump, and land where the stage's photograph is.
 // The flight recorder (?rec → collector.mjs) gives the page's own timeline for the same run.
-//   node screen.mjs chrome "d2500 u2500 d7500 u2500" label        (Q=curva=seno … adds to the address; CENAS=0 … the site without the conductor)
+//   node screen.mjs chrome "d2500 u2500 d7500 u2500" label        (Q=curva=seno … adds to the address; CENAS=0 … the site without the conductor; SITE=3101 … another build)
 //   plan: d/u = a gentle stroke down/up (gentle300), D/U = a strong one (swipe800), n/N = one without momentum (swipe300-nomom: the
 //   finger alone, to turn a passage back halfway), then the ms to wait; h = the pointer on the
 //   Weddings blade first (its zoom); c = the pointer back to the middle
@@ -16,14 +16,14 @@ mkdirSync(OUT, { recursive: true })
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const osa = (s) => execFileSync('osascript', ['-e', s]).toString().trim()
 // Q: more of the address (e.g. Q=curva=seno)
-const URL = `http://localhost:3100/?cenas=${process.env.CENAS ?? 1}&rec${process.env.Q ? `&${process.env.Q}` : ''}`
+const URL = `http://localhost:${process.env.SITE ?? 3100}/?cenas=${process.env.CENAS ?? 1}&rec${process.env.Q ? `&${process.env.Q}` : ''}`
 const proc = browser === 'safari' ? 'process "Safari"' : `(first process whose unix id is ${execFileSync('cat', [`${S}/chrome.pid`]).toString().trim()})`
 if (browser === 'safari') {
   osa(`tell application "Safari" to activate`)
   osa(`tell application "Safari" to set URL of current tab of front window to "${URL}"`)
 } else {
   const tabs = await (await fetch('http://localhost:9223/json/list')).json()
-  const tab = tabs.find((t) => t.type === 'page' && t.url.startsWith('http://localhost:3100'))
+  const tab = tabs.find((t) => t.type === 'page' && /^http:\/\/localhost:31\d\d/.test(t.url))
   const ws = new WebSocket(tab.webSocketDebuggerUrl)
   await new Promise((r) => (ws.onopen = r))
   ws.send(JSON.stringify({ id: 1, method: 'Page.navigate', params: { url: URL } }))

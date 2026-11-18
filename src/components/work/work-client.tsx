@@ -737,9 +737,13 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
         const dy = w.r.bottom - r.bottom
         const start = { transformOrigin: '0 100%', transform: `translate(${dx}px, ${dy}px) scale(${s})`, opacity: w.o }
         const end = { transformOrigin: '0 100%', transform: 'none', opacity: o }
+        // by flyFrom, as on the phone: the start put on the name itself, so a frame Safari draws before the animation is ready shows the
+        // start, never the row at its end — 1 change in 20 drew the arriving row in its end layout for ~2 frames before it turned (Safari,
+        // the site without the conductor, 17 Nov; Chrome 0 in 11)
         const a =
           el.dataset.k === round
-            ? el.animate(
+            ? flyFrom(
+                el,
                 [
                   { ...start, easing: 'ease-in' },
                   { transformOrigin: '0 100%', transform: `translate(${dx - step * far}px, ${dy}px) scale(${s})`, opacity: 0, offset: OUT },
@@ -748,7 +752,7 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
                 ],
                 { duration: moveMs },
               )
-            : el.animate([start, end], { duration: moveMs, easing: moveEase })
+            : flyFrom(el, [start, end], { duration: moveMs, easing: moveEase })
         titleFlights.set(el, a)
       })
     }

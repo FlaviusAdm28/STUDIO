@@ -1,61 +1,88 @@
 # Chapter One V5 — handoff
 
-## ▶ COMEÇAR AQUI · 17 de novembro de 2026, noite — os nomes do Work no telemóvel: a roda calma (#125), aprovada no iPhone do owner. A seguir: passo 3 (Method → About)
+## ▶ COMEÇAR AQUI · 17 de novembro de 2026, fim da sessão — passos 1 e 2 do condutor fechados; os nomes do Work no desktop (fila que roda) e no telemóvel (roda calma) aprovados; tudo em commit. A seguir: passo 3 (Method → About)
 
-**Depois do commit `0bb2541` (mesmo dia):** a verificação pedida pelo owner — o site normal no desktop, o Xiaomi, o iOS no Simulador e o iPhone
-dele (`http://192.168.1.5:3100/`). O telemóvel não tinha sido afetado, mas o owner não gostou da animação dos nomes lá (a de 16/11, #122 (2):
-"está lenta, feia"). Depois de cinco versões comparadas no iPhone, **a roda calma** (README #125); pelo caminho, com uma gravação do owner, o
-movimento que se repetia no fim (a transição antiga dos nomes) e o salto no arranque (a margem de toque do "seguinte"). O desktop ficou como
-estava (#124). **Em commit** (owner, 17/11). Ferramentas novas: `ios-lab/enviar.html` + rota `/__diag/enviar` no
-`proxy.mjs` (o iPhone do owner envia gravações para `ios-lab/out/`: `http://192.168.1.5:3130/__diag/enviar`), `finger/xiaomi-hoje.mjs`,
-`desk/cenas/names-flash.py`, `desk/cenas/arch-tone.py`, `screen.mjs` com `CENAS=0`.
-**Corrigido (gravação do owner):** tocar no nome seguinte a ~1,4 s do toque anterior fazia o capítulo ir e voltar — o temporizador de
-1,5 s do salto anterior largava o novo (`land`/`jumpEnd`; `v5-tests.md`, "Toques nos nomes"). Confirmado no iPhone do owner.
-**Encontrado, por decidir:** no Safari do desktop, raro (1 em 20 mudanças), a fila dos nomes aparece ~2 fotogramas já no fim antes de rodar
-(o compositor desenha antes de as animações estarem prontas); a técnica do telemóvel (`flyFrom`: o início posto no próprio nome, a transição
-antiga desligada) resolve-o — por aplicar no desktop se o owner quiser (mexe na #124: testar com ~40 mudanças antes e depois).
+**Estado numa frase.** O condutor (`?cenas`, só desktop, README #119) está fechado do topo ao Method (passo 1, 16/11; passo 2, hoje) e
+aprovado pelo owner no trackpad. Hoje também se fecharam os nomes dos capítulos do Work — no desktop uma fila em ordem que roda (#124), no
+telemóvel uma roda calma (#125) — e dois defeitos do iPhone vistos nas gravações do owner. **Tudo em commit** (`0bb2541`, `e818f12`; o owner
+fez o push do primeiro). Os números de cada teste: `v5-tests.md`, de "Passo 2 — Experiences ↔ Method no ecrã" ao fim.
 
-## (antes) COMEÇAR AQUI · 17 de novembro de 2026, fim da tarde — passo 2 (Work ↔ Method) fechado e aprovado; os nomes do Work numa fila que roda; em commit. A seguir: passo 3 (Method → About)
+### O que o owner quer (17/11) — ler antes de começar
+- **Por ordem:** passo 3 (Method → About) → passo 4 (Questions, Contact) → passo 5 (limpar o scroll antigo) → **avisar o owner antes do passo
+  6, o telemóvel** ("quando for para começar a trabalhar no telemóvel diz"; memória `announce-phone-step`).
+- **Qualidade antes de rapidez:** "prefiro qualidade e segurança robusta de animações sempre à entrega com tempo mais rápido" — nunca propor
+  um tempo-limite para uma correção (memória `quality-over-speed`).
+- **Todo o movimento visto no ecrã** (Chrome e Safari reais, trackpad real, gravação) antes de o mostrar; no telemóvel, o Simulador com dedo
+  real e o Xiaomi; o veredicto é o iPhone do owner (memórias `test-motion-on-screen`, `measure-before-fixing`).
+- **Elegância, não movimento a mais:** sobre os nomes no telemóvel — "não podemos ter a sensação de deslocar o texto para cima e baixo",
+  "parece muita animação que não transmite elegância", "não quero ficar muito tempo com um ecrã vazio".
+- **Commit só quando o owner pede** (pediu os dois de hoje).
 
-**Estado numa frase.** O passo 2 está fechado: a luz do Method já não é cortada a subir do 7 (o regresso da luz toca inteiro, README #123); os
-nomes dos capítulos do Work estão sempre em ordem e rodam (README #124, substitui #122 (2)); o texto do Weddings já não pisca no Safari no
-arranque do regresso. Tudo visto no ecrã, Chrome e Safari, e aprovado pelo owner ("a passagem do work para o method parece-me bem tanto chrome
-como safari"; "aprovo o TITULOS D"). **Em commit a pedido do owner (17/11).** Detalhe e números: `v5-tests.md`, de "Passo 2" a "O arco cinzento".
+### Decidido hoje (README #123–#125)
+- **#123 — passo 2:** a subir do 7, o regresso da luz do Method (0,8 s) toca inteiro antes de o Work ir para Artists (uma passada nos últimos
+  0,45 s fica guardada, antes é ignorada); para baixo a luz volta a abrir de onde está. `method-stage.ts` (`backEnds`, `busyUntil`).
+- **#124 — os nomes no desktop:** a fila de cada capítulo começa nele e segue I → II → III → I (`work.tsx`; Artists era "II I III"); cada
+  mudança roda a fila um lugar, nada se cruza (o nome que dá a volta esbate-se ao sair e entra do outro lado). Substitui #122 (2). Comparadas
+  quatro variantes ("aprovo o TITULOS D").
+- **#125 — os nomes no telemóvel:** uma roda calma — os dois nomes do topo e da base viajam numa curva uniforme (1 s), o que vai para cima num
+  arco baixo e quase sem profundidade, o pequeno da direita apaga-se e acende no outro lugar; cada nome parte das suas letras (o "seguinte"
+  tem margem de toque). Comparadas no iPhone: esbater no lugar (com e sem passo), a roda de 0,8 s com os três a viajar, só o que chega a
+  deslizar ("acho que gosto da calma assim").
 
-**Owner (17/11):** "quando for para começar a trabalhar no telemóvel diz" — **avisar antes do passo 6** (memória `announce-phone-step`);
-"vamos fazendo por ordem"; "prefiro qualidade e segurança robusta de animações sempre à entrega com tempo mais rápido" (memória
-`quality-over-speed`: nunca propor um tempo-limite para uma correção).
-
-### Feito hoje
-- **Passo 2 — a luz cortada:** a subir do 7, uma segunda passada aos ~0,37 s levava a página a Artists e o palco do Method, fixado no topo da
-  sua secção (um ecrã abaixo), levava a luz num fotograma. Agora o `busyUntil` do Method cobre o regresso da luz (`backEnds`, 0,8 s): uma
-  passada nos últimos 0,45 s fica guardada, antes é ignorada; para baixo a luz volta a abrir de onde está (`method-stage.ts`). README #123.
-- **Os nomes do Work:** a fila de cada capítulo começa nele e segue I → II → III → I (`work.tsx`); cada mudança roda a fila um lugar — a descer
-  para a esquerda (o da frente sai e volta no fim), a subir para a direita (o que chega entra à frente); nada se cruza (`work-client.tsx`,
-  `passage`). Comparadas quatro variantes com o owner. Só no desktop (nomes numa linha); **no telemóvel ficou como em 16/11 — rever no passo 6.**
-- **O piscar do texto no Safari:** animações renovadas postas no fim exato e tocadas ao contrário davam no Safari o valor do início (o texto a
-  0 um fotograma). Agora começam 1 ms antes do fim (`syncOne`).
-- **O "arco cinzento" do Safari: não era defeito** — a peça do momento a entrar quando o regresso começa, dissolvida como aprovado (#120 (2));
-  igual no Chrome. Duas leituras erradas pelo caminho ficaram registadas em `v5-tests.md` para não as repetir. Nada mudado.
-- **Os fotogramas longos do Safari** (56–107 ms): o código das cenas leva 2–6 ms; é o primeiro desenho de cada capítulo. Não mexido (item 3).
+### Corrigido hoje (todos medidos antes, vistos depois)
+- **A luz do Method cortada num fotograma** a subir do 7 com uma segunda passada rápida (#123).
+- **Safari, o texto do Weddings a 0 um fotograma** no arranque do regresso ao topo: animações renovadas postas no fim exato e tocadas ao
+  contrário davam o valor do início — agora 1 ms antes do fim (`syncOne`).
+- **iPhone, os nomes repetiam o movimento quando a roda acabava** (gravação do owner): a transição antiga de 1,2 s dos nomes (de antes de #90)
+  voltava a ligar-se e o Safari animava outra vez — fica desligada (`flyFrom`).
+- **iPhone, o salto no arranque dos nomes:** as animações partiam das caixas e o "seguinte" tem 13 px de margem de toque à esquerda e 8 px
+  por baixo — agora partem das letras (`textOf`).
+- **iPhone, tocar no nome seguinte fazia o capítulo ir e voltar** (gravação do owner, 2 de 5 toques): o temporizador de 1,5 s do salto
+  anterior largava o novo quando os toques vinham a ~1,4 s — cada salto tem agora o seu fim (`land`/`jumpEnd`). Confirmado pelo owner.
+- **Investigado, não era defeito:** o "arco cinzento" do Safari no regresso (a peça do momento a entrar, dissolvida como aprovado; igual no
+  Chrome). Duas leituras erradas pelo caminho estão em `v5-tests.md` para não as repetir.
 
 ### Por fazer, por esta ordem
-1. **Passo 3 — Method → About:** ligar o About ao condutor (hoje ainda lê o scroll: `legacyBusy` em `conductor.ts`); casos normais e
-   estúpidos, no ecrã, Chrome e Safari.
-2. Passo 4 (Questions, Contact), passo 5 (limpar o scroll antigo: `finger.ts` governWheel, `hold.ts`, `unsnapped.ts`, `motor.ts`, as regras de
-   encaixe). **Depois avisar o owner: o telemóvel** (o condutor no toque, README #119; os nomes do Work lá).
-3. Opcional, por medir: os ~4 fotogramas de atraso do Safari na **primeira** chegada a cada capítulo — descodificar de antemão as fotografias do
-   capítulo seguinte. Opcional, não pedido: parar a entrada da peça no instante da passada de regresso (~50 ms; o owner: "não vale a pena").
-4. **Antes do lançamento:** tirar o gravador (`src/lib/rec.ts`, `rec-on.ts`, o import em `bar-client.tsx`) e o medidor de FPS (`page.tsx`).
+1. **Passo 3 — Method → About:** ligar o About ao condutor (hoje ainda lê o scroll; o condutor espera-o como `legacyBusy` em `conductor.ts`);
+   casos normais e estúpidos; no ecrã, Chrome e Safari.
+2. Passo 4 (Questions, Contact) e passo 5 (limpar: `finger.ts` governWheel, `hold.ts`, `unsnapped.ts`, `motor.ts`, as regras de encaixe).
+3. **Avisar o owner: o passo 6, o telemóvel** (o condutor no toque, README #119). Os nomes do Work no telemóvel já estão feitos (#125).
+4. ✅ **O piscar raro do Safari no desktop corrigido** (owner: "vamos aplicar a correção, ter a certeza que mais nada é afetado"): os nomes do
+   desktop voam por `flyFrom`, como no telemóvel; antes Safari 5/20 passadas, depois 0/20 (cliques 0/29 antes e depois; Chrome 0); a rotação
+   igual. Verificado no ecrã também a correção dos toques no desktop (`clicks.mjs`). **Achados à parte, iguais antes e depois, por decidir com o
+   owner:** a ilha esquerda da barra não desenhada 1–2 fotogramas no Chrome (~2 por 20 passadas; Safari nunca; `island-gone.py`); o foco do
+   teclado vai para o `body` depois de Enter num nome; uma passada a meio de um salto do site corre sem paragens (2,6 s, `unsnapped`) e pode ir
+   ao topo. `v5-tests.md`, "Os saltos do site no ecrã". Visto pelo owner no desktop e no iPhone ("parece estar a funcionar
+   bem") e em commit (18/11).
+5. Opcional, por medir: os ~4 fotogramas de atraso do Safari na **primeira** chegada a cada capítulo (o primeiro desenho, 64–87 ms; o código das
+   cenas 2–6 ms) — descodificar de antemão as fotografias do capítulo seguinte. Não pedido: parar a peça no instante do regresso ("não vale a pena").
+6. **Antes do lançamento:** tirar o gravador (`src/lib/rec.ts`, `rec-on.ts`, o import em `bar-client.tsx`) e o medidor de FPS (`page.tsx`).
 
-### Ferramentas novas do laboratório (`docs/development/ios-lab/desk/cenas/`)
-`probe-back.mjs` (o palco do Method no regresso da luz, headless), `tile.sh` (fotogramas de uma gravação em grelha), `clock.sh` (o relógio da
-página no canto de cada fotograma), `arch-tone.py` (o tom do arco fotograma a fotograma à volta de cada regresso). O gravador `?rec` regista
-agora também a opacidade do texto do Weddings em cada fotograma (`rec.ts`, `rec-read.mjs`).
+### O laboratório (o que ficou ligado e como retomar)
+- **Desktop:** `zsh docs/development/ios-lab/desk/rebuild.sh` (build + `next start -p 3100`, ~1–2 min com o servidor em baixo); coletor `?rec`
+  `~/.local/share/node22/bin/node docs/development/ios-lab/desk/cenas/collector.mjs &` (3199); Chrome com janela CDP 9223, Safari; headless 9333.
+  `desk/cenas/screen.mjs chrome|safari "<plano>" <nome>` — **`CENAS=0`** para o site sem o condutor (o que os visitantes têm hoje), `SITE=3101`
+  outra build, `Q=…` acrescenta ao endereço. **`clicks.mjs`** — cliques reais nos nomes, lâminas, menu, Questions, voltar (`UP=3101`: outra
+  build). Comparar com uma build anterior: `git archive <commit> | tar -x -C <scratch>/old`, `cp -c -R node_modules` (um atalho, o Turbopack
+  recusa), `next build`, `next start -p 3101`. `island-gone.py`: a ilha da barra não desenhada. Novos hoje: `glitch.mjs`, `names-flash.py` (a fila dos nomes a aparecer no fim antes de rodar), `arch-tone.py`
+  (o tom do arco à volta de cada regresso), `tile.sh` / `clock.sh` (fotogramas em grelha; o relógio da página no canto), `probe-back.mjs`.
+- **iPhone do owner:** o site em `http://192.168.1.5:3100/` (mesma rede Wi-Fi; a firewall do Mac está ligada). **Gravações do owner:**
+  `http://192.168.1.5:3130/__diag/enviar` (`ios-lab/enviar.html`, rota no `proxy.mjs`) — vídeos e uma nota vão para `ios-lab/out/` (fora do
+  git). O proxy tem de estar a correr: `~/.local/share/node22/bin/node docs/development/ios-lab/proxy.mjs 3130 3100 &`. Para esperar por um
+  envio, vigiar `ios-lab/out/` em segundo plano.
+- **iOS, Simulador** (`v5-iphone`, iOS 27.3, Device Hub): `source docs/development/ios-lab/finger/sim.sh` **em bash** (o zsh não divide
+  `set -- $p`) — `sim-fresh` (página nova; põe em branco os separadores antigos, que também respondem à consola), `hud-off` (os botões do
+  painel ficam por cima dos nomes do Work), `fwd`/`back` (passadas de dedo real), `tap-next`, `where`. `finger/tap-pair.sh <ms>`: pares de
+  toques no nome seguinte ao ritmo do owner. `finger/names-jump.py` / `names-valleys.py`: a fila dos nomes numa gravação (`xcrun simctl io
+  v5-iphone recordVideo`). Acessibilidade e o `simtouch`: memória `macbook-ios-simulator-setup`.
+- **Xiaomi** (adb `c3e8fb35`): `adb reverse tcp:3100 tcp:3100`, `adb forward tcp:9222 localabstract:chrome_devtools_remote`, um separador do
+  Chrome em `http://localhost:3100/`. `finger/xiaomi-hoje.mjs` (o Work até ao 7 e de volta por toques: onde está, fps, erros; `Q=…`),
+  `finger/xiaomi-taps.mjs <ms> <n>` (toques no nome seguinte, uma mudança por toque); gravação: `adb shell screenrecord`.
+- **Lição de hoje:** testar os toques ao ritmo de quem usa (~1,0–1,6 s entre toques): a ~1,9 s o defeito do salto nunca aparecia.
 
 ### Não verificado
-O telemóvel (o condutor é só desktop; a ordem nova dos nomes no HTML vale lá também, a disposição não muda — `order` por papel); o iPhone e o
-Xiaomi; uma passagem só de teclado e de movimento reduzido nesta ronda (a página sem JavaScript foi vista: as três filas em ordem).
+O passo 2 no telemóvel não se aplica (o condutor é só desktop); uma passagem só de teclado e de movimento reduzido nesta ronda; o piscar
+raro do Safari no desktop por corrigir (item 4).
 
 ## 16 de novembro de 2026, fim da sessão (noite) — passo 1 (Entrada ↔ Work) fechado no ecrã; a seguir o passo 2 (Experiences ↔ Method)
 

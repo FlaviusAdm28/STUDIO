@@ -3855,3 +3855,38 @@ selecionado aterra". Seletor só no localhost, `?titulos=a|b|c` (sem ele, como h
   uma passada para cima 0,4 s depois — fica no capítulo da página. Xiaomi (`finger/xiaomi-taps.mjs`, toques reais por CDP), 18 toques a 1,0 /
   1,4 / 1,5 s — uma mudança por toque. Desktop (headless, cliques nos nomes, com e sem o condutor) — uma mudança por clique. Bateria lógica
   verde; typecheck e lint limpos. **Confirmado no iPhone do owner (17/11: "confirmo que está corrigido").**
+
+### Os saltos do site no ecrã e o piscar raro do Safari corrigido no desktop (17/11, noite; owner: "verifica e vamos aplicar a correção, ter a
+### certeza que mais nada é afetado")
+- **Ferramenta nova** `desk/cenas/clicks.mjs <chrome|safari> "<plano>" <nome>`: cliques reais do rato (`bin/wheel … click`) nos nomes do Work
+  (`n<k>`), nas lâminas da entrada (`b<k>`), no menu → Work (`mw`), nos capítulos das Questions (`q<k>`), `back`, passadas reais (`d`/`u`),
+  com a janela gravada e a página lida pela consola do laboratório (proxy 3142 Safari / 3143 Chrome; `UP=3101` → 3144/3145 para outra build);
+  por ação: as mudanças de capítulo que fez e onde caiu o clique. `CENAS=1` para o site com o condutor. `names-flash.py` lê as suas gravações.
+- **A correção dos toques (`land`/`jumpEnd`) no desktop, no ecrã:** Chrome e Safari, site normal — nomes a 1,4 s e a 1,0 s (9 + 3 cliques),
+  menu → Work, capítulos das Questions, as três lâminas, `back` duas vezes: **uma mudança por ação, o capítulo certo**, nos dois. Com o condutor
+  (`CENAS=1`): nomes, menu, lâminas — igual (o condutor tem o seu caminho, `goTo`).
+- **Comparado com a build anterior** (`0bb2541`, sem a correção, servida à parte em 3101 — `git archive` + `node_modules` clonado com `cp -c`,
+  o Turbopack recusa um atalho): uma passada para cima 0,4 s depois de um clique num nome (a meio do salto) leva a página ao topo ou deixa-a
+  onde estava **da mesma maneira nas duas builds** (as paragens ficam desligadas 2,6 s durante um salto do site, `unsnapped`, de antes): não é
+  desta correção. O foco do teclado, depois de Enter num nome, vai para o `body` **nas duas builds** (o nome fica numa fila que se esconde):
+  achado à parte, por tratar (acessibilidade).
+- **O piscar raro do Safari — medido antes:** 30 cliques e 20 passadas por browser, o detetor `names-flash.py`: Chrome 0/29 cliques, 0/20
+  passadas; **Safari 0/29 cliques, 5/20 passadas** (visto fotograma a fotograma: a fila de chegada desenhada já no fim 2–4 fotogramas, ~33–67 ms,
+  antes de a rotação começar do início).
+- **Corrigido** (`work-client.tsx`, a fila do desktop, #124): os nomes voam por `flyFrom`, como no telemóvel — o início posto no próprio nome
+  (um fotograma desenhado antes de a animação estar pronta mostra o início) e a transição antiga desligada. A rotação é a mesma (mesmos
+  fotogramas-chave, tempo e curva).
+- **Depois, os mesmos planos:** Chrome 0/29, 0/20; **Safari 0/29, 0/20**. A rotação vista fotograma a fotograma nos dois: igual à aprovada.
+  Teclado (headless): Enter nos nomes, com e sem movimento reduzido — uma mudança por Enter, sem erros, sem estilos presos nos nomes. Bateria
+  lógica: walk1 0 falhas, cases 0 falhas, smoke sem erros; typecheck e lint limpos. Telemóvel (o caminho não muda): Simulador — passadas e 3
+  toques a 1,4 s certos, sem erros.
+- **Mais nada afetado — a página inteira** (`glitch.mjs` nas gravações de depois): Safari nada. Chrome: 3 alertas pequenos no canto de cima à
+  esquerda — **a ilha esquerda da barra ("Chapter One | Work") não desenhada 1–2 fotogramas.** Detetor novo `desk/cenas/island-gone.py`. **Já
+  existia e não muda com a correção:** gravações de antes (17:53 `final` 2, `verif-cenas` 1); A/B com as mesmas 20 passadas, duas vezes por
+  build — sem a correção (`e818f12` servido em 3101) 2 + 2, com ela 2 + 2 (3 + 1); um deles na primeira passada, antes de qualquer mudança de
+  nomes. Safari: 0 em todas. **Achado à parte, por tratar:** o vidro da ilha (`backdrop-filter`) no Chrome.
+- **Achados à parte (não destas mudanças, iguais nas duas builds), para decidir com o owner:** (1) a ilha da barra no Chrome, acima; (2) o
+  foco do teclado vai para o `body` depois de Enter num nome; (3) uma passada a meio de um salto do site corre sem paragens (desligadas 2,6 s,
+  `unsnapped`) e pode levar a página ao topo.
+- `screen.mjs` aceita `SITE=3101` (outra build) e encontra o separador do Chrome em qualquer porta 31xx.
+- **Visto pelo owner** (desktop e iPhone, 18/11: "parece estar a funcionar bem") — em commit.

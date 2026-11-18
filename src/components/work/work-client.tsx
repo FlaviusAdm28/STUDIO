@@ -469,8 +469,20 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
         run(true)
       }
     }
-    // half a screen before the slit opens: the Method's section starts half a screen before its scene (README #99)
-    const checkBridge = () => bridge(ch === articles.length - 1 && !!methodEl && methodEl.getBoundingClientRect().top < 0)
+    // Held while the Method's light is over it: from the light's passage (the Method's phase 7 on) until it has gone back (phase 'pre').
+    // Read from where the page was, the bridge held the moment as Experiences was reached on a phone: its stop lies inside the Method's
+    // section there (the section's top 175 px above the screen at 402 × 874), a stroke's momentum went a few pixels past it before the stop
+    // took it back, and the moment stayed on its Before, no piece, until one was tapped (owner's iPhone, 18 Nov; at 402 × 874 the bridge's
+    // stop() 0.38 s after the change and nothing after it, timers traced)
+    const checkBridge = () => {
+      const ph = methodEl?.dataset.phase
+      bridge(ch === articles.length - 1 && !!ph && ph !== 'pre')
+    }
+    if (!driven && methodEl) {
+      const phaseSeen = new MutationObserver(checkBridge)
+      phaseSeen.observe(methodEl, { attributes: true, attributeFilter: ['data-phase'] })
+      cleanups.push(() => phaseSeen.disconnect())
+    }
     if (!driven) listen(window, 'scroll', checkBridge, { passive: true })
     articles.forEach((a) =>
       a

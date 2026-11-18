@@ -53,6 +53,8 @@ let wanted: boolean | null = null
 export const cenasOn = () => {
   if (wanted !== null) return wanted
   if (typeof window === 'undefined') return false
+  // a prototype still being built (the About, the Questions, the Contact): on this machine only, never on the published site (18 Nov)
+  if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return (wanted = false)
   if (!fine() || matchMedia('(prefers-reduced-motion: reduce)').matches) return (wanted = false)
   try {
     const q = new URLSearchParams(location.search)

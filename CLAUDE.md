@@ -59,8 +59,9 @@ state by state with every approved line of copy, is **`docs/design/v5/storyboard
 ## Non-negotiables
 
 - **No commit, push or deploy** unless the user asks for it explicitly in the session.
-- **The published site never shows the FPS meter** (owner, 31 Oct 2026): `src/components/fps-meter.tsx` needs `?fps` and works
-  only on `localhost` / `127.0.0.1`. Keep that guard; take the component out of `page.tsx` before launch.
+- **The published site carries no lab instruments** (owner, 18 Nov 2026, the launch): the FPS meter (`fps-meter.tsx`) and the flight
+  recorder (`lib/rec.ts`, `rec-on.ts`) were taken out; the scroll prototypes (`?cenas` conductor, `?motor`) run on `localhost` only. For lab
+  work they can be brought back from commit `ce1fe7b` on a branch — never into `master`.
 - **Performance is weighed, never a hard stop** (owner, 27 Oct 2026, README #68): no technique is
   forbidden — WebGL, `backdrop-filter`, animated filters, more layers, scroll-linked or pinned scenes are
   all possible. Every animation must **consider performance**: when a choice carries a risk, **say so

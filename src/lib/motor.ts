@@ -240,6 +240,8 @@ const onScroll = () => {
 
 const fine = () => matchMedia('(hover: hover) and (pointer: fine)').matches && !CSS.supports('-webkit-touch-callout', 'none')
 const wanted = () => {
+  // a prototype (the conductor grew out of it): on this machine only, never on the published site (18 Nov)
+  if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return false
   try {
     const q = new URLSearchParams(location.search)
     if (q.has('motor')) sessionStorage.setItem('v5-motor', q.get('motor') === '0' ? '0' : '1')

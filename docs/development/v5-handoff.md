@@ -1,11 +1,80 @@
 # Chapter One V5 — handoff
 
-## ▶ COMEÇAR AQUI · 17 de novembro de 2026, fim da sessão — passos 1 e 2 do condutor fechados; os nomes do Work no desktop (fila que roda) e no telemóvel (roda calma) aprovados; tudo em commit. A seguir: passo 3 (Method → About)
+## ▶ COMEÇAR AQUI · 18 de novembro de 2026 — o V5 passou para o `master` (migração completa, o site antigo substituído); falta o push do owner e a validação final
+
+**Estado numa frase.** O owner decidiu lançar **com o scroll atual** (o que os visitantes têm; sem `?cenas` "o site parece super bem… passadas
+rápidas estão sempre a travar nos sítios certos") e pôr o V5 no `master` ("o master está com o site antigo, por isso deve ser uma migração
+completa"). Feito localmente: **o bug B corrigido e confirmado no iPhone do owner**; **as ferramentas de laboratório tiradas do site** — o
+medidor de FPS e o gravador `?rec` apagados, `?cenas` e `?motor` só em `localhost`; o `master` avançado até ao `v5` (o `master` era `fe1bd33`,
+exatamente o ponto de onde o V5 partiu: um avanço direto, sem conflitos, com o histórico todo). **O owner faz o push** do `master` e do `v5`
+(GitHub Desktop). Nada de publicação automática no repositório (sem `vercel.json`, `netlify.toml` nem workflows) — mas se o alojamento estiver
+ligado ao GitHub, o push do `master` pode publicar: o owner confirma do lado dele.
+
+### Por fazer, por esta ordem (o caminho para produção)
+1. **O bug A** (desktop, a fotografia do *Before* salta e fica maior ao entrar em Experiences, às vezes; ponteiro fora; Artists → Experiences
+   por scroll normal) — medir primeiro; detalhe e suspeitos na secção "PRIORIDADE MÁXIMA" abaixo.
+2. **Validação final (M8, `acceptance.md`):** todos os viewports, teclado (com o foco que salta para o `body` depois de Enter num nome de
+   capítulo), movimento reduzido, sem JS (contra `next start`), contraste, Xiaomi e o iPhone do owner; os casos-limite do scroll atual registados
+   a 15/11 (End/Home, uma passada logo a seguir a um salto do menu, uma passada forte no Xiaomi a saltar uma paragem no Method/About/Contact)
+   e os três achados de 17/11 (a ilha da barra no Chrome, o foco, a passada a meio de um salto).
+3. **A decisão do owner de publicar** (o alojamento, o domínio). O condutor (`?cenas`) continua no código, só em `localhost`, para depois do
+   lançamento se fizer falta; o motor do telemóvel não se começa.
+
+### Feito a 18/11 (depois de `ce1fe7b`)
+- **Bug B (iPhone): o momento de Experiences preso na primeira entrada** — a ponte para o Method segurava-o pela posição (a inércia passava a
+  paragem); agora segura-o só enquanto a luz do Method está por cima (a fase do Method). Medido (os temporizadores da página), visto a 402 × 874
+  e no desktop, **confirmado pelo owner no iPhone**. `v5-tests.md`, "Bug B do owner".
+- **O site sem instrumentos:** `src/components/fps-meter.tsx`, `src/lib/rec.ts`, `src/lib/rec-on.ts` apagados (o import no `bar-client.tsx` e
+  o `<FpsMeter />` no `page.tsx` também); `?cenas` (`conductor.ts`) e `?motor` (`motor.ts`) só em `localhost`. As ferramentas do laboratório que
+  usavam `?rec` (`collector.mjs`, `rec-read.mjs`, o `?rec` que `screen.mjs` acrescenta) ficam sem efeito; o gravador volta de `ce1fe7b` num ramo
+  se for preciso, nunca para o `master` (CLAUDE.md). Visto: typecheck e lint limpos, build, smoke e cases sem erros, as seis secções no HTML
+  sem JS, `?fps&rec` não mostra nada.
+
+## (antes) COMEÇAR AQUI · 18 de novembro de 2026 (fim da sessão de 17–18/11) — PRIMEIRO os dois bugs do owner (A desktop, B iPhone), medidos antes de corrigir; depois o passo 3 (Method → About). Passos 1 e 2 do condutor fechados; os nomes do Work aprovados (#124 desktop, #125 telemóvel); tudo em commit
 
 **Estado numa frase.** O condutor (`?cenas`, só desktop, README #119) está fechado do topo ao Method (passo 1, 16/11; passo 2, hoje) e
 aprovado pelo owner no trackpad. Hoje também se fecharam os nomes dos capítulos do Work — no desktop uma fila em ordem que roda (#124), no
-telemóvel uma roda calma (#125) — e dois defeitos do iPhone vistos nas gravações do owner. **Tudo em commit** (`0bb2541`, `e818f12`; o owner
-fez o push do primeiro). Os números de cada teste: `v5-tests.md`, de "Passo 2 — Experiences ↔ Method no ecrã" ao fim.
+telemóvel uma roda calma (#125) — e dois defeitos do iPhone vistos nas gravações do owner. **Tudo em commit** (`0bb2541`, `e818f12`, `ce1fe7b`;
+o owner fez o push). **Dois bugs novos do owner (18/11), prioridade máxima — abaixo.** Os números de cada teste: `v5-tests.md`, de "Passo 2 — Experiences ↔ Method no ecrã" ao fim.
+
+### Por decidir pelo owner (18/11, fim da sessão): lançar com o scroll atual?
+O owner quer pôr o site em produção o mais depressa possível ("ando há dias para trás e para a frente com correções mínimas") e, ao ver
+`http://localhost:3100/` **sem** `?cenas`: "o site parece super bem, nem percebo a diferença". **Proposta feita (por confirmar):** não começar
+o motor do telemóvel (o passo 6 é o trabalho mais longo e incerto; o telemóvel funciona com o scroll atual, afinado 7–13/11); **lançar com o
+scroll atual** (o que os visitantes têm, desktop e telemóvel) depois de: (1) os bugs A e B; (2) a validação final M8 (viewports, teclado — com
+o foco que salta para o `body` —, movimento reduzido, sem JS, Xiaomi, iPhone do owner), tirar o gravador `?rec` e o medidor de FPS, e
+**restringir `?cenas` ao laboratório** (hoje qualquer pessoa o liga pelo endereço, e do About para baixo não está acabado); (3) a decisão do
+owner de publicar. O condutor fica para depois do lançamento, se fizer falta. **Antes de decidir, o owner ia experimentar sem `?cenas`** os
+casos que levaram ao condutor (14–16/11): passadas rápidas seguidas pelo Work e pelo Method até ao About; uma passada forte a partir do topo
+(deve parar no Weddings com a passagem inteira); voltar atrás a meio de uma passagem (7 → Experiences com a luz a entrar); no Safari, uma
+passada de inércia longa a entrar e a sair do Method. **Perguntar-lhe o resultado no início da próxima sessão.**
+
+### ⚠ PRIORIDADE MÁXIMA na próxima sessão — dois bugs do owner (18/11), antes do passo 3. Não corrigidos (owner: "devem ser prioridade máxima, não corrijas nada agora")
+
+**Bug A — desktop: ao entrar em Experiences, a fotografia do *Before* dá um salto e fica maior** ("às vezes"). **O que o owner sabe (18/11):**
+acontece **com o ponteiro fora da fotografia**, **simplesmente a passar de Artists para Experiences com scroll normal** (uma passada do
+trackpad, para baixo); **não acontece sempre** e ele não conseguiu perceber o que o dispara. Não reproduzido nem medido ainda. Por saber: qual
+browser (Chrome, Safari, ambos?), com ou sem `?cenas` (o "scroll normal" pode ser o site sem o condutor — o que os visitantes têm). **Medir
+primeiro** (memória `measure-before-fixing`): muitas passagens Artists → Experiences no ecrã, nos dois browsers, com e sem `?cenas`, passadas
+suaves e fortes, depois de estadias curtas e longas em Artists (o momento em que se está ao passar pode contar: a fotografia, a peça, a troca
+de momento a cada 6 s), gravadas e lidas fotograma a fotograma (a pilha de Experiences: tamanho e posição — um detetor como `arch-tone.py` /
+`names-flash.py` para a caixa da fotografia); e o registo `?rec` da página (as animações da pilha, `getAnimations()`, o `transform` lido). Pedir
+ao owner uma gravação quando voltar a acontecer (`/__diag/enviar`). **Suspeitos, por provar:** (a) o empurrão da luz do Method sobre a
+fotografia de Experiences (`method-stage.ts` `pushPhoto`, escala 1 → 1,14, "a fotografia do guia avança um pouco") — se o Method achar que a
+passagem começou (o 7) ou deixar o empurrão aplicado de uma vez anterior; (b) a subida da pilha na mudança de capítulo (`fly` / `stackFlights`
+em `work-client.tsx`) a partir de um `transform` lido a meio de outra animação (a troca de momento, `change`, ou o empurrão); (c) a troca de
+momento (`change`/`swapTimer`, a cada 6 s) a coincidir com a chegada. **Afastado pelo owner:** o "olhar" do ponteiro sobre a fotografia
+(`.w-look`), porque o ponteiro estava fora.
+
+**Bug B — ✅ CORRIGIDO 18/11 (por confirmar no iPhone do owner; `v5-tests.md`, "Bug B do owner"): a ponte segura o momento só enquanto a luz do Method está por cima (fase do Method), não pela posição. Texto original:** iPhone (iOS Safari): ao entrar em Experiences pela primeira vez, o segundo estado da animação nunca dispara — o *Before* fica na
+fotografia, a peça não aparece e o tempo do momento não passa ao seguinte; **tocando num momento à mão, a partir daí tudo funciona.** Não
+reproduzido ainda (Simulador, Xiaomi, iPhone do owner). **Suspeito forte, por provar:** a ponte para o Method (`work-client.tsx` `bridge` /
+`checkBridge`, README #98, #102): segura o momento (`held = true`, `stop()`) quando o topo do Method passa o topo do ecrã estando em
+Experiences; no iPhone (o Method sobre os últimos ecrãs do Work, a subida de 70 px, as barras do Safari) isso pode ser verdade já em repouso
+em Experiences, e o momento fica preso; um toque num momento (`choose`) põe `held = false` e, como `bridged` fica `true`, a ponte não volta a
+segurar — o que bate com "depois de mudar manualmente funciona". Medir: no Simulador (iPhone 17 Pro, `finger/sim.sh`) e no iPhone do owner,
+`methodEl.getBoundingClientRect().top`, `bridged`/`held` e o tempo do momento ao chegar a Experiences pela primeira vez (por passada e por
+toque no nome); e no Xiaomi. Os testes de hoje não olharam para o tempo dos momentos em Experiences.
 
 ### O que o owner quer (17/11) — ler antes de começar
 - **Por ordem:** passo 3 (Method → About) → passo 4 (Questions, Contact) → passo 5 (limpar o scroll antigo) → **avisar o owner antes do passo
@@ -43,6 +112,7 @@ fez o push do primeiro). Os números de cada teste: `v5-tests.md`, de "Passo 2 �
   Chrome). Duas leituras erradas pelo caminho estão em `v5-tests.md` para não as repetir.
 
 ### Por fazer, por esta ordem
+0. **⚠ Primeiro o bug A do owner (o B foi corrigido a 18/11 — confirmar no iPhone)** (acima), medidos antes de corrigir, vistos no ecrã e no iPhone.
 1. **Passo 3 — Method → About:** ligar o About ao condutor (hoje ainda lê o scroll; o condutor espera-o como `legacyBusy` em `conductor.ts`);
    casos normais e estúpidos; no ecrã, Chrome e Safari.
 2. Passo 4 (Questions, Contact) e passo 5 (limpar: `finger.ts` governWheel, `hold.ts`, `unsnapped.ts`, `motor.ts`, as regras de encaixe).
@@ -57,6 +127,24 @@ fez o push do primeiro). Os números de cada teste: `v5-tests.md`, de "Passo 2 �
 5. Opcional, por medir: os ~4 fotogramas de atraso do Safari na **primeira** chegada a cada capítulo (o primeiro desenho, 64–87 ms; o código das
    cenas 2–6 ms) — descodificar de antemão as fotografias do capítulo seguinte. Não pedido: parar a peça no instante do regresso ("não vale a pena").
 6. **Antes do lançamento:** tirar o gravador (`src/lib/rec.ts`, `rec-on.ts`, o import em `bar-client.tsx`) e o medidor de FPS (`page.tsx`).
+
+### Depois de o Mac ter sido desligado (18/11, fim da sessão) — ligar o laboratório de novo
+Nada fica a correr. Por esta ordem (Node 22: `~/.local/share/node22/bin/node`, abreviado `N`):
+1. **O site:** `zsh docs/development/ios-lab/desk/rebuild.sh` (build + `next start -p 3100`).
+2. **O gravador `?rec`:** `N docs/development/ios-lab/desk/cenas/collector.mjs &` (3199).
+3. **A consola do telemóvel e a página de envio do owner:** `N docs/development/ios-lab/proxy.mjs 3130 3100 &` (o iPhone do owner:
+   `http://192.168.1.5:3100/`; gravações: `http://192.168.1.5:3130/__diag/enviar` → `ios-lab/out/`; o IP do Mac pode mudar —
+   `ipconfig getifaddr en0`). `desk/cenas/clicks.mjs` arranca sozinho os seus proxies (3142 Safari, 3143 Chrome).
+4. **O Chrome do laboratório com janela (CDP 9223):** `open -na "Google Chrome" --args --user-data-dir=$HOME/.local/share/v5-lab/chrome-profile
+   --remote-debugging-port=9223 --window-position=0,0 --window-size=1728,1117 --no-first-run "http://localhost:3100/"`, e o pid em
+   `~/.local/share/v5-lab/chrome.pid` (`pgrep -f "remote-debugging-port=9223" | head -1 > ~/.local/share/v5-lab/chrome.pid`). O Safari com
+   uma janela aberta. Chrome headless (9333) para a bateria lógica: comando em `desk/cenas/README.md`.
+5. **Acessibilidade** (gestos e cliques reais): `swift docs/development/ios-lab/desk/axcheck.swift` deve dizer `trusted`.
+6. **O Simulador:** `DEVELOPER_DIR=~/Downloads/Xcode-beta.app/Contents/Developer xcrun simctl boot v5-iphone`, abrir
+   `~/Downloads/Xcode-beta.app/Contents/Applications/DeviceHub.app` (janela em 873,68, 842 × 965), `~/.local/share/v5-lab/bin/simtouch
+   ~/.local/share/v5-lab/touch &`, e em bash `source docs/development/ios-lab/finger/sim.sh; sim-fresh`.
+7. **O Xiaomi** (ligado por USB, desbloqueado): `adb reverse tcp:3100 tcp:3100`, `adb forward tcp:9222 localabstract:chrome_devtools_remote`,
+   o Chrome do Xiaomi em `http://localhost:3100/` (adb: `~/Library/Android/sdk/platform-tools/adb`).
 
 ### O laboratório (o que ficou ligado e como retomar)
 - **Desktop:** `zsh docs/development/ios-lab/desk/rebuild.sh` (build + `next start -p 3100`, ~1–2 min com o servidor em baixo); coletor `?rec`

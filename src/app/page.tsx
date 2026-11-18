@@ -6,7 +6,6 @@ import { Method } from '@/components/method/method'
 import { About } from '@/components/about/about'
 import { Questions } from '@/components/questions/questions'
 import { Contact } from '@/components/contact/contact'
-import { FpsMeter } from '@/components/fps-meter'
 
 /*
   The one page, in reading order: Entrance → Work → Method → About → Questions → Contact.
@@ -21,7 +20,6 @@ export default function Home() {
         {nav.skipToContent}
       </a>
       <Bar />
-      <FpsMeter />
 
       <main id="main">
         {/* the entrance is held here while the passage turns its film into the Work's stage (work.css) */}

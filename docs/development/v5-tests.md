@@ -3890,3 +3890,26 @@ selecionado aterra". Seletor só no localhost, `?titulos=a|b|c` (sem ele, como h
   `unsnapped`) e pode levar a página ao topo.
 - `screen.mjs` aceita `SITE=3101` (outra build) e encontra o separador do Chrome em qualquer porta 31xx.
 - **Visto pelo owner** (desktop e iPhone, 18/11: "parece estar a funcionar bem") — em commit.
+
+### Bug B do owner (iPhone): o momento de Experiences preso na primeira entrada — corrigido (18/11, a pedido do owner antes de desligar)
+- **Reproduzido** em Chrome headless a 402 × 874 com toque e `pointer: coarse` (o Simulador caiu e o Xiaomi desligou-se): três passadas até
+  Experiences → `m=0`, sem peça, 6 s ou mais; tocar num momento solta-o (como o owner disse).
+- **Causa, medida** (os temporizadores da página registados): a mudança para Experiences agenda a peça (1,65 s); 0,38 s depois a **ponte**
+  para o Method (`bridge`) faz `stop()` a partir do ouvinte de scroll e nada volta a agendar. A ponte decidia por posição (`#method` acima do
+  ecrã): no telemóvel a paragem de Experiences fica dentro da secção do Method (o seu topo a −175 px em repouso) e a inércia da passada passa
+  uns píxeis além da paragem antes de ela a trazer de volta. Uma primeira tentativa (exigir a página além da paragem de Experiences) não
+  chegou: o soltar não voltava a acontecer depois de a página assentar.
+- **Corrigido** (`work-client.tsx`, `checkBridge`): a ponte segura o momento **enquanto a luz do Method está por cima** — da fase 7 em diante
+  até voltar a `pre` — lido da fase do Method (um `MutationObserver` em `data-phase` e o scroll), não da posição. É o que a ponte quer dizer
+  (#98, #102).
+- **Visto (headless):** telemóvel 402 × 874 — em Experiences o momento corre (peça, depois o seguinte); com a luz (fase 7) fica parado 8 s;
+  de volta, retoma. Desktop 1440 × 900 — igual. Smoke sem erros, cases 0 falhas; typecheck e lint limpos. **Por ver:** o iPhone do owner, o
+  Simulador e o Xiaomi.
+- **Confirmado pelo owner no iPhone** (18/11: "confirmei no iPhone, está corrigido").
+
+### O lançamento: o V5 para o `master`, sem instrumentos (18/11; owner: "meter este site para o master… sem as ferramentas de debug e fps")
+- Apagados `fps-meter.tsx`, `lib/rec.ts`, `lib/rec-on.ts` e as suas ligações (`page.tsx`, `bar-client.tsx`); `?cenas` e `?motor` só em
+  `localhost`. **Visto:** typecheck e lint limpos; build; `smoke.mjs` (com e sem `?cenas` em localhost) sem erros; `cases.mjs` 0 falhas; o HTML
+  servido tem as seis secções (`#top`, `#work`, `#method`, `#about`, `#questions`, `#contact`) sem JavaScript; `?fps&rec` não acrescenta nada.
+- O `master` (`fe1bd33`, o ponto de partida do V5) avançado até ao `v5`: migração completa, sem conflitos. Push pelo owner.
+- **Não verificado nesta ronda:** a passada completa do M8 (viewports, teclado, movimento reduzido, Xiaomi, iPhone) — é o passo seguinte.

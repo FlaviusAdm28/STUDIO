@@ -97,7 +97,10 @@ state by state with every approved line of copy, is **`docs/design/v5/storyboard
 ## Validation — a change is not finished until
 
 - `npm run typecheck`, `npm run lint` (no warnings), `npm run build` pass.
-- Viewports: 1920×1080, 1440×900, 768×1024, 390×844, 320×640.
+- Viewports: 1920×1080, 1440×900, 768×1024, 390×844, 320×640, **and the most-used browser viewports** (owner, 21 Nov 2026):
+  2560×1305, 1920×953, 1728×1000, 1536×730, 1512×860, 1440×790, 1366×633, 1280×590, 1024×768, 820×1180, 430×932, 375×667,
+  360×800 — nothing over text, nothing cut at the foot or under the bar, at every stop and every moment
+  (`acceptance.md`; probes in `docs/development/ios-lab/desk/fit/`).
 - Keyboard-only, reduced-motion and no-JavaScript passes — no-JS against `next start`, never `next dev`.
 - No horizontal overflow; text readable at real size; contrast computed.
 - The Xiaomi Mi 11 Lite (ADB serial `c3e8fb35`) for anything touching motion, images, layout or client code.

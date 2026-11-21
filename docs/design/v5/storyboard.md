@@ -139,6 +139,9 @@ Registado para não se confundir. O que aqui está em cima é o aprovado; isto �
 - **A luz da fenda e o vidro do desenho** (#100): sem linha nas arestas; a luz sai para a noite na cor da hora ("B suave", máscara ditherizada); o desenho tem um vidro escuro liso a 30 %, sem desfoque.
 - **O comprimento.** O storyboard não fixava o scroll por estado; o site tem 4,7 telas para a cena toda no desktop e 6,2 no telemóvel, com os passos do telemóvel iguais, ~0,8 tela cada (owner, 3/11: "muito rápido" no Xiaomi; medido 0,84–0,92 ecrã entre fases); o 8a chega 1,15 telas depois do início da passagem no desktop (0,6 experimentado e desfeito, owner 3/11), 1,3 no telemóvel (#99, #102, #103). O 8 continua com uma folha por passo de scroll; um só gatilho está por decidir.
 - **10 no desktop.** A capa ao centro com dois ecrãs esbatidos de cada lado, simétricos (#98); a capa é o próprio ecrã do casamento, a fotografia cresce até à carta (#96).
+- **Desktop, ecrãs mais baixos do que o de 1440p** (owner, 21/11, aprovado, README #126): os lugares da tabela são os do ecrã
+  do owner (2560 × 1305); onde não cabem, do 7 ao 9 o baralho inteiro encolhe nas mesmas proporções e assenta 20 px debaixo do campo e acima
+  do pé do ecrã, e o 10 entre a barra e o pé (`method-stage.ts`, `fitDesk`). Medido: a 1920 × 953 e a 1440 × 790 as folhas do 8 tapavam o campo.
 - **Telemóvel.** O 9 abre a ecrã inteiro (#96) e enche-o: os cartões têm a forma do ecrã de quem vê (entre 9 : 21 e 9 : 16; um tablet ao alto fica com a forma 9 : 16, centrada) (#101; medido a 390 × 844 e 320 × 640, de ponta a ponta).
 As **quatro luzes do estúdio** (manhã fria pela esquerda · dia alta e neutra · fim de tarde quente e rasante pela
 direita · noite com um candeeiro): papel de fundo curvo, vinheta, grão, sombras dos ecrãs no chão (README #47, #93).

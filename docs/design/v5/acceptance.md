@@ -76,6 +76,11 @@ Critério para todos: sem frames longos durante a animação ou o scroll; nenhum
 ## Validação por marco
 
 - `npm run typecheck`, `npm run lint` (`--max-warnings 0`), `npm run build`.
-- Viewports: 1920×1080, 1440×900, 768×1024, 390×844, 320×640.
+- Viewports: 1920×1080, 1440×900, 768×1024, 390×844, 320×640 — **e as resoluções mais usadas, como a área útil do browser**
+  (owner, 21/11: "devemos tentar assegurar as resoluções mais usadas sempre"; o ecrã menos as barras do browser, que é o que a página
+  tem): desktop 2560×1305 (1440p, o ecrã do owner), 1920×953 (1080p, Chrome no Windows), 1728×1000 (MacBook Pro 16), 1536×730
+  (portátil 1536×864), 1512×860 (MacBook Pro 14), 1440×790 (MacBook Air, Safari), 1366×633 (1366×768), 1280×590 (1280×720);
+  tablet 1024×768, 820×1180; telemóvel 430×932, 375×667, 360×800. Em cada uma, nada por cima de texto, nada cortado pelo fundo do
+  ecrã ou debaixo da barra, em cada paragem e em cada momento. As sondas: `docs/development/ios-lab/desk/fit/` (README).
 - Browser de validação: Chrome com perfil próprio e CDP na porta 9222 (ver `v5-handoff.md`).
 - **Xiaomi** a partir do protótipo da entrada (primeiro marco), e em todos os marcos seguintes.

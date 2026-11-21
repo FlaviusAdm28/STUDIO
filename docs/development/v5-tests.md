@@ -3913,3 +3913,88 @@ selecionado aterra". Seletor só no localhost, `?titulos=a|b|c` (sem ele, como h
   servido tem as seis secções (`#top`, `#work`, `#method`, `#about`, `#questions`, `#contact`) sem JavaScript; `?fps&rec` não acrescenta nada.
 - O `master` (`fe1bd33`, o ponto de partida do V5) avançado até ao `v5`: migração completa, sem conflitos. Push pelo owner.
 - **Não verificado nesta ronda:** a passada completa do M8 (viewports, teclado, movimento reduzido, Xiaomi, iPhone) — é o passo seguinte.
+
+### O site nas resoluções mais usadas: o Method e o Work ajustados ao ecrã (21/11; owner: "no 8 e 9 do storyboard… em ecrãs mais pequenos 1080p e menores os cards ficam acima do text input 'make it yours'… todos os cenários devem ser ajustados para ser responsive… devemos tentar assegurar as resoluções mais usadas sempre"; detetado no Chrome e no Safari desktop) — aprovado pelo owner ("verifiquei desktop parece bem"), README #126
+- **Como:** três sondas novas (`docs/development/ios-lab/desk/fit/`, README), cada uma num Chrome headless próprio, contra `next start`
+  (o build antigo, `HEAD`, num `git worktree` à parte na 3102, para o A/B) e `next dev` na 3101 (a correção): `mprobe.mjs` (o Method,
+  7 → 11, o contorno real de cada ecrã e da folha que se levanta contra a frase, o campo, a barra e as palavras do 11), `wprobe.mjs` (o
+  Work, os nove momentos) e `pprobe.mjs` (a página inteira, paragem a paragem). Resoluções: a área útil do browser (`acceptance.md`), 26
+  no Method, 16 no Work, 17 na página inteira.
+- **Medido antes (o código de `7808650`):** o Method parte em **todos os desktops abaixo do ecrã de 1440p do owner**. Os ecrãs do 8 e as
+  folhas que se levantam por cima de *Make it yours* (a folga do campo aos cartões, contando as folhas): 1920 × 1080 −9 px, 1920 × 953 −88,
+  1920 × 970 −71, 1728 × 1000 −9, 1680 × 920 −43, 1600 × 780 −100, 1536 × 730 −111 (e a 2.ª linha da frase tapada), 1512 × 860 −30,
+  1470 × 830 −34, 1440 × 790 −49, 1366 × 633 −203, 1280 × 650 −86, 1280 × 590 −124; nos mais baixos já no 7. 1440 × 900 a 14 px (aperta,
+  não toca). No ecrã do owner (2560 × 1305) as folhas do 8 ficam 22 px abaixo do campo. **Causa:** os ecrãs dimensionados pela largura e
+  colocados pela altura, a frase e o campo pela largura: num ecrã largo para a sua altura o baralho é mais alto do que o lugar que tem.
+  Telemóveis e tablets ao alto limpos (o telemóvel já se mede debaixo do campo, `measure()`).
+- **Corrigido** (`method-stage.ts`, `fitDesk`/`fitted`/`placed`): do 7 ao 9 o baralho do desktop é escalado como um todo (tamanhos e espaço
+  entre eles, à volta do meio, as proporções mantidas) e posto entre o pé do campo (medido no layout, + 20 px) e o pé do ecrã (− 6 %); o 10 (a
+  capa e os ecrãs juntos) o mesmo, à volta do meio da capa, entre a barra (64 px + 5vh) e o pé. Onde cabe fica como estava. Volta a medir com
+  qualquer mudança de altura no desktop (antes só a partir de 120 px, que é a barra do telemóvel) e quando as fontes chegam.
+- **Visto depois (headless, em repouso):** Method limpo nas 26 resoluções; o campo fica 18–23 px acima das folhas em todos os desktops que
+  ajusta, o pé do ecrã a 35–101 px. **2560 × 1305 igual ao ponto:** 168 pontos dos contornos dos ecrãs, diferença máxima 0 px. Telemóveis
+  e tablets (768 × 1024, 820 × 1180, 430 × 932, 412 × 915, 390 × 844, 375 × 667, 360 × 800, 320 × 640): os mesmos números de antes, linha a
+  linha. Capturas: 1366 × 633 (o baralho a ~60 %, inteiro), 1280 × 590 (a capa do 10 entre a barra e o pé), 1920 × 953.
+- **No ecrã, Chrome real** (o do laboratório, 1728 × 942, trackpad real, sem o condutor, do topo ao 11 e de volta a Experiences, gravado):
+  antes (build antigo na 3102) as folhas do 8a sobre o campo e o ecrã da exposição sobre "Your name" no 8b e 8c — o bug do owner; depois,
+  do 7 ao 11 tudo no lugar. **Chrome real a 1366 × 633** (a janela reduzida): do 7 ao 11 limpo, o baralho inteiro debaixo do campo, a capa
+  entre a barra e o pé. **Safari real** (1728 × 977, o mesmo percurso): do 7 ao 11 limpo. (Uma gravação "Safari" saiu do Chrome: o Safari
+  estava minimizado na Dock e a janela gravada era a do Chrome por trás — `2026-11-21-12-22-safari-fit-1728`, não conta; repetida como
+  `…-12-27-safari-fit-1728-real`. O Safari voltou a ficar minimizado.)
+- **Encontrados pelo caminho, já existiam (o mesmo no build antigo, A/B no ecrã), não corrigidos:** (1) Chrome e Safari, sem o condutor:
+  ao voltar do 7 para Experiences, 1–2 fotogramas com o palco do Method a descer com a página (Experiences em cima, o estúdio em baixo)
+  antes de ficar preso (`holdWhileLeaving`, o `holdLater` do desktop) — 68,2 s nas duas gravações do Chrome, 68,3/68,5 s nas do Safari.
+  Contado no Chrome a 1366 × 633, com passagens 7 ↔ Experiences repetidas, os dois builds alternados (5 gravações cada, 24 regressos e 24
+  entradas cada): **regressos com o defeito, build antigo 4/24, novo 8/24**; e o mesmo em pequeno ao entrar no 7 (Experiences sobe 1–2
+  fotogramas com a aresta da luz já a passar): **antigo 0/24 (1/2 nos percursos completos), novo 2/24**. A diferença não é significativa
+  (Fisher, p ≈ 0,3) e nenhum código da correção corre no regresso (só a conta das posições dos ecrãs), mas fica registada. Pelo meio
+  encontrou-se o Chrome headless da 9333 (de 16/11) com 100 separadores do site abertos a correr: fechados; a carga do Mac desceu de ~11 para
+  ~6–8 (a medição antes disso, nos dois builds, foi com essa carga).
+  (2) Safari: um fotograma no arranque do 9 → 10 com a cena toda deslocada para cima e uma faixa clara em baixo (34,3 s com a correção,
+  34,4 s sem ela); no build antigo também no Experiences → 7 e no 10 → 11. (3) Um fio de 1 px mais escuro na margem esquerda do estúdio
+  (headless, 1920 × 953: 189 contra 227), igual nos dois builds; por ver se é do headless.
+- **O Work, Weddings · Before** (quatro peças com a sua linha): o texto passava o pé do ecrã a 1512 × 860 (−5 px), 1440 × 790 (−15),
+  1536 × 730 (−24), 1280 × 650 (−35), 1366 × 633 (−37), 1280 × 590 (−44); 1440 × 900 a 1 px. Os outros oito momentos com folga em todas.
+  **Causa:** a medida das linhas em unidades (40u) encurtava-as onde a parte fixa do tamanho (0,23rem) pesa mais, e partiam uma vez mais.
+  **Corrigido** (`work.css` `.w-ln`): a medida em caracteres, a aprovada — 40u a 2560 × 1305 são 29,07em do seu tamanho lá. **Visto**
+  (build de produção, `wprobe.mjs`): o texto acaba acima do pé em todas — 1920 × 1080 119 px, 1920 × 953 91, 1728 × 1000 101, 1536 × 730 43,
+  1512 × 860 71, 1440 × 900 80, 1440 × 790 56, 1366 × 633 22, 1280 × 650 26, **1280 × 590 12 (o mais apertado)**, 1024 × 768 107;
+  2560 × 1305 igual (acaba no mesmo píxel, 1138, e as alturas dos nove momentos iguais); telemóvel sem mudança (lá a linha não tem medida).
+- **A página inteira** (17 resoluções, cada paragem): nada mais. Ficam só sinais que não são defeitos (README das sondas).
+- **Também:** movimento reduzido a 1366 × 633, 1440 × 790 e 1920 × 953 sem transbordo, os ecrãs do Method 57–86 px abaixo do campo; sem JS,
+  as seis secções no HTML; typecheck, lint (sem avisos) e build limpos.
+- **Não verificado:** o Xiaomi e o iPhone (o caminho do telemóvel não mudou: os números são os mesmos, linha a linha, e a linha do Work no
+  telemóvel não tem medida); o teclado (nada mudou no foco); o Safari no ecrã a 1366 × 633 e 1440 × 790 (só o Chrome foi reduzido; o
+  Safari só ao tamanho do Mac); o Work no ecrã (a mudança é só onde as linhas partem: medido headless em produção, 12 resoluções); o iOS
+  Safari não se testa daqui.
+
+### Os fotogramas fora do lugar nas paragens (21/11, tarde; owner: "acho que deves já tratar … dos defeitos encontrados pelo caminho") — causa medida, ainda sem correção (as variantes testadas pioravam outra coisa)
+- **Owner, antes:** aprovou o ajuste do Method no desktop ("verifiquei desktop parece bem"). O telemóvel não muda com ele (o ajuste só corre no
+  desktop; a linha do Work no telemóvel tem `max-width: none`; as sondas deram os mesmos números) — dito ao owner.
+- **Ferramentas novas** (`docs/development/ios-lab/desk/fit/`): `seam.mjs` (o registo da página, fotograma a fotograma, no Chrome real com
+  passadas reais: scroll, secções, palcos, fases, encaixe, governador; e onde a página assenta em cada passada), `tears.sh` (passadas
+  repetidas gravadas no ecrã, Chrome ou Safari, e os "rasgos" — o ecrã inteiro a mudar num fotograma, > 10 células do `glitch.mjs` — por
+  passada), `perstroke.py` (os rasgos de uma gravação, por passada).
+- **Causa:** o governador da roda (`lib/finger.ts`, uma passada uma paragem) deixa a passada mover a página uns fotogramas e, quando ela
+  chega à paragem, segura a página (`overflow: hidden` na raiz, `hold.ts`) e leva-a lá **de uma vez** (`scrollTo` instantâneo: 241 px no
+  regresso a Experiences a 1366 × 633, 426 a 1728 × 942). Debaixo dos palcos presos isto devia ser invisível, mas o browser desenha às vezes
+  1–2 fotogramas com um palco preso ainda onde estava antes do salto — **deslocado exatamente o tamanho do salto** (424 px medidos na
+  gravação a 1728 × 942, salto de 426). O registo da própria página nunca vê o palco fora do lugar: é só o que o browser desenha.
+- **Quanto (build original, Chrome real):** Method, regresso 7 → Experiences 6/12 a 1366 × 633 (de 4/24 a 8/24 noutras séries); entrada no 7
+  0–2/24. About, fronteira 11 ↔ 12 a 1728 × 942: **6/12** (o regresso 12 → 11 em 5/6: um fotograma com o About deslocado e outro sem ele,
+  antes de a luz recuar como desenhado). Safari real: 6/28 passadas no Method (o regresso, e o 9 → 10, o 8a → 7).
+- **Variantes medidas, todas desfeitas:** (A) o palco do Method com camada própria (`will-change`): 8/12, não ajuda. (B) o salto um
+  fotograma depois de segurar: Method 0/24 no Chrome, 1/28 no Safari; (B2) dois fotogramas depois: Method **0/24 no Chrome e 0/42 no
+  Safari**, as paragens certas em todas as passadas (32/32 a passo, e as cadeias ao ritmo do owner iguais às do original) — **mas** (1) a
+  inércia leva a página para lá da paragem nesses fotogramas: no registo, 10–15 vezes por percurso, 17 a 1328 px (o original: nunca),
+  e as cenas reagem — o Method entra na fase seguinte e volta (1–5 vezes por percurso; o original: 0); (2) com o salto dentro de
+  `requestAnimationFrame` as cenas só sabem dele no fotograma seguinte (no 11 → 12 um fotograma com o Method subido e o About por mostrar:
+  2/6); o About continuou 4/12. Pior do que o defeito: revertido. `finger.ts` e `method.css` como estavam; a produção na 3100 com o original.
+- **O que fica a saber-se:** o rasgo vem de pôr a página na paragem no mesmo fotograma em que é segurada; separar os dois tira-o, mas deixa a
+  inércia correr (o Chrome só deixa cancelar o primeiro evento de uma passada do trackpad, e o `overflow: hidden` só pega no fotograma
+  seguinte). A correção limpa é a página movida pelo próprio site desde o primeiro evento da passada, sem o browser a mexê-la — o passo 2 da
+  fase 3 que o `hold.ts` já descreve (o caminho do condutor, adiado pelo owner a 18/11). **Medido com o condutor** (`?cenas=1`, só em
+  localhost; passos 1–2 feitos, até ao Method): a mesma série no Chrome a 1366 × 633, **0/12 regressos e 0/12 entradas** (o site atual:
+  6/12). **Por decidir pelo owner.**
+- **Não verificado:** o Safari na fronteira do About e no Contact com o original (só com B2: 11 → 12, 12 → 11 e Questions → Contact rasgaram);
+  o Xiaomi e o iPhone (sem roda: o governador não corre lá).

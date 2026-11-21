@@ -1,6 +1,43 @@
 # Chapter One V5 — handoff
 
-## ▶ COMEÇAR AQUI · 18 de novembro de 2026 — o V5 passou para o `master` (migração completa, o site antigo substituído); falta o push do owner e a validação final
+## ▶ COMEÇAR AQUI · 21 de novembro de 2026 — o site nas resoluções mais usadas: o Method e o Work ajustados ao ecrã (aprovado, README #126; em commit no `master` e no `v5`)
+
+**Estado numa frase.** O owner encontrou o bug do Method ("no 8 e 9… em ecrãs 1080p e menores os cards ficam acima do text input 'make it
+yours'", Chrome e Safari desktop) e pediu "todos os cenários… responsive… assegurar as resoluções mais usadas sempre". Medido: **todos os
+desktops abaixo do 1440p dele** partiam o 8 (1920 × 1080 a 1280 × 590), e o Work (Weddings · Before) passava o pé do ecrã de 1280 a 1536 de
+largura. **Corrigido, medido e visto no ecrã** (Chrome real a 1728 × 942 e 1366 × 633, Safari real a 1728 × 977); **o ecrã do owner igual ao
+píxel**; telemóveis iguais linha a linha. Tudo em `v5-tests.md`, "O site nas resoluções mais usadas". **Aprovado pelo owner** ("verifiquei
+desktop parece bem") e **em commit**: o `v5` avançou até ao `master` (as fotografias do owner) e a correção foi por cima; o `master` = o `v5`.
+
+### O que mudou (README #126)
+- `src/components/method/method-stage.ts` — `fitDesk`/`fitted`/`placed`: o baralho do desktop (7–9) escalado como um todo entre o campo e o
+  pé do ecrã; o 10 entre a barra e o pé. Volta a medir com qualquer mudança de altura no desktop e quando as fontes chegam.
+- `src/components/work/work.css` — `.w-ln { max-width: 29.07em }` (era `calc(40 * var(--u))`; igual no ecrã do owner).
+- `docs/design/v5/acceptance.md` e `CLAUDE.md` — a lista de resoluções de validação com as mais usadas; memória `most-used-resolutions`.
+- `docs/development/ios-lab/desk/fit/` — as três sondas (Method, Work, página inteira) e o README.
+
+### Por fazer, por esta ordem
+1. ✅ **O owner viu e aprovou** (21/11); em commit no `master` e no `v5`.
+2. **Os fotogramas fora do lugar nas paragens — causa medida, por decidir** (`v5-tests.md`, "Os fotogramas fora do lugar nas paragens"):
+   o governador da roda (`lib/finger.ts`) leva a página à paragem de uma vez no mesmo fotograma em que a segura, e o browser desenha 1–2
+   fotogramas com um palco preso deslocado o tamanho do salto (Chrome e Safari; o regresso a Experiences ~1/2 a 1/3, a fronteira 11 ↔ 12
+   6/12). Saltar 1–2 fotogramas depois tira-o no Method, mas a inércia passa a levar a página para lá da paragem e as cenas entram na fase
+   seguinte e voltam: revertido. **Com o condutor (`?cenas`) a mesma série dá 0/12 e 0/12.** O owner decide: mais experiências com a
+   maneira de segurar a página, ou acabar o condutor (passos 3–5 no desktop: Method → About, Questions e Contact, limpar o scroll antigo)
+   e ligá-lo para os visitantes no desktop.
+3. Depois, o que já estava: **o bug A** (desktop, a fotografia do *Before* de Experiences salta) e a **validação final M8** (abaixo).
+
+### O estado do Git e das fotografias
+- O owner pôs as fotografias no `master` a 18/11 ("add photos", "add photos 2": os 157 derivados de `public/media/v5/` e 52 imagens de
+  `docs/design/v5/storyboards/img/`). A 21/11 o `v5` avançou até ao `master` (avanço direto, sem conflitos) e a correção do ajuste ao ecrã
+  foi por cima: **o `master` e o `v5` são o mesmo commit**, com todas as fotografias.
+- **A alteração do `.gitignore` do owner continua por gravar** (de propósito): comenta as linhas das fotografias, mas também a de
+  `/media-src/` — os originais, que o `CLAUDE.md` manda nunca entrar no Git (o repositório é público). Os ficheiros já seguidos não são
+  afetados pelo `.gitignore`; um derivado novo precisa de `git add -f` até o owner decidir. Proposta: voltar a ignorar `/media-src/` e deixar
+  só as fotografias derivadas de fora da lista.
+- `docs/development/ios-lab/desk/cenas/.back-frame.png` (de 16/11, do laboratório) fica fora do commit, como estava.
+
+## (antes) COMEÇAR AQUI · 18 de novembro de 2026 — o V5 passou para o `master` (migração completa, o site antigo substituído); falta o push do owner e a validação final
 
 **Estado numa frase.** O owner decidiu lançar **com o scroll atual** (o que os visitantes têm; sem `?cenas` "o site parece super bem… passadas
 rápidas estão sempre a travar nos sítios certos") e pôr o V5 no `master` ("o master está com o site antigo, por isso deve ser uma migração

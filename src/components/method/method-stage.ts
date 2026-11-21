@@ -148,10 +148,22 @@ const SHEET: Record<Mode, { transform: string; opacity: number }> = {
 // The sheet lifting (8) rests lower than the storyboard's 36 %: with Make it yours larger (#102) and the phone's cards at 58 % and
 // as tall as the screen allows (#101), at 36 % it rested over the thesis on a phone and over the field on the desktop (measured,
 // 3 Nov). On a phone it moves aside instead, turning the other way (at 320 × 640 any rise reached the field); half seen, then it leaves
+// (the desktop's numbers apart: the deck's fit reads them, measure())
+const LIFT_DESK = { x: 10, y: -24, turn: -10 }
 const LIFT: Record<'desk' | 'phone', { transform: string; opacity: number }> = {
-  desk: { transform: 'translate(10%, -24%) rotate(-10deg)', opacity: 0.5 },
+  desk: { transform: `translate(${LIFT_DESK.x}%, ${LIFT_DESK.y}%) rotate(${LIFT_DESK.turn}deg)`, opacity: 0.5 },
   phone: { transform: 'translate(28%, -3%) rotate(5deg)', opacity: 0.5 },
 }
+// the desktop's template sheet lies 2.6cqw inside its screen (method.css .m-sheet)
+const SHEET_INSET = 0.026
+// The desktop's deck fitted to the screen (measure()): from 7 to 9 it lies between Make it yours and the screen's foot. DECK_GAP: the
+// least room under the field, px (on the owner's 2560 × 1305, where the deck was set, the sheets lifting at 8 rest 22 px under it,
+// measured: 20 leaves that screen exactly as it was). DECK_FOOT: the least room at the screen's foot, a share of its height (the row of 7
+// rests 7.6 % above it there). The cover of 10 keeps clear of the bar's islands, under the line the words of 7 start from (method.css
+// .m-head: 64 px + 5vh)
+const DECK_GAP = 20
+const DECK_FOOT = 0.06
+const COVER: Pos = [50, 48, 17, 0]
 
 function layout(kind: 'desk' | 'phone', phase: Phase, i: number, n: number, featured: number): Layout {
   // 0.001, not 0: drawn (and kept) before the scene, so the lights coming on do not wait for the first paint (Xiaomi, 2 Nov).
@@ -175,7 +187,7 @@ function layout(kind: 'desk' | 'phone', phase: Phase, i: number, n: number, feat
   // the featured screen becomes the cover, in the cover's place; the others gather, quiet (README #96)
   if (phase === '10')
     return i === featured
-      ? { pos: kind === 'phone' ? [50, 46, 60.7, 0] : [50, 48, 17, 0], o: 1, z: 20, mode: 'gone', cover: true }
+      ? { pos: kind === 'phone' ? [50, 46, 60.7, 0] : COVER, o: 1, z: 20, mode: 'gone', cover: true }
       : { pos: GATHER[kind][i < featured ? i : i - 1], o: 0.16, z: i + 1, mode: 'gone' }
   if (kind === 'phone') {
     // the cover leaves where it is, in the middle: it settles smaller and fades, making room for the sentence (owner, iPhone, 3 Nov:
@@ -291,6 +303,72 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     }
   }
 
+  // The desktop's deck fitted to the screen (owner, 21 Nov: on screens below 1440p "os cards ficam acima do text input", Chrome and
+  // Safari). The places were set on the owner's 2560 × 1305: the screens sized by the width and placed by the height, the thesis and Make
+  // it yours sized by the width too. On a screen wide for its height, or where the thesis has not reached its largest, the screens of 8
+  // and the sheets lifting rose over the field (measured at rest: 1920 × 1080 by 9 px, 1920 × 953 by 80, 1440 × 790 by 49). So the deck,
+  // from 7 to 9, is scaled as one — its sizes and its spread about the middle, its proportions kept — and placed between the field's foot
+  // (DECK_GAP under it) and the screen's foot (DECK_FOOT); where it fits, as on the owner's screen, it stays exactly as set. The cover of 10
+  // and the screens gathered round it the same, about the cover's middle, between the bar's islands and the foot. 11 is left as it is
+  // (its screens are small and to the sides: clear at every size measured)
+  let deck = { k: 1, from: 0, to: 0 }
+  let gather = 1
+  // a screen's highest and lowest points (px), its turn counted; with its sheet lifting (8), the sheet's too
+  const extent = ([, y, w, r]: Pos, lifted: boolean): readonly [number, number] => {
+    const rad = (d: number) => (d * Math.PI) / 180
+    const reach = (hw: number, hh: number, turn: number) => hh * Math.abs(Math.cos(rad(turn))) + hw * Math.abs(Math.sin(rad(turn)))
+    const cw = (w * F) / 100
+    const ch = cw / AR
+    const cy = (y * H) / 100
+    const half = reach(cw / 2, ch / 2, r)
+    if (!lifted) return [cy - half, cy + half]
+    const sw = cw * (1 - 2 * SHEET_INSET)
+    const sh = ch - 2 * SHEET_INSET * cw
+    const dx = (LIFT_DESK.x / 100) * sw
+    const dy = (LIFT_DESK.y / 100) * sh
+    const sy = cy + dx * Math.sin(rad(r)) + dy * Math.cos(rad(r))
+    return [Math.min(cy - half, sy - reach(sw / 2, sh / 2, r + LIFT_DESK.turn)), cy + half]
+  }
+  const fitDesk = (n: number) => {
+    deck = { k: 1, from: 0, to: 0 }
+    gather = 1
+    if (kind !== 'desk') return
+    // the field's foot in the stage, from the layout (its transforms at 7 and 8 move it nowhere)
+    const lo = head.offsetTop + field.offsetTop + field.offsetHeight + DECK_GAP
+    const hi = H * (1 - DECK_FOOT)
+    let top = Infinity
+    let foot = -Infinity
+    for (const ph of ['7', '8a', '8b', '8c', '9'] as const)
+      for (let i = 0; i < n; i++) {
+        const L = layout('desk', ph, i, n, featured)
+        const [t, b] = extent(L.pos, L.mode === 'lift')
+        // at 9 the words go, under the screens (method.css): only its foot counts
+        if (ph !== '9') top = Math.min(top, t)
+        foot = Math.max(foot, b)
+      }
+    if (top < lo || foot > hi) {
+      const k = Math.min(1, (hi - lo) / (foot - top))
+      deck = { k, from: top, to: Math.min(Math.max(top, lo), hi - k * (foot - top)) }
+    }
+    const [, cy, cw] = COVER
+    const coverH = (cw * F) / 100 / AR
+    const room = Math.min(((cy - 5) * H) / 100 - 64, H * (1 - DECK_FOOT) - (cy * H) / 100)
+    gather = Math.min(1, (2 * room) / coverH)
+  }
+  // a place of the table, fitted to this screen (the phone's are measured into the tables themselves, below)
+  const fitted = (ph: Phase, pos: Pos): Pos => {
+    const [x, y, w, r] = pos
+    if (kind !== 'desk' || ph === '11') return pos
+    if (ph === '10') return gather === 1 ? pos : [50 + (x - 50) * gather, COVER[1] + (y - COVER[1]) * gather, w * gather, r]
+    const { k, from, to } = deck
+    if (k === 1 && from === to) return pos
+    return [50 + (x - 50) * k, ((to + ((y * H) / 100 - from) * k) / H) * 100, w * k, r]
+  }
+  const placed = (ph: Phase, i: number): Layout => {
+    const L = layout(kind, ph, i, cards.length, featured)
+    return { ...L, pos: fitted(ph, L.pos) }
+  }
+
   // the cards' sizes: each drawn at the largest it will be, so it is never scaled up (a raster grown is blurred)
   const measure = () => {
     kind = phoneQuery.matches ? 'phone' : 'desk'
@@ -340,8 +418,9 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     dir = light === 'morning' ? 'ltr' : light === 'evening' || light === 'night' ? 'rtl' : 'mid'
     cards = [...section.querySelectorAll<HTMLElement>('.m-card')].filter((c) => kind === 'desk' || c.hasAttribute('data-phone'))
     featured = Math.max(0, cards.findIndex((c) => c.dataset.chapter === chosen()))
+    fitDesk(cards.length)
     cards.forEach((card, i) => {
-      const widths = PHASES.map((p) => layout(kind, p, i, cards.length, featured).pos[2])
+      const widths = PHASES.map((p) => placed(p, i).pos[2])
       const bw = String(Math.max(...widths))
       if (card.dataset.bw !== bw) card.dataset.bw = bw
       put(card, '--bw', `${(Math.max(...widths) * F) / 100}px`)
@@ -752,9 +831,8 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     else if (goingBack) seenLater = window.setTimeout(() => delete section.dataset.seen, leaveAt(W / 2, 0) * tempo)
     else if (next === 'pre') delete section.dataset.seen
     else section.dataset.seen = ''
-    const n = cards.length
     cards.forEach((card, i) => {
-      const L = layout(kind, next, i, n, featured)
+      const L = placed(next, i)
       card.style.zIndex = String(L.z)
       // The whole screen's words at the top of the cream panel, clear of the bar (method.css .is-full): on at once (the first line stays
       // where it is), and off at 9 → 10 only once they have faded (becomeCover), so they never jump where they are seen
@@ -1095,10 +1173,11 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     addEventListener('scroll', onScroll, { passive: true })
     cleanups.push(() => removeEventListener('scroll', onScroll))
   }
-  // a real change of size measures again and puts everything in place at once (the address bar alone does not)
+  // a real change of size measures again and puts everything in place at once (the address bar alone does not). A desktop's height is
+  // always real (a window, the bookmarks bar, the developer tools), and the deck is fitted to it
   let sized = `${innerWidth}`
   const onResize = () => {
-    if (`${innerWidth}` === sized && Math.abs(window.innerHeight - H) < 120) return
+    if (`${innerWidth}` === sized && Math.abs(window.innerHeight - H) < (kind === 'phone' ? 120 : 1)) return
     sized = `${innerWidth}`
     measure()
     marks.forEach((m) => m.remove())
@@ -1109,6 +1188,19 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   }
   addEventListener('resize', onResize)
   cleanups.push(() => removeEventListener('resize', onResize))
+  // The deck is fitted under the field as laid out in the site's fonts: measured in the fallback's (a reload in the Method, before the fonts
+  // came) it would be fitted to another field. Measured again once they are here; put in place at once only if that changed it, and
+  // never over the light's passage (the scene is measured again as it starts, choose())
+  let live = true
+  cleanups.push(() => {
+    live = false
+  })
+  document.fonts?.ready.then(() => {
+    if (!live || kind !== 'desk') return
+    const was = JSON.stringify([deck, gather])
+    measure()
+    if (JSON.stringify([deck, gather]) !== was && phase && phase !== 'pre' && performance.now() >= passageEnds) show(phase, true)
+  })
   // the keyboard: the field lives in 7–8, Talk to us in 11; reaching either elsewhere brings its phase
   // on the next frame: the browser scrolls the focused element into view after the focus event, and undid this
   // (measured: the field focused from 11 stayed on 11)

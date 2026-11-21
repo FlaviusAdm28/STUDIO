@@ -603,9 +603,13 @@
   background: var(--linen);
 }
 
+/* The line's measure in characters, the approved one: 40 units at 2560 × 1305 is 29.07 em of its own size there. Measured in units, the
+   lines grew shorter than that wherever the size's fixed part (0.23rem) counts more — a smaller screen — and wrapped once more: Weddings ·
+   Before, four pieces, ran 15–37 px past the screen's foot at 1440 × 790, 1536 × 730 and 1366 × 633 (owner, 21 Nov: "não partir a UI em
+   diferentes resoluções"); in characters it ends 22–56 px above it, and the owner's screen is as it was */
 .w-ln {
   margin: 0;
-  max-width: calc(40 * var(--u));
+  max-width: 29.07em;
   font: 400 calc(1.2 * var(--u) + 0.23rem) / 1.25 var(--serif);
   color: rgba(238, 232, 221, 0.66);
 }

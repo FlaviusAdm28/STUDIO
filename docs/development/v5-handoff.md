@@ -1,6 +1,79 @@
 # Chapter One V5 — handoff
 
-## ▶ COMEÇAR AQUI · 21 de novembro de 2026 — o site nas resoluções mais usadas: o Method e o Work ajustados ao ecrã (aprovado, README #126; em commit no `master` e no `v5`)
+## ▶ COMEÇAR AQUI · 22 de novembro de 2026 — passadas no Method com o condutor: A feito (por aprovar, sem commit), B por fazer
+
+**Estado numa frase.** O owner experimentou `?cenas` no trackpad (Chrome e Safari): as transições bem, mas no Method, com passadas fortes
+para trás e para a frente a meio das animações, às vezes 9 → 11 e as folhas a abrir todas juntas. Duas causas medidas (`v5-tests.md`,
+"Passadas no Method com o condutor"): **(1)** nada segurava a página entre o 8a e o 10; **(2)** passadas fantasma — no Safari as frames
+longas juntam eventos da roda e o detetor do condutor lê a soma como uma mão nova. O owner escolheu fazer A e depois B.
+
+### Feito hoje (sem commit, por cima do passo 3 também sem commit)
+- **A:** `method-stage.ts` + `conductor.ts` — cada mudança de fase do Method toca até estar vista (95 % do caminho das suas próprias
+  animações: 8a–9 ~0,64 s, 10 ~1,49 s com as três linhas da capa) antes de uma passada seguir no mesmo sentido; voltar atrás imediato; sem
+  descanso de 1,2 s ao voltar atrás a meio de uma fase (`Scene.turnBack`, só a luz o mantém). Headless 9/9 (`cases-method.mjs`, novo) e a
+  bateria antiga verde; no ecrã Chrome e Safari com trackpad: nada saltado, nada antes de estar visto; rajadas gravadas por ordem.
+- Ferramentas: `docs/development/ios-lab/desk/cenas/passadas/` (o registo na página, Chrome e Safari, passadas de 8 ms, o detetor offline).
+- `cases-about.mjs`: uma variável sem uso tirada (o lint de `.` avisava).
+
+### Por fazer, por esta ordem
+1. **O owner experimenta o A no trackpad** (`http://localhost:3100/?cenas`, Chrome e Safari; o 3100 já tem este build).
+2. **B — o detetor de passadas imune aos eventos juntos** (`conductor.ts` `onWheel`): as passadas fantasma que restam vêm da cauda do momento
+   (Safari, frames de 57–65 ms 2–2,5 s depois de uma mudança: 8c → 8b e 11 → 12 sem passada). A janela de velocidade de 48 ms pela hora
+   dos eventos (`e.timeStamp`) é uma direção: acertou nas 171 passadas mas falhou nos perfis tremidos e em `owner-chrome-3` (7 de 12).
+   Validar contra: todos os perfis (`prof.mjs`), `owner-chrome-3` = 12, as corridas de hoje (`cmp.mjs`), novas corridas no ecrã, e o owner.
+3. **C (à parte):** porque o Safari leva 33–57 ms a desenhar cada mudança de fase, e as frames longas na cauda (~2 s depois).
+4. Depois, o que estava: fechar o passo 3 no ecrã (o percurso inteiro), passo 4 (Questions e Contact), passo 5, ligar o condutor para os
+   visitantes, avisar antes do passo 6 (o telemóvel); o bug A e a validação final M8.
+
+### O laboratório
+- Um pop-up do FortiClient ("Permission is required for full protection") apareceu a meio do ecrã e engoliu as passadas sintéticas; não
+  lhe mexi (é do owner). As corridas usam `PX=0.15 PY=0.85` para passar ao lado.
+
+## (antes) COMEÇAR AQUI · 21 de novembro de 2026, fim da sessão — acabar o condutor: o passo 3 (About) feito, por aprovar, sem commit
+
+**Estado numa frase.** No `master` e no `v5` (os dois em `b369426`, **com push do owner**, conferido no GitHub) está o site com o ajuste ao
+ecrã (README #126) e todas as fotografias. Depois disso o owner decidiu **acabar o condutor** (`?cenas`) para tirar os fotogramas fora do
+lugar nas paragens (o governador da roda, `v5-tests.md` "Os fotogramas fora do lugar nas paragens": com o condutor 0/12, sem ele 6/12).
+**O passo 3 (Method → About) está feito e medido, mas não está em commit nem foi visto pelo owner.**
+
+### Por gravar (não há commit: o owner pede)
+- `src/components/about/about-stage.ts` — o About regista-se no condutor (`registerScene`): 12/13/14 a sua fase, Questions e abaixo → 14,
+  acima → `pre`; `busyUntil`: a passagem do 12 (`passageEnds`, 2 s), a história do 14 (`storyEnds`, 1,6 s, +1 s vindo do 12), o regresso ao
+  11 (`leaveEnds`, 2 s); no regresso o palco preso no topo (`holdAt`). Com o condutor não lê o scroll (só `edgeOnScroll`, a cor do topo);
+  o teclado (foco no About) vai ao 14 por `goTo`. Sem `?cenas` tudo como estava.
+- `src/lib/conductor.ts` — `HELD` com '12', '13', '14' (mudança de paragem sem se ver); o About saiu do `legacyBusy`.
+- `docs/development/ios-lab/desk/cenas/h.mjs` (o `expected` verifica a fase do About) e `cases-about.mjs` (novo, 8 casos do About).
+- `docs/development/v5-tests.md` ("Passo 3 do condutor") e este handoff.
+- Fora de propósito, como antes: a alteração do `.gitignore` do owner (abaixo, "O estado do Git") e `cenas/.back-frame.png`.
+
+### Medido no passo 3 (detalhe em `v5-tests.md`)
+Headless contra `next start`: `walk1` 0 falhas (todas as paragens, os dois sentidos, o About certo); `fast` (rajadas 0,3 s, ritmo 1,3 s, as
+cadeias do owner) coerente, 0 fotogramas longos; `cases` 28/28; `cases-about` 8/8; `smoke` sem erros. No ecrã (trackpad real, `fit/tears.sh`
+com `CENAS=1`): fronteira 11 ↔ 12, **0/22 rasgos no Chrome e 0/22 no Safari**; a ida ao 12 e o regresso com o ritmo de sempre (o escuro de
+~0,3 s antes de o 11 voltar é do desenho: igual sem condutor).
+
+### Por fazer, por esta ordem
+1. **Fechar o passo 3 no ecrã:** o percurso inteiro (topo → fim → topo) ao ritmo do owner (~1,3 s entre passadas) e com passadas rápidas, no
+   Chrome e no Safari reais (`cenas/screen.mjs`, `glitch.mjs`, `fit/tears.sh CENAS=1`); voltar atrás a meio da passagem do 12 e da história do 14.
+2. **O owner experimenta no trackpad:** `http://localhost:3100/?cenas` (Chrome e Safari; `?cenas=0` volta ao site atual). Commit só quando pedir.
+3. **Passo 4 — Questions e Contact** ligados ao condutor (hoje ainda leem o scroll: `contact-client.tsx` `cRun`/`cHold`, o `legacyBusy` do
+   condutor; as paragens `questions`, `q1…`, `contact`, `end` deslizam). Ler `contact-client.tsx` (487 linhas) e `questions-client.tsx`.
+4. **Passo 5 — limpar o scroll antigo** quando o condutor for o do desktop: `finger.ts` governWheel, `hold.ts`, `unsnapped.ts`, `motor.ts`, as
+   regras de encaixe (`method.css`, `work.css`, `about`), o `data-passage`/`data-story` que só servem o encaixe.
+5. **Ligar o condutor para os visitantes no desktop** (hoje `cenasOn()` só em `localhost`, `conductor.ts`): decisão do owner, depois de 1–4;
+   reduced motion e telemóvel continuam com o scroll do browser.
+6. **Avisar o owner antes do passo 6, o telemóvel** (memória `announce-phone-step`).
+7. Ainda em aberto de antes: o **bug A** (a fotografia do *Before* de Experiences salta no desktop) e a **validação final M8**.
+
+### O laboratório neste Mac (para retomar)
+- `next start` na 3100 com o código do passo 3 (build de hoje). Reconstruir: `zsh docs/development/ios-lab/desk/rebuild.sh`.
+- Chrome headless na 9333 (sem separadores; 100 que lá estavam desde 16/11 foram fechados). Chrome do laboratório na 9223 (janela 1728 × 1029).
+  O Safari fica minimizado na Dock: `fit/tears.sh` tira-o e volta a pô-lo (com outro script, tirá-lo antes, senão grava-se o Chrome por trás).
+- Ferramentas novas de hoje: `fit/` (sondas de resoluções `mprobe`/`wprobe`/`pprobe`; `seam.mjs` registo por fotograma no Chrome real;
+  `tears.sh` + `perstroke.py` rasgos por passada) e `cenas/cases-about.mjs`. Passadas sintéticas no headless não servem o governador do site
+  atual (só o condutor); para o site atual, sempre o trackpad real.
+
+## (antes) COMEÇAR AQUI · 21 de novembro de 2026 — o site nas resoluções mais usadas: o Method e o Work ajustados ao ecrã (aprovado, README #126; em commit no `master` e no `v5`)
 
 **Estado numa frase.** O owner encontrou o bug do Method ("no 8 e 9… em ecrãs 1080p e menores os cards ficam acima do text input 'make it
 yours'", Chrome e Safari desktop) e pediu "todos os cenários… responsive… assegurar as resoluções mais usadas sempre". Medido: **todos os
@@ -26,6 +99,12 @@ desktop parece bem") e **em commit**: o `v5` avançou até ao `master` (as fotog
    maneira de segurar a página, ou acabar o condutor (passos 3–5 no desktop: Method → About, Questions e Contact, limpar o scroll antigo)
    e ligá-lo para os visitantes no desktop.
 3. Depois, o que já estava: **o bug A** (desktop, a fotografia do *Before* de Experiences salta) e a **validação final M8** (abaixo).
+
+### Passo 3 do condutor feito (21/11, fim da tarde) — por aprovar, sem commit
+O About ligado ao condutor (`about-stage.ts`, `conductor.ts`): bateria headless verde, `cases-about.mjs` 8/8, e no ecrã 0 rasgos em 22
+passadas no Chrome e no Safari na fronteira 11 ↔ 12. `v5-tests.md`, "Passo 3 do condutor". **A seguir:** o percurso inteiro no ecrã ao ritmo
+do owner (Chrome e Safari) e o owner no trackpad (`http://localhost:3100/?cenas`); depois o passo 4 (Questions e Contact), o passo 5 (limpar
+o scroll antigo), ligar o condutor para os visitantes no desktop; **avisar o owner antes do passo 6, o telemóvel**.
 
 ### O estado do Git e das fotografias
 - O owner pôs as fotografias no `master` a 18/11 ("add photos", "add photos 2": os 157 derivados de `public/media/v5/` e 52 imagens de

@@ -77,11 +77,14 @@ export const notes = (p, from = 0) => p.ev(`return window.__notes.slice(${from})
 export const expected = (stop) => {
   const work = ['top', 'weddings', 'artists', 'experiences']
   const method = ['7', '8a', '8b', '8c', '9', '10', '11']
+  // the About (step 3, 21 Nov): its own phase at 12–14, 14 below them (the Questions' paper rises over it), unseen above
+  const about = ['12', '13', '14']
   const i = work.indexOf(stop)
-  if (i === 0) return { pass: '', ch: '0', mp: 'pre' }
-  if (i > 0) return { pass: 'done', ch: String(i - 1), mp: 'pre' }
-  if (method.includes(stop)) return { pass: 'done', ch: '2', mp: stop }
-  return { pass: 'done', ch: '2', mp: '11' }
+  if (i === 0) return { pass: '', ch: '0', mp: 'pre', ap: 'pre' }
+  if (i > 0) return { pass: 'done', ch: String(i - 1), mp: 'pre', ap: 'pre' }
+  if (method.includes(stop)) return { pass: 'done', ch: '2', mp: stop, ap: 'pre' }
+  if (about.includes(stop)) return { pass: 'done', ch: '2', mp: '11', ap: stop }
+  return { pass: 'done', ch: '2', mp: '11', ap: '14' }
 }
 export const check = (s) => {
   const e = expected(s.cur)

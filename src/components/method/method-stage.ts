@@ -92,6 +92,24 @@ const timeOf = ([x1, y1, x2, y2]: Curve) => {
 }
 const sweepTime = timeOf(SWEEP)
 const backTime = timeOf(BACK)
+// A phase change plays before the next stroke its way counts (owner, 22 Nov: strokes faster than the changes ran 7 → 11 in 1.9 s, the
+// sheets lifting all at once and 10 never seen; "adaptável… sem pausas desnecessárias: se a animação acabou… não tenho que esperar").
+// It is seen through once what tells the story (the cards, the sheets, the words, the cover) has come SEEN of its way: the curves are
+// fast first, EASE gets there at 56 % of its time, and the time left moves the last few pixels on a scene that already looks still
+const SEEN = 0.95
+const seenShares = new Map<string, number>()
+const seenShare = (easing: string) => {
+  let s = seenShares.get(easing)
+  if (s === undefined) {
+    const [x1, y1, x2, y2] = (easing.match(/cubic-bezier\(([^)]+)\)/)?.[1] ?? '').split(',').map(Number)
+    s = [x1, y1, x2, y2].every(Number.isFinite) ? timeOf([x1, y1, x2, y2])(SEEN) : SEEN
+    seenShares.set(easing, s)
+  }
+  return s
+}
+// the scene's stops in their order (the conductor's ids)
+const IN_SCENE: readonly string[] = PHASES.slice(1)
+const ABOVE = ['top', 'weddings', 'artists', 'experiences']
 
 // (the phone's deck: its height placed under the field by measure())
 const T: Record<'desk' | 'phone', readonly Pos[]> = {
@@ -262,12 +280,18 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   // then: set once it has arrived, over what it arrived at (unseen there)
   type Flight = { el: HTMLElement; to: Keyframe; duration: number; delay: number; instant: boolean; from?: Keyframe; easing?: string; then?: Keyframe }
   let queue: Flight[] | null = null
+  // The room, not the story: the hour's light moving with each phase (1.6 s), the studio, the night, the light's edges (the passage and
+  // its way back have their own ends). A phase change is seen through without waiting for them
+  const ambient = new Set<Element>([key, studio, night, wipe, wipeB, wipeIn])
+  // while a played phase change starts its flights (show): how long after now its story is seen through (SEEN), in ms
+  let settling: number | null = null
   const start = (f: Flight) => {
     const { el, to, duration, delay, instant } = f
     flights.get(el)?.cancel()
     flights.delete(el)
     const settle = () => Object.entries({ ...to, ...f.then }).forEach(([p, v]) => el.style.setProperty(p, String(v)))
     if (instant) return settle()
+    if (settling !== null && !ambient.has(el)) settling = Math.max(settling, (delay + duration * seenShare(f.easing ?? EASE)) * tempo)
     const a = el.animate([f.from ?? {}, to], { duration: duration * tempo, delay: delay * tempo, easing: f.easing ?? EASE, fill: 'both' })
     flights.set(el, a)
     a.onfinish = () => {
@@ -808,9 +832,22 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     else go()
   }
 
+  // the played phase change in hand (from one of the scene's phases to another: the light's passage and its way back keep their own
+  // ends): when it is seen through, and its way along the scene's stops (the conductor's busyUntil)
+  let changeEnds = 0
+  let changeWay = 0
   const show = (next: Phase, instant = false) => {
     holdWhileLeaving(next === 'pre' && phase !== null && phase !== 'pre' && !instant)
-    batch(() => showNow(next, instant))
+    const from = phase
+    const played = !instant && from !== null && from !== 'pre' && next !== 'pre'
+    settling = played ? 0 : null
+    try {
+      batch(() => showNow(next, instant))
+      changeEnds = played && settling ? performance.now() + settling : 0
+      changeWay = played && from ? Math.sign(IN_SCENE.indexOf(next) - IN_SCENE.indexOf(from)) : 0
+    } finally {
+      settling = null
+    }
     // put in place at once (a jump, a refresh): what is at the top is read once the flights have settled. Read inside, before them, it was
     // the phase it left — the dark of 11 over a lit 7, after the menu from the About or the Questions (Simulator, 13 Nov)
     if (instant) setEdge(next)
@@ -1118,14 +1155,34 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   // on, and the phase is that stop's — played (the light's passage whole, or the change from wherever every layer is) or at once (a jump).
   // Above the scene (the Work's stops) it is 'pre'; below it (the About and on) the 11 stays, as the About's passage starts on it
   const driven = cenasOn()
-  const IN = PHASES.slice(1) as readonly string[]
-  const ABOVE = ['top', 'weddings', 'artists', 'experiences']
+  // the stop the conductor has the page on (the About's and below keep the 11)
+  let at = ''
+  // the light's passage plays whole before 8 may answer (README #102); a stroke back turns it back from where it is. And its way back
+  // plays whole before the Work goes on to Artists; a stroke down turns it back from where it is. Gone on at once, the page left for
+  // Artists' stop with the light still over half the screen, and the stage, fixed at its section's top a screen below (holdIfMoving),
+  // took the light off in one frame (Chrome and Safari, a second stroke up 0.37 s after the first, 17 Nov)
+  const passageBusy = (next: string, now: number) => {
+    if (phase === '7' && next !== 'experiences' && passageEnds > now) return passageEnds
+    if (phase === 'pre' && next !== '7' && backEnds > now) return backEnds
+    return 0
+  }
+  // A phase change in hand plays until it is seen through (SEEN) before a stroke carries on its way — measured from its own flights,
+  // so each phase waits as long as it needs: ~0.6 s for 8a–9 (the cards, 1.1 s at EASE), ~1.46 s for 10 (the cover's three lines, one
+  // by one: owner, 22 Nov, "espera pelas 3"). A stroke the other way turns it back at once, from where every layer is. It also takes the
+  // strokes a busy frame makes of one: Safari draws each phase change in frames of 38–95 ms, joins the wheel events meanwhile, and the
+  // conductor read their sum as a new hand — one stroke up from 9 went to 8c and on to 8b 147 ms later (lab, real trackpad, 22 Nov)
+  const changeBusy = (next: string, now: number) => {
+    if (changeEnds <= now || !IN_SCENE.includes(at)) return 0
+    const k = (id: string) => (IN_SCENE.includes(id) ? IN_SCENE.indexOf(id) : ABOVE.includes(id) ? -1 : IN_SCENE.length)
+    return Math.sign(k(next) - k(at)) === changeWay ? changeEnds : 0
+  }
   if (driven)
     cleanups.push(
       registerScene({
         name: 'method',
         to: (stop: string, how: How) => {
-          const next: Phase = IN.includes(stop) ? (stop as Phase) : ABOVE.includes(stop) ? 'pre' : '11'
+          at = stop
+          const next: Phase = IN_SCENE.includes(stop) ? (stop as Phase) : ABOVE.includes(stop) ? 'pre' : '11'
           if (next !== phase) {
             if (how === 'jump') show(next, true)
             else {
@@ -1140,14 +1197,11 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
         },
         busyUntil: (next: string) => {
           const now = performance.now()
-          // the light's passage plays whole before 8 may answer (README #102); a stroke back turns it back from where it is
-          if (phase === '7' && next !== 'experiences' && passageEnds > now) return passageEnds
-          // and its way back plays whole before the Work goes on to Artists; a stroke down turns it back from where it is. Gone on at
-          // once, the page left for Artists' stop with the light still over half the screen, and the stage, fixed at its section's top a
-          // screen below (holdIfMoving), took the light off in one frame (Chrome and Safari, a second stroke up 0.37 s after the first, 17 Nov)
-          if (phase === 'pre' && next !== '7' && backEnds > now) return backEnds
-          return 0
+          return passageBusy(next, now) || changeBusy(next, now)
         },
+        // turned back mid-way, only the light holds the page as at a barrier (the conductor's rule for a passage, 16 Nov); a phase change
+        // turned back plays its own way back and waits only for that — 1.2 s more there was a pause the scene did not need
+        turnBack: (ahead: string) => passageBusy(ahead, performance.now()) > 0,
       }),
     )
   // a stroke back has come to rest when the scroll has been still a moment (scrollend where there is one; iOS fires scroll events through

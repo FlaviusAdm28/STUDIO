@@ -3998,3 +3998,52 @@ selecionado aterra". Seletor só no localhost, `?titulos=a|b|c` (sem ele, como h
   6/12). **Por decidir pelo owner.**
 - **Não verificado:** o Safari na fronteira do About e no Contact com o original (só com B2: 11 → 12, 12 → 11 e Questions → Contact rasgaram);
   o Xiaomi e o iPhone (sem roda: o governador não corre lá).
+
+### Passo 3 do condutor — o About ligado (21/11, fim da tarde; owner: "agora podemos avançar com acabar o condutor") — por aprovar, sem commit
+- **Feito:** `about-stage.ts` regista o About no condutor (`?cenas`): 12, 13, 14 a sua fase, as Questions e abaixo o 14, acima `pre`; deixa
+  de ler o scroll (fica só a cor do topo a seguir o palco quando o papel das Questions o leva); diz quanto tem de tocar inteiro (a luz a
+  encontrar o retrato, a história do 14, o regresso ao 11 — 2 s); no regresso o palco é preso no topo (`holdAt`: a página já foi posta no
+  11). `conductor.ts`: 12–14 entram em `HELD` (mudança de paragem sem se ver); o About sai do `legacyBusy`. `h.mjs` verifica a fase do About.
+- **Visto (headless, `next start`):** `walk1` 0 falhas, todas as paragens nos dois sentidos com o About certo; `fast` (rajadas 0,3 s, ritmo
+  1,3 s, as cadeias do owner) estados coerentes, sem fotogramas longos; `cases` 28/28; `cases-about.mjs` (novo) 8/8 — a passagem do 12
+  voltada a meio, o regresso voltado a meio, a história do 14 (passada a 0,5 s largada, a 1,3 s guardada), quatro passadas para cima, o
+  teclado, e o palco do About no regresso: 128 fotogramas, todos no topo, largado aos 2,15 s; `smoke` sem erros nos dois modos.
+- **No ecrã (trackpad real, com o condutor):** a fronteira 11 ↔ 12, seis idas e voltas e o caminho até lá: **0/22 rasgos no Chrome e 0/22
+  no Safari** (o site sem condutor: 6/12 no Chrome). A ida para o 12 e o regresso com o ritmo de sempre (comparado com a gravação sem condutor).
+- **Por ver:** o percurso inteiro no ecrã ao ritmo do owner nos dois browsers com o About; o owner no trackpad.
+
+### Passadas no Method com o condutor (22/11; owner, `?cenas` no Chrome e no Safari: "se começar a andar com scroll para trás e para a frente no method e dar force no scroll mesmo com a animação ainda não parou às vezes passo logo da cena 9 para a 11, a abertura dos cartões às vezes também abre logo tudo junto") — A feito, por aprovar, sem commit; B por fazer
+- **Como se mediu:** um registo dentro da página (cada evento da roda com a sua hora `e.timeStamp`, as decisões do condutor, as fases, as
+  frames > 34 ms) e passadas reais de trackpad do macOS (`bin/stroke`) no Chrome do laboratório e no Safari real; as gravações do owner de
+  14–15/11 passadas pelo detetor de passadas do condutor. Ferramentas em `docs/development/ios-lab/desk/cenas/passadas/` (README).
+- **O que não estava estragado:** em 171 passadas (109 Chrome, 62 Safari) a fase do Method bateu sempre com a paragem do condutor; nenhum
+  evento da roda escapou (todos canceláveis e cancelados); o browser nunca mexeu a página.
+- **Causa 1 — nada segurava a página entre o 8a e o 10:** só a luz do 7, o regresso e as barreiras (7, 11) seguravam. Cada mudança dura
+  ~1,1 s (cartões, folhas) e a capa do 10 ~2 s; 9 passadas a 0,3 s levaram do 7 ao 11 em 1,9 s (Chrome e Safari): as folhas a levantar
+  todas juntas, o 10 quase sem se ver.
+- **Causa 2 — uma passada lida como duas:** no Safari cada mudança de fase é seguida de 1–2 frames de 38–95 ms (o JS da mudança: 4–10 ms;
+  no Chrome 2 ms e frames de 6–8 ms, raramente 17–26). Nessas frames o Safari junta eventos da roda num só (`220 220 220` → `660`) e a regra
+  do detetor "2,5× o evento anterior, com o momento abaixo de 40 % do pico" leu a soma como uma mão nova: **uma passada para cima no 9 deu
+  9 → 8c → 8b, 147 ms entre as duas** (1 em 62 passadas no Safari; 0 em 109 no Chrome nesse dia). Nas gravações do owner (sem condutor) o
+  mesmo padrão aparece muitas vezes dentro de passadas: ~23 em 153 (Chrome, 14/11) e ~16 em 241 (Safari). Os perfis antigos do laboratório
+  mandavam o momento a 16 ms e nunca o mostraram; o trackpad manda a 8 ms (`real.py`).
+- **A (feito):** cada mudança de fase do Method toca até estar vista antes de uma passada seguir no mesmo sentido — o tempo vem das próprias
+  animações dessa mudança (cartões, folhas, palavras, capa; não a luz do estúdio, o cursor, a cor do topo), até 95 % do caminho (a curva
+  EASE chega lá a 56 % do tempo). Medido: 8a–9 ~0,64 s, 10 ~1,49 s (as três linhas da capa, owner: "espera pelas 3"). Voltar atrás é
+  imediato; uma passada nos últimos 0,45 s fica guardada e corre quando a mudança fica vista, antes disso é ignorada (a regra do condutor).
+  Uma mudança voltada a meio já não faz descansar 1,2 s como uma barreira (isso fica para a luz: `Scene.turnBack`). `method-stage.ts`
+  (`SEEN`, `seenShare`, `settling`, `changeEnds`/`changeWay`, `passageBusy`/`changeBusy`), `conductor.ts` (`turnBack`).
+- **Visto (headless, `next start`):** `cases-method.mjs` (novo) 9/9 — 10 passadas a 0,35 s do 8a: 8b 8c 9 10 11 por ordem, intervalos
+  639–640 ms e 1488 no 10; uma passada 0,72 s depois respondida em 2 ms; voltar atrás em 3 ms e a passada seguinte para trás 638 ms depois
+  (não 1,2 s); no 10 uma passada a 0,6 s ignorada e uma a 1,15 s guardada (o 11 1487 ms depois do 10); uma passada no mesmo sentido 0,15 s
+  depois ignorada, 0,3 s depois guardada; o teclado igual; um salto (menu) nunca é segurado nem deixa espera; no 7 a barreira continua
+  1,2 s. `walk1` 0 falhas, `cases` 28/28, `cases-about` 8/8, `fast` coerente, `smoke` sem erros. typecheck, lint (sem avisos), build.
+- **Visto no ecrã (trackpad real):** Chrome 82 passadas → 69 paragens, 13 guardadas, 13 ignoradas; Safari 62 → 59 paragens, 7 guardadas,
+  8 ignoradas; **nenhuma paragem saltada e nenhuma antes de a mudança anterior estar vista**, nos dois browsers. Rajada a 0,3 s gravada no
+  ecrã nos dois: cada par de folhas levanta à vez, depois o 9, e o 10 com as três linhas.
+- **Ainda por resolver (B):** no Safari mais duas passadas fantasma, **longe de qualquer mudança de fase** — na cauda do momento, 2,2–2,5 s
+  depois, uma frame de 57–65 ms juntou eventos (`-6 ×5 → -30`) e o detetor tomou-a por mão nova: 8c → 8b sem passada, e 11 → 12 (o About).
+  A espera do A já tinha passado; só o detetor o resolve. Uma janela de 48 ms pela hora dos próprios eventos acertou nas 171 passadas mas
+  falhou nos perfis tremidos (conta a dobrar) e perdeu 5 das 12 passadas reais de `owner-chrome-3`: é uma direção, não a correção.
+- **Não verificado:** o site sem `?cenas` (inalterado: o tempo calculado não é usado sem o condutor); o Xiaomi e o iPhone (o condutor é só
+  desktop; no telemóvel o código novo só calcula um número que nada lê); o owner no trackpad.

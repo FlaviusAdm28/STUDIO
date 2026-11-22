@@ -1,7 +1,8 @@
 /*
   The About's passage (storyboard states 11 → 14; README #52, #65; interactions.md §4). The scroll chooses the phase — with a dead
-  band, as the Method and the Work's chapters (#90) — and each change plays as Web Animations from wherever every layer is seen,
-  never as CSS transitions (iOS cut those, #90, #91). Transform and opacity only.
+  band, as the Method and the Work's chapters (#90); with `?cenas` the conductor tells it the stop instead (below) — and each change
+  plays as Web Animations from wherever every layer is seen, never as CSS transitions (iOS cut those, #90, #91). Transform and opacity
+  only.
 
   pre  the Method's 11 is seen: the dark room, one round light on "Made once, for one moment.", the steps and Talk to us. The About is
        laid over it, held and unseen
@@ -19,6 +20,7 @@
   around the photograph (a dead band just above the trigger where the stage was no longer held); the light cheap, in layers, at a low
   resolution (a dark layer with a hole, scaled ×3). Hence the copy, the stage held before the trigger, and the light as below.
 */
+import { cenasOn, goTo, registerScene, type How } from '@/lib/conductor'
 import { fingerDown, strokeLately, watchFinger } from '@/lib/finger'
 import { bandColour, hex, over, type Rgb } from '@/lib/top-colour'
 
@@ -104,6 +106,8 @@ export function runStage(about: HTMLElement, release: () => void) {
 
   let phase: Phase | null = null
   let kind: 'desk' | 'phone' = innerWidth >= 900 ? 'desk' : 'phone'
+  // driven by the conductor (lib/conductor.ts, `?cenas`, a desktop): told the stop the page is on, never reading the scroll (step 3, 21 Nov)
+  const driven = cenasOn()
   const tempoOf = () => (kind === 'phone' ? PHONE_TEMPO : 1)
   const startsOf = () => (kind === 'phone' ? STARTS_PHONE : STARTS)
   const hurryAt = () => (kind === 'phone' ? RELEASE_PHONE : RELEASE) - HURRY_BEFORE
@@ -413,22 +417,29 @@ export function runStage(about: HTMLElement, release: () => void) {
 
   // ---- holding the stage where it is while the light goes back (the scroll may already have carried the section below its hold) ----
   let letGo = 0
+  // until when the way back holds the stage (the conductor's busyUntil: a stroke on up waits for it, as the Method's way back)
+  let leaveEnds = 0
   // fixed exactly where it is seen (as the Method's, method-stage.ts), less its own margin: on iOS the stage's −70 px margin (the lift)
   // moved the fixed box up again, and going back from 12 to 11 the portrait and its light jumped 70 px up as the 11 came (owner's
-  // recording, 7 Nov; Simulator: sticky −70 → fixed −140, −58 → −128 on a slow way back; now the same pixel)
+  // recording, 7 Nov; Simulator: sticky −70 → fixed −140, −58 → −128 on a slow way back; now the same pixel).
+  // Driven by the conductor the page is already on the Method's 11 when the way back starts (moved there at once, unseen, lib/conductor.ts),
+  // and the section has gone down with it: the stage is held where it was seen, held at the screen's top (holdAt), not where it now lies
+  let holdAt: number | null = null
   const hold = () => {
     if (!about.classList.contains('a-leaving'))
-      stage.style.top = `${(stage.getBoundingClientRect().top - (parseFloat(getComputedStyle(stage).marginTop) || 0)).toFixed(1)}px`
+      stage.style.top = `${(holdAt ?? stage.getBoundingClientRect().top - (parseFloat(getComputedStyle(stage).marginTop) || 0)).toFixed(1)}px`
     about.classList.add('a-leaving')
   }
   const unhold = () => {
     clearTimeout(letGo)
+    leaveEnds = 0
     about.classList.remove('a-leaving')
     stage.style.top = ''
   }
   const holdWhileLeaving = (ms: number) => {
     clearTimeout(letGo)
     hold()
+    leaveEnds = performance.now() + ms * tempoOf()
     letGo = window.setTimeout(() => {
       unhold()
       dropCopy()
@@ -438,6 +449,8 @@ export function runStage(about: HTMLElement, release: () => void) {
   // the hold of the passage (HOLD_MS): a jump of the site's own is never taken for a stroke (lib/address.ts, lib/unsnapped.ts)
   let passageHold = 0
   let storyHold = 0
+  // until when 14's story is still coming in (the conductor's busyUntil, as data-story for the browser's snapping)
+  let storyEnds = 0
   let pulled = false
   const jumping = () => document.documentElement.dataset.jump !== undefined || document.documentElement.style.scrollSnapType === 'none'
   // let go: the page first on 12's mark, if a stroke's momentum left it elsewhere within 12 (iOS carries on after a pull back; the Method's
@@ -577,6 +590,8 @@ export function runStage(about: HTMLElement, release: () => void) {
     const was = phase
     phase = to
     about.dataset.phase = to
+    // put in place at once: nothing of a passage is left to wait for
+    if (instant) passageEnds = storyEnds = 0
     clearTimeout(wake)
     clearTimeout(passageHold)
     delete about.dataset.passage
@@ -735,6 +750,7 @@ export function runStage(about: HTMLElement, release: () => void) {
       if (!instant && !viaJump && (was === '13' || was === '12') && !('cHold' in document.documentElement.dataset)) {
         about.dataset.story = ''
         storyHold = window.setTimeout(() => delete about.dataset.story, (STORY_MS + after) * tempoOf())
+        storyEnds = performance.now() + (STORY_MS + after) * tempoOf()
       }
       list.push(
         fly(rule, { transform: 'none' }, 1200, after + 300),
@@ -838,6 +854,7 @@ export function runStage(about: HTMLElement, release: () => void) {
   // ---- the keyboard: reaching the portrait or 04 Questions ↓ before 14 brings 14 (the browser scrolls after focus: next frame) ----
   const onFocus = () => {
     if (phase === '14') return
+    if (driven) return void goTo('14', 'jump')
     requestAnimationFrame(() =>
       scrollTo({ top: scrollY + about.getBoundingClientRect().top + (LEAD + startsOf()['14'] + 0.08) * H, behavior: 'auto' }),
     )
@@ -874,7 +891,47 @@ export function runStage(about: HTMLElement, release: () => void) {
   watchFinger()
   about.classList.add('a-live')
   choose()
-  addEventListener('scroll', frameChoose, { passive: true })
+  // Driven by the conductor (lib/conductor.ts, `?cenas`; step 3, 21 Nov), as the Method: the conductor says which stop the page is on and the
+  // phase is that stop's — 12, 13, 14 their own, the Questions and below 14 (their paper rises over it), above 'pre' — played or at once
+  // (a jump). Between 11 and 14 the page is moved at once, unseen, under the held stage, and the About plays its change by its clock; it
+  // says how long a passage of its own must still play whole: the light finding the portrait (12), the story coming in (14), the way back
+  // to the Method's 11 (the stage held while the light goes back)
+  const below = (stop: string) => stop === 'questions' || stop === 'contact' || stop === 'end' || /^q\d+$/.test(stop)
+  const phaseOf = (stop: string): Phase => ((ORDER as readonly string[]).includes(stop) ? (stop as Phase) : below(stop) ? '14' : 'pre')
+  const unregister = driven
+    ? registerScene({
+        name: 'about',
+        to: (stop: string, how: How) => {
+          const next = phaseOf(stop)
+          viaJump = how === 'jump'
+          if (next === phase) return
+          if (how === 'jump') {
+            unhold()
+            show(next, true)
+            return
+          }
+          // back to the Method's 11: the page is there already, the stage held where it was seen (hold)
+          holdAt = next === 'pre' ? 0 : null
+          show(next)
+          holdAt = null
+        },
+        busyUntil: (next: string) => {
+          const now = performance.now()
+          const to = phaseOf(next)
+          // the light finds the portrait whole before 13 may answer (a stroke back turns it back, as the Method's 7)
+          if (phase === '12' && to !== 'pre' && passageEnds > now) return passageEnds
+          // 14's story comes in before the Questions' paper rises over it (owner, 9 Nov: "consigo ir para o questions antes de conseguir ver
+          // tudo do about")
+          if (phase === '14' && next === 'questions' && storyEnds > now) return storyEnds
+          // the way back to the Method plays whole before the Method goes on to its 10; a stroke down turns it back
+          if (phase === 'pre' && next !== '12' && leaveEnds > now) return leaveEnds
+          return 0
+        },
+      })
+    : () => {}
+  // the top's colour still follows the stage as the Questions' paper carries it up (the conductor glides the page there)
+  const onScroll = driven ? edgeOnScroll : frameChoose
+  addEventListener('scroll', onScroll, { passive: true })
   addEventListener('resize', onResize)
   // the face changes the name's width: measured again once it is there
   document.fonts?.ready.then(() => {
@@ -901,7 +958,8 @@ export function runStage(about: HTMLElement, release: () => void) {
     clearTimeout(openLater)
     clearTimeout(dropTimer)
     cancelAnimationFrame(raf)
-    removeEventListener('scroll', frameChoose)
+    unregister()
+    removeEventListener('scroll', onScroll)
     removeEventListener('resize', onResize)
     stage.removeEventListener('focusin', onFocus)
     flights.forEach((a) => a.cancel())

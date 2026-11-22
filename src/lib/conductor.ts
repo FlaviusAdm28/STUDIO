@@ -5,14 +5,16 @@
 
   What is new: **the scenes no longer read the scroll.** A scene registers here (registerScene) and is told where the page is — "you are on
   stop 8b; played, or at once" — and shows what belongs there; it says how long a passage of its own must still play whole (busyUntil).
-  Between the stops of those scenes (the entrance, the Work, the Method: from the top to the Method's 11, every one under a stage held on
-  screen) the page is not scrolled at all: it is put on the next stop at once, unseen, and the scene plays its change by its clock. Further
-  down (the About, the Questions, the Contact, still reading the scroll) the page glides from stop to stop, as with the motor.
+  Between the stops of those scenes (the entrance, the Work, the Method, the About: from the top to the About's 14, every one under a stage
+  held on screen) the page is not scrolled at all: it is put on the next stop at once, unseen, and the scene plays its change by its clock.
+  Further down (the Questions, the Contact, still reading the scroll) the page glides from stop to stop, as with the motor — and from the
+  About's 14 to the Questions, whose paper rises over it.
 
   The rules (owner, 16 Nov):
-  - one stroke, one stop; a stroke during a passage that must play whole (the Work's blade growing into the arch, the Method's light) does
-    not cut it: it is kept if it comes in the passage's last QUEUE ms and then runs, otherwise dropped. Kept from earlier it moved the page
-    seconds after the hand had stopped, which the owner called broken (8 Nov, "8a came seconds after the stroke, by itself")
+  - one stroke, one stop; a stroke during a passage that must play whole (the Work's blade growing into the arch, the Method's light, and
+    since 22 Nov each of the Method's phase changes until it is seen through) does not cut it: it is kept if it comes in the passage's last
+    QUEUE ms and then runs, otherwise dropped. Kept from earlier it moved the page seconds after the hand had stopped, which the owner
+    called broken (8 Nov, "8a came seconds after the stroke, by itself")
   - turning back mid-passage is allowed where the passage was made to go back from where it is (the Work's, the Method's light)
   - barriers (owner, 16 Nov): the top, Weddings, the Method's 7 and 11, the About's 14, the Questions, the Contact — the page rests there at
     least BARRIER_MS, whatever the strokes
@@ -31,11 +33,14 @@ export type Scene = {
   to: (stop: string, how: How) => void
   /** until when (performance.now()) a passage of this scene must play whole before the page may go to `next`; 0 = nothing to wait for */
   busyUntil: (next: string) => number
+  /** a stroke back now turns back a passage that holds the page, once there, as at a barrier (request); left out: any busyUntil(ahead) */
+  turnBack?: (ahead: string) => boolean
 }
 
 const BARRIERS = new Set(['top', 'weddings', '7', '11', '14', 'questions', 'contact'])
 // the stops of the scenes that no longer read the scroll, all under a stage held on screen: the page goes from one to another at once
-const HELD = new Set(['top', 'weddings', 'artists', 'experiences', '7', '8a', '8b', '8c', '9', '10', '11'])
+// (the About's 12–14 since step 3, 21 Nov: its stage is held over them)
+const HELD = new Set(['top', 'weddings', 'artists', 'experiences', '7', '8a', '8b', '8c', '9', '10', '11', '12', '13', '14'])
 // a stroke kept for after a passage only in its last stretch
 const QUEUE = 450
 const BARRIER_MS = 1200
@@ -126,11 +131,11 @@ const arrive = (s: Stop, how: How, way = 0) => {
   note(`at ${s.id} ${how}${held ? ' held' : ''}`)
 }
 
-// the sections that still read the scroll (the About, the Questions, the Contact, the entrance running): busy without saying until when
+// the sections that still read the scroll (the Questions, the Contact, the entrance running): busy without saying until when. The About says
+// its own since step 3 (about-stage.ts busyUntil): read here as well, its passage held strokes BUSY_MAX
 const legacyBusy = () => {
   const root = document.documentElement
-  const about = document.getElementById('about')
-  return root.dataset.entrance === 'run' || (!!about && 'passage' in about.dataset) || 'cRun' in root.dataset
+  return root.dataset.entrance === 'run' || 'cRun' in root.dataset
 }
 let legacySince = 0
 const busyUntil = (next: string, way: number, now: number) => {
@@ -257,7 +262,8 @@ const request = (way: number) => {
   // through Artists to Weddings — "concordo"; lab: one stroke back stayed at Experiences, three went on to Weddings)
   if (current && lastWay && way === -lastWay) {
     const ahead = nextFrom(current.y, lastWay, list)
-    turnHold = !!ahead && [...scenes].some((sc) => sc.busyUntil(ahead.id) > now)
+    // (a scene says which of its passages hold so: the Method's phase changes do not, 22 Nov — each plays its own way back)
+    turnHold = !!ahead && [...scenes].some((sc) => (sc.turnBack ? sc.turnBack(ahead.id) : sc.busyUntil(ahead.id) > now))
   }
   step(way)
   // arrived at once (between the held scenes), or gliding there (it holds on arrival); nowhere to go, nothing to hold later

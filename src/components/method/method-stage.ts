@@ -750,11 +750,19 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
       ? { x0: W * 0.3 - left, x1: W * 0.7 - left, y0: -top, y1: lift - top }
       : { x0: W * 0.3 - left, x1: W * 0.7 - left, y0: -lift - top, y1: 4 - top }
   let roomImg: HTMLImageElement | null = null
+  let roomAt = ''
+  let roomTone: ReturnType<typeof bandColour> = null
   // the studio's top: its room as cover-drawn in the studio's box, and the hour's light (.m-key) over it at the top's middle
   const studioTop = (ph: Phase) => {
     const cs = getComputedStyle(section)
     const fallback = cs.getPropertyValue('--m-edge').trim()
-    const room = roomImg ? bandColour(roomImg, { w: W, h: stage.offsetHeight - lift }, band(0, 0)) : null
+    // the room's own colour there: read from its picture once per size (a canvas drawn and read back), not again at every frame of a follow
+    const size = `${W}x${stage.offsetHeight - lift}`
+    if (roomImg && roomAt !== size) {
+      roomAt = size
+      roomTone = bandColour(roomImg, { w: W, h: stage.offsetHeight - lift }, band(0, 0))
+    }
+    const room = roomImg ? roomTone : null
     if (!room) return fallback
     const kc = parseColour(cs.getPropertyValue('--m-key'))
     if (!kc) return hex(room)
@@ -809,20 +817,37 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     ph === 'pre' ? '' : ph === '9' && kind === 'phone' ? featuredTop() : studioOrDark(ph)
   // followed for a while where what is at the top changes slowly (the dark of 11, the light going out): read again every 100 ms
   let edgeFollow = 0
+  let edgeFrame = 0
   const setEdge = (ph: Phase, delay = 0, follow = 0) => {
     clearTimeout(edgeLater)
     clearInterval(edgeFollow)
+    cancelAnimationFrame(edgeFrame)
     edgeLater = 0
     const put = () => {
       const v = edgeOf(ph)
-      if (v) section.dataset.edge = v
-      else delete section.dataset.edge
+      delete section.dataset.mix
+      delete section.dataset.lit
+      if (v) {
+        if (section.dataset.edge !== v) section.dataset.edge = v
+      } else delete section.dataset.edge
     }
     const go = () => {
       edgeLater = 0
       put()
       if (!follow) return
       const until = performance.now() + follow * tempo
+      // A desktop follows at every frame. Desktop Safari tints its tab bar with the page's colour and changes it at once, no fade of its
+      // own: read every 100 ms, the bar stepped through ~12 colours in 1.3 s, each a frame behind the page, over the dark of 11 coming in
+      // (owner, Safari, 22 Nov: "a barra de cima… piscar e tremer as cores do estado anterior para o 11"; on screen: 233 → 185 → 142 → 109
+      // → 84 …, the page smooth under it). The room's colour is kept (roomTone): a frame reads two opacities and mixes
+      if (kind === 'desk' && !reaches) {
+        const frame = () => {
+          put()
+          if (performance.now() <= until) edgeFrame = requestAnimationFrame(frame)
+        }
+        edgeFrame = requestAnimationFrame(frame)
+        return
+      }
       edgeFollow = window.setInterval(() => {
         put()
         if (performance.now() > until) clearInterval(edgeFollow)
@@ -830,6 +855,57 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     }
     if (delay) edgeLater = window.setTimeout(go, delay * tempo)
     else go()
+  }
+  // A desktop, as the light crosses the screen (the passage) or goes back (to the Work): the share of the top line it lights, at every frame,
+  // for the page's colour (entrance/sequence.ts mixes the studio's over the Work's by it) — so desktop Safari's bar, one colour for the
+  // whole top of the window, fills with the light as the light crosses the top, and empties as it goes back (owner, 22 Nov: "como no
+  // telemóvel… acompanhando a cor de acordo com a animação no feixe"). Read from the edges' own boxes (their transforms' x on the top line,
+  // transform-origin 0 0), so whatever the light does — played, hurried, turned back halfway — the share is the one drawn. Before, it
+  // changed once, as the light's edge passed the middle (iOS's island), and the bar jumped
+  // the light's two edges on the top line (shares of the width) and the share of the line between them
+  const shareLit = (): [number, number, number] => {
+    const x = (el: HTMLElement) => {
+      const t = getComputedStyle(el).transform
+      return t === 'none' ? 0 : new DOMMatrixReadOnly(t).e
+    }
+    const a = x(wipe) / W
+    const b = a + (x(wipeB) + 3 * W) / W
+    return [a, b, Math.min(1, Math.max(0, Math.min(b, 1) - Math.max(a, 0)))]
+  }
+  // lit: the phase whose studio is lit (the one the light comes to, or leaves); ms: for how long the light moves (and the studio settles)
+  const beamEdge = (lit: Phase, ms: number) => {
+    clearTimeout(edgeLater)
+    clearInterval(edgeFollow)
+    cancelAnimationFrame(edgeFrame)
+    edgeLater = 0
+    const until = performance.now() + ms * tempo
+    const frame = () => {
+      const [a, b, k] = shareLit()
+      const back = phase === 'pre'
+      const done = performance.now() > until
+      // gone back: the Work's own colour (no edge) once the light has gathered; come in: the studio's whole once it covers the top
+      if (back && done && k <= 0.001) {
+        delete section.dataset.mix
+        delete section.dataset.lit
+        delete section.dataset.edge
+        return
+      }
+      const v = studioOrDark(back ? lit : (phase ?? lit))
+      if (section.dataset.edge !== v) section.dataset.edge = v
+      const m = k >= 0.999 ? '' : k.toFixed(3)
+      if (m) {
+        if (section.dataset.mix !== m) section.dataset.mix = m
+        // where, for the strip above the viewport (desktop Safari's glass: the light's edge crossing its bar)
+        const l = `${a.toFixed(4)},${b.toFixed(4)}`
+        if (section.dataset.lit !== l) section.dataset.lit = l
+      } else {
+        delete section.dataset.mix
+        delete section.dataset.lit
+      }
+      // a light turned back that never gathers (cut by a jump): let go a second after its time
+      if (!done || (back && performance.now() < until + 1000)) edgeFrame = requestAnimationFrame(frame)
+    }
+    edgeFrame = requestAnimationFrame(frame)
   }
 
   // the played phase change in hand (from one of the scene's phases to another: the light's passage and its way back keep their own
@@ -932,7 +1008,8 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     // the top strip is one colour again, so it changes as the light leaves the island, as before (Simulator, magenta, 7 Nov).
     const corners = [reachAt(0, 0), reachAt(W, 0), reachAt(0, H), reachAt(W, H)]
     const passed = reaches ? Math.max(...corners) : island(reachAt(W / 2, 0))
-    setEdge(next, passage ? passed : goingBack ? island(leaveAt(W / 2, 0)) : landing, settling)
+    if (kind === 'desk' && !reaches && (passage || goingBack)) beamEdge(passage ? next : (from ?? '7'), passage ? Math.max(SWEEP_MS, 1900) : BACK_MS + 200)
+    else setEdge(next, passage ? passed : goingBack ? island(leaveAt(W / 2, 0)) : landing, settling)
     // the photograph moves in with the light, and back out with it
     if (passage) pushPhoto(true)
     else if (goingBack) pushPhoto(false)
@@ -1279,12 +1356,15 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     clearTimeout(letGo)
     clearTimeout(edgeLater)
     clearInterval(edgeFollow)
+    cancelAnimationFrame(edgeFrame)
     clearTimeout(seenLater)
     clearTimeout(passageHold)
     delete section.dataset.passage
     marks.forEach((m) => m.remove())
     delete section.dataset.near
     delete section.dataset.edge
+    delete section.dataset.mix
+    delete section.dataset.lit
     delete section.dataset.seen
     cleanups.forEach((c) => c())
     flights.forEach((a) => a.cancel())

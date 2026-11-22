@@ -292,6 +292,21 @@ export function runStage(about: HTMLElement, release: () => void) {
     fades.get(el)?.cancel()
     fades.set(el, el.animate([{ opacity: from }, { opacity: 0 }], { duration: ms * tempoOf(), easing: EASE, fill: 'both' }))
   }
+  // An opacity of its own beside a flight that moves the element (the name gliding from 13 to 12): one animation of the opacity at a time,
+  // so a fade laid over it later replaces it rather than lying over another. Two on one element, Safari drew the one below on screen —
+  // the name stayed seen, small, over the Method's 11 until the glide had ended, its computed opacity 0 meanwhile (owner, Safari, 22 Nov:
+  // 13 → 11 in two quick strokes, "o texto 'I'm Flávio' não acompanha… e fica visível"; on screen, 0.8 s too long)
+  const fadeTo = (el: HTMLElement, to: string, ms: number, delay: number, instant: boolean, easing = EASE) => {
+    fades.get(el)?.cancel()
+    fades.delete(el)
+    if (instant) {
+      el.style.opacity = to
+      return
+    }
+    const t = tempoOf()
+    const from = getComputedStyle(el).opacity
+    fades.set(el, el.animate([{ opacity: from }, { opacity: to }], { duration: ms * t, delay: delay * t, easing, fill: 'both' }))
+  }
   const hurry = (ms = HURRY_MS) =>
     [...flights.values(), ...copyAnims].forEach((a) => {
       const t = a.effect?.getComputedTiming()
@@ -492,7 +507,12 @@ export function runStage(about: HTMLElement, release: () => void) {
   // the section's own dark, once the stage has gone up with the page
   const GONE: Rgb = [27, 28, 26]
   // the band the island sees: on iOS the 70 px above the screen (the lift), elsewhere the screen's top; across its middle
-  const band = (r: DOMRect) => ({ x0: innerWidth * 0.3 - r.left, x1: innerWidth * 0.7 - r.left, y0: -lift() - r.top, y1: 4 - r.top })
+  // On a desktop the whole width: Safari's bar there spans the window (the middle alone, the room's light, said 55 over a top of 26 to 57,
+  // 42 in all, at 14; on screen, 22 Nov)
+  const band = (r: DOMRect) =>
+    kind === 'desk' && !lift()
+      ? { x0: -r.left, x1: innerWidth - r.left, y0: -r.top, y1: 4 - r.top }
+      : { x0: innerWidth * 0.3 - r.left, x1: innerWidth * 0.7 - r.left, y0: -lift() - r.top, y1: 4 - r.top }
   const posOf = (img: HTMLImageElement) =>
     getComputedStyle(img)
       .objectPosition.split(' ')
@@ -521,12 +541,21 @@ export function runStage(about: HTMLElement, release: () => void) {
   }
   // under it the lit room (.a-lit, drawn with fill), at its opacity now over the dark: it comes up over 1.2 s before the portrait
   // reaches the top (the edge stayed the dark of 12 under a room already grey, audit 402 × 874, 4 Nov)
+  // the room's band, read from its picture (a canvas drawn and read back) once per place: followed at every frame on a desktop, it stays
+  // where it is while the room comes up — read again only once it moves (the Questions' paper carrying the stage up)
+  let roomAt = ''
+  let roomBand: Rgb | null = null
   const roomTop = (): Rgb | null => {
     const im = lit.querySelector<HTMLImageElement>(`${about.dataset.colour === 'on' ? '.a-room-col' : '.a-room-mono'} img`)
     if (!im) return null
     const r = im.getBoundingClientRect()
     if (r.bottom < 4) return null
-    const c = bandColour(im, { w: r.width, h: r.height }, band(r), 'fill', posOf(im))
+    const at = `${im.currentSrc}|${Math.round(r.left)}|${Math.round(r.top)}|${Math.round(r.width)}|${Math.round(r.height)}`
+    if (at !== roomAt) {
+      roomAt = at
+      roomBand = bandColour(im, { w: r.width, h: r.height }, band(r), 'fill', posOf(im))
+    }
+    const c = roomBand
     return c ? over(DARK_RGB, c, parseFloat(getComputedStyle(lit).opacity) || 0) : null
   }
   const edgeOf = (ph: Phase) => {
@@ -537,21 +566,35 @@ export function runStage(about: HTMLElement, release: () => void) {
   }
   // set after a delay, then read again every 100 ms for a while where the top changes slowly
   let edgeFollow = 0
+  let edgeFrame = 0
   const setEdge = (ph: Phase, delay = 0, follow = 0) => {
     clearTimeout(edgeLater)
     clearInterval(edgeFollow)
+    cancelAnimationFrame(edgeFrame)
     edgeLater = 0
     edgeFollow = 0
+    edgeFrame = 0
     const put = () => {
       const e = edgeOf(ph)
-      if (e) about.dataset.edge = e
-      else delete about.dataset.edge
+      if (e) {
+        if (about.dataset.edge !== e) about.dataset.edge = e
+      } else delete about.dataset.edge
     }
     const go = () => {
       edgeLater = 0
       put()
       if (!follow) return
       const until = performance.now() + follow * tempoOf()
+      // A desktop follows at every frame (as the Method's, method-stage.ts setEdge): Safari's bar takes the page's colour at once, and read
+      // every 100 ms it stepped through the room's light coming up (22 Nov). The room's band is kept (roomTop): a frame reads an opacity
+      if (kind === 'desk' && !lift()) {
+        const frame = () => {
+          put()
+          edgeFrame = performance.now() <= until ? requestAnimationFrame(frame) : 0
+        }
+        edgeFrame = requestAnimationFrame(frame)
+        return
+      }
       edgeFollow = window.setInterval(() => {
         put()
         if (performance.now() < until) return
@@ -568,7 +611,7 @@ export function runStage(about: HTMLElement, release: () => void) {
   // held, nothing at the top moves with the scroll)
   let edgeAt = NaN
   const edgeOnScroll = () => {
-    if ((phase !== '13' && phase !== '14') || edgeLater || edgeFollow) return
+    if ((phase !== '13' && phase !== '14') || edgeLater || edgeFollow || edgeFrame) return
     const t = Math.round(stage.getBoundingClientRect().top)
     if (t === edgeAt) return
     const moved = !Number.isNaN(edgeAt)
@@ -632,7 +675,9 @@ export function runStage(about: HTMLElement, release: () => void) {
       // at once to where its last finished flight had left it — 45 px down and smaller in one frame (owner's iPhone, 12 Nov, 3 of 3 such
       // strokes in the recording); given its place again, it lurched on at four times the speed (Simulator, 28 px in a frame)
       const glide = was === '12'
-      const nameGlides = glide && flights.has(name)
+      // gliding: its flight moves it (its opacity is apart, fadeTo); the passage's own flight is only its opacity, and is simply replaced
+      const own = flights.get(name)
+      const nameGlides = glide && !!own && ((own.effect as KeyframeEffect | null)?.getKeyframes().some((k) => 'transform' in k) ?? false)
       const nameSeen = nameGlides ? getComputedStyle(name).opacity : ''
       run([
         ...(nameGlides ? [] : [fly(name, { transform: nameFrom, opacity: '0' }, 400)]),
@@ -701,11 +746,13 @@ export function runStage(about: HTMLElement, release: () => void) {
           fly(lit, { opacity: '0' }, 1400, 200),
           fly(glow, { transform: glowAt12, opacity: '1' }, 1400, 300),
           fly(pt, { transform: ptAt12 }, 1500, 200, GLIDE_EASE),
-          fly(name, { transform: nameFrom, opacity: '0.92' }, 1500, 200, GLIDE_EASE),
+          fly(name, { transform: nameFrom }, 1500, 200, GLIDE_EASE),
           ...opening(instant ? ONE : currentK(), ONE, 1500, 200),
         ],
         instant,
       )
+      // its opacity apart (fadeTo): a way back on to 11 fades it while it still glides
+      fadeTo(name, '0.92', 1500, 200, instant, GLIDE_EASE)
       if (instant) dropCopy()
       return
     }
@@ -929,8 +976,25 @@ export function runStage(about: HTMLElement, release: () => void) {
         },
       })
     : () => {}
+  // Under the Questions' paper, the whole screen of it: the stage clipped away, as before 12 (about.css data-covered) — nothing on screen
+  // changes, but desktop Safari took this held stage, under the paper, for the top of the page, and tinted its window's bar with it: 192
+  // over the paper's 220 for the whole stay at the Questions, then 222 at once as the Contact's passage moved the page (on screen, 22 Nov:
+  // hidden or clipped, the bar is the paper's at once). A desktop only (the phone's stage reaches behind iOS's island: not measured there)
+  const paper = document.querySelector<HTMLElement>('#questions .q-paper')
+  const cover = () => {
+    if (kind !== 'desk' || lift() || !paper) return
+    const covered = paper.getBoundingClientRect().top <= 0.5 && phase === '14'
+    if (covered !== 'covered' in about.dataset) {
+      if (covered) about.dataset.covered = ''
+      else delete about.dataset.covered
+    }
+  }
   // the top's colour still follows the stage as the Questions' paper carries it up (the conductor glides the page there)
-  const onScroll = driven ? edgeOnScroll : frameChoose
+  const followScroll = driven ? edgeOnScroll : frameChoose
+  const onScroll = () => {
+    cover()
+    followScroll()
+  }
   addEventListener('scroll', onScroll, { passive: true })
   addEventListener('resize', onResize)
   // the face changes the name's width: measured again once it is there
@@ -947,6 +1011,7 @@ export function runStage(about: HTMLElement, release: () => void) {
     delete about.dataset.story
     clearTimeout(edgeLater)
     clearInterval(edgeFollow)
+    cancelAnimationFrame(edgeFrame)
     clearTimeout(seenLater)
     marks.forEach((m) => m.remove())
     pages.disconnect()
@@ -960,6 +1025,7 @@ export function runStage(about: HTMLElement, release: () => void) {
     cancelAnimationFrame(raf)
     unregister()
     removeEventListener('scroll', onScroll)
+    delete about.dataset.covered
     removeEventListener('resize', onResize)
     stage.removeEventListener('focusin', onFocus)
     flights.forEach((a) => a.cancel())

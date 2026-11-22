@@ -91,12 +91,13 @@ await place('9')
   const ok = a?.[1] === '10' && b?.[1] === '11' && r.at.length === 2 && wait >= 1440 && wait < 1560
   await report('D. 9 → 10, strokes on at 0.6 s and 1.15 s', ok, `${path(r)} · 11 ${wait} ms after 10 · ${r.ns.filter(([, x]) => /kept|dropped/.test(x)).map(([, x]) => x).join(', ')}`)
 }
-// E. a second stroke 0.15 s after the first, the same way (what a busy frame made of one stroke in Safari, 147 ms after it): dropped.
-// Later, in the change's last QUEUE ms (from ~0.19 s here), a stroke is kept and runs once it is seen through (the conductor's rule)
+// E. a second flick 0.12 s after the first, the same way (what a busy frame made of one stroke in Safari, 147 ms after it): nothing
+// moves — the detector takes it for the same stroke (lib/strokes.ts), or the change in hand drops it. Later, in the change's last QUEUE
+// ms (from ~0.19 s here), a stroke is kept and runs once the change is seen through (the conductor's rule)
 await place('9')
 {
-  const r = await plan([[0, -1, true], [150, -1, true]])
-  await report('E. 9 → 8c, a stroke the same way 0.15 s later: dropped', r.at.length === 1 && r.at[0][1] === '8c' && r.ns.some(([, x]) => x.includes('dropped')), `${path(r)} · ${r.ns.filter(([, x]) => /kept|dropped/.test(x)).map(([, x]) => x).join(', ')}`)
+  const r = await plan([[0, -1, true], [120, -1, true]])
+  await report('E. 9 → 8c, a flick the same way 0.12 s later: nothing more', r.at.length === 1 && r.at[0][1] === '8c', `${path(r)} · ${r.ns.filter(([, x]) => /kept|dropped/.test(x)).map(([, x]) => x).join(', ')}`)
 }
 await place('9')
 {

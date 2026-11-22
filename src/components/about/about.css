@@ -439,6 +439,11 @@
   :root[data-js] .about[data-phase='pre']:not(.a-leaving) .a-stage {
     clip-path: inset(0 0 100% 0);
   }
+  /* under the Questions' paper, the whole screen of it (about-stage.ts cover, a desktop): clipped as before 12 — the paper is over it, so
+     nothing changes on screen, but desktop Safari took this held stage for the page's top and tinted its window's bar with it (22 Nov) */
+  :root[data-js] .about[data-covered] .a-stage {
+    clip-path: inset(0 0 100% 0);
+  }
   /* scrolled back above the held part while the light goes back: held where it was until it has */
   :root[data-js] .about.a-leaving .a-stage {
     position: fixed;

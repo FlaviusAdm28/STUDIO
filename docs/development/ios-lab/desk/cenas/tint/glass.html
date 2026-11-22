@@ -1,0 +1,31 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>glass</title>
+<style>
+  html, body { margin: 0; background: #808080; }
+  .band { height: 40px; display: flex; align-items: center; padding-left: 20px; font: 600 22px/1 system-ui; color: #fff; }
+  #lifted { display: none; position: fixed; left: 0; right: 0; height: 200px; background: linear-gradient(90deg, #ff0000, #00c000 50%, #0000ff); }
+  #stick { display: none; position: sticky; left: 0; right: 0; height: 100vh; background: linear-gradient(90deg, #ff00ff, #00ffff); }
+</style></head>
+<body>
+<div id="lifted"></div>
+<div id="bands"></div>
+<script>
+// geometry of desktop Safari's toolbar: is the page drawn under it?
+//   ?scroll=N   the page scrolled N px; bands every 40 px, each a distinct colour, labelled with its document y
+//   &lift=N     a fixed full-width element from top: -N px (N px of it above the viewport), a red→green→blue gradient
+//   &stick=N    a sticky full-screen element with top: -N px (as the site's held stages on iOS, the lift), placed at y 2000
+const q = new URLSearchParams(location.search)
+const bands = document.getElementById('bands')
+const hues = [0, 45, 90, 135, 180, 225, 270, 315]
+for (let i = 0; i < 120; i++) {
+  const d = document.createElement('div'); d.className = 'band'
+  d.style.background = `hsl(${hues[i % 8]} 80% ${i % 2 ? 35 : 50}%)`; d.textContent = `y ${i * 40}`
+  bands.append(d)
+}
+if (q.has('lift')) { const l = document.getElementById('lifted'); l.style.display = 'block'; l.style.top = `-${q.get('lift')}px` }
+if (q.has('stick')) {
+  const s = document.createElement('div'); s.id = 'stick'; s.style.display = 'block'; s.style.top = `-${q.get('stick')}px`; s.style.marginTop = `-${q.get('stick')}px`
+  bands.children[50].after(s)
+}
+addEventListener('load', () => scrollTo(0, Number(q.get('scroll') || 0)))
+</script></body></html>

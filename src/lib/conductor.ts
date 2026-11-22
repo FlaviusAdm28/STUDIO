@@ -24,6 +24,7 @@
   Phones are left to the browser for now (the touch adapter is the next step); reduced motion keeps the browser's own scroll (the scenes
   lie one after the other, no stops).
 */
+import { strokeDetector } from '@/lib/strokes'
 import { siteJumps } from '@/lib/unsnapped'
 
 export type How = 'play' | 'jump'
@@ -46,8 +47,6 @@ const QUEUE = 450
 const BARRIER_MS = 1200
 // a scene still reading the scroll that never says it has ended does not hold the page longer than this
 const BUSY_MAX = 4500
-// a new stroke: the wheel quiet this long, the other way round, or a clear new push inside a momentum (finger.ts, measured 14–15 Nov)
-const GAP = 300
 const glideMs = (d: number) => Math.min(1050, Math.max(620, 520 + 0.22 * d))
 const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2)
 const easeOut = (t: number) => 1 - (1 - t) ** 3
@@ -111,9 +110,21 @@ let restUntil = 0
 // the way the page came into its barrier: the rest holds strokes that would carry on that way, never one turning back
 let restWay = 0
 let selfY = -1
+// The glass of desktop Safari's bar (Safari 27) shows the page's own content that has scrolled off above the viewport — in the flow, blurred
+// and muted, in its place (left stays left); not a sticky or a fixed layer (measured, desk/cenas/tint README). The scenes are held (sticky),
+// so the bar showed whatever lay in the flow above the stop: at the About's 13 the Method's end, its 11's cards to the sides (owner, 22 Nov:
+// "consigo ver cards da cena anterior na barra… blur em background"). A strip of the page itself, laid just above the viewport at every move
+// of the page — here, in the same frame — and painted with the top of the scene (entrance/sequence.ts): the bar shows the scene, as the
+// iPhone's full screen does. Above every stage, under the bar's islands; never seen on the page (it is always above the viewport)
+const FEED = 120
+let feed: HTMLElement | null = null
+const feedAt = (y: number) => {
+  if (feed) feed.style.transform = `translate3d(0, ${Math.round(y) - FEED}px, 0)`
+}
 const place = (y: number) => {
   selfY = y
   scrollTo({ top: y, behavior: 'instant' })
+  feedAt(scrollY)
 }
 // the way of the last move played (0 after a jump), and a stop that holds as a barrier once, for a passage turned back (request)
 let lastWay = 0
@@ -270,57 +281,21 @@ const request = (way: number) => {
   if (!gliding) turnHold = false
 }
 
-let wheelAt = -1e9
-let wheelWay = 0
-let wheelPeak = 0
-let wheelPrev = 0
-// the stroke's momentum has fallen (a stroke older than 150 ms, under 30 % of its peak); the lowest it has been since; how many events in
-// a row have risen; when the stroke began
-let falling = false
-let trough = Infinity
-let rises = 0
-let strokeAt = 0
+// A new stroke (lib/strokes.ts): after a pause, the other way, a jump once the momentum has faded, or a momentum rising again — read in
+// the events' own time, so that the events a busy browser joins into one are not taken for a hand (22 Nov)
+let detect = strokeDetector()
 const onWheel = (e: WheelEvent) => {
   const root = document.documentElement
   // a pinch (zoom) or a sideways swipe (back / forward in the history) is the browser's; the menu holds the page by itself (bar-client.tsx)
   if (e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY) || root.dataset.menu) return
   if (e.cancelable) e.preventDefault()
   if (!e.deltaY) return
-  const now = performance.now()
   const px = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1
-  const a = Math.abs(e.deltaY * px)
-  const way = Math.sign(e.deltaY)
-  rises = a > wheelPrev ? rises + 1 : 0
-  if (falling) trough = Math.min(trough, a)
-  // A new stroke: after a pause, the other way, a jump of 2.5× once the momentum has faded (the motor's rule, finger.ts), or a momentum
-  // rising again. A momentum only falls (a coalesced event may double one value, never two in a row): two rises in a row to twice its
-  // lowest is a hand again. The motor's rule alone missed the owner's strokes begun gently as the last momentum ran out — "1 3 1 7 11 12
-  // 15 25", "2 5 5 7 12 12 14 16" — 4 of 12 strokes in one of his recorded rounds (owner-chrome-3, 15 Nov), and 30 strokes 0.3 s apart
-  // moved the page one stop (lab, 16 Nov). Every single stroke of the lab's profiles still counts once, jittered or not.
-  // The other way only once a way is known: a stroke beginning with events of 1–3 px set none, and its first larger event counted as a
-  // second stroke — two stops for one (the motor had it too)
-  const fresh =
-    now - wheelAt > GAP ||
-    (a > 3 && wheelWay !== 0 && way !== wheelWay) ||
-    (a > 15 && a > 2.5 * wheelPrev && wheelPrev < 0.4 * wheelPeak) ||
-    (falling && rises >= 2 && a > 8 && a >= 2 * trough)
-  wheelAt = now
-  if (a > 3 || fresh) wheelWay = way
-  if (fresh) {
-    wheelPeak = 0
-    falling = false
-    trough = Infinity
-    rises = 0
-    strokeAt = now
-  }
-  wheelPeak = Math.max(wheelPeak, a)
-  if (!falling && now - strokeAt > 150 && a < 0.3 * wheelPeak) {
-    falling = true
-    trough = a
-  }
-  if (fresh || a > 3 || way === wheelWay) wheelPrev = a
+  // when the hand made it (the page's clock); a browser without it, when it came
+  const now = performance.now()
+  const t = Number.isFinite(e.timeStamp) && Math.abs(now - e.timeStamp) < 10000 ? e.timeStamp : now
   // how strong a stroke is cannot be read from its events (macOS accelerates strokes that follow one another, motor.ts): one stroke, one stop
-  if (fresh) request(way)
+  if (detect(t, e.deltaY * px)) request(Math.sign(e.deltaY))
 }
 
 const KEYS: Record<string, number> = { PageDown: 1, PageUp: -1, ArrowDown: 1, ArrowUp: -1, ' ': 1, End: 9, Home: -9 }
@@ -360,6 +335,8 @@ const adopt = () => {
   arrive({ ...near, y: at }, 'jump')
 }
 const onScroll = () => {
+  // whoever moved the page, the strip goes with it at once (a jump of the site's own scrolls before this frame is drawn)
+  feedAt(scrollY)
   if (gliding) return
   // Within 2 px of where the conductor put the page: its own move — or the browser's last pixel of a stroke it cancelled, put back at
   // once. Chrome on a Mac moved the page 1 px as a stroke's momentum ended, every wheel event prevented (lab, real trackpad strokes with
@@ -396,6 +373,16 @@ export function startConductor() {
   root.dataset.motor = ''
   root.dataset.cenas = ''
   seenJumps = siteJumps()
+  detect = strokeDetector()
+  // desktop Safari only (its bar's glass): elsewhere nothing shows what is above the viewport
+  if (/Apple/.test(navigator.vendor)) {
+    feed = document.createElement('div')
+    feed.id = 'c1-feed'
+    feed.setAttribute('aria-hidden', 'true')
+    feed.style.cssText = `position:absolute;top:0;left:0;right:0;height:${FEED}px;z-index:35;pointer-events:none;will-change:transform`
+    document.body.prepend(feed)
+    feedAt(scrollY)
+  }
   addEventListener('wheel', onWheel, { passive: false })
   addEventListener('keydown', onKey)
   addEventListener('scroll', onScroll, { passive: true })
@@ -421,5 +408,7 @@ export function startConductor() {
     clearTimeout(pendingT)
     clearTimeout(sizeT)
     stopGlide()
+    feed?.remove()
+    feed = null
   }
 }

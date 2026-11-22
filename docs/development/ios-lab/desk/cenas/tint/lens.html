@@ -1,0 +1,21 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>lens</title>
+<style>
+  html, body { margin: 0; height: 300vh; }
+  #top { position: fixed; top: 0; left: 0; right: 0; height: 140px; }
+</style></head>
+<body><div id="top"></div>
+<script>
+// ?mode=edge: black/white vertical stripes 60 px tall at the page's top, then flat; how much of the page does the bar's glass show?
+// ?mode=tf&c=hex&across=1: html's colour c, the top made not one colour (a faint gradient across) so Safari falls back on html's
+const q = new URLSearchParams(location.search), t = document.getElementById('top')
+if (q.get('mode') === 'edge') {
+  t.style.background = 'repeating-linear-gradient(90deg, #000 0 80px, #fff 80px 160px)'; t.style.height = '60px'
+  document.documentElement.style.background = '#808080'
+}
+if (q.get('mode') === 'tf') {
+  const c = '#' + q.get('c'); document.documentElement.style.background = c; document.body.style.background = c
+  t.remove()
+  if (q.has('across')) { const g = document.createElement('div'); g.style.cssText = `position:absolute;top:0;left:0;right:0;height:100vh;background:linear-gradient(90deg, ${c}, color-mix(in srgb, ${c} 60%, #000))`; document.body.append(g) }
+}
+</script></body></html>

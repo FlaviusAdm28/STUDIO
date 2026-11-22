@@ -1,0 +1,82 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#808080" id="tc">
+<title>tint</title>
+<style>
+  html, body { margin: 0; height: 200vh; }
+  #fix { position: fixed; left: 0; right: 0; top: 0; height: 120px; display: none; }
+  #page { position: fixed; inset: 0; }
+  #sweep { position: fixed; inset: 0; display: none; }
+</style></head>
+<body><div id="page"></div><div id="sweep"></div><div id="fix"></div>
+<script>
+// a test of desktop Safari's tab bar tint: which source it follows and how it changes
+//   ?src=meta,html,fixed  which sources are set (any of them; none = only the page under them)
+//   &a=hex&b=hex  colours (the bar is asked for a, then b); &page=hex the page itself under them
+//   &mode=static|raf|css|sweep  how a → b goes; &ms=duration; &wait=ms before
+const q = new URLSearchParams(location.search)
+const src = (q.get('src') ?? 'meta').split(',')
+const A = '#' + (q.get('a') ?? 'e8e0d4'), B = '#' + (q.get('b') ?? '1e1d1a'), PG = '#' + (q.get('page') ?? '777777')
+const mode = q.get('mode') ?? 'static', ms = Number(q.get('ms') ?? 1500), wait = Number(q.get('wait') ?? 2500)
+const tc = document.getElementById('tc'), fix = document.getElementById('fix'), page = document.getElementById('page'), sweep = document.getElementById('sweep')
+page.style.background = PG
+if (q.has('nopage')) page.remove()
+// the strip under the page (the page's layer above it, opaque): does Safari still take the strip's colour?
+if (q.has('under')) { page.style.zIndex = '2'; document.getElementById('fix').style.zIndex = '1' }
+// the page above not fixed but in the flow, full screen (as the site's sticky stages)
+if (q.has('flowpage')) { page.style.position = 'absolute'; page.style.height = '200vh' }
+// the page covered by an opaque layer drawn only by images (as the Questions' paper): no colour of its own
+if (q.has('cover')) { page.style.background = q.has('across') ? 'linear-gradient(90deg, #e0d8c8, #6a5a48)' : 'linear-gradient(180deg, #e0d8c8, #b8ae9c)'; if (q.get('cover') === 'sticky') { page.style.position = 'sticky'; page.style.height = '100vh' } }
+// a poke at the top after each change: a 20 px fixed strip, transparent, its colour changed (does Safari read the bar again?)
+const poke = q.has('poke') ? Object.assign(document.createElement('div'), {}) : null
+if (poke) { poke.style.cssText = `position:fixed;top:0;left:0;right:0;height:${q.get('poke') || 1}px;pointer-events:none;background:transparent;z-index:9`; document.body.append(poke) }
+if (!src.includes('meta')) tc.remove()
+if (src.includes('fixed')) fix.style.display = 'block'
+if (q.has('fixh')) fix.style.height = q.get('fixh') + 'px'
+if (q.has('sticky')) { fix.style.position = 'sticky'; document.body.prepend(fix) }
+const split = q.get('split')
+const set = (c) => {
+  if (src.includes('meta')) tc.setAttribute('content', c)
+  if (src.includes('html')) { document.documentElement.style.backgroundColor = c; document.body.style.backgroundColor = c }
+  // a near-invisible paint at the top each change: the colour at 1 % (Safari re-reads the top when it is painted again)
+  if (poke) poke.style.backgroundColor = c + '03'
+  if (src.includes('fixed')) fix.style.backgroundColor = c
+  // a hard edge across the strip: left of it B, right of it the colour (the beam's edge crossing the top)
+  if (split !== null) fix.style.backgroundImage = `linear-gradient(to right, ${B} ${split}%, transparent ${split}%)`
+}
+set(A)
+const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16))
+const mix = (t) => { const a = hex(A), b = hex(B); return '#' + a.map((x, i) => Math.round(x + (b[i] - x) * t).toString(16).padStart(2, '0')).join('') }
+window.__log = []
+setTimeout(() => {
+  const t0 = performance.now()
+  window.__log.push(['start', Math.round(t0)])
+  if (mode === 'static') set(B)
+  if (mode === 'raf') { const f = (t) => { const k = Math.min(1, (t - t0) / ms); set(mix(k)); if (k < 1) requestAnimationFrame(f) }; requestAnimationFrame(f) }
+  if (mode === 'css') {
+    for (const el of [document.documentElement, document.body, fix]) el.style.transition = `background-color ${ms}ms linear`
+    set(B)
+  }
+  if (mode === 'sweep') {
+    // the page's top changes by a moving edge (the beam): a full-screen layer of B, revealed left to right by clip-path, no source set
+    sweep.style.display = 'block'; sweep.style.background = B
+    sweep.animate([{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0 0 0)' }], { duration: ms, fill: 'both', easing: 'linear' })
+  }
+  if (mode === 'slide') {
+    // the beam as the site draws it: a full-screen layer moved in by transform (method-stage.ts blade), no colour changed
+    sweep.style.display = 'block'; sweep.style.background = B
+    sweep.animate([{ transform: 'translateX(-100%)' }, { transform: 'translateX(0)' }], { duration: ms, fill: 'both', easing: 'linear' })
+  }
+  if (mode === 'fade') {
+    // a full-screen layer fading in over the top (the dark of 11, .m-end): opacity only
+    sweep.style.display = 'block'; sweep.style.background = B
+    sweep.animate([{ opacity: 0 }, { opacity: 1 }], { duration: ms, fill: 'both', easing: 'linear' })
+  }
+  if (mode === 'edge') {
+    // the split's edge moving left to right by its background (main thread, a colour image changing): does the bar follow an edge?
+    const f = (t) => { const k = Math.min(1, (t - t0) / ms); fix.style.backgroundImage = `linear-gradient(to right, ${B} ${k * 100}%, ${A} ${k * 100}%)`; if (k < 1) requestAnimationFrame(f) }
+    requestAnimationFrame(f)
+  }
+  if (mode === 'pagecss') { page.style.transition = `background-color ${ms}ms linear`; page.style.backgroundColor = B }
+}, wait)
+</script></body></html>

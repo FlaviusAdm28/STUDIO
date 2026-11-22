@@ -1,0 +1,21 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>above</title>
+<style>
+  html, body { margin: 0; background: #808080; }
+  .block { height: 1000px; background: #808080; }
+  .mag { height: 60px; background: #ff00ff; }
+  .grey { height: 3000px; background: #808080; }
+  #st { position: sticky; top: -60px; margin-top: -60px; height: calc(100vh + 60px); background: linear-gradient(#ff00ff 0 60px, #808080 60px); }
+  #fx { position: fixed; top: -60px; left: 0; right: 0; height: 120px; background: linear-gradient(#ff00ff 0 60px, #808080 60px); }
+</style></head>
+<body>
+<script>
+// ?case=flow: 60 px of magenta in the flow, just above the viewport (scrolled to 1060), grey everywhere else
+// ?case=sticky: a held (sticky) stage whose top 60 px, magenta, are above the viewport (as the site's lift on iOS)
+// ?case=fixed: a fixed element whose top 60 px, magenta, are above the viewport
+const c = new URLSearchParams(location.search).get('case')
+if (c === 'flow') document.write('<div class="block"></div><div class="mag"></div><div class="grey"></div>')
+if (c === 'sticky') document.write('<div class="block"></div><div class="block"></div><div id="st"></div><div class="grey"></div>')
+if (c === 'fixed') document.write('<div id="fx"></div><div class="grey"></div><div class="grey"></div>')
+addEventListener('load', () => scrollTo(0, c === 'flow' ? 1060 : c === 'sticky' ? 2600 : 500))
+</script></body></html>

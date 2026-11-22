@@ -119,14 +119,113 @@ export function entranceSequence(c: EntranceConfig) {
   // Chrome's bar showing the open menu's film (Android): put back to the page's colour when the menu goes, even when that colour has not
   // changed
   let menuFilm = false
-  const paintEdges = (colour: string) => {
-    if (colour === tone && !menuFilm) return
-    menuFilm = false
-    tone = colour
+  // Desktop Safari tints its tab bar, the whole top of its window, with the page's colour (html and body's; it ignores theme-color and the
+  // layers' own animations — measured on Safari 27, desk/cenas/tint) and changes it at once, with no fade of its own. So there the colour
+  // itself moves, frame by frame, from the one on screen: in its scene's time where the scene has one (a chapter crossing, the dusk), at
+  // once where the scene already says it at every frame (the Method's light, the About's room) and for a jump (owner, 22 Nov: "a cor
+  // conseguir adaptar a janela toda do safari de forma smooth… tanto scroll para a frente como para trás"). Turned back halfway, it goes
+  // back from where it is. Elsewhere (Chrome's desktop draws no colour; iOS and Android have their own, below) as before
+  const tinted = !ios && /Apple/.test(navigator.vendor) && matchMedia('(hover: hover) and (pointer: fine)').matches
+  type Ease = (t: number) => number
+  type Glide = { ms: number; ease: Ease; delay?: number }
+  const AT_ONCE: Glide = { ms: 0, ease: (t) => t }
+  // a CSS cubic-bezier as a function of the time's share (bisection: a colour needs no more)
+  const bezier = (css: string, fallback: Ease): Ease => {
+    const p = css.match(/cubic-bezier\(([^)]+)\)/)?.[1].split(',').map(Number)
+    if (!p || p.length !== 4 || !p.every(Number.isFinite)) return fallback
+    const [x1, y1, x2, y2] = p
+    const c = (a: number, b: number, s: number) => 3 * a * s * (1 - s) ** 2 + 3 * b * s * s * (1 - s) + s ** 3
+    return (t) => {
+      let lo = 0
+      let hi = 1
+      for (let i = 0; i < 24; i++) {
+        const m = (lo + hi) / 2
+        if (c(x1, x2, m) < t) lo = m
+        else hi = m
+      }
+      return c(y1, y2, (lo + hi) / 2)
+    }
+  }
+  const inOut: Ease = (t) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2)
+  const rgbIn = (c: string): number[] | null => {
+    const h = c.trim().match(/^#([0-9a-f]{6})$/i)
+    if (h) return [0, 2, 4].map((i) => parseInt(h[1].slice(i, i + 2), 16))
+    const m = c.match(/\d+(\.\d+)?/g)
+    return m && m.length >= 3 ? m.slice(0, 3).map(Number) : null
+  }
+  const rgbOut = (v: number[]) => `rgb(${v.map((x) => Math.round(x)).join(', ')})`
+  // the colour on screen now (the tinted path), and the glide under way: from, to, when it starts, how long, its curve
+  let shown: number[] | null = null
+  let glideRaf = 0
+  let gFrom: number[] = []
+  let gTo: number[] = []
+  let gT0 = 0
+  let gMs = 0
+  let gEase: Ease = inOut
+  // the strip of the page the conductor lays just above the viewport for desktop Safari's glass (lib/conductor.ts feed): the same colour,
+  // or the Method's light crossing the top as drawn (feedLit)
+  let feedEl: HTMLElement | null = null
+  let feedLit: string | null = null
+  const writeEdges = (colour: string) => {
     // written on the two elements: as a custom property on <html> every change restyled the whole page, on the phone's chapter change
     root.style.backgroundColor = colour
     document.body.style.backgroundColor = colour
+    if (!feedEl?.isConnected) feedEl = document.getElementById('c1-feed')
+    if (feedEl) feedEl.style.background = feedLit ?? colour
+  }
+  const step = (now: number) => {
+    // the Contact's passage draws the page's colour itself, a frame at a time (contact-client.tsx edges): a glide under way gives way
+    if (root.dataset.cRun !== undefined) {
+      glideRaf = 0
+      return
+    }
+    const k = Math.min(1, Math.max(0, (now - gT0) / gMs))
+    const e = gEase(k)
+    shown = gFrom.map((v, i) => v + (gTo[i] - v) * e)
+    writeEdges(rgbOut(shown))
+    glideRaf = k < 1 ? requestAnimationFrame(step) : 0
+  }
+  // follow: the scene says its colour at every frame (data-edge) — at once, unless a glide is under way: then it goes on, in its own time,
+  // to the colour now said (cut short, the dusk's or a chapter's glide jumped to the scene's colour at its first frame)
+  const glideTo = (target: number[], g: Glide, follow = false) => {
+    if (follow && glideRaf) {
+      gTo = target
+      return
+    }
+    cancelAnimationFrame(glideRaf)
+    glideRaf = 0
+    // from the colour really on the page: another script may have painted it since (the Contact's passage)
+    const now = rgbIn(root.style.backgroundColor) ?? shown
+    if (!g.ms || !now) {
+      shown = target
+      writeEdges(rgbOut(target))
+      return
+    }
+    gFrom = now
+    gTo = target
+    gT0 = performance.now() + (g.delay ?? 0)
+    gMs = g.ms
+    gEase = g.ease
+    glideRaf = requestAnimationFrame(step)
+  }
+  const paintEdges = (colour: string, glide: Glide = AT_ONCE, follow = false, lit: string | null = null) => {
+    if (colour === tone && lit === feedLit && !menuFilm) return
+    feedLit = lit
+    menuFilm = false
+    tone = colour
     themeMeta?.setAttribute('content', colour)
+    const target = tinted ? rgbIn(colour) : null
+    if (target) return glideTo(target, glide, follow)
+    writeEdges(colour)
+  }
+  // the dusk's own curve (contact-client.tsx .c-dusk: iOS's fade, above, the same), and the Work's chapters' (work.css --chapter-ease)
+  const duskEase = bezier('cubic-bezier(.33, 1, .68, 1)', inOut)
+  let chapterEase: Ease | null = null
+  const mixHex = (a: string, b: string, k: number) => {
+    const x = rgbIn(a)
+    const y = rgbIn(b)
+    if (!x || !y) return b
+    return `#${x.map((v, i) => Math.round(v + (y[i] - v) * Math.min(1, Math.max(0, k))).toString(16).padStart(2, '0')).join('')}`
   }
   if (frame) {
     root.style.setProperty('--frame', frame)
@@ -237,10 +336,23 @@ export function entranceSequence(c: EntranceConfig) {
             ? 'background-color .3s linear'
             : ''
       viaMethod = !!edge
+      // The Work's own colour: its chapter's ground, the frame's at the top and on Weddings
+      const workTone = ground ? getComputedStyle(ground).backgroundColor : frame
+      // The Method's light still crossing the top (a desktop, method-stage.ts beamEdge): what is there is the studio's on the lit share of
+      // the top line and the Work's on the rest — the share it says (data-mix), of the studio's colour over the Work's
+      const share = Number(document.getElementById('method')?.dataset.mix ?? NaN)
+      const lit = edge && edge === methodEdge && Number.isFinite(share) ? mixHex(workTone, methodEdge, share) : edge
+      // and, for the strip above the viewport, where on the top line it is lit (data-lit: its two edges, shares of the width): the studio
+      // between them, the Work's outside, each edge as soft as the light's own spill (a twentieth of the width, method.css)
+      const band = lit !== edge ? document.getElementById('method')?.dataset.lit?.split(',').map(Number) : undefined
+      const beam =
+        band && band.length === 2 && band.every(Number.isFinite)
+          ? `linear-gradient(90deg, ${workTone} ${(band[0] * 100 - 2.5).toFixed(2)}%, ${methodEdge} ${(band[0] * 100 + 2.5).toFixed(2)}%, ${methodEdge} ${(band[1] * 100 - 2.5).toFixed(2)}%, ${workTone} ${(band[1] * 100 + 2.5).toFixed(2)}%)`
+          : null
       // the Questions: their paper's top (questions.css .q-paper), so the island and the band under Safari's bar are the stone's; the
       // charcoal once the light is down
       const colour =
-        edge ||
+        lit ||
         (sec === 'questions' || sec === 'contact'
           ? dusk || sec === 'contact'
             ? // on Android the Contact says what is at the top of the screen (contact-client.tsx, data-edge), once it has settled there
@@ -248,20 +360,28 @@ export function entranceSequence(c: EntranceConfig) {
             : QUESTIONS_EDGE
           : past || sec === 'about'
             ? '#1e1d1a'
-            : ground
-              ? getComputedStyle(ground).backgroundColor
-              : frame)
+            : workTone)
       // a fade under way (the light's) is left to run while nothing changes the colour
       if (colour === tone && !menuFilm) return
-      // on iOS the Contact's passage draws the edges itself, a frame at a time with the paper's light (contact-client.tsx edges()): while
-      // it runs (data-c-run) this colour is only where it ends
-      if (ios && !jumpTo && (duskTurn || 'cRun' in d) && (sec === 'questions' || sec === 'contact')) {
+      // on iOS (and desktop Safari) the Contact's passage draws the edges itself, a frame at a time with the paper's light (contact-client.tsx
+      // edges()): while it runs (data-c-run) this colour is only where it ends
+      if ((ios || tinted) && !jumpTo && (duskTurn || 'cRun' in d) && (sec === 'questions' || sec === 'contact')) {
         tone = colour
         return
       }
       root.style.transition = fade
       document.body.style.transition = fade
-      paintEdges(colour)
+      if (!tinted) return paintEdges(colour)
+      // Desktop Safari: in the time of what changes. A jump, at once; the dusk in its own time (as iOS's fade, above); the Method's and
+      // the About's colour, said at every frame while it moves, as said; a chapter of the Work in its crossing (work.css: the grounds,
+      // 1.1 s); any other change (the Questions' paper reaching the top, the way back from it, the sections' own) in 0.45 s
+      const changed = new Set((records ?? []).map((r) => r.attributeName))
+      chapterEase ??= bezier(getComputedStyle(work ?? root).getPropertyValue('--chapter-ease'), inOut)
+      if (!records || d.jump !== undefined || jumpTo) paintEdges(colour)
+      else if (duskTurn) paintEdges(colour, dusk ? { ms: 1100, delay: -100, ease: duskEase } : { ms: 900, delay: 150, ease: duskEase })
+      else if (edge && (changed.has('data-edge') || changed.has('data-mix') || changed.has('data-lit'))) paintEdges(colour, AT_ONCE, true, beam)
+      else if (changed.has('data-ch')) paintEdges(colour, { ms: 1100, ease: chapterEase })
+      else paintEdges(colour, { ms: 450, ease: inOut })
     }
     const watch = new MutationObserver(scene)
     watch.observe(root, { attributes: true, attributeFilter: ['data-pass', 'data-section', 'class', 'data-menu', 'data-jump'] })
@@ -269,7 +389,7 @@ export function entranceSequence(c: EntranceConfig) {
       const work = document.querySelector('.work')
       if (work) watch.observe(work, { attributes: true, attributeFilter: ['data-ch'] })
       const method = document.getElementById('method')
-      if (method) watch.observe(method, { attributes: true, attributeFilter: ['data-edge'] })
+      if (method) watch.observe(method, { attributes: true, attributeFilter: ['data-edge', 'data-mix', 'data-lit'] })
       const about = document.getElementById('about')
       if (about) watch.observe(about, { attributes: true, attributeFilter: ['data-edge'] })
       const contact = document.getElementById('contact')

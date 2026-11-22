@@ -1,6 +1,74 @@
 # Chapter One V5 — handoff
 
-## ▶ COMEÇAR AQUI · 22 de novembro de 2026 — passadas no Method com o condutor: A feito (por aprovar, sem commit), B por fazer
+## ▶ COMEÇAR AQUI · 22 de novembro de 2026, fim da noite — a barra do Safari no desktop acompanha a página (por aprovar, sem commit)
+
+**Estado numa frase.** Por cima do B e dos três bugs (tudo sem commit desde `77b435b`), a barra do Safari no desktop muda de cor suave e
+no tempo de cada cena, nos dois sentidos: `sequence.ts` (a cor movida frame a frame), `method-stage.ts` (o feixe do 7: a parte do topo
+iluminada), `about-stage.ts` (seguida a cada frame; o palco recortado sob o papel das Questions), `contact-client.tsx` (o anoitecer pintado
+frame a frame), `bar-client.tsx`. Medido no ecrã, `v5-tests.md` "A barra do Safari no desktop acompanha a página".
+
+**Owner (depois):** "a cor da barra não está claramente igual nas cenas… na cena 13 consigo ver cards da cena anterior na barra… blur em
+background… investiga… não implementes". **Investigado** (`desk/cenas/tint/` README, "What Safari 27's bar really shows"): a barra do
+Safari 27 é vidro sobre o conteúdo da página que já passou para cima do ecrã, no fluxo (não os sticky/fixed), blurado e esbatido, com
+a forma que tem (esquerda fica à esquerda). As cenas do site são sticky: a barra mostra o que ficou no fluxo acima da paragem — no 13 o fim
+do Method com os cartões do 11. Possível: um elemento do próprio documento posto logo acima do ecrã, com o topo da cena (cor, e até o
+rebordo do feixe), e a barra mostra-o — o "ecrã inteiro" do iPhone, esbatido pelo vidro. No topo da página (scroll 0) não há onde o pôr.
+Por decidir pelo owner (proposta na conversa de 22/11). **Feito a seguir** (owner: "bora fazer isso com o condutor"): o espelho
+(`#c1-feed`, `lib/conductor.ts` + `sequence.ts` + `method-stage.ts` + `contact-client.tsx`), medido — `v5-tests.md` "O espelho acima do
+ecrã". **Falta o topo da página** (scroll 0): 120 px acima da entrada com o condutor — por decidir pelo owner (muda a geometria).
+
+### Por fazer, por esta ordem
+1. **O owner experimenta** no Safari (`http://localhost:3100/?cenas`, a página carregada de novo): o B, os três bugs e a barra. Commit quando pedir.
+2. **A entrada no Safari:** no caminho de volta Weddings → topo o Safari salta para a cor do filme e fica com ela (do Safari; ver
+   `v5-tests.md`). Investigar o que o faz ler o filme (a entrada mostrada de novo) e se há maneira de o evitar.
+3. **C:** porque o Safari leva 33–57 ms a desenhar cada mudança de fase do Method. **O site sem condutor:** `finger.ts` com a regra antiga.
+4. Depois, o que estava (abaixo).
+
+## (antes) COMEÇAR AQUI · 22 de novembro de 2026, noite — B e três bugs do owner corrigidos (por aprovar, sem commit)
+
+**Estado numa frase.** Por cima do B (o detetor de passadas, `src/lib/strokes.ts`), três bugs do owner corrigidos e vistos no ecrã:
+(1) o cartão do Weddings saltava no fim da passagem quando o ponteiro estava sobre ele (`work-client.tsx`: `holdLook`, `pathNow`); (2) a
+barra do Safari a piscar no 10 → 11 (`method-stage.ts`: a cor seguida a cada frame no desktop); (3) o "I'm Flávio." visível no 13 → 11
+rápido no Safari (`about-stage.ts`: `fadeTo`). Tudo em `v5-tests.md`, "Três bugs do owner (22/11, noite)". Nada em commit desde `77b435b`.
+
+**Owner (depois):** 1 e 3 corrigidos. Para o 2 quer a barra do Safari no desktop a adaptar-se à cor como no telemóvel em ecrã inteiro,
+suave e a acompanhar as animações (o feixe do 7) — "não implementes, investiga se é possível". **Investigado** (`desk/cenas/tint/`,
+README): o Safari 27 do desktop pinta a barra com **uma só cor** — o fundo do html/body, ou o de um elemento fixo/sticky com a largura toda
+no topo (≥ ~20 px) —, ignora o `theme-color`, não vê imagens, gradientes nem as animações das camadas (transform, opacity, clip-path), mas
+**segue suave** uma cor de fundo que muda (transição CSS ou a cada frame). O site já muda a barra secção a secção (pelo html), de uma vez
+fora do Method. Possível: todas as mudanças suaves e ao tempo da cena, o 7 como um esbater da barra ao passo do feixe pelo topo (não o
+rebordo a atravessá-la); a cor é a tinta do Safari (Method 200 → 207, Questions 224 → 193), não a exata — a exata pede um elemento fixo
+visível no topo (escondido por baixo do body o Safari ignora-o). Por decidir pelo owner.
+
+### Por fazer, por esta ordem
+1. **O owner experimenta** (`http://localhost:3100/?cenas`, Chrome e Safari): o B e os três bugs. Commit quando pedir.
+2. **C (à parte):** porque o Safari leva 33–57 ms a desenhar cada mudança de fase do Method (e frames longas na cauda).
+3. **O site sem condutor:** `finger.ts` com a regra antiga de passadas — decidir com o owner.
+4. Depois, o que estava (abaixo).
+
+## (antes) COMEÇAR AQUI · 22 de novembro de 2026, fim da tarde — B feito: o detetor de passadas imune aos eventos juntos (por aprovar, sem commit)
+
+**Estado numa frase.** O A está no `v5` com push do owner (`77b435b`: o passo 3 do About e as esperas das fases do Method). O B está feito
+por cima, sem commit: `src/lib/strokes.ts` (novo), o detetor de passada nova do condutor, lido na hora dos próprios eventos e com um veto
+para os eventos que o browser junta. `v5-tests.md`, "B — o detetor de passadas imune aos eventos juntos".
+
+### Feito (sem commit)
+- `src/lib/strokes.ts` + `conductor.ts` (só chama o detetor). Banco de ensaio: 39 corridas reais (691 passadas) 30/39 → 39/39; perfis
+  43 → 45/45; 76 casos feitos à medida 50 → 70; o código do site igual à variante do banco em 109 435 eventos. No ecrã: Safari 97 → 97
+  (a regra de antes daria 103), Chrome 62 → 62.
+- `docs/development/ios-lab/desk/cenas/passadas/bench/` (o banco: `node bench.mjs prod`; `python3 syn.py` primeiro). As gravações das
+  corridas em `~/.local/share/v5-lab/rec/passadas/` (fora do repositório).
+- `cases-method.mjs`: o caso E passa a ser "uma passada 0,12 s depois não mexe nada".
+
+### Por fazer, por esta ordem
+1. **O owner experimenta no trackpad** (`http://localhost:3100/?cenas`, Chrome e Safari; o 3100 tem este build). Commit quando pedir.
+2. **C (à parte):** porque o Safari leva 33–57 ms a desenhar cada mudança de fase do Method (e frames longas na cauda, ~2 s depois).
+3. **O site sem condutor** (o dos visitantes): `finger.ts` tem a regra antiga do motor no governador; decidir com o owner se leva o mesmo
+   detetor (precisa da sua própria ronda de testes) ou se espera pelo condutor ligado para os visitantes.
+4. Depois, o que estava: o percurso inteiro do passo 3 no ecrã, passo 4 (Questions e Contact), passo 5, ligar o condutor para os
+   visitantes, avisar antes do passo 6 (o telemóvel); o bug A e a validação final M8.
+
+## (antes) COMEÇAR AQUI · 22 de novembro de 2026 — passadas no Method com o condutor: A feito (por aprovar, sem commit), B por fazer
 
 **Estado numa frase.** O owner experimentou `?cenas` no trackpad (Chrome e Safari): as transições bem, mas no Method, com passadas fortes
 para trás e para a frente a meio das animações, às vezes 9 → 11 e as folhas a abrir todas juntas. Duas causas medidas (`v5-tests.md`,

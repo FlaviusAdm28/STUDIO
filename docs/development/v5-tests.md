@@ -4047,3 +4047,121 @@ selecionado aterra". Seletor só no localhost, `?titulos=a|b|c` (sem ele, como h
   falhou nos perfis tremidos (conta a dobrar) e perdeu 5 das 12 passadas reais de `owner-chrome-3`: é uma direção, não a correção.
 - **Não verificado:** o site sem `?cenas` (inalterado: o tempo calculado não é usado sem o condutor); o Xiaomi e o iPhone (o condutor é só
   desktop; no telemóvel o código novo só calcula um número que nada lê); o owner no trackpad.
+
+### B — o detetor de passadas imune aos eventos juntos (22/11; owner: "fiz o push vamos avançar com a B") — feito, por aprovar, sem commit
+- **O que muda:** `src/lib/strokes.ts` (novo) — o detetor de passada nova do condutor tirado de `conductor.ts` para ser lido e testado à
+  parte. As quatro regras de antes (pausa de 300 ms, sentido contrário, salto de 2,5×, subida a partir do mínimo) ficam, mas lidas na hora
+  dos próprios eventos (`e.timeStamp`), e um salto ou uma subida só contam se a passada for de facto mais depressa: o salto contra a
+  velocidade dos ~40 ms antes (desde o toque do dedo, se houve: uma pausa e um evento mais pequeno), medida sobre o tempo que esses eventos
+  representam; a subida contra a velocidade no seu mínimo; nenhum dos dois a menos de 150 ms do início da passada, no mesmo sentido; e uma
+  pausa que não traz o seu tempo de passada é silêncio, não soma (uma passada recomeçada depois dela conta). `conductor.ts` só chama o
+  detetor. Os eventos que o browser junta (Safari depois de cada mudança de fase, frames de 38–95 ms) passam a valer o que valem.
+- **Banco de ensaio** (`docs/development/ios-lab/desk/cenas/passadas/bench/`, README): o código do site transpilado e comparado com a
+  variante do banco — 0 decisões diferentes em 109 435 eventos. Regra de antes → detetor novo:
+  - 39 corridas com passadas reais de trackpad gravadas na página (Chrome e Safari, 691 passadas): 30/39 certas e 706 contadas (15 a mais,
+    todas no Safari) → **39/39 e 691**.
+  - Os 45 perfis do laboratório: 43 → **45** certos. `owner-chrome-3` tem **7** passadas (contadas à mão: cada uma depois de uma pausa e
+    uma subida suave), não 12 — o "12" de 16/11 era a contagem da própria regra, com 5 eventos juntos lidos como mão.
+  - 76 casos feitos à medida: eventos juntos de 2 a 7 no momento, passadas recomeçadas depois de 30–280 ms de silêncio: 50 → **70** certos;
+    os 6 que faltam (um momento forte cortado por silêncio e uma passada que começa logo tão rápida) falham também na regra de antes — um
+    dedo começa pequeno (`1 5 24…`), e esse caso as duas apanham.
+  - As gravações do owner de 14–15/11: 678 → 450 passadas encontradas; as 228 a menos são uma segunda deteção a menos de 150 ms (209) ou um
+    evento junto dentro de um momento (19, cada uma vista); das 450, 444 no mesmo evento que antes, 5 um evento mais cedo, 1 24 ms depois.
+- **Erros encontrados pelo caminho e corrigidos antes do código final:** (1) dividir cada evento pelo seu tempo confundia-se quando a
+  cadência muda (dedo a 8 ms, momento a 16 ms num ecrã de 60 Hz); (2) os eventos pequenos fora da janela faziam uma mão nova parecer lenta;
+  (3) uma passada recomeçada depois de 0,24 s de silêncio, com o primeiro evento já grande, era vetada (`cases-method` E2); (4) um evento
+  junto logo a seguir a outro passava, porque a velocidade "antes" era medida em 40 ms e não no tempo que os eventos representam.
+- **Visto (headless, `next start`):** `walk1` 0 falhas, `cases` 28/28, `cases-method` 9/9 (E: uma passada 0,12 s depois já não mexe
+  nada), `cases-about` 8/8, `fast` e as cadeias gravadas coerentes, `smoke` sem erros; typecheck, lint sem avisos, build.
+- **Visto no ecrã (trackpad real, build final):** Safari 97 passadas → 97 contadas (a regra de antes, nos mesmos eventos: 103); Chrome 62 →
+  62 (o Chrome não juntou eventos nestas corridas); nenhuma paragem saltada nem antes de a mudança estar vista, nos dois.
+- **Não verificado:** o site sem `?cenas` (o governador de `finger.ts` tem a mesma regra antiga e não foi mudado: os visitantes ainda não
+  usam o condutor); um rato com roda (eventos de ~100 px sem momento: só lidos nos perfis, não com um rato real); Firefox; o owner no
+  trackpad.
+
+### Três bugs do owner (22/11, noite; `?cenas`, Chrome e Safari) — corrigidos, por aprovar, sem commit
+**1. O cartão do Weddings "faz um ajuste e salto" no fim da passagem, depois do nome da barra (Chapter One)** — Chrome: o componente; Safari: a
+imagem dentro dele.
+- **Causa (medida, sonda por frame no Chrome real):** não é o nome da barra, é onde fica o ponteiro. Com o ponteiro sobre o sítio onde o
+  cartão aterra (a metade esquerda: a mão fica lá depois de clicar no canto superior esquerdo), o cartão real toma o seu "look" (o zoom do
+  ponteiro, 1,04 e um desvio, 1,6 s) a meio da passagem, por baixo da caixa que voa — o Chrome dá-lhe o `pointerenter` sozinho quando a
+  entrada deixa de o tapar (0,75 s dentro da passagem). A caixa aterrava sem zoom: ao sair, o cartão por baixo já estava 7,5 px ao lado e
+  4 % maior (largura 483,8 → 503,2). O mesmo ao contrário no começo do caminho de volta (a caixa sem zoom sobre o cartão com zoom). Sem o
+  ponteiro ali, nos dois caminhos (normal e depois do nome), nada mexe.
+- **Correção (`work-client.tsx`):** durante uma passagem o cartão fica como estava quando ela começou (`holdLook`: a transformação da
+  fotografia presa onde está, o "look" que o ponteiro pede guardado para o fim); a caixa acaba exatamente como o cartão se mostra (`pathNow`:
+  a transformação da fotografia do cartão faz parte do enquadramento final); no fim, o "look" pedido entra com a sua transição de 1,6 s.
+- **Visto (sonda por frame, ponteiro sobre o cartão):** Chrome e Safari, com condutor e sem (o site dos visitantes): na ida o cartão fica
+  sem zoom e a caixa aterra igual (483,8), o zoom começa depois, suave; na volta a caixa começa igual ao cartão com zoom (84,5 / 503,2).
+  `back.mjs` (o caminho de volta depois de 4,5 s no Weddings): a caixa presente do princípio ao fim.
+
+**2. Safari: na passagem 10 → 11 a barra de cima pisca e treme as cores do estado anterior para o 11.**
+- **Causa (medida: a janela gravada com a barra, a 120 fps, na 3100 direta — o painel do proxy tinge a barra):** o Safari pinta a barra com a
+  cor da página e muda-a de uma vez, sem transição sua; o Method relia a cor do topo a cada 100 ms durante 1,9 s (a escuridão do 11 a chegar
+  sobre o estúdio). A página escurecia suave (`204 → 181 → 160 → … → 42`) e a barra aos degraus, um atrás (`233 → 185 → 142 → 109 → 84 …`).
+- **Correção (`method-stage.ts` `setEdge`):** no desktop segue a cada frame; a cor da sala (um canvas desenhado e lido) guarda-se por tamanho
+  (`roomTone`), por frame lêem-se duas opacidades; a cor só se escreve quando muda. Telemóvel e iOS como antes.
+- **Visto:** a barra acompanha a página frame a frame (`224 → 201 → 156 → 143 → 133 → 124 …`, 1–2 frames atrás); frames longas no Safari só
+  as que já havia logo depois da mudança de fase (+30–90 ms), nenhuma durante o seguimento; Chrome nenhuma.
+
+**3. Safari: do 13, um scroll rápido para trás até ao 11 — a fotografia desvanece bem, o "I'm Flávio." fica visível.**
+- **Causa (medida: sonda por frame e o ecrã gravado):** com duas passadas rápidas (0,3–0,8 s), o 12 → 11 chega com o nome ainda a deslizar do
+  13 para o 12; o código deixava o deslize (posição e opacidade) e punha por cima um desvanecer da opacidade. O Safari desenha a de baixo das
+  duas animações de opacidade: o nome ficou visível, pequeno, sobre o 11, até o deslize acabar (~0,8 s a mais), com opacidade 0 no cálculo.
+- **Correção (`about-stage.ts`):** o deslize 13 → 12 move só a posição; a opacidade é uma animação à parte (`fadeTo`), que o desvanecer
+  substitui — nunca duas de opacidade no mesmo elemento; o voo só de opacidade da passagem 11 → 12, voltado a meio, é substituído.
+- **Visto (ecrã gravado):** Safari a 0,3, 0,5 e 0,8 s entre passadas e Chrome a 0,5 s: o nome desaparece com a fotografia; devagar, 13 → 12 (o
+  nome desliza e fica a 0,92), 12 → 13 e 12 → 11 como antes.
+- **Bateria:** typecheck, lint sem avisos, build; `walk1` 0 falhas, `cases` 28/28, `cases-method` 9/9, `cases-about` 8/8, `fast`, `smoke`.
+- **Não verificado:** o owner no trackpad; o iPhone e o Xiaomi (o bug 1 também corre no telemóvel, onde não há ponteiro: o "look" vem do dedo
+  pousado — a mesma correção, não medida lá; o 2 e o 3 não mudam no telemóvel).
+
+### A barra do Safari no desktop acompanha a página, suave, nos dois sentidos (22/11, noite; owner: "quero avançar com isso… as mudanças e encaixes da mudança de cor com os capítulos funcionam bem tanto scroll para a frente como para trás… elegante e smooth") — feito, por aprovar, sem commit
+- **O que o Safari 27 faz (medido, `desk/cenas/tint/`):** pinta a barra inteira com uma só cor, a de um elemento fixo/sticky com a largura
+  toda no topo (≥ ~20 px) ou, onde o topo não é de uma cor, a do fundo do html; ignora o `theme-color`, as imagens e as animações das
+  camadas; segue uma cor de fundo que muda, frame a frame.
+- **O que mudou:**
+  - `entrance/sequence.ts` — no Safari do desktop a cor da página move-se a cada frame a partir da que está no ecrã, no tempo da sua cena:
+    um capítulo do Work 1,1 s com a curva dos capítulos; qualquer outra mudança de secção 0,45 s; um salto de uma vez; a cor que uma cena
+    diz a cada frame (Method, About, Contact) tal e qual — se um deslize estiver a meio, continua no seu tempo para a cor nova. Voltado a
+    meio, parte de onde está. A luz do Method a atravessar o topo: a cor do Work e a do estúdio misturadas na parte do topo iluminada.
+  - `method-stage.ts` `beamEdge`/`shareLit` — na passagem do 7 e no caminho de volta, a parte da linha de cima do ecrã que a luz ilumina,
+    lida das próprias caixas da luz a cada frame (seja qual for o caminho: tocada, apressada, voltada); `data-mix`.
+  - `about-stage.ts` — a cor do topo seguida a cada frame no desktop (era a cada 100 ms); a banda da sala lida uma vez por sítio; o palco
+    do About recortado enquanto o papel das Questions o tapa (`data-covered`, `about.css`): o Safari tomava-o, por baixo do papel, pela cor
+    da barra (192 sobre o papel de 220, a estadia toda nas Questions, e 222 de uma vez ao começar o Contact).
+  - `contact-client.tsx` — no Safari do desktop a passagem do Contact pinta a cor do topo a cada frame (como no iOS); a luminosidade que as
+    Questions dizem às ilhas acompanha o anoitecer desenhado (no desktop; o telemóvel mantém o salto).
+  - `bar-client.tsx` — as ilhas leem outra vez quando uma secção muda a sua luminosidade (só no desktop).
+- **Visto (Safari real, a janela gravada a 60 fps, a barra contra a linha de cima da página):** para a frente, topo → fim: o feixe
+  27 → 203 ao passo da página (23 → 188), passo máximo 10–16; 10 → 11 em 1,35 s, passo 19; 12 → 13 0,85 s, passo 5; 14 → Questions 0,78 s
+  em sincronia com o papel; Questions → Contact 1,42 s, a descida igual à da página (sobra um toque de +8 no arranque, 214 → 222); os
+  capítulos do Work 0,52–0,57 s, passo 3. Para trás, fim → topo: Contact → Questions acompanha a página (rápida, como desenhada: o caminho
+  de volta mais depressa, aprovado), Questions → 14 0,65 s, o Method e o Work sem degraus. O site sem condutor (passadas de trackpad, de
+  noite): passos ≤ 6. Chrome: nenhuma frame longa nas transições (3 no carregamento).
+- **Bateria:** typecheck, lint sem avisos, build; `walk1` 0 falhas, `cases` 28/28, `cases-method` 9/9, `cases-about` 8/8, `smoke`.
+- **Fica por resolver (do Safari, já existia):** no caminho de volta Weddings → topo, quando a entrada é mostrada outra vez, o Safari passa
+  a ler o filme e salta para essa cor (29 → 61) enquanto o topo do ecrã ainda é o Work, e no topo fica com ela (61–71, contra 23 ao
+  carregar) — nada do que a página faz depois a muda (o fundo, 1 px de scroll, a entrada escondida); recarregar põe-na outra vez.
+- **Não verificado:** o owner; o iPhone e o Xiaomi (nada mudou lá: os caminhos novos são do desktop — o recorte do About, a cor do Contact e
+  a luminosidade progressiva só no desktop).
+
+### O espelho acima do ecrã para o vidro do Safari (22/11, fim da noite; owner: "bora fazer isso com o condutor") — feito, por aprovar, sem commit
+- **O porquê (medido, `desk/cenas/tint/` README):** a barra do Safari 27 é vidro sobre o conteúdo da página que passou para cima do ecrã
+  (no fluxo; não os sticky/fixed), cerca de 30 % desse conteúdo, com a forma que tem, sobre ~70 % do fundo do html como tinta. As cenas
+  são sticky: a barra mostrava o que ficava no fluxo acima da paragem (no 13 os cartões do 11).
+- **O que mudou:** `lib/conductor.ts` — no Safari do desktop, com o condutor, uma faixa da própria página (`#c1-feed`, 120 px, absoluta,
+  z-index 35, abaixo das ilhas) posta logo acima do ecrã em cada movimento da página, no mesmo frame (`place`, e no scroll de qualquer outro).
+  `entrance/sequence.ts` pinta-a com a cor que pinta no fundo; com o feixe do 7, com o rebordo (o estúdio entre as duas arestas da luz na
+  linha de cima, o Work fora, cada aresta com o espalhar da luz). `method-stage.ts` publica as arestas (`data-lit`). `contact-client.tsx`
+  pinta-a também na sua passagem. `about-stage.ts`: no desktop a cor do topo é a da largura toda (era o meio, para a ilha do iPhone).
+- **Visto (Safari real, a janela gravada; o relógio da página posto nas 14 h pelo proxy do laboratório, para a luz do dia):** a faixa nunca
+  entrou na página (o seu fundo ≤ 0 em 5 802 frames, para a frente e para trás, deslizes incluídos); no 13 a barra deixou de mostrar os
+  cartões do Method; o feixe atravessa a barra — a entrar acende o meio primeiro e depois os lados, a sair apaga dos lados para o meio;
+  barra contra o topo da página em repouso: estúdio 231–234 / 217–238, 11 29–37 / 22–33, About 47 / 26–57 (média 42; era 55–62),
+  Questions 222–224 / 204–224, Contact 31–40 / 31–40; o Contact e as Questions certos nos dois sentidos (a passagem do Contact pinta a faixa).
+- **Bateria:** typecheck, lint, build; `walk1` 0 falhas, `cases` 28/28, `cases-method` 9/9, `cases-about` 8/8, `smoke`.
+- **Por resolver:** o topo da página (scroll 0) não tem espaço acima para a faixa: a barra fica com a cor que o Safari lê (27 ao carregar, 67
+  depois do caminho de volta) sobre o filme a 107. Proposta: 120 px de espaço acima da entrada com o condutor (a paragem do topo a 120),
+  pintados com a cor do topo do filme — muda a geometria da página: por decidir pelo owner.
+- **Não verificado:** o owner; outros macOS / "Reduzir transparência" (o vidro opaco: a faixa não se vê, nada muda).

@@ -24,3 +24,13 @@ Node 22 (`~/.local/share/node22/bin/node`); run from a working folder, results i
   (it never showed the joined events: the trackpad sends 8 ms).
 - `vid.sh chrome|safari <label> "<plan>" <s>` — the window recorded during a run; `tile.sh <label> <from> <to> [fps] [cols]` its frames tiled.
 - `tabs.mjs [port]` — read-only: the state of each `localhost:3100` tab in a Chrome (which mode, where, how long ago loaded).
+
+## The bench (`bench/`, B, 22 Nov) — the stroke detector against every corpus
+
+`python3 bench/syn.py` once (the made-up cases → `~/.local/share/v5-lab/strokes-syn`), then `node bench/bench.mjs <variant> [k=v…]`:
+the runs recorded in the page (`RUNS`, default `~/.local/share/v5-lab/rec/passadas`: strokes made known from their plans), every lab
+profile, the made-up cases, and the owner's own recordings (`../../../out/*rec.jsonl`, one stream per page session; arrival times only).
+Variants in `det.mjs`: `today` (the rule before), `v1`–`v7` (the way there, kept for the record), and `prod` = the site's own
+`src/lib/strokes.ts`, transpiled as it is (`prod.mjs`). `lost.mjs` (`VAR=v7`): every detection the rule before made and the new one does
+not, sorted into duplicate / delayed / lost with its events; `verify.mjs <run…>` new runs; `trace.mjs`, `ptrace.mjs`, `rtrace.mjs` where
+two variants disagree on a run, a profile, an owner session.

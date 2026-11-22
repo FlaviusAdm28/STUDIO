@@ -273,6 +273,14 @@ export function BarClient(props: Props) {
     })
     states.observe(root, { attributes: true, attributeFilter: ['data-entrance', 'data-light', 'data-pass'] })
     cleanups.push(() => states.disconnect())
+    // a section saying another brightness (data-lum: the Method's phases, the dusk drawn on a desktop, contact-client.tsx) changes what is
+    // behind the islands without a scroll: under the conductor the page rests while the scene changes. A desktop only: on a phone the page
+    // scrolls through every change, and 24 hit tests more at a phase's first frame are what the Xiaomi could not afford (above)
+    if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      const lums = new MutationObserver(queue)
+      lums.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['data-lum'] })
+      cleanups.push(() => lums.disconnect())
+    }
     queue()
 
     // ---- the lens: a displacement map shaped like each island; within 14 px of its rim the backdrop is pulled from

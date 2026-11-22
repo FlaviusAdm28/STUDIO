@@ -139,13 +139,26 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
     // the island went dark 0.35 s before it on the way in, and was light again a whole second before the paper on the way back (owner's
     // iPhone, 11 Nov 13:43, measured frame by frame). Costs what the fade did (the page's background repainted each frame, iOS only)
     const ios = CSS.supports('-webkit-touch-callout', 'none')
+    // and desktop Safari, whose tab bar takes the page's colour at once (sequence.ts tinted, 22 Nov): led by the dusk's timed glide there,
+    // the bar went dark 0.27 s before the paper, its first frame a step of 59 (on screen, Safari 27.2)
+    const desk = !ios && matchMedia('(hover: hover) and (pointer: fine)').matches
+    const tinted = desk && /Apple/.test(navigator.vendor)
+    // The bar's islands take their darkness from the brightness behind them (bar-client.tsx, data-lum). Flipped at the dusk's start, the
+    // Questions' brightness said the room's 0.5 s before the paper went dark: the islands cleared over a paper still light, and desktop
+    // Safari, whose tab bar takes them in, cleared with them, 185 → 222, before going dark (on screen, 22 Nov). On a desktop it follows
+    // the dusk as drawn (the phone keeps the flip: the islands read again at every change, 24 hit tests, on the Xiaomi)
+    const lumAt = (d: number, r: number) => {
+      if (!desk || !questions) return
+      const v = (0.8 + (0.1 - 0.8) * Math.max(d, r)).toFixed(2)
+      if (questions.dataset.lum !== v) questions.dataset.lum = v
+    }
     const themeMeta = document.querySelector('meta[name="theme-color"]')
     const PAPER = [220, 213, 200]
     const DIM = [20, 20, 18]
     const ROOM = [27, 28, 26]
     const edges = (d: number, r: number) => {
       const s = root.dataset.section
-      if (!ios || (s !== 'questions' && s !== 'contact')) return
+      if (!(ios || tinted) || (s !== 'questions' && s !== 'contact')) return
       const c = PAPER.map((p, i) => Math.round((p + (DIM[i] - p) * d) * (1 - r) + ROOM[i] * r))
       const colour = `#${c.map((v) => v.toString(16).padStart(2, '0')).join('')}`
       root.style.transition = 'none'
@@ -153,6 +166,10 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
       root.style.backgroundColor = colour
       document.body.style.backgroundColor = colour
       themeMeta?.setAttribute('content', colour)
+      // and the strip of the page above the viewport that desktop Safari's glass shows (lib/conductor.ts feed): painted here too, or the bar
+      // kept the colour the passage began with — 61 over the Contact's 36, and 185 over the Questions' paper on the way back (on screen)
+      const feed = document.getElementById('c1-feed')
+      if (feed) feed.style.background = colour
     }
     // the storyboard's E (saida-mascara render, 'e'), at progress x
     const draw = (x: number) => {
@@ -164,6 +181,7 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
       const d = 0.97 * ease(ramp(x, 0.06, 0.46))
       const r = ease(ramp(x, 0.42, 0.7))
       edges(d, r)
+      lumAt(d, r)
       if (box) box.style.opacity = String(1 - ease(ramp(x, 0, 0.2)))
       if (dim) dim.style.opacity = String(d)
       if (room) room.style.opacity = String(r)
@@ -198,6 +216,7 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
         last = 0
         // the edges end exactly on the stop's own colour (x 0: the paper's, 1: the room's), the one sequence.ts holds for it
         edges(x ? 1 : 0, x ? 1 : 0)
+        lumAt(x ? 1 : 0, x ? 1 : 0)
         delete root.dataset.cRun
         settle()
         return
@@ -388,7 +407,7 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
         root.classList.toggle('c-dusk', dusk)
         // the bar reads the brightness behind it from the section there (data-lum): once the light is down it is the dark, not the
         // Questions' paper (their section is still the one under the bar)
-        if (questions) questions.dataset.lum = dusk ? '0.1' : '0.8'
+        if (questions && !desk) questions.dataset.lum = dusk ? '0.1' : '0.8'
         go(dusk ? 1 : 0)
       }
     }

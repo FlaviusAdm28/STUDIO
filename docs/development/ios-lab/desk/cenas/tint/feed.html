@@ -1,0 +1,14 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>feed</title>
+<style>html, body { margin: 0; background: #808080; height: 4000px; } body > .cover { position: absolute; left: 0; right: 0; top: 1000px; height: 3000px; background: #808080 } #feed { position: absolute; left: 0; right: 0; }</style></head>
+<body><div id="feed"></div>
+<script>
+// an absolutely positioned element of the document (it scrolls with it) laid just above the viewport: does the bar show it, and where?
+//   ?h=120&split=50: magenta on the left of split %, green on the right; &grad=1: a soft edge (the beam's spill)
+const q = new URLSearchParams(location.search), f = document.getElementById('feed')
+const h = Number(q.get('h') || 120), s = Number(q.get('split') ?? 50)
+f.style.height = h + 'px'
+f.style.background = q.has('grad') ? `linear-gradient(90deg, #ff00ff ${s - 10}%, #00c000 ${s + 10}%)` : `linear-gradient(90deg, #ff00ff ${s}%, #00c000 ${s}%)`
+if (q.has('bg')) { document.documentElement.style.background = '#' + q.get('bg'); document.body.style.background = '#' + q.get('bg') }
+addEventListener('load', () => { scrollTo(0, 1000); f.style.top = (1000 - h) + 'px' })
+</script></body></html>

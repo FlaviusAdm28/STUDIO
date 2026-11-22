@@ -509,7 +509,15 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
     // The pointer on the photograph — or a finger held on it — looks at it: time waits and the photograph drifts slowly,
     // as the entrance's blades do; the piece stays (owner, 29 Oct: "mexia a foto mas não retirava a peça"). Not on the
     // words: there it only got in the way of the word filling (owner, same day).
+    // While the blade's passage plays, Weddings' card keeps the look it had when it began (holdLook, below), and what the pointer asks
+    // meanwhile waits for its end: the box flying in or out is drawn as the card is
+    let lookHeld = false
+    let lookAsked: boolean | null = null
     const look = (a: Element | null, on: boolean) => {
+      if (lookHeld && (a as HTMLElement | null)?.dataset.c === 'weddings') {
+        lookAsked = on
+        return
+      }
       a?.classList.toggle('w-look', on)
       pause(on)
     }
@@ -977,6 +985,19 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       // light; cut 2 px short, the shade alone showed there as a dark bar (owner, 31 Oct).
       const dpr = devicePixelRatio
       const flush = Math.floor((b.top + b.height) * dpr) / dpr - b.top
+      // And it ends exactly as the card shows it: the card's own look (the pointer on it, 1.04 and a drift, 1.6 s) is part of its framing.
+      // Ended unzoomed, the box gave way to a card already zoomed under it — the photograph jumped 7.5 px and 4 % at the end of the way in,
+      // and the same the other way as the way back began (owner, Chrome and Safari, 22 Nov: "faz um ajuste e salto", after the bar's name,
+      // the hand then on the left, over the card; lab: the card zoomed from 0.75 s into the passage, under the box)
+      const card = arch?.querySelector<HTMLImageElement>('.w-ph[data-j="0"] img')
+      const cc = card ? getComputedStyle(card) : null
+      const m = cc && cc.transform !== 'none' ? new DOMMatrix(cc.transform) : new DOMMatrix()
+      const [ox, oy] = (cc?.transformOrigin ?? '0 0').split(' ').map((v) => parseFloat(v) || 0)
+      const lx = r.left + ox
+      const ly = r.top + oy
+      const kEnd = m.a
+      const ixEnd = lx + m.a * (r.left + (r.width - cw) / 2 - lx) + m.e
+      const iyEnd = ly + m.d * (r.top + (r.height - ch2) / 2 - ly) + m.f
       const smooth = passCurve
       const outer: Keyframe[] = []
       const inner: Keyframe[] = []
@@ -988,9 +1009,9 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
         const sx = mix((1 - lean) * b.width, r.width) / r.width
         const sy = mix(flush, r.height) / r.height
         const sh = (-lean * b.width * (1 - g)) / r.height
-        const k = mix((zoom * inBlade) / inArch, 1)
-        const ix = mix(ix0, r.left + (r.width - cw) / 2)
-        const iy = mix(iy0, r.top + (r.height - ch2) / 2)
+        const k = mix((zoom * inBlade) / inArch, kEnd)
+        const ix = mix(ix0, ixEnd)
+        const iy = mix(iy0, iyEnd)
         outer.push({ transform: `matrix(${sx}, 0, ${sh}, ${sy}, ${x - r.left}, ${y - r.top})` })
         const v = (iy - y) / sy
         inner.push({
@@ -1250,6 +1271,7 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
         holdEvents(false)
         lockPage(false)
         passHold(false)
+        holdLook(false)
       }
     }
     // the way back from Weddings, waiting for its held entrance to be shown (go)
@@ -1300,9 +1322,38 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       section.classList.remove('w-quick')
       run(true)
     }
+    // Weddings' card held as it is while a passage plays (look, above): its photograph's own transform kept where it is, its drift
+    // stopped, so the box lands on — and leaves from — the card as pathNow read it. At the end, what the pointer asked meanwhile, and the
+    // drift goes on from there (the class's own 1.6 s)
+    const holdLook = (on: boolean) => {
+      const card = arch?.querySelector<HTMLImageElement>('.w-ph[data-j="0"] img')
+      if (on) {
+        if (lookHeld) return
+        lookHeld = true
+        if (card) {
+          const now = getComputedStyle(card).transform
+          card.style.transition = 'none'
+          card.style.transform = now
+        }
+        return
+      }
+      if (!lookHeld) return
+      lookHeld = false
+      const asked = lookAsked
+      lookAsked = null
+      if (asked !== null) {
+        const a = arch?.closest('.w-ch')
+        a?.classList.toggle('w-look', asked)
+        // the moments wait for the pointer only on the stage (at the top the stage is hidden, its moments run once it comes back)
+        if (prog > 0) pause(asked)
+      }
+      card?.style.removeProperty('transition')
+      card?.style.removeProperty('transform')
+    }
     // played: towards an end, from wherever it is (turned back halfway it goes back from there)
     const go = (to: number) => {
       if (goal === to && (prog === to || tickRaf || showing || dissolving)) return
+      holdLook(true)
       goal = to
       cancelAnimationFrame(showing)
       showing = 0
@@ -1353,6 +1404,7 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
       lockPage(false)
       passHold(false)
       passageFrame()
+      holdLook(false)
     }
     // A jump of the site's own: its scroll is not a stroke. Only while nothing of the visitor's moved the page just before — the menu
     // keeps the snapping off 2.6 s after a jump to the Work (unsnapped), and a stroke up from Weddings in that time was taken for the

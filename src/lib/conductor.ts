@@ -1,7 +1,8 @@
 /*
-  The conductor — the page's one driver on a desktop (prototype, behind `?cenas`; the plan of 16 Nov in v5-handoff.md and
-  v5-scroll-options.md §5–6). It grows out of the motor (motor.ts, `?motor`): the browser never moves the page — every wheel and scrolling
-  key is cancelled from a stroke's first event, and a stroke is only a request, "onwards" or "back".
+  The conductor — the page's one driver on a desktop (the plan of 16 Nov in v5-handoff.md and v5-scroll-options.md §5–6; built behind
+  `?cenas` on this machine, steps 1–4, 16–22 Nov; the desktop's scroll since step 5, 23 Nov, the old one gone: the wheel governor, the
+  motor it grew out of). The browser never moves the page — every wheel and scrolling key is cancelled from a stroke's first event, and a
+  stroke is only a request, "onwards" or "back".
 
   What is new: **the scenes no longer read the scroll.** A scene registers here (registerScene) and is told where the page is — "you are on
   stop 8b; played, or at once" — and shows what belongs there; it says how long a passage of its own must still play whole (busyUntil).
@@ -58,21 +59,11 @@ const easeOut = (t: number) => 1 - (1 - t) ** 3
 
 const fine = () => matchMedia('(hover: hover) and (pointer: fine)').matches && !CSS.supports('-webkit-touch-callout', 'none')
 let wanted: boolean | null = null
-/** the conductor drives this page (a desktop, `?cenas`, kept for the session; `?cenas=0` turns it off) */
+/** the conductor drives this page: a desktop (a fine pointer that hovers, not an iPhone or an iPad), motion allowed */
 export const cenasOn = () => {
   if (wanted !== null) return wanted
   if (typeof window === 'undefined') return false
-  // a prototype still being built (the About, the Questions, the Contact): on this machine only, never on the published site (18 Nov)
-  if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return (wanted = false)
-  if (!fine() || matchMedia('(prefers-reduced-motion: reduce)').matches) return (wanted = false)
-  try {
-    const q = new URLSearchParams(location.search)
-    if (q.has('cenas')) sessionStorage.setItem('v5-cenas', q.get('cenas') === '0' ? '0' : '1')
-    wanted = sessionStorage.getItem('v5-cenas') === '1'
-  } catch {
-    wanted = new URLSearchParams(location.search).has('cenas')
-  }
-  return wanted
+  return (wanted = fine() && !matchMedia('(prefers-reduced-motion: reduce)').matches)
 }
 
 const scenes = new Set<Scene>()
@@ -99,8 +90,8 @@ const stops = (): Stop[] => {
   if (![...seen.keys()].some((y) => Math.abs(y - end) < 3)) seen.set(end, { id: 'end', y: end, barrier: false, el: null })
   return [...seen.values()].sort((a, b) => a.y - b.y)
 }
-// on the mark exactly, measured with the page beside it, never short of it (motor.ts: a mark measured from far away came out half a
-// pixel off, and the sections still reading the scroll chose the phase before)
+// on the mark exactly, measured with the page beside it, never short of it (the motor, 15 Nov: a mark measured from far away came out half
+// a pixel off, and the sections still reading the scroll chose the phase before)
 const exact = (s: Stop) => {
   if (!s.el) return Math.min(s.y, maxY())
   return Math.min(Math.ceil(scrollY + s.el.getBoundingClientRect().top - 0.01), maxY())
@@ -367,12 +358,11 @@ const onResize = () => {
   }, 150)
 }
 
-/** start the conductor on a desktop when asked for (`?cenas`); returns the way to stop it */
+/** start the conductor on a desktop; returns the way to stop it */
 export function startConductor() {
   if (!cenasOn()) return () => {}
   const root = document.documentElement
-  // data-motor: the governor (finger.ts) and the holds (hold.ts) stand down, the browser's snapping is off (globals.css)
-  root.dataset.motor = ''
+  // data-cenas: the holds (hold.ts) stand down, the browser's snapping is off (globals.css)
   root.dataset.cenas = ''
   seenJumps = siteJumps()
   detect = strokeDetector()
@@ -391,16 +381,16 @@ export function startConductor() {
   addEventListener('resize', onResize)
   // where the page is now (a reload down the page, an address): onto its stop once the sections have laid out their marks
   const first = requestAnimationFrame(() => requestAnimationFrame(adopt))
-  // the lab reads the conductor's state (desk tests)
-  ;(window as unknown as { __cenas?: unknown }).__cenas = {
-    stops: () => stops().map(({ id, y, barrier }) => ({ id, y, barrier })),
-    current: () => current?.id ?? null,
-    gliding: () => gliding,
-    go: (id: string, how: How) => goTo(id, how),
-  }
+  // the lab reads the conductor's state (desk tests): on this machine only — the published site carries no lab instruments (18 Nov)
+  if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname))
+    (window as unknown as { __cenas?: unknown }).__cenas = {
+      stops: () => stops().map(({ id, y, barrier }) => ({ id, y, barrier })),
+      current: () => current?.id ?? null,
+      gliding: () => gliding,
+      go: (id: string, how: How) => goTo(id, how),
+    }
   return () => {
     cancelAnimationFrame(first)
-    delete root.dataset.motor
     delete root.dataset.cenas
     removeEventListener('wheel', onWheel)
     removeEventListener('keydown', onKey)

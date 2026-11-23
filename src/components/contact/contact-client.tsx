@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { cenasOn, registerScene, type How } from '@/lib/conductor'
-import { fingerDown, onWheelStroke, watchFinger } from '@/lib/finger'
+import { fingerDown, watchFinger } from '@/lib/finger'
 import { bandColour, hex, over, SAFARI_BAR_LIFT, underSafariBar, type Rgb } from '@/lib/top-colour'
 
 // the room's own dark (contact.css .contact, .c-veil)
@@ -323,16 +323,6 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
       }
       endOn()
     }
-    // Both holds also let go at a new stroke of a wheel or a trackpad once their way is over (lib/finger.ts onWheelStroke): with strokes one
-    // after another the page never rested, and each stroke was taken back to the same stop — onwards to the Contact's ~7 s (Chrome, 14 Nov:
-    // "vários scroll normal não abriram o built around you"), back to the Questions' 5 s, one stroke up even pulled forward to it (Chrome
-    // and Safari: "não foi possível fechar o questions"). The stroke under way as the way ends (its momentum) is still held, as before. A
-    // finger is left as it was (phone, approved): a touch begun during iOS's momentum is not told to the page
-    const offWheel = onWheelStroke(() => {
-      if (runRaf || jumping()) return
-      if (onward) endOn()
-      if (holding) letGo()
-    })
     const go = (to: number, now = false) => {
       target = to
       // reduced motion, and a jump of the site's own (the menu, an address: data-jump; or one the conductor says): the light is down, or up,
@@ -586,7 +576,6 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
       cancelAnimationFrame(runRaf)
       cancelAnimationFrame(holdRaf)
       cancelAnimationFrame(cinRaf)
-      offWheel()
       unregister()
       box?.style.removeProperty('translate')
       section.style.removeProperty('--c-in')

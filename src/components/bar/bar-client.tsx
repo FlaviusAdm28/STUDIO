@@ -5,8 +5,6 @@ import { lensMap } from '@/lib/lens'
 import { press } from '@/lib/press'
 import { landOnAddresses } from '@/lib/address'
 import { unsnapped } from '@/lib/unsnapped'
-import { governWheel } from '@/lib/finger'
-import { startMotor } from '@/lib/motor'
 import { startConductor } from '@/lib/conductor'
 
 type Section = { readonly id: string; readonly number: string; readonly label: string }
@@ -146,11 +144,9 @@ export function BarClient(props: Props) {
     cleanups.push(press(document.body, '.bar-menu, .menu-list a, .menu-go, .menu-channels a'))
     // the Method's and the About's addresses land where they are seen, not on their top (src/lib/address.ts)
     cleanups.push(landOnAddresses())
-    // one stroke of a wheel or a trackpad, one stop, on a desktop (lib/finger.ts): for the whole page, so here, with the bar
-    // the conductor first (`?cenas`, a desktop: lib/conductor.ts), else the motor (`?motor`): with either on, the governor stands down
+    // the conductor (lib/conductor.ts): a desktop's scroll, for the whole page, so here, with the bar — one stroke, one stop (phones and
+    // reduced motion keep the browser's own scroll)
     cleanups.push(startConductor())
-    cleanups.push(startMotor())
-    cleanups.push(governWheel())
 
     // ---- each island's darkness: measured under its words only (README #71) ----
     // The brightness of every image is read once, on a 24 × 24 grid (sRGB luma); the film is read from its poster (the

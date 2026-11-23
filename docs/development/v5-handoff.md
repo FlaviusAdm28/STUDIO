@@ -1,6 +1,6 @@
 # Chapter One V5 — handoff
 
-## ▶ COMEÇAR AQUI · 23 de novembro de 2026 — as cores da barra do Safari no desktop acertadas por números (aprovado; em commit no `v5`, push do owner)
+## ▶ COMEÇAR AQUI · 23 de novembro de 2026 — o condutor é o scroll do desktop (passo 5) e as cores da barra do Safari; tudo no `v5` e no `master`
 
 **Estado numa frase.** Por cima do passo 4 (aprovado pelo owner no desktop a 23/11, sem commit), a barra do Safari no desktop iguala a
 página: ΔE2000 barra contra o topo 0,0–1,5 em todas as paragens com a página fora do topo (era 1,0–3,6), Experiences 2,3 (era 3,3), de dia
@@ -33,11 +33,22 @@ deixavam em branco cada página nova).
 A linha entre a barra do Safari e a página em cada paragem — sobretudo as escuras (o Work, o Method de noite, o 11, o About, o Contact) e a
 passagem da entrada para o Work. Os números estão no `v5-tests.md` (o owner é daltónico: os números contam mais do que o olho).
 
+**Owner, 23/11 (depois do push de `2f6ab1d`):** "prefiro limpar o scroll antigo desktop e só depois ligar o condutor [no] master". E: o bug A,
+o C, a cor do filme na barra do Safari depois do caminho de volta e o M8 "já não são problemas, parecem resolvidos" — fechados pelo owner
+(não medidos de novo). O 9 e o Method de dia no telemóvel (3–4 níveis acima do topo no Xiaomi): o owner confirma.
+
 ### Por fazer, por esta ordem
-1. ~~**O owner experimenta.**~~ Aprovado (desktop, Xiaomi); em commit. Falta o owner no seu iPhone, se quiser.
-2. **Ligar o condutor para os visitantes no desktop** (decisão do owner); antes, a validação completa no ecrã.
-3. **Passo 5 — limpar o scroll antigo do desktop** (com ele sai também o caso "sem a faixa" do `barInk`).
-4. **Avisar o owner antes do passo 6, o telemóvel.** Em aberto: bug A, C, M8; o Safari fica com a cor do filme no topo depois do caminho de volta do Work (antigo).
+1. ~~**O owner experimenta.**~~ Aprovado (desktop, Xiaomi); em commit e com push. Falta o owner no seu iPhone, se quiser.
+2. **Passo 5 — feito e aprovado (owner, 23/11: "parece-me bem vi no chrome e safari podemos avançar commit eu dou push e depois merge
+   para o master"); em commit no `v5`, e o `master` avançado até ele (fast-forward, local; o push dos dois pelo owner).** `v5-tests.md`
+   "Passo 5 do condutor", README #127. Plano que foi seguido: limpar o scroll antigo do desktop, no `v5`, e com isso o condutor passa a ser o scroll do desktop (sem o portão de
+   `localhost` nem `?cenas=0`); o `master` fica como está até tudo validado. Plano (23/11): fora `motor.ts` e o governador da roda de
+   `finger.ts` (`governWheel`, `onWheelStroke`, `data-wheel-held`), o `?cenas`; dentro das cenas, os ramos só do desktop sem condutor. Ficam
+   o que o telemóvel usa (`watchFinger`/`fingerDown`, `hold.ts` — a passagem do Work no Android —, os encaixes do iOS) e o caminho sem
+   condutor para o reduced motion no desktop (e o caso "sem a faixa" do `barInk`, que é também o dele).
+3. ~~**Ligar no `master`:**~~ feito com o passo 5 (o `master` = o `v5`; o site publicado passa a ter o condutor quando o owner fizer push). Era: o `v5` para o `master` depois da validação completa (Chrome e Safari no ecrã, resoluções, teclado, reduced
+   motion, sem JS, o Xiaomi e o iPhone sem mudanças).
+4. **Avisar o owner antes do passo 6, o telemóvel.**
    Não medido: o modo escuro do macOS e "Reduzir transparência" (o +8 é do modo claro).
 
 ## (antes) COMEÇAR AQUI · 23 de novembro de 2026 — passo 4 do condutor aprovado pelo owner no desktop (Questions e Contact; sem commit)

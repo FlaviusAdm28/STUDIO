@@ -44,3 +44,7 @@ Run against `next start -p 3100` (`../rebuild.sh`). A separate headless Chrome f
 3. A screen recording at the same time (⌘⇧5) shows what the compositor drew; the corner clock aligns it with the log.
 4. `node rec-read.mjs` lists the sessions (a page that died is flagged); `node rec-read.mjs <session> [frames]` reads one.
 `src/lib/rec.ts` + `src/lib/rec-on.ts`, loaded only on localhost with `?rec` — **take them out before launch**, with the FPS meter.
+
+**23 Nov, step 5:** the conductor is the desktop's scroll — `?cenas` switches nothing any more (the scripts still pass `?cenas=1`, harmless;
+`CEN=0`/`?cenas=0` runs no longer reach an old desktop scroll: it is gone). `window.__cenas` exists on `localhost` only. `smoke.mjs` now runs the
+desktop and the desktop with reduced motion.

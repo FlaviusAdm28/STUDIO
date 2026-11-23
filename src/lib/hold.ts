@@ -42,14 +42,10 @@ const free = () => {
   root.style.removeProperty('scrollbar-gutter')
 }
 
-/** the holders have all let go but the page is still held, waiting for the wheel to be quiet (finger.ts: a stroke begun meanwhile cannot
-    move the page itself, so the governor takes it to its stop) */
-export const letGoPending = () => !holders.size && freeT !== 0
-
 /** hold the page still until the returned function is called (calling it again does nothing); the page is let go once the wheel is quiet */
 export function holdPage(): () => void {
-  // with the motor (motor.ts) the browser never moves the page on a desktop: nothing to hold, and no overflow ever taken on or off
-  if (document.documentElement.dataset.motor !== undefined) return () => {}
+  // with the conductor (conductor.ts) the browser never moves the page on a desktop: nothing to hold, and no overflow ever taken on or off
+  if (document.documentElement.dataset.cenas !== undefined) return () => {}
   if (!watching) {
     watching = true
     addEventListener('wheel', heard, { passive: true })

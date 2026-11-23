@@ -4264,3 +4264,29 @@ imagem dentro dele.
     162: o recorte da fotografia é outro no ecrã real; o aparelho manda.
 - **Não verificado:** o owner no iPhone; o modo escuro do macOS, "Reduzir transparência" e outros ecrãs/perfis de cor (o +8 medido em modo claro, neste MacBook); outras alturas de
   janela no Safari (medido a 1728 × 1062; em headless 1280 × 590 a 2560 × 1305 as cores das cenas).
+
+### Passo 5 do condutor — o scroll antigo do desktop sai; o condutor é o scroll do desktop (23/11; owner: "prefiro limpar o scroll antigo desktop e só depois ligar o condutor [no] master"; "avança") — aprovado pelo owner (23/11: "parece-me bem vi no chrome e safari"), em commit; o `v5` para o `master` (README #127)
+- **O que saiu:** `lib/motor.ts` (o protótipo `?motor`); de `lib/finger.ts` o governador da roda (`governWheel`, `onWheelStroke`, o
+  `data-wheel-held`, ~150 linhas); de `lib/hold.ts` o `letGoPending` (só do governador); de `globals.css` as regras `data-wheel-held` e
+  `data-motor` (fica uma, `data-cenas`: o encaixe do browser desligado sob o condutor); do Contact a libertação das retenções a cada passada
+  de roda; da barra o arranque do motor e do governador. `lib/conductor.ts`: sem o portão de `localhost` e sem `?cenas` — corre em qualquer
+  desktop (ponteiro fino que paira, nem iPhone nem iPad) com movimento permitido; só a pega do laboratório (`window.__cenas`) fica em
+  `localhost`. `CLAUDE.md` corrigido nessa linha.
+- **O que fica (não é do desktop sem condutor):** `watchFinger`/`fingerDown` (telemóvel), `hold.ts` (a passagem do Work no Android;
+  desliga-se sob o condutor por `data-cenas`), as retenções do Contact (telemóvel), os encaixes `@media (min-width: 900px)` (o iPad deitado:
+  tátil, fica com o scroll do browser), os caminhos das cenas que leem o scroll (telemóvel, iPad, movimento reduzido — no desktop com
+  movimento reduzido o Method e o About nem arrancam o palco: não há fases nem encaixes, e o governador nunca atuava aí), o caso "sem a
+  faixa" do `barInk` (o Safari do desktop com movimento reduzido).
+- **Bateria:** typecheck, lint, build sem avisos; `smoke` (agora: o desktop e o desktop com movimento reduzido) — sem `?cenas` o condutor
+  liga (17 paragens), com movimento reduzido fica desligado e o scroll é o do browser, sem erros nos dois; `walk1`, `cases`,
+  `cases-method`, `cases-about`, `cases-contact` 0 falhas (1440 × 900); `walk1`, `cases`, `cases-contact` 0 falhas também a 1280 × 590 e
+  2560 × 1305 (1–2 fotogramas longos por percurso).
+- **No ecrã (trackpad real, sem `?cenas`), 17 passadas para baixo e 17 para cima:** Chrome e Safari — cada passada uma paragem, todas pela
+  ordem nos dois sentidos (topo → Work → Method 7…11 → About 12…14 → Questions → Contact → fim → … → topo); eventos da roda 1198 (Chrome) e
+  2363 (Safari), todos canceláveis e cancelados. Fotogramas longos: Chrome 3 (67–100 ms, à chegada ao 7 e ao 8a); Safari 37 (51–85 ms, um por
+  mudança de cena, quase todas) — a mesma faixa das passadas do Safari de 22/11 com o código de antes (6–13 por percurso, máximos 68–105 ms;
+  o C, que o owner deu por resolvido): não é desta mudança.
+- **Fora de localhost** (`http://192.168.1.5:3100/`, Chrome headless): o condutor liga, sem a pega do laboratório; uma tecla leva ao
+  Weddings. **Sem JavaScript** (`next start`): as seis secções lá, com altura, e o texto (6505 caracteres).
+- **Xiaomi** (Chrome, a página inteira para baixo e para cima por scroll): todas as cenas e fases, sem condutor, nenhum erro.
+- **Não verificado:** o iPhone (a mudança é só do desktop; o iOS fica fora por `fine()`).

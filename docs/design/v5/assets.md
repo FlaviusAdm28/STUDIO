@@ -108,10 +108,12 @@ CC0 nem domínio público). A licença não cobre pessoas nem obras visíveis. N
 | Experiences · During | https://unsplash.com/photos/rCX_nOPnSNA | 3024×4032 |
 | Experiences · After | https://unsplash.com/photos/5PNmURC73JQ | 2786×4179 |
 
-O `experiences-during` de IA continua a servir a lâmina da entrada, em P&B.
+**As lâminas da entrada (owner, 23/11, README #129):** Artists e Experiences mostram o P&B derivado destas fotografias — a galeria
+(`artists-moment-photo-mono`, Cu5pKZkpJj8, que já é P&B: o derivado só lhe dá o contraste e o tom dos P&B do site) e as velas com o
+piano (`experiences-during-photo-mono`, rCX_nOPnSNA). O `experiences-during` de IA deixou de servir a lâmina; o site já não o usa.
 
 **Artists · Always (30/10):** imagem nova gerada pelo owner no ChatGPT (`media-src/artists/always-studio.png`, 1024×1536,
-SHA-1 dd335e25299a), derivado cortado à esquerda (`artists-always-photo`). O `artists-always` anterior serve a lâmina.
+SHA-1 dd335e25299a), derivado cortado à esquerda (`artists-always-photo`). O `artists-always` anterior serviu a lâmina até 23/11 (README #129); o site já não o usa.
 
 ---
 

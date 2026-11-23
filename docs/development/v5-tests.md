@@ -4348,3 +4348,41 @@ imagem dentro dele.
 - **Desktop e Android sem mudança** (só com `lift`, o iOS): lint, `smoke`, `walk1`, `cases-method` 0 falhas.
 - **Não verificado:** uma passada fortíssima que leve a página para lá da cena (aí o palco passa a `fixed` e a faixa
   volta a ser a cor da página — agora a do Work).
+
+### As lâminas da entrada com as fotografias do Work (23/11; owner: "acho que quero mudar as imagens das laminas na entrada... estao um bocado com ma qualidade"; "vamos mudar a imagem do artists que sugeriste e a experiences ser a E1") — feito, por aprovar; em commit e com push no `v5` para o owner testar no Mac (o `master` sem mudança; README #129)
+- **Medido antes:** as lâminas de Artists e Experiences eram imagens de IA de 1024 px. Artists levava zoom 1,3: no Xiaomi (84vw × 2,75
+  = 908 px) pedia 1180 px a um ficheiro de 1024. Experiences era um concerto escuro, com fumo, em AVIF q50 (15 KB), empastado na faixa
+  fina. Weddings (a 002, 3453 px, `fine`) estava nítida e fica. Simulação das lâminas ao tamanho real em `scratchpad` e depois no Chrome.
+- **O que mudou:** `scripts/images.mjs`: `mono: true` em `artists-moment-photo` (Unsplash Cu5pKZkpJj8, que já é P&B: saturação
+  0,000) e `experiences-during-photo` (rCX_nOPnSNA). São 16 derivados novos `-mono-{640,960,1280,1600}.{avif,jpg}` (AVIF q50, JPEG q80,
+  como os P&B de sempre), gerados com `--only` e sem `--force`, para os ficheiros a cores ficarem como estavam. `content/v5.ts`
+  `entrance.blades`: as duas imagens e os enquadramentos (Artists 72 % / 60 %, Experiences 56 % / 55 %, zoom 1). Sem mudanças no CSS
+  nem no código.
+- **AVIF q50 contra q78** (o P&B, a 1:1 na faixa do Xiaomi): iguais à vista. Em peso, 960 px ≈ 38 KB contra ≈ 90 KB, por isso fica o
+  q50. **Peso na entrada** (o ficheiro que o `sizes` escolhe): no Xiaomi (960) 62 → 77 KB as duas lâminas; num iPhone a 3× (1280)
+  62 → 113 KB; no desktop (640) 35 → 44 KB.
+- **Enquadramento do telemóvel (Artists):** a 62 % os tablets em pé (768, 820; faixa 5,6 : 1) cortavam o topo da cabeça; a 55 % o
+  telemóvel mostrava só cabeças, com o nome por cima. Ficou nos 60 %: no telemóvel cabeças e tronco; nos tablets a cabeça toca na
+  aresta, como o casal de Weddings já fazia.
+- **Os 18 tamanhos** (`D:\STUDIO-tools\v5-blades\blades.mjs`, o Chrome visível no segundo monitor, `next start`): 1920×1080,
+  1440×900@2, 768×1024, 390×844@3, 320×640, 2560×1305, 1920×953, 1728×1000, 1536×730, 1512×860, 1440×790, 1366×633, 1280×590,
+  1024×768, 820×1180, 430×932, 375×667, 360×800. As três imagens carregadas em todos, sem overflow horizontal, capturas vistas uma a
+  uma (`shots/`, `shots3/`). Os 24 ficheiros do `srcset` das lâminas respondem 200.
+- **Sem JS, movimento reduzido e teclado** (`modes.mjs`, 1440 e 390): as três imagens carregadas nos três modos; ao teclado a lâmina
+  de Artists recebe o foco (4–5 Tabs), com o contorno de 2 px e a fotografia a deslizar, como antes.
+- **Contraste dos nomes** (linho sobre o que está por baixo, com o nome escondido; `contrast.mjs`; texto grande, mínimo 3 : 1):
+  | tamanho | Weddings (sem mudança) média / p95 | Artists | Experiences |
+  |---|---|---|---|
+  | 1920×1080 | 9,3 / 6,7 | 8,7 / 5,9 | 15,2 / 11,9 |
+  | 1440×900 | 8,9 / 6,3 | 8,5 / 5,9 | 15,4 / 12,1 |
+  | 390×844 | 9,6 / 4,0 | 8,1 / 3,9 | 12,6 / 7,4 |
+  | 375×667 | 8,6 / 3,7 | 8,0 / 3,7 | 12,1 / 7,2 |
+  | 320×640 | 9,1 / 3,7 | 7,6 / 3,7 | 12,3 / 7,3 |
+  | 768×1024 | 7,9 / 3,9 | 7,3 / 3,8 | 12,2 / 6,5 |
+- **typecheck, lint, build:** passam.
+- **Não verificado:** o Xiaomi (não estava ligado ao `adb` nesta sessão); o iPhone; a passagem lâmina → arco não muda (é a lâmina de
+  Weddings, que fica igual).
+- **No commit:** `public/media/v5/` está no `.gitignore` e os derivados publicados entram por `git add -f`. Os 16 ficheiros
+  `artists-moment-photo-mono-*` e `experiences-during-photo-mono-*` entraram assim (sem eles o site publicado ficava com as lâminas
+  vazias). Ficam sem uso os derivados de IA `artists-always*` e `experiences-during*` (a cores, P&B e aura): por decidir com o owner se
+  saem.

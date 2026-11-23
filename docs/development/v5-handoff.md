@@ -1,6 +1,24 @@
 # Chapter One V5 — handoff
 
-## ▶ COMEÇAR AQUI · 23 de novembro de 2026 — o condutor é o scroll do desktop (passo 5) e as cores da barra do Safari; tudo no `v5` e no `master`
+## ▶ COMEÇAR AQUI · 23 de novembro de 2026, noite — as lâminas de Artists e Experiences com as fotografias do Work (por aprovar; em commit e com push no `v5`, o `master` sem mudança)
+
+**Estado.** O `master` fica em `91b927b` (o site publicado não muda). Por cima, em commit e com push no `v5` (owner, 23/11: "preciso comitar e dar push porque quero abrir no mac para fazer testes"): as lâminas da entrada
+de **Artists** e **Experiences** passam das imagens de IA de 1024 px (moles no telemóvel) para o P&B derivado das fotografias que o Work
+já usa: a galeria com as duas silhuetas (*For a moment*, Unsplash Cu5pKZkpJj8) e as velas com o piano (*During*, rCX_nOPnSNA).
+**Weddings fica a 002** (é o arco do Work, #81). Owner, 23/11: "vamos mudar a imagem do artists que sugeriste e a experiences ser a
+E1". README #129; medidas em `v5-tests.md`, "As lâminas da entrada com as fotografias do Work".
+
+- **Mudou:** `scripts/images.mjs` (`mono: true` nas duas entradas), `content/v5.ts` (`entrance.blades`: imagens e enquadramentos),
+  16 derivados novos em `public/media/v5/work/` (`artists-moment-photo-mono-*`, `experiences-during-photo-mono-*`), docs (README #129,
+  `assets.md` §3, `storyboard.md` E4, `v5-tests.md`).
+- **Visto:** os 18 tamanhos, sem JS, movimento reduzido, teclado e contraste dos nomes (Chrome no segundo monitor, `next start`;
+  ferramentas em `D:\STUDIO-tools\v5-blades\`). typecheck, lint e build passam.
+- **Falta:** (1) o owner no Mac: Safari e iOS (simulador ou o iPhone); (2) o Xiaomi, que não estava ligado ao `adb`; (3) o owner
+  aprovar e, depois, o `master` avançar até ao `v5` quando ele pedir; (4) decidir se saem os derivados de IA que ficaram sem uso
+  (`artists-always*`, `experiences-during*`). Os 16 derivados novos entraram com `git add -f` (`public/media/v5/` está no
+  `.gitignore`); qualquer derivado novo tem de entrar assim.
+
+## (antes) COMEÇAR AQUI · 23 de novembro de 2026 — o condutor é o scroll do desktop (passo 5) e as cores da barra do Safari; tudo no `v5` e no `master`
 
 **Estado numa frase.** Por cima do passo 4 (aprovado pelo owner no desktop a 23/11, sem commit), a barra do Safari no desktop iguala a
 página: ΔE2000 barra contra o topo 0,0–1,5 em todas as paragens com a página fora do topo (era 1,0–3,6), Experiences 2,3 (era 3,3), de dia

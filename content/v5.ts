@@ -38,6 +38,8 @@ export const entrance = {
    * `frame` places the subject in the oblique shape (owner, 29 Oct: "melhor centradas"): `y` the height shown on the
    * desktop and `yTall` in the phone's thin band (object-position), `zoom` and `shift` bring a subject off to one side
    * toward the middle (|shift| ≤ (zoom − 1) / 2, or the photograph's edge shows).
+   * Artists and Experiences show the Work's own photographs, For a moment and During (owner, 23 Nov, README #129): the
+   * AI images they had were 1024 px, soft in the phone's band (Artists was also enlarged 1.3×).
    */
   blades: [
     {
@@ -48,15 +50,15 @@ export const entrance = {
     },
     {
       chapter: 'artists',
-      image: '/media/v5/work/artists-always',
+      image: '/media/v5/work/artists-moment-photo',
       mono: true,
-      frame: { y: '50%', yTall: '40%', zoom: 1.3, shift: '-15%' },
+      frame: { y: '72%', yTall: '60%', zoom: 1, shift: '0%' },
     },
     {
       chapter: 'experiences',
-      image: '/media/v5/work/experiences-during',
+      image: '/media/v5/work/experiences-during-photo',
       mono: true,
-      frame: { y: '35%', yTall: '42%', zoom: 1, shift: '0%' },
+      frame: { y: '56%', yTall: '55%', zoom: 1, shift: '0%' },
     },
   ],
   video: {

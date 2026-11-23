@@ -87,19 +87,21 @@ const SOURCES = [
   { id: 'weddings-guests-5', group: 'work', file: 'weddings/HelderCoutoPhoto_179.jpg', widths: [320, 640], fine: true },
   { id: 'weddings-guests-6', group: 'work', file: 'weddings/HelderCoutoPhoto_337.jpg', widths: [320, 640], fine: true },
   // Work — II Artists and III Experiences: AI images, in colour (assets.md §3; never presented as client work).
+  // artists-always and experiences-during (AI) served the entrance's blades until 23 Nov (README #129); the site no longer uses them.
   { id: 'artists-always', group: 'work', file: 'artists/always.png', widths: [640, 1024], aura: true, mono: true, fine: true },
   { id: 'artists-moment', group: 'work', file: 'artists/for-a-moment.png', widths: [640, 1024], aura: true },
   { id: 'artists-record', group: 'work', file: 'artists/on-record.png', widths: [640, 1024], aura: true, fine: true },
   { id: 'experiences-before', group: 'work', file: 'experiences/before.png', widths: [640, 1024], aura: true },
   { id: 'experiences-during', group: 'work', file: 'experiences/during.png', widths: [640, 1024], aura: true, mono: true },
   { id: 'experiences-after', group: 'work', file: 'experiences/after.png', widths: [640, 1024], aura: true },
-  // Work — bought-in photographs chosen by the owner (30 Oct; Unsplash License, assets.md §3). New ids: the entrance's
-  // blade keeps the AI concert (experiences-during), the approved entrance does not change.
-  { id: 'artists-moment-photo', group: 'work', file: 'stock/unsplash-Cu5pKZkpJj8.jpg', widths: [640, 960, 1280, 1600], aura: true, fine: true, calm: 0.72 },
+  // Work — bought-in photographs chosen by the owner (30 Oct; Unsplash License, assets.md §3). For a moment and During are
+  // also the entrance's Artists and Experiences blades, in the derived B&W (`mono`; owner, 23 Nov, README #129). The B&W keeps
+  // the plain encoding: at the phone's band q50 and q78 looked the same, 960 px ~38 KB against ~90 KB.
+  { id: 'artists-moment-photo', group: 'work', file: 'stock/unsplash-Cu5pKZkpJj8.jpg', widths: [640, 960, 1280, 1600], aura: true, fine: true, calm: 0.72, mono: true },
   { id: 'experiences-before-photo', group: 'work', file: 'stock/unsplash-e_0kguyKNmc.jpg', widths: [640, 960, 1280, 1600], aura: true, fine: true, calm: 0.7 },
-  { id: 'experiences-during-photo', group: 'work', file: 'stock/unsplash-rCX_nOPnSNA.jpg', widths: [640, 960, 1280, 1600], aura: true, fine: true, calm: 0.55 },
+  { id: 'experiences-during-photo', group: 'work', file: 'stock/unsplash-rCX_nOPnSNA.jpg', widths: [640, 960, 1280, 1600], aura: true, fine: true, calm: 0.55, mono: true },
   { id: 'experiences-after-photo', group: 'work', file: 'stock/unsplash-5PNmURC73JQ.jpg', widths: [640, 960, 1280, 1600], aura: true, fine: true, calm: 0.8 },
-  // the owner's own new studio image (ChatGPT, 30 Oct), for Always; the door frame at its left is cut. The blade keeps artists-always.
+  // the owner's own new studio image (ChatGPT, 30 Oct), for Always; the door frame at its left is cut.
   { id: 'artists-always-photo', group: 'work', file: 'artists/always-studio.png', widths: [640, 960], aura: true, fine: true, calm: 0.8, crop: { left: 64, top: 0, width: 960, height: 1536 } },
   // Method — the Wedding website screen: Solteiros 163, the couple face to face on the road, in colour (owner, 2/11, README #96;
   // was 299, a woman alone, which read wrong under a man's name). Up to 1280: on a phone it opens to the whole screen.

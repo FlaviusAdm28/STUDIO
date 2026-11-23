@@ -251,6 +251,8 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   // upright keeps a phone's shape, centred by ox). The desktop's framed phones stay 9 : 19.5
   let AR = 9 / 19.5
   let FULL = 1
+  // a phone's screen corners (method.css .m-scr on a phone: 5cqw, of the card's width)
+  const PHONE_CORNER = 0.05
   let LVH = 0
   let lift = 0
   let tempo = 1
@@ -413,8 +415,13 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     // the lift (~8 %, its sides past the screen's). In the screen's and the lift's own shape it was 70 px taller than the card of 10, a
     // layout: at 9 → 10 the card, its photograph and its cream panel jumped 70 px in the first frame, then a ~100 ms frame, then the move
     // (owner's iPhone, 12 Nov 23:51: "a animação para o your first chapter parece estar a dar um salto"; Simulator, 13 Nov)
-    FULL = kind === 'phone' && lift ? ((LVH + lift) * AR) / F : 1
+    // (F first: the growth is measured against the card as it is now — after it, the first measure divided by the 0 F starts with)
     F = kind === 'phone' ? Math.min(W, LVH * AR) : W
+    // On Android nothing lies above the screen: the card was the screen's exact size, and its rounded corners (method.css .m-scr, 5cqw on
+    // a phone) showed the studio at the top corners of the page, under Chrome's bar (owner, Xiaomi, 23 Nov: "vê-se as pontas
+    // arredondadas e não encaixa bem no ecrã todo"). Grown evenly too, just enough for its top to overhang the screen by a corner's
+    // radius: the corners lie past the screen's edges, as on iOS (393 × 835: ×1.049, 21 px above, 10 px each side)
+    FULL = kind !== 'phone' ? 1 : lift ? ((LVH + lift) * AR) / F : 1 / (1 - (2 * PHONE_CORNER * F) / LVH)
     // The deck of 7 where it was (64–66 % of the screen) — unless that puts it over Make it yours: after a refresh in 8 on iOS the screen
     // was measured shorter and the cards rose over the field (owner, iPhone, 3 Nov). Then it goes down just enough: its top 30 px under
     // the field's foot (taken from the layout, no transforms; the turned cards' corners rise ~12 px)
@@ -840,8 +847,43 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     const ground = getComputedStyle(card.querySelector('.m-scr') ?? card).backgroundColor
     return ground && !ground.startsWith('rgba(0, 0, 0, 0') ? ground : (FULL_EDGE[card.dataset.chapter ?? ''] ?? '')
   }
+  // Android (a phone with nothing above its screen): Chrome's bar is one colour for the top line, and the featured screen grows over it
+  // at 8c → 9 and leaves it at 9 → 10 and back to 8c. Said only once its flight had ended, the bar stayed the studio's ~0.9 s after the
+  // photograph had covered the top, then changed in one go (owner, Xiaomi, 23 Nov: "a barra do chrome demora algum tempo mesmo depois da
+  // imagem assentar… não está tão smooth e rápido como nos outros"; adb: the page's top 199 → 161 at the card's arrival, the bar at 202 for
+  // 50 more frames). So, at every frame of those flights, the studio's colour with the photograph's over it by the share of the top line
+  // the screen covers — the photograph read once it reaches the top, and again once it covers it all (its place final)
+  let photoTop = ''
+  // the studio's colour under it, read once a flight (on a phone the hour's light never reaches the top, and nothing else of the studio
+  // changes there at 8c, 9 or 10): read at every frame it was style work the Xiaomi paid for in frames
+  let studioUnder = ''
+  const coverShare = () => {
+    const card = cards[featured]
+    if (!card) return 0
+    const r = card.getBoundingClientRect()
+    if (r.top > 1 || r.bottom < 4) return 0
+    return Math.min(1, Math.max(0, Math.min(r.right, W) - Math.max(r.left, 0)) / W)
+  }
+  const androidTop = (ph: Phase) => {
+    // only where the featured screen can be over the top (one box read a frame; elsewhere, as at 10 → 11, nothing more than before)
+    const near = ph === '8c' || ph === '9' || ph === '10'
+    if (!near) return studioOrDark(ph)
+    studioUnder ||= studioOrDark(ph)
+    const k = coverShare()
+    if (k <= 0) {
+      photoTop = ''
+      return studioUnder
+    }
+    // read once it reaches the top (a canvas drawn and read back: at every frame of the flight's end it cost the Xiaomi frames), and once
+    // more where the flight ends (setEdge, its last frame)
+    if (!photoTop) photoTop = featuredTop()
+    const base = parseColour(studioUnder)
+    const top = parseColour(photoTop)
+    if (k >= 0.999 || !base || !top) return photoTop
+    return hex(over([base[0], base[1], base[2]], [top[0], top[1], top[2]], k))
+  }
   const edgeOf = (ph: Phase) =>
-    ph === 'pre' ? '' : ph === '9' && kind === 'phone' ? featuredTop() : studioOrDark(ph)
+    ph === 'pre' ? '' : kind === 'phone' && !reaches ? androidTop(ph) : ph === '9' && kind === 'phone' ? featuredTop() : studioOrDark(ph)
   // followed for a while where what is at the top changes slowly (the dark of 11, the light going out): read again every 100 ms
   let edgeFollow = 0
   let edgeFrame = 0
@@ -849,6 +891,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     clearTimeout(edgeLater)
     clearInterval(edgeFollow)
     cancelAnimationFrame(edgeFrame)
+    studioUnder = ''
     edgeLater = 0
     const put = () => {
       const v = edgeOf(ph)
@@ -866,11 +909,20 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
       // A desktop follows at every frame. Desktop Safari tints its tab bar with the page's colour and changes it at once, no fade of its
       // own: read every 100 ms, the bar stepped through ~12 colours in 1.3 s, each a frame behind the page, over the dark of 11 coming in
       // (owner, Safari, 22 Nov: "a barra de cima… piscar e tremer as cores do estado anterior para o 11"; on screen: 233 → 185 → 142 → 109
-      // → 84 …, the page smooth under it). The room's colour is kept (roomTone): a frame reads two opacities and mixes
-      if (kind === 'desk' && !reaches) {
+      // → 84 …, the page smooth under it). The room's colour is kept (roomTone): a frame reads two opacities and mixes.
+      // Android's Chrome too (nothing above its screen, no lift): its bar takes theme-color at once, and at every 100 ms it went down the
+      // dark of 11 as a staircase — 191 → 148 → 101 → 68 → 51, steps of up to 43 held ~8 frames each, the page smooth under it (owner,
+      // Xiaomi, 23 Nov: "ao passar do 10 para o 11 também vejo um lagzinho ao mudar a cor da barra"; adb screenrecord). Only theme-color
+      // follows the frames there: the page's own background waits for the colour to settle (entrance/sequence.ts)
+      if (!reaches) {
         const frame = () => {
           put()
           if (performance.now() <= until) edgeFrame = requestAnimationFrame(frame)
+          else if (photoTop) {
+            // the photograph's own colour where it has come to rest (androidTop)
+            photoTop = ''
+            put()
+          }
         }
         edgeFrame = requestAnimationFrame(frame)
         return
@@ -1036,6 +1088,8 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     const corners = [reachAt(0, 0), reachAt(W, 0), reachAt(0, H), reachAt(W, H)]
     const passed = reaches ? Math.max(...corners) : island(reachAt(W / 2, 0))
     if (kind === 'desk' && !reaches && (passage || goingBack)) beamEdge(passage ? next : (from ?? '7'), passage ? Math.max(SWEEP_MS, 1900) : BACK_MS + 200)
+    // (Android: from the first frame of the flight, followed to its end — androidTop)
+    else if (landing && !reaches) setEdge(next, 0, landing + 100)
     else setEdge(next, passage ? passed : goingBack ? island(leaveAt(W / 2, 0)) : landing, settling)
     // the photograph moves in with the light, and back out with it
     if (passage) pushPhoto(true)

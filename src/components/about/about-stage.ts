@@ -612,8 +612,9 @@ export function runStage(about: HTMLElement, release: () => void) {
       if (!follow) return
       const until = performance.now() + follow * tempoOf()
       // A desktop follows at every frame (as the Method's, method-stage.ts setEdge): Safari's bar takes the page's colour at once, and read
-      // every 100 ms it stepped through the room's light coming up (22 Nov). The room's band is kept (roomTop): a frame reads an opacity
-      if (kind === 'desk' && !lift()) {
+      // every 100 ms it stepped through the room's light coming up (22 Nov). The room's band is kept (roomTop): a frame reads an opacity.
+      // Android's Chrome too (no lift): its bar, theme-color, stepped every 100 ms as at the Method's 11 (method-stage.ts setEdge, 23 Nov)
+      if (!lift()) {
         const frame = () => {
           put()
           edgeFrame = performance.now() <= until ? requestAnimationFrame(frame) : 0

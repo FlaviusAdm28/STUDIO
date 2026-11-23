@@ -4290,3 +4290,41 @@ imagem dentro dele.
   Weddings. **Sem JavaScript** (`next start`): as seis secções lá, com altura, e o texto (6505 caracteres).
 - **Xiaomi** (Chrome, a página inteira para baixo e para cima por scroll): todas as cenas e fases, sem condutor, nenhum erro.
 - **Não verificado:** o iPhone (a mudança é só do desktop; o iOS fica fora por `fine()`).
+
+### O telemóvel: o 9 sem cantos e a barra do Chrome no 10 → 11 (23/11; owner, Xiaomi: "no 9… vê-se as pontas arredondadas e não encaixa bem no ecrã todo"; "ao passar do 10 para o 11 também vejo um lagzinho ao mudar a cor da barra no chrome") — aprovado pelo owner no Xiaomi (23/11: "vi no xiaomi perfeito"), em commit
+- **Medido antes (Xiaomi, Chrome 157):** no 9 o cartão em ecrã inteiro tinha o tamanho exato do ecrã (393 × 835) e os cantos do seu ecrã
+  (`.m-scr`, 5cqw = 19,7 px) mostravam o bege do estúdio nos dois cantos de cima, sob a barra do Chrome (no iOS os 70 px acima do ecrã
+  escondem-nos). No 10 → 11 o `theme-color` mudava a cada 100 ms (18 vezes) e a barra do Chrome descia em escada — 191 → 148 → 101 → 68 →
+  51, degraus até 43 parados ~8 fotogramas, a página contínua por baixo (`adb screenrecord`, `tint/xiaomi-11.mjs`).
+- **O que mudou:** `method-stage.ts` — no Android o cartão do 9 cresce por igual (×1,049 a 393 × 835) o bastante para o topo passar o
+  ecrã pelo raio do canto: os cantos ficam fora, como no iOS (transformação só); `F` calculado antes do `FULL` (a primeira medida dividia
+  pelo 0 inicial). `method-stage.ts` e `about-stage.ts` — no Android a cor do topo é lida a cada fotograma, como no desktop.
+  `entrance/sequence.ts` — no Android o `theme-color` só muda quando a cor andou 4 níveis (e para a cor exata quando assenta), e o fundo
+  da página (que lá não se vê, e mudado a cada fotograma redesenhava a página toda) só quando a cor assenta (160 ms); o menu passa pelo
+  mesmo `showTheme`.
+- **Antes e depois, lado a lado** (o commit anterior servido na 3101 por um worktree ao lado, as duas versões alternadas, 7 corridas cada;
+  fotogramas > 20 ms dentro da passagem, o Xiaomi a 90 Hz):
+  | 10 → 11 | fotogramas > 20 ms (média) | perdido (média) | pior | mudanças da barra |
+  |---|---|---|---|---|
+  | antes (a cada 100 ms) | 9,9 | 154 ms | 110 (1 em 7) | 18, em escada (degrau até 43, barra − página até 40) |
+  | a cada fotograma, sem limiar (tentado) | 16–21 | 225–364 ms | — | 97 |
+  | agora (a cada fotograma, barra a cada 4 níveis) | 12,3 | 184 ms | 177 (1 em 7) | 28–36, degrau até 18 (a página: 17), barra − página até 13, média 5 |
+  O 9: os cantos fora (o cartão de −9,7 a 402,7 px na largura, −20,6 em cima; os primeiros píxeis da página o céu da fotografia, não o
+  bege). O 9 → 10 já pesava antes (um fotograma de ~120 ms ao encolher para a capa, 243–314 ms perdidos); agora 289–347 ms, o fotograma
+  grande 122–136 ms (o cartão ~10 % maior de área); sem salto novo (fotogramas da gravação).
+- **Depois, o 9 (owner, Xiaomi, 23/11: "a barra do chrome no xiaomi demora algum tempo mesmo depois da imagem assentar a mudar para a cor
+  da imagem, não está tão smooth e rápido como nos outros"):** medido, a página passa de 199 a 161 quando o cartão chega ao topo e a barra
+  fica nos 202 mais 50 fotogramas (~0,9 s): a cor do 9 só era lida no fim do voo (1,1 s + 60 ms), de uma vez. Agora, no Android, a cada
+  fotograma do voo (8c → 9, e 9 → 10 / 9 → 8c ao sair), a cor do estúdio com a da fotografia por cima pela parte da linha de cima que o
+  cartão cobre (`androidTop`); a fotografia lida uma vez ao chegar ao topo e outra no fim do voo, o estúdio uma vez por voo (lidos a cada
+  fotograma custavam fotogramas no Xiaomi: 6,8 contra 4,8 > 20 ms).
+  | lado a lado (`5db1bdc` na 3101) | fotogramas > 20 ms (média) | perdido | a barra assenta |
+  |---|---|---|---|
+  | 8c → 9 antes (4 corridas) | 4,8 | 111 ms | ~0,9 s depois da página, de uma vez |
+  | 8c → 9 agora (4) | 5,2 | 136 ms | 0,22 s depois (a animação da própria barra do Chrome) |
+  | 9 → 10 antes (3) | 13,7 | 290 ms, pior 115–155 | 0,07 s antes da página |
+  | 9 → 10 agora (3) | 15,7 | 324 ms, pior 100–111 | 0,1 s depois (o cartão do 9 ~10 % maior em área conta aqui) |
+- **Desktop sem mudança:** lint, `smoke`, `walk1`, `cases`, `cases-method`, `cases-about` 0 falhas (o que mudou só atua sem `lift` num
+  ecrã tátil, ou no `FULL` do telemóvel).
+- **Não verificado:** o iPhone (nada muda lá: o iOS tem `lift`, fica a cada 100 ms e sem o limiar; o `F` antes do `FULL` só muda a primeira
+  medida).

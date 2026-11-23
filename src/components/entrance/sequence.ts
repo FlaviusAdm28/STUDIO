@@ -166,6 +166,16 @@ export function entranceSequence(c: EntranceConfig) {
   // or the Method's light crossing the top as drawn (feedLit)
   let feedEl: HTMLElement | null = null
   let feedLit: string | null = null
+  // a touch screen that is not an iPhone or an iPad: Android (paintEdges)
+  const touchOnly = !ios && matchMedia('(hover: none) and (pointer: coarse)').matches
+  let bgLater = 0
+  // the colour Chrome's bar was last given (Android, paintEdges)
+  let themeShown = ''
+  const showTheme = (c: string) => {
+    if (c === themeShown) return
+    themeShown = c
+    themeMeta?.setAttribute('content', c)
+  }
   // Desktop Safari's bar, once the page is off its top, is the colour painted 8 levels lighter (lib/top-colour.ts SAFARI_BAR_LIFT, measured
   // there; this script cannot import it; owner, 22 Nov: "a cor do topo poderia dar um match melhor com cada instância do site, especialmente
   // nas mais escuras"): there body and the strip are painted that much darker, so the bar is the scene's colour. html keeps the scene's own
@@ -238,7 +248,23 @@ export function entranceSequence(c: EntranceConfig) {
     feedLit = lit
     menuFilm = false
     tone = colour
-    themeMeta?.setAttribute('content', colour)
+    // Android: Chrome's bar is theme-color. A scene that says its colour at every frame (the Method's and the About's, 23 Nov) would change
+    // it at every frame, and each change is work for Chrome on the Xiaomi: 16–21 frames over 20 ms in the 10 → 11 against 8–11 at every
+    // 100 ms (three runs each, adb). So it changes once the colour has moved 4 levels — steps the eye does not see, a fifth as many — and
+    // to the colour itself once it settles. The page's background is seen nowhere there, and changed at every frame it repainted the whole
+    // page each time (58 fps against 67.5 on the Xiaomi, 3 Nov, the cross-fade below): written once the colour has settled too
+    if (touchOnly) {
+      const v = rgbIn(colour)
+      const w = rgbIn(themeShown)
+      if (menuFilm || !v || !w || v.some((x, i) => Math.abs(x - w[i]) >= 4)) showTheme(colour)
+      clearTimeout(bgLater)
+      bgLater = window.setTimeout(() => {
+        showTheme(tone)
+        writeEdges(tone)
+      }, 160)
+      return
+    }
+    showTheme(colour)
     const target = tinted ? rgbIn(colour) : null
     if (target) return glideTo(target, glide, follow)
     writeEdges(colour)
@@ -293,7 +319,7 @@ export function entranceSequence(c: EntranceConfig) {
       if (menuOn || menuShown) {
         // closed by a jump (data-jump), the colour of where it was is not put back: the jump's own follows (below) — put back, Chrome's bar
         // showed it 25–80 ms between the menu's and the destination's (Xiaomi, menu tour, 13 Nov)
-        if (!ios && (menuOn || d.jump === undefined)) themeMeta?.setAttribute('content', menuOn ? menuTone(tone) : tone)
+        if (!ios && (menuOn || d.jump === undefined)) showTheme(menuOn ? menuTone(tone) : tone)
         if (ios && menuOn) {
           // the page's own colour (tone) stays what the scene says: the glass's is written beside it
           const glass = menuTone(tone)

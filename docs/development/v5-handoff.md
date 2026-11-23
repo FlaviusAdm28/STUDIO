@@ -35,7 +35,7 @@ passagem da entrada para o Work. Os números estão no `v5-tests.md` (o owner é
 
 **Owner, 23/11 (depois do push de `2f6ab1d`):** "prefiro limpar o scroll antigo desktop e só depois ligar o condutor [no] master". E: o bug A,
 o C, a cor do filme na barra do Safari depois do caminho de volta e o M8 "já não são problemas, parecem resolvidos" — fechados pelo owner
-(não medidos de novo). O 9 e o Method de dia no telemóvel (3–4 níveis acima do topo no Xiaomi): o owner confirma.
+(não medidos de novo). O 9 e o Method de dia no telemóvel (3–4 níveis acima do topo no Xiaomi): ver o ponto 4 abaixo.
 
 ### Por fazer, por esta ordem
 1. ~~**O owner experimenta.**~~ Aprovado (desktop, Xiaomi); em commit e com push. Falta o owner no seu iPhone, se quiser.
@@ -48,7 +48,13 @@ o C, a cor do filme na barra do Safari depois do caminho de volta e o M8 "já n�
    condutor para o reduced motion no desktop (e o caso "sem a faixa" do `barInk`, que é também o dele).
 3. ~~**Ligar no `master`:**~~ feito com o passo 5 (o `master` = o `v5`; o site publicado passa a ter o condutor quando o owner fizer push). Era: o `v5` para o `master` depois da validação completa (Chrome e Safari no ecrã, resoluções, teclado, reduced
    motion, sem JS, o Xiaomi e o iPhone sem mudanças).
-4. **Avisar o owner antes do passo 6, o telemóvel.**
+4. ~~**Passo 6, o telemóvel.**~~ Não se faz por agora (owner, 23/11: "acho que o telemóvel está bem… deixamos assim", README #128). O 9 e o
+   Method de dia no Xiaomi (a barra do Chrome 3–4 níveis acima do topo, ΔE ≤ 1,1): explicado ao owner; fechar a menos que ele veja a linha.
+5. **O telemóvel, dois bugs do owner (23/11, Xiaomi) — feitos e aprovados ("vi no xiaomi perfeito"), em commit no `v5` e no `master`** (`v5-tests.md` "O telemóvel: o 9 sem cantos e a
+   barra do Chrome no 10 → 11"): o 9 em ecrã inteiro sem os cantos arredondados; a barra do Chrome a acompanhar o escuro do 11 sem escada,
+   e no 8c → 9 a chegar 0,22 s depois da imagem (era ~0,9 s).
+   O owner pensou em pôr o condutor no telemóvel: explicado o risco (não é rápido: o scroll do dedo cortado, a inércia, as barras do browser,
+   o VoiceOver, o teclado; o veredicto no iPhone dele) — decisão à parte, depois destes dois.
    Não medido: o modo escuro do macOS e "Reduzir transparência" (o +8 é do modo claro).
 
 ## (antes) COMEÇAR AQUI · 23 de novembro de 2026 — passo 4 do condutor aprovado pelo owner no desktop (Questions e Contact; sem commit)

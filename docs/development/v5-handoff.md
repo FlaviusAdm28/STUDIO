@@ -17,8 +17,12 @@ E1". README #129; medidas em `v5-tests.md`, "As lâminas da entrada com as fotog
   e ios"):** typecheck, lint e build passam; a bateria do condutor no Chrome sem falhas; o **Safari do desktop** (no ecrã, trackpad), o
   **simulador iOS 27.3** (dedo) e o **Xiaomi** (Chrome): as lâminas novas carregadas e nítidas, um toque em cada lâmina leva ao seu
   capítulo, a página inteira por passadas até ao fim e de volta, sem erros. Números em `v5-tests.md`, na mesma secção.
-- **Falta:** (1) o owner ver no iPhone dele (o simulador não é o veredicto); (2) decidir se saem os derivados de IA que ficaram sem uso
-  (`artists-always*`, `experiences-during*`). Os 16 derivados novos entraram com `git add -f` (`public/media/v5/` está no
+- **Depois:** o owner viu no iPhone ("vi as lâminas no iphone parece bem") e mandou apagar as imagens de IA antigas: saíram os 8
+  derivados `artists-always-mono-*` e `experiences-during-mono-*` e as cinco imagens de IA sem uso deixaram `scripts/images.mjs` e
+  `media.ts` (os masters ficam em `media-src/`; fica `artists-record`, que o Work usa). README #129, `assets.md` §3, `v5-tests.md`.
+  Verificado: typecheck, lint, build, todas as imagens da página a 200, nenhuma partida. Em commit no `v5`, o `master` com ele (owner,
+  23/11: "sim podes fazer"; o push é do owner).
+- **Falta:** nada nas lâminas. Os 16 derivados novos entraram com `git add -f` (`public/media/v5/` está no
   `.gitignore`); qualquer derivado novo tem de entrar assim.
 
 ## (antes) COMEÇAR AQUI · 23 de novembro de 2026, fim do dia — sessão fechada; tudo em commit e com push (`v5` = `master` = `91b927b`)

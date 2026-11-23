@@ -14,12 +14,8 @@ export const media: Record<string, { widths: readonly number[]; width: number; h
   '/media/v5/work/weddings-before': fine,
   '/media/v5/work/weddings-day': fine,
   '/media/v5/work/weddings-after': fine,
-  '/media/v5/work/artists-always': ai,
-  '/media/v5/work/artists-moment': ai,
+  // On record is the Work's one AI image left (the other AI images went on 23 Nov, README #129)
   '/media/v5/work/artists-record': ai,
-  '/media/v5/work/experiences-before': ai,
-  '/media/v5/work/experiences-during': ai,
-  '/media/v5/work/experiences-after': ai,
   // bought-in photographs (Unsplash, 30 Oct), each with its own ratio
   '/media/v5/work/artists-always-photo': { widths: [640, 960], width: 960, height: 1536 },
   '/media/v5/work/artists-moment-photo': { ...fine, height: 2133 },

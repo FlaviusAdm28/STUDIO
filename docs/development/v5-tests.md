@@ -4398,9 +4398,15 @@ imagem dentro dele.
     y 2422, Experiences y 4191, Weddings y 1169; passadas de toque (320 px, 1200 px/s) por todas as paragens até ao fim e de volta até ao
     topo; sem erros; 32 fotogramas acima de 50 ms em ~34 passadas (quase todos 55–88 ms, três de 110–199 ms), sem comparação com o
     commit anterior (a mudança não toca em código de movimento).
-- **Não verificado:** o iPhone do owner; o Safari do desktop noutros tamanhos de janela; a passagem lâmina → arco não muda (é a lâmina
+- **O iPhone do owner** (23/11): "vi as lâminas no iphone parece bem". **As imagens de IA antigas saem** (owner: "podemos apagar as imagens de
+  ia antigas"): `git rm` dos 8 derivados `artists-always-mono-{640,1024}` e `experiences-during-mono-{640,1024}` (AVIF e JPEG); fora de
+  `scripts/images.mjs` e de `media.ts` as cinco imagens de IA sem uso (`artists-always`, `artists-moment`, `experiences-before`, `-during`,
+  `-after`; as três últimas já não tinham ficheiros). Antes, procurado no repositório fora de `docs/`: nenhuma outra referência. Fica
+  `artists-record` (*On record*, IA), que o Work usa. **Depois de apagar:** typecheck, lint e build passam; as 143 imagens que o HTML pede respondem 200 e nenhuma é das
+  apagadas; no Chrome (1440×900 e 390×844, todas as imagens pedidas de uma vez) as 58 imagens da página carregadas, nenhuma partida;
+  `smoke` (desktop e movimento reduzido) sem erros.
+- **Não verificado:** o Safari do desktop noutros tamanhos de janela; a passagem lâmina → arco não muda (é a lâmina
   de Weddings, que fica igual).
 - **No commit:** `public/media/v5/` está no `.gitignore` e os derivados publicados entram por `git add -f`. Os 16 ficheiros
   `artists-moment-photo-mono-*` e `experiences-during-photo-mono-*` entraram assim (sem eles o site publicado ficava com as lâminas
-  vazias). Ficam sem uso os derivados de IA `artists-always*` e `experiences-during*` (a cores, P&B e aura): por decidir com o owner se
-  saem.
+  vazias). Ficaram sem uso os derivados de IA `artists-always-mono-*` e `experiences-during-mono-*`: saíram a 23/11 (ver abaixo).

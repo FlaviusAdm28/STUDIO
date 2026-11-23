@@ -86,14 +86,10 @@ const SOURCES = [
   { id: 'weddings-guests-4', group: 'work', file: 'weddings/HelderCoutoPhoto_156.jpg', widths: [320, 640], fine: true },
   { id: 'weddings-guests-5', group: 'work', file: 'weddings/HelderCoutoPhoto_179.jpg', widths: [320, 640], fine: true },
   { id: 'weddings-guests-6', group: 'work', file: 'weddings/HelderCoutoPhoto_337.jpg', widths: [320, 640], fine: true },
-  // Work — II Artists and III Experiences: AI images, in colour (assets.md §3; never presented as client work).
-  // artists-always and experiences-during (AI) served the entrance's blades until 23 Nov (README #129); the site no longer uses them.
-  { id: 'artists-always', group: 'work', file: 'artists/always.png', widths: [640, 1024], aura: true, mono: true, fine: true },
-  { id: 'artists-moment', group: 'work', file: 'artists/for-a-moment.png', widths: [640, 1024], aura: true },
+  // Work — II Artists, On record: an AI image, in colour (assets.md §3; never presented as client work). The other AI images
+  // (artists-always, artists-moment, experiences-before, -during, -after) went on 23 Nov (owner, README #129): the photographs below
+  // replaced them in the Work, and the entrance's blades left the last two. Their masters stay in media-src/.
   { id: 'artists-record', group: 'work', file: 'artists/on-record.png', widths: [640, 1024], aura: true, fine: true },
-  { id: 'experiences-before', group: 'work', file: 'experiences/before.png', widths: [640, 1024], aura: true },
-  { id: 'experiences-during', group: 'work', file: 'experiences/during.png', widths: [640, 1024], aura: true, mono: true },
-  { id: 'experiences-after', group: 'work', file: 'experiences/after.png', widths: [640, 1024], aura: true },
   // Work — bought-in photographs chosen by the owner (30 Oct; Unsplash License, assets.md §3). For a moment and During are
   // also the entrance's Artists and Experiences blades, in the derived B&W (`mono`; owner, 23 Nov, README #129). The B&W keeps
   // the plain encoding: at the phone's band q50 and q78 looked the same, 960 px ~38 KB against ~90 KB.

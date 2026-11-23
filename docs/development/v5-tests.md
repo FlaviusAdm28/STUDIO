@@ -4328,3 +4328,23 @@ imagem dentro dele.
   ecrã tátil, ou no `FULL` do telemóvel).
 - **Não verificado:** o iPhone (nada muda lá: o iOS tem `lift`, fica a cada 100 ms e sem o limiar; o `F` antes do `FULL` só muda a primeira
   medida).
+
+### iOS: a faixa da ilha no caminho de volta do 7 para o Work (23/11; owner, iPhone: "no passo 6 para 7 em ios o scroll é perfeito full screen com a barra a acompanhar o ecrã todo mas no sentido inverso do 7 para 6 a barra a sair em cima nota-se que a cor não acompanha muito bem a transformação"; depois de uma primeira correção: "continua a ver em cima tipo uma barra de cor em vez de acompanhar perfeitamente full screen o feixe como faz bem a ir do 6 para 7") — aprovado pelo owner no iPhone (23/11: "perfeito ficou resolvido"), em commit
+- **A primeira correção estava errada** (a cor lisa da faixa a seguir a luz a cada fotograma): continuava uma faixa de uma cor. Retirada.
+- **Medido (simulador `v5-iphone`, iOS 27.3, passada de dedo real, o ecrã gravado, a página registada por dentro):** atrás da ilha o
+  Safari desenha o palco, os 70 px acima do ecrã incluídos (o espelho) — onde está a luz. Onde a luz já saiu o palco é transparente: no ecrã
+  vê-se o Work por baixo; acima do ecrã não há Work, só a cor da página (html e body). Com essa cor magenta a faixa ficava magenta a partir
+  dos primeiros passos da luz para trás — e na volta essa cor era a do estúdio até a luz deixar o meio do topo: uma faixa clara sobre um
+  topo já escuro. Também: o palco passava a `fixed` 150 ms depois da passada (`holdWhileLeaving`), e com a página a mexer o Safari não o
+  desenha atrás da ilha (o palco não se mexia: −70 px antes e depois); parada a página em Experiences a secção está ainda 228 px acima do
+  topo e o `sticky` segura-o sozinho. (Com a página parada, um elemento `fixed` em −70 px é desenhado atrás da ilha: a nota de 7/11 vale
+  só em movimento.)
+- **O que mudou:** `method-stage.ts` — no iOS o palco só passa a `fixed` quando a secção está a menos de 15 % de ecrã do topo
+  (`holdLater`, como no desktop); e ao começar a volta a cor da página é logo a do Work (`backEdge`, sem esbater: `data-back`,
+  `entrance/sequence.ts`) — debaixo da luz não se vê, onde ela sai é o Work, como na ida.
+- **Visto:** com a cor da página magenta, o lado esquerdo da faixa fica magenta quando a página à esquerda escurece (2,36–2,39 s) e o
+  direito quando a da direita (2,48–2,51 s): a aresta da luz atravessa a faixa. Normal: a faixa de cada lado contra a página do mesmo lado,
+  média 5 níveis (máximo 40, num fotograma de transição); os fotogramas mostram a aresta contínua até ao topo do ecrã.
+- **Desktop e Android sem mudança** (só com `lift`, o iOS): lint, `smoke`, `walk1`, `cases-method` 0 falhas.
+- **Não verificado:** uma passada fortíssima que leve a página para lá da cena (aí o palco passa a `fixed` e a faixa
+  volta a ser a cor da página — agora a do Work).

@@ -53,8 +53,11 @@ o C, a cor do filme na barra do Safari depois do caminho de volta e o M8 "já n�
 5. **O telemóvel, dois bugs do owner (23/11, Xiaomi) — feitos e aprovados ("vi no xiaomi perfeito"), em commit no `v5` e no `master`** (`v5-tests.md` "O telemóvel: o 9 sem cantos e a
    barra do Chrome no 10 → 11"): o 9 em ecrã inteiro sem os cantos arredondados; a barra do Chrome a acompanhar o escuro do 11 sem escada,
    e no 8c → 9 a chegar 0,22 s depois da imagem (era ~0,9 s).
-   O owner pensou em pôr o condutor no telemóvel: explicado o risco (não é rápido: o scroll do dedo cortado, a inércia, as barras do browser,
-   o VoiceOver, o teclado; o veredicto no iPhone dele) — decisão à parte, depois destes dois.
+   O condutor no telemóvel: pesados os custos, o owner decidiu deixar o telemóvel como está ("então para já vamos deixar assim no
+   telemóvel", README #128).
+6. **iOS, a faixa da ilha no caminho de volta 7 → Work (owner, iPhone, 23/11) — feito e aprovado ("perfeito ficou resolvido"), em commit no `v5` e no `master`** (`v5-tests.md` "iOS: a
+   faixa da ilha no caminho de volta"): o palco fica `sticky` (o Safari desenha-o atrás da ilha) e a cor da página é a do Work desde o início
+   da volta — a aresta da luz atravessa a faixa como na ida.
    Não medido: o modo escuro do macOS e "Reduzir transparência" (o +8 é do modo claro).
 
 ## (antes) COMEÇAR AQUI · 23 de novembro de 2026 — passo 4 do condutor aprovado pelo owner no desktop (Questions e Contact; sem commit)

@@ -391,7 +391,10 @@ export function entranceSequence(c: EntranceConfig) {
           ? dusk
             ? 'background-color 1.1s cubic-bezier(.33, 1, .68, 1) -0.1s'
             : 'background-color .9s cubic-bezier(.33, 1, .68, 1) .15s'
-          : sec === 'method' || sec === 'about' || edge || viaMethod
+          : // iOS, the Method's light going back: the Work's colour at once, under the light still closing (method-stage.ts backEdge)
+            document.getElementById('method')?.dataset.back !== undefined
+            ? ''
+            : sec === 'method' || sec === 'about' || edge || viaMethod
             ? 'background-color .3s linear'
             : ''
       viaMethod = !!edge

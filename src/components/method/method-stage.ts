@@ -617,7 +617,12 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
       if (stage.style.top) stage.style.top = ''
       return
     }
-    if (kind === 'desk' && section.getBoundingClientRect().top < -0.15 * H) holdLater = true
+    // fixed only once the page has nearly left the scene (holdIfMoving, at each scroll): until then the sticky stage stays where it is by
+    // itself. On iOS fixed came at once, and Safari draws nothing fixed behind its island and its bar while the page moves: the edge of
+    // light going back was cut there by a band of one colour (owner's iPhone, 23 Nov: "continua a ver em cima tipo uma barra de cor em
+    // vez de acompanhar perfeitamente full screen o feixe como faz bem a ir do 6 para 7"; Simulator: the band the stage's own until the
+    // stage went fixed, 150 ms into the stroke, then html's colour — html magenta). Held sticky, the light crosses the band both ways
+    if ((kind === 'desk' || reaches) && section.getBoundingClientRect().top < -0.15 * H) holdLater = true
     else fixStage()
     letGo = window.setTimeout(() => holdWhileLeaving(false), (BACK_MS + 300) * tempo)
   }
@@ -952,6 +957,26 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     return [a, b, Math.min(1, Math.max(0, Math.min(b, 1) - Math.max(a, 0)))]
   }
   // lit: the phase whose studio is lit (the one the light comes to, or leaves); ms: for how long the light moves (and the studio settles)
+  // iOS, the way back (owner's iPhone, 23 Nov: "no sentido inverso do 7 para 6 a barra a sair em cima nota-se que a cor não acompanha
+  // muito bem a transformação… continua a ver em cima tipo uma barra de cor"). Behind the island Safari draws the stage, the 70 px of
+  // its lift included (the mirror) — where the light is. Where the light has gone the stage is clear, and on the screen the Work shows
+  // through; above the screen there is no Work, only the page's own colour (html magenta, Simulator: magenta behind the island from the
+  // light's first steps back). That colour stayed the studio's until the light left the top's middle: a light band over a top already
+  // dark. So, as on the way in (the Work's colour until the light has covered the top), the Work's colour at once as the light starts
+  // back — under the light nothing of it is seen — and with no fade (data-back, entrance/sequence.ts)
+  let backFlag = 0
+  const backEdge = () => {
+    clearTimeout(edgeLater)
+    clearInterval(edgeFollow)
+    cancelAnimationFrame(edgeFrame)
+    edgeLater = 0
+    clearTimeout(backFlag)
+    section.dataset.back = ''
+    backFlag = window.setTimeout(() => delete section.dataset.back, (BACK_MS + 300) * tempo)
+    delete section.dataset.mix
+    delete section.dataset.lit
+    delete section.dataset.edge
+  }
   const beamEdge = (lit: Phase, ms: number) => {
     clearTimeout(edgeLater)
     clearInterval(edgeFollow)
@@ -1088,6 +1113,7 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     const corners = [reachAt(0, 0), reachAt(W, 0), reachAt(0, H), reachAt(W, H)]
     const passed = reaches ? Math.max(...corners) : island(reachAt(W / 2, 0))
     if (kind === 'desk' && !reaches && (passage || goingBack)) beamEdge(passage ? next : (from ?? '7'), passage ? Math.max(SWEEP_MS, 1900) : BACK_MS + 200)
+    else if (reaches && goingBack) backEdge()
     // (Android: from the first frame of the flight, followed to its end — androidTop)
     else if (landing && !reaches) setEdge(next, 0, landing + 100)
     else setEdge(next, passage ? passed : goingBack ? island(leaveAt(W / 2, 0)) : landing, settling)

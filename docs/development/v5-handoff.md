@@ -1,8 +1,8 @@
 # Chapter One V5 — handoff
 
-## ▶ COMEÇAR AQUI · 23 de novembro de 2026, noite — as lâminas de Artists e Experiences com as fotografias do Work (por aprovar; em commit e com push no `v5`, o `master` sem mudança)
+## ▶ COMEÇAR AQUI · 23 de novembro de 2026, noite — as lâminas de Artists e Experiences com as fotografias do Work (aprovado; no `v5` e no `master`)
 
-**Estado.** O `master` fica em `91b927b` (o site publicado não muda). Por cima, em commit e com push no `v5` (owner, 23/11: "preciso comitar e dar push porque quero abrir no mac para fazer testes"): as lâminas da entrada
+**Estado.** Aprovado pelo owner depois dos testes no Mac (23/11: "parece-me bem podemos fazer commit e push e atualizar para master também"): o `master` avança até ao `v5` (o push é do owner, no GitHub Desktop). Antes, em commit e com push no `v5` (owner, 23/11: "preciso comitar e dar push porque quero abrir no mac para fazer testes"): as lâminas da entrada
 de **Artists** e **Experiences** passam das imagens de IA de 1024 px (moles no telemóvel) para o P&B derivado das fotografias que o Work
 já usa: a galeria com as duas silhuetas (*For a moment*, Unsplash Cu5pKZkpJj8) e as velas com o piano (*During*, rCX_nOPnSNA).
 **Weddings fica a 002** (é o arco do Work, #81). Owner, 23/11: "vamos mudar a imagem do artists que sugeriste e a experiences ser a
@@ -13,10 +13,63 @@ E1". README #129; medidas em `v5-tests.md`, "As lâminas da entrada com as fotog
   `assets.md` §3, `storyboard.md` E4, `v5-tests.md`).
 - **Visto:** os 18 tamanhos, sem JS, movimento reduzido, teclado e contraste dos nomes (Chrome no segundo monitor, `next start`;
   ferramentas em `D:\STUDIO-tools\v5-blades\`). typecheck, lint e build passam.
-- **Falta:** (1) o owner no Mac: Safari e iOS (simulador ou o iPhone); (2) o Xiaomi, que não estava ligado ao `adb`; (3) o owner
-  aprovar e, depois, o `master` avançar até ao `v5` quando ele pedir; (4) decidir se saem os derivados de IA que ficaram sem uso
+- **Visto no Mac (23/11, noite; owner: "quero que vejas nesta máquina alguns testes básicos… porque conseguimos testar também safari
+  e ios"):** typecheck, lint e build passam; a bateria do condutor no Chrome sem falhas; o **Safari do desktop** (no ecrã, trackpad), o
+  **simulador iOS 27.3** (dedo) e o **Xiaomi** (Chrome): as lâminas novas carregadas e nítidas, um toque em cada lâmina leva ao seu
+  capítulo, a página inteira por passadas até ao fim e de volta, sem erros. Números em `v5-tests.md`, na mesma secção.
+- **Falta:** (1) o owner ver no iPhone dele (o simulador não é o veredicto); (2) decidir se saem os derivados de IA que ficaram sem uso
   (`artists-always*`, `experiences-during*`). Os 16 derivados novos entraram com `git add -f` (`public/media/v5/` está no
   `.gitignore`); qualquer derivado novo tem de entrar assim.
+
+## (antes) COMEÇAR AQUI · 23 de novembro de 2026, fim do dia — sessão fechada; tudo em commit e com push (`v5` = `master` = `91b927b`)
+
+*(Reposto a 23/11, noite: este resumo foi escrito no fim da sessão no Mac e nunca entrou em commit; perdeu-se quando o `v5` recebeu `a4445bc` do outro PC. Recuperado do registo da sessão, sem mudanças.)*
+
+**Estado numa frase.** O site publicado (`master`) tem o condutor como scroll do desktop, a barra do Safari do desktop igual à página, e
+os telemóveis com o scroll do browser e três correções de cor (Android: o 9 e a barra do Chrome; iOS: a faixa da ilha na volta do 7).
+Nada por fazer que o owner tenha pedido. Fora de propósito, como sempre: a alteração do `.gitignore` do owner e `cenas/.back-frame.png`.
+
+### O que se fez nesta sessão (por ordem; os testes de cada ponto em `v5-tests.md`)
+1. **Passo 4 do condutor** (Questions e Contact) aprovado pelo owner no desktop.
+2. **As cores da barra do Safari no desktop, por números (ΔE2000; o owner é daltónico)** — o Safari 27 mostra a cor do body +8 por canal com
+   a página fora do topo: body e faixa pintados 8 abaixo; as cenas dizem o topo como se vê (o estúdio na largura toda, a luz redonda do 11,
+   o grão e a luz do About, o Contact na largura toda). **Defeito antigo de produção corrigido:** o minificador escreve `--m-key` em
+   `#rrggbbaa` e o `parseColour` não o lia (a luz da hora faltava na cor do Method, em todos os aparelhos). Barra contra página 0,0–1,5 em
+   todas as paragens (era 1,0–3,6). Commit `2f6ab1d`.
+3. **Passo 5: o scroll antigo do desktop saiu** (`motor.ts`, o governador da roda de `finger.ts`, `?cenas`); o condutor corre em qualquer
+   desktop, só a pega do laboratório fica em `localhost` (README #127, `CLAUDE.md` corrigido nessa linha). Commit `5db1bdc`; o `master`
+   passou a ser o `v5`.
+4. **O telemóvel fica com o scroll do browser** (README #128): o condutor no telemóvel foi pesado (adaptador de toque novo, perdas do scroll
+   nativo, ~2–3 semanas) e o owner decidiu não o fazer por agora; se voltar, primeiro um protótipo só de Work → Method em `localhost`.
+5. **Android (Xiaomi):** o 9 em ecrã inteiro sem os cantos arredondados (o cartão cresce ×1,049); a barra do Chrome a acompanhar o escuro do
+   11 (era em escada) e a chegar ao 9 0,22 s depois da imagem (era ~0,9 s) — medido lado a lado com o commit anterior servido na 3101; o
+   custo: ~2 fotogramas a mais por passagem no Xiaomi. Commit `8609088`.
+6. **iOS:** na volta do 7 para o Work a faixa da ilha era uma barra de cor lisa; agora a aresta da luz atravessa-a como na ida (o palco
+   fica `sticky` — o Safari não desenha um palco `fixed` atrás da ilha com a página a mexer — e a cor da página é a do Work desde o início
+   da volta). Commit `91b927b`.
+
+### Fechados pelo owner nesta sessão (sem nova medida)
+O bug A (a fotografia *Before* das Experiences), o C (os ~50 ms do Safari por mudança de fase do Method; continuam medidos 51–85 ms no
+laboratório, a mesma faixa de 22/11), a cor do filme na barra do Safari depois do caminho de volta, o M8.
+
+### Não verificado (ficou dito ao owner)
+O modo escuro do macOS e "Reduzir transparência" (o +8 do Safari foi medido em modo claro, neste MacBook); outros ecrãs; no iOS, uma
+passada fortíssima que leve a página para lá da cena do Method (aí o palco passa a `fixed` e a faixa volta a ser uma cor, agora a do Work).
+
+### Para retomar o laboratório
+- `zsh docs/development/ios-lab/desk/rebuild.sh` (o `next start` na 3100). O proxy da consola (3130) a correr serve as gravações do iPhone
+  (`http://192.168.1.5:3130/__diag/enviar`); **reiniciá-lo antes de usar o simulador** (um proxy de dias guarda comandos velhos que deixam
+  as páginas novas em branco).
+- Ferramentas novas em `desk/cenas/tint/` (README, secções de 23/11): `walkbar4.sh` + `barstops.py` (barra contra página, ΔE), `calib.*`
+  (o que o Safari faz à cor), `edgeprobe.*`/`edgecurve.mjs` (as cores das cenas em headless), `bodyshow.*` (o body nunca à vista),
+  `xiaomi-theme.mjs`/`xiaomi-11.mjs` (o Xiaomi por adb: a barra do Chrome por `screencap`/`screenrecord`), `phoneprobe.mjs`. Para comparar
+  com o commit anterior: um worktree ao lado (`git worktree add --detach <dir> HEAD`, `cp -cR node_modules`, `next build`, `next start -p
+  3101`, `adb reverse tcp:3101`) e as duas versões alternadas; apagá-lo no fim (`git worktree remove`).
+- As gravações e capturas (vários GB) ficam fora do repositório, em `~/.local/share/v5-lab/` (`tint-runs-23nov/`, `rec/`).
+
+### Próximo
+O que o owner quiser. Sem pendentes da parte dele além de, se lhe apetecer, ver o site publicado no desktop (Chrome e Safari) e nos
+telemóveis depois do deploy.
 
 ## (antes) COMEÇAR AQUI · 23 de novembro de 2026 — o condutor é o scroll do desktop (passo 5) e as cores da barra do Safari; tudo no `v5` e no `master`
 

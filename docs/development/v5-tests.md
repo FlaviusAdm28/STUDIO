@@ -4349,7 +4349,7 @@ imagem dentro dele.
 - **Não verificado:** uma passada fortíssima que leve a página para lá da cena (aí o palco passa a `fixed` e a faixa
   volta a ser a cor da página — agora a do Work).
 
-### As lâminas da entrada com as fotografias do Work (23/11; owner: "acho que quero mudar as imagens das laminas na entrada... estao um bocado com ma qualidade"; "vamos mudar a imagem do artists que sugeriste e a experiences ser a E1") — feito, por aprovar; em commit e com push no `v5` para o owner testar no Mac (o `master` sem mudança; README #129)
+### As lâminas da entrada com as fotografias do Work (23/11; owner: "acho que quero mudar as imagens das laminas na entrada... estao um bocado com ma qualidade"; "vamos mudar a imagem do artists que sugeriste e a experiences ser a E1") — aprovado pelo owner depois dos testes no Mac (23/11: "parece-me bem"); no `v5` e no `master` (README #129)
 - **Medido antes:** as lâminas de Artists e Experiences eram imagens de IA de 1024 px. Artists levava zoom 1,3: no Xiaomi (84vw × 2,75
   = 908 px) pedia 1180 px a um ficheiro de 1024. Experiences era um concerto escuro, com fumo, em AVIF q50 (15 KB), empastado na faixa
   fina. Weddings (a 002, 3453 px, `fine`) estava nítida e fica. Simulação das lâminas ao tamanho real em `scratchpad` e depois no Chrome.
@@ -4380,8 +4380,26 @@ imagem dentro dele.
   | 320×640 | 9,1 / 3,7 | 7,6 / 3,7 | 12,3 / 7,3 |
   | 768×1024 | 7,9 / 3,9 | 7,3 / 3,8 | 12,2 / 6,5 |
 - **typecheck, lint, build:** passam.
-- **Não verificado:** o Xiaomi (não estava ligado ao `adb` nesta sessão); o iPhone; a passagem lâmina → arco não muda (é a lâmina de
-  Weddings, que fica igual).
+- **No Mac, depois do push (23/11, noite; owner: "quero que vejas nesta máquina alguns testes básicos a ver se tudo está bem e nada
+  partir porque conseguimos testar também safari e ios"):** o `v5` em `a4445bc`. typecheck, lint e build passam (Node 22; o `npm` dele
+  está avariado, as ferramentas correm diretamente). O HTML do `next start` traz os 16 derivados novos e nenhum dos antigos; os AVIF de
+  960 respondem 200 (38 667 e 39 651 bytes).
+  - **Chrome headless, a bateria do condutor** (`desk/cenas/`): `smoke` (desktop e movimento reduzido) sem erros; `walk1` a 1440×900 e
+    a 1280×590, 0 falhas; `cases`, `cases-method`, `cases-contact`, 0 falhas.
+  - **Safari 27 no ecrã** (janela 1728×1029, passadas reais de trackpad `f1`, consola pelo proxy 3142): as lâminas em `-mono-960.avif`;
+    um clique em cada lâmina chega ao capítulo (Artists y 2834, Experiences y 5130, Weddings y 1368; em Experiences o `where.js` escreve
+    `method@5130` porque o `data-section` da raiz já é `method` ali, mas o ecrã mostra o III Experiences e a barra diz *Work*: o
+    `seen()` da barra resolve-o, não é defeito); a página inteira para baixo, uma passada por paragem, pelas 17 paragens até ao fim, e 6
+    para cima (C → Q → 14 → 13 → 12 → 11); sem erros na página.
+  - **Simulador iOS 27.3** (`v5-iphone`, Device Hub, arrastos de dedo do `simtouch`, consola na 3130): as lâminas em `-mono-1280.avif`,
+    nítidas a 3× (captura vista); um toque em cada lâmina → Artists y 2565, Experiences y 4471, Weddings y 1238; a página inteira por
+    passadas de dedo (320 pt, 110 ms) pelas 17 paragens até ao fim e 8 para cima, até ao 9; sem erros.
+  - **Xiaomi, Chrome** (CDP, `adb reverse tcp:3100`): as lâminas em `-mono-960.avif` (captura vista); um toque em cada lâmina → Artists
+    y 2422, Experiences y 4191, Weddings y 1169; passadas de toque (320 px, 1200 px/s) por todas as paragens até ao fim e de volta até ao
+    topo; sem erros; 32 fotogramas acima de 50 ms em ~34 passadas (quase todos 55–88 ms, três de 110–199 ms), sem comparação com o
+    commit anterior (a mudança não toca em código de movimento).
+- **Não verificado:** o iPhone do owner; o Safari do desktop noutros tamanhos de janela; a passagem lâmina → arco não muda (é a lâmina
+  de Weddings, que fica igual).
 - **No commit:** `public/media/v5/` está no `.gitignore` e os derivados publicados entram por `git add -f`. Os 16 ficheiros
   `artists-moment-photo-mono-*` e `experiences-during-photo-mono-*` entraram assim (sem eles o site publicado ficava com as lâminas
   vazias). Ficam sem uso os derivados de IA `artists-always*` e `experiences-during*` (a cores, P&B e aura): por decidir com o owner se

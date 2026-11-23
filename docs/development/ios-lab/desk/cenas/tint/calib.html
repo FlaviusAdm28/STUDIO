@@ -1,0 +1,62 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>calib</title>
+<style>html, body { margin: 0; height: 4000px } #feed { position: absolute; left: 0; right: 0; height: 120px; top: 880px; z-index: 35 }
+#cover { position: absolute; left: 0; right: 0; top: 1000px; height: 3000px; background: #777 }</style></head>
+<body><div id="feed"></div><div id="cover"></div>
+<script>
+// Safari's bar against the colour the page paints, as the site does it under the conductor (lib/conductor.ts feed): the page scrolled,
+// html and body painted, a 120 px strip of the document just above the viewport. A magenta step marks the start, then each colour 1.4 s.
+//   ?mode=both (html, body and the strip the same colour; the site), feed (the strip only; html grey), html (html and body only; the strip grey)
+//   &set=grey (0…255 by 8) | site (the site's own colours) | ramp=r,g,b (the colour × 0…1.2)
+const q = new URLSearchParams(location.search), mode = q.get('mode') || 'both', set = q.get('set') || 'grey'
+const f = document.getElementById('feed'), r = document.documentElement, b = document.body
+const hex = (c) => '#' + c.map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('')
+let list = []
+if (set === 'grey') for (let v = 0; v <= 256; v += 8) list.push([Math.min(255, v), Math.min(255, v), Math.min(255, v)])
+if (set === 'mix') list = [[30, 29, 26], [23, 24, 28], [28, 27, 23], [23, 24, 30], [34, 37, 45], [45, 46, 45], [39, 39, 36], [220, 213, 200], [208, 209, 208], [216, 218, 219], [16, 16, 16], [64, 64, 64], [128, 128, 128], [192, 192, 192], [240, 240, 240], [44, 51, 45]]
+if (set === 'site') list = [[30, 29, 26], [23, 24, 28], [28, 27, 23], [23, 24, 30], [35, 36, 41], [27, 28, 25], [43, 43, 42], [36, 36, 33], [216, 210, 196], [208, 209, 208], [238, 232, 221], [216, 208, 194], [44, 51, 45], [20, 19, 17], [60, 58, 54], [92, 91, 91]]
+if (set.startsWith('ramp')) { const c = set.split('=')[1].split(',').map(Number); for (let k = 0; k <= 12; k++) list.push(c.map((v) => (v * k) / 10)) }
+const GREY = '#808080'
+// &comp=8: the compensation tried — html and the strip painted 8 darker per channel, body and the page the colour itself
+const comp = Number(q.get('comp') || 0)
+const paint = (c) => {
+  const h = hex(c)
+  if (comp && c[0] !== 255 || comp && c[1] !== 0) {
+    const p = hex(c.map((v) => v - comp))
+    // &on=html,body,feed: which of them take the compensated colour (default html and the strip)
+    const on = (q.get('on') || 'html,feed').split(',')
+    r.style.background = on.includes('html') ? p : h
+    b.style.background = on.includes('body') ? p : h
+    f.style.background = on.includes('feed') ? p : h
+    above.style.background = on.includes('above') ? p : h
+    document.getElementById('cover').style.background = h
+    return
+  }
+  r.style.background = mode === 'feed' ? GREY : h
+  b.style.background = mode === 'feed' ? GREY : h
+  f.style.background = mode === 'html' ? GREY : h
+  // the page seen under the bar takes the colour too: the recording (bt709) is compared with itself, page against bar
+  document.getElementById('cover').style.background = h
+}
+// &at=<y>: the page scrolled to y (1000 by default; 0: the page's top, nothing above the viewport) — the strip and the page under the bar
+// laid there
+const at = Number(q.get('at') ?? 1000)
+// &fh=<px>: the strip's height (the site's 120); &above=1: the page above the strip covered by an element of the flow in the colour itself
+// (is body's background read as a tint, or only as the page scrolled off above the viewport?)
+const fh = Number(q.get('fh') || 120)
+f.style.height = fh + 'px'
+f.style.top = (at - fh) + 'px'
+const above = document.createElement('div')
+if (q.has('above')) { above.style.cssText = `position:absolute;left:0;right:0;top:0;height:${Math.max(0, at - fh)}px`; document.body.prepend(above) }
+document.getElementById('cover').style.top = at + 'px'
+addEventListener('load', () => {
+  scrollTo(0, at)
+  paint([255, 0, 255])
+  setTimeout(() => {
+    let i = 0
+    const next = () => { if (i < list.length) { paint(list[i++]); setTimeout(next, 1400) } else { document.title = 'done' } }
+    next()
+  }, 2000)
+  document.title = JSON.stringify(list.map(hex))
+})
+</script></body></html>

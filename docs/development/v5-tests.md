@@ -4165,3 +4165,102 @@ imagem dentro dele.
   depois do caminho de volta) sobre o filme a 107. Proposta: 120 px de espaço acima da entrada com o condutor (a paragem do topo a 120),
   pintados com a cor do topo do filme — muda a geometria da página: por decidir pelo owner.
 - **Não verificado:** o owner; outros macOS / "Reduzir transparência" (o vidro opaco: a faixa não se vê, nada muda).
+
+### Passo 4 do condutor — as Questions e o Contact (22/11, fim da noite; owner: "vamos acabar primeiro o condutor") — aprovado pelo owner no desktop (23/11: "teste desktop safari e chrome parece-me bem"), sem commit
+- **O que mudou:** `contact-client.tsx` regista o Contact no condutor (`registerScene`): a luz em baixo na paragem do Contact e no fim, em
+  cima acima dela; tocada, ou de uma vez num salto. Com o condutor não lê o scroll para a passagem (só o colofão segue o deslize até ao fim)
+  nem usa as retenções do encaixe (`cHold`, `cOn`). `busyUntil`: a caminho do Contact, uma passada para o colofão espera até a linha e o
+  *Talk to us* estarem vistos (0,95, x = 0,866, 2,6 s: a regra A do Method); no regresso, uma passada para cima espera até as perguntas
+  voltarem (x = 0,046). A outra direção vira a passagem de onde está. `conductor.ts`: `HELD` em grupos — Questions ↔ Contact de uma vez,
+  sem se ver (o papel, as perguntas, a sala e a cena do Contact estão presos ao ecrã entre as duas); 14 → Questions (o papel sobe) e Contact →
+  fim (o colofão entra) continuam a deslizar; o Contact saiu do `legacyBusy`. `questions.css`: a regra que segura a caixa das perguntas no
+  centro do ecrã (desktop) perdia para a do iOS (`top: 0`) — onde o ecrã passa da moldura a caixa subia 64 px (1024 × 768) e 69 (900 × 700)
+  enquanto a luz descia, também sem condutor; agora fica. A caixa segura onde estava enquanto desaparece quando a lista é mais alta que o
+  ecrã (janelas < 900 px: 22 px a 375 × 667, 37 a 320 × 640; `translate` até ao repouso).
+- **Medido antes (headless, 26 tamanhos):** entre as paragens Questions e Contact só se mexiam a marca `.c-start` e o colofão (fora do ecrã)
+  — salvo a caixa nos tamanhos acima. Sem paragens `q1…` no desktop em nenhum tamanho.
+- **Headless:** `cases-contact` 15/15 a 1440 × 900, 1024 × 768, 375 × 667, 320 × 640, 1280 × 590, 2560 × 1305 (0 frames entre as paragens; a
+  caixa 0 frames fora do lugar enquanto vista); `walk1` 0 falhas, 0 fotogramas longos (agora com o estado do Contact em cada paragem);
+  `cases` 28/28; `cases-method` 9/9; `cases-about` 8/8; `smoke` sem erros. Sem condutor (`?cenas=0`, 1440 e 1024): a luz desce a caminho do
+  Contact e volta no regresso, como antes.
+- **No ecrã (trackpad real, Chrome e Safari):** o percurso Questions → Contact → fim → Contact → Questions → Contact (virado) → Questions → 14
+  pela ordem nos dois; a cadeia do owner (`owner-chain-chrome`) e passadas fortes (`swipe800`) a partir do 14 e das Questions: nenhuma
+  barreira saltada, a passagem inteira antes do colofão (uma passada 0,6 s cedo demais deitada fora, a seguinte aceite), o regresso inteiro
+  antes do About. Os fotogramas: as perguntas desaparecem no lugar, a luz desce, o filme, a pergunta, a linha e o *Talk to us* — igual nos
+  dois. A passagem começa ~0,33 s mais cedo (já não espera pelo deslize). A barra do Safari acompanha a página no mesmo frame, nos dois
+  sentidos (`tint/walkbar3.sh`, `barcurve.py`). Chrome: 0 fotogramas longos. Safari: 35–67 ms uma vez, no primeiro regresso às Questions
+  depois de carregar a página no Contact (o Safari a desenhar pela primeira vez o papel e as perguntas); nos 4 regressos seguintes nenhum.
+- **Não verificado:** o telemóvel (o caminho sem condutor não mudou: `driven` falso, a mesma lógica; o CSS só ≥ 900 px) — não
+  medido no Xiaomi por isso; iOS.
+
+### As cores da barra do Safari no desktop, medidas por números (23/11; owner, 22/11: "a cor do topo poderia dar um match melhor com cada instância do site, especialmente nas mais escuras… a transição para o Work é que se nota"; o owner é daltónico: ΔE, não o olho) — aprovado pelo owner no desktop (23/11: "parece-me bem em desktop"), sem commit
+- **Como se mede (`desk/cenas/tint/`, README "The bar against the page, by numbers"):** o Safari real conduzido por teclas, a janela
+  gravada; em cada paragem a cor assente da barra contra a linha de cima da página (média dos píxeis, a largura toda), ΔE2000 e L*
+  (`walkbar4.sh` + `barstops.py`); o relógio da página posto pelo proxy (`&hour=10`, `&hour=22`). A gravação não dá o valor CSS (bt709:
+  o #777 sai 107): barra e página comparadas entre si. Em headless, `edgeprobe.mjs`/`.py` (a cor pintada contra os píxeis do topo, sRGB
+  exato) e `edgecurve.mjs` (o mesmo frame a frame numa passagem).
+- **O que o Safari 27 faz (calib.html, 16 cores, as do site incluídas):** a barra é a cor pintada **+8 níveis por canal**, do preto ao
+  branco, com a página fora do topo; ~85 % vem do fundo do **body**, o resto da faixa acima do ecrã (`#c1-feed`), nada do html enquanto
+  o body tem fundo; uma faixa de 1000 px sozinha não chega (+5…+7). Body e faixa pintados 8 abaixo: barra − página 0 ± 1. No topo (scroll
+  0 e 1 px) outro regime (a cor do Safari); a 50 px já o +8.
+- **O que mudou:**
+  - `entrance/sequence.ts`, `contact/contact-client.tsx`: no Safari do desktop, com a página fora do topo, o body e a faixa pintados 8
+    abaixo da cor da cena (o html fica com a cor da cena); `lib/top-colour.ts` `SAFARI_BAR_LIFT`/`underSafariBar` (o script da entrada não
+    importa: a mesma constante escrita lá). No topo da página nada muda (a entrada: o owner gosta da cor que o Safari escolhe).
+  - `lib/top-colour.ts` `parseColour` — lê `#rgb`, `#rgba`, `#rrggbbaa`. **Defeito anterior encontrado:** o minificador do build escreve o
+    `--m-key` (rgba) como `#ffc48c42`; lido como nenhuma cor, em produção a cor do topo do Method deixava de fora a luz da hora (o quarto
+    só) — também no iPhone e no Android (a ilha, a barra do Chrome). Em `next dev` lia-se bem.
+  - `method/method-stage.ts` — no desktop o topo do estúdio lido na largura toda (a fotografia) e a luz da hora em 8 pontos (era o meio);
+    o escuro do 11 com a sua luz redonda (`.m-dark`, círculo 46vw), que no desktop chega ao topo (23 … 36, média 29; era o escuro liso 23),
+    lida pelo tamanho da camada (em repouso cobre o ecrã), não por onde está.
+  - `about/about-stage.ts` — o quarto aceso visto através do grão (`.a-grain`, +2,2 níveis); no desktop a luz do 11 que o About leva
+    (`.a-glow`) contada onde está, a cada frame; no caminho de volta ao Method o palco que sai diz o seu topo até ter saído (1,5 s) e só
+    então o Method — `sequence.ts` dá-lhe a vez enquanto o diz.
+  - `contact/contact-client.tsx` — no Safari do desktop o topo do Contact (o cartaz através do véu) lido na largura toda, em 8 partes (o
+    quarto liso #1b1c1a ficava ~10 níveis abaixo); a passagem acaba nessa cor.
+- **Antes → agora (Safari real, 1728 × 1062, ΔE2000 barra contra página, médias dos píxeis; antes e agora com a mesma ferramenta):**
+
+  | paragem | 22 h antes | 22 h agora | 10 h antes | 10 h agora |
+  |---|---|---|---|---|
+  | Weddings / Artists | 1,9 / 3,0 | **0,0 / 0,0** | 2,2 / 3,0 | **0,0 / 0,0** |
+  | Experiences | 3,3 | 2,3 | 3,3 | 2,3 |
+  | Method 7 … 10 | 1,5–1,9 | **0,7** | 3,2–3,6 | **0,8–1,2** |
+  | 11 / About 12 | 1,0 / 1,6 | **0,7 / 0,3** | 1,0 / 1,7 | **0,7 / 0,3** |
+  | About 13 / 14 | 1,9 | 1,5 | 1,9 | 1,5 |
+  | Questions | 1,5 | **0,8** | 1,5 | **0,8** |
+  | Contact / fim | 1,3 | **0,6** | 1,3 | **0,6** |
+
+  Para cima (22 h) o mesmo (média 0,8, pior 2,3). Em headless (sRGB exato) a cor pintada contra o topo: 0,0–0,7 em todas as paragens
+  com a página fora do topo, às 10 h e às 22 h. Experiences: a cor pintada é a do fundo (#171b22) e o Safari desenha esse azul escuro 1–2
+  níveis diferente na barra e na página (a calibração dá 0 para outras cores escuras) — fica. About 13/14: a barra neutra sobre um topo
+  ligeiramente quente (41,41,41 / 42,42,40).
+  **Sem condutor** (o site publicado no desktop; 22 h): antes 1,7–3,3 nas paragens (média 2,7; aqui "antes" é sem a compensação, com as
+  cores das cenas já certas), agora 0,0–1,5 (média 1,4), Experiences 2,3. Sem a faixa, nas Questions o vidro mostra o escuro do About acima
+  do ecrã, que tira o +8 sozinho: aí, e só sem a faixa, nada de compensação (0,7; com ela 2,7), e na passagem para o Contact entra com o
+  quarto (`sequence.ts` barInk, `contact-client.tsx` edges).
+- **As passagens (a barra contra a página, frame a frame):** entrada → Work, a barra fica nos 23 e a página chega aos 23 — o degrau de +6
+  ~0,7 s depois de a página parar desapareceu; 11 ↔ 12 nos dois sentidos a barra segue a página a ~1 nível (headless: a cor pintada a ≤ 2
+  do topo em 52–56 amostras); Questions → Contact a descida da barra igual à da página (degrau maior 19 contra 18); os capítulos do Work e
+  o Method sem degraus maiores que os da página.
+- **O body nunca se vê** (o que permite pintá-lo mais escuro): body magenta e html verde, o site percorrido por passadas com uma captura a
+  cada ~120 ms — 0 capturas com algum dos dois em 336 (1440 × 900), 205 (1280 × 590), 122 (2560 × 1305), 460 (1024 × 768) com o condutor e
+  681 sem ele (1440 × 900) (`tint/bodyshow.mjs`/`.py`).
+- **Bateria:** typecheck, lint sem avisos, build; `walk1` e `cases` 0 falhas a 1440 × 900, 1024 × 768, 2560 × 1305 e 1280 × 590 (0–2
+  fotogramas longos por percurso; o tamanho confirmado na página), `cases-contact` 0 falhas nesses e a 375 × 667, `cases-method` e
+  `cases-about` 0 falhas, `smoke` sem erros. (O
+  laboratório: `h.mjs` `open()` lê agora `W`/`H` — antes só o `cases-contact` os lia.)
+- **Os telemóveis (23/11; owner: "liguei o xiaomi quero que verifiques… verificar no iphone também"):** o que lá muda é o `parseColour` (a
+  luz da hora na cor do Method) e o grão do quarto aceso do About; o resto é só do desktop.
+  - **Xiaomi** (Chrome 157, ligado por adb; `tint/xiaomi-theme.mjs`: o `theme-color`, a barra do Chrome no ecrã por `screencap` e a linha de
+    cima da página por baixo dela): a barra é o `theme-color` exato. 22 h — 7: barra (41,42,48) contra o topo (39,41,46), ΔE 1,1; com a cor
+    de antes (#22252d, sem a luz) 2,2; 8a–8c e 10 (34,37,45) contra (33,36,44), 0,3 (iguais antes e agora: a luz não chega ao topo do
+    telemóvel); 9 1,1; 11 igual. 10 h — 7 a 10 (218,218,216) contra (215,215,213); 9 e 11 iguais. About 12 igual; 13/14 (192,191,187)
+    contra (189,188,185) (o grão: < 1 nível no claro).
+  - **iPhone** (simulador `v5-iphone`, iOS 27.3, à noite): com o fundo da página pintado de magenta no 7, a captura do ecrã não muda — só o
+    anti-aliasing do relógio e dos ícones (a cor clara/escura das letras): no iOS 27 o Safari mostra a própria página por baixo da ilha e da
+    barra, não a cor pintada. A faixa da ilha (35,37,44) é o topo da página. O `parseColour` não tem efeito visível ali. Falta o iPhone do
+    owner (o simulador não é o aparelho).
+  - Em headless (emulação de telemóvel, `tint/phoneprobe.mjs`) o 7–10 às 10 h dizia 218 sobre 210 e o 9 165 sobre 154 — no Xiaomi 215 e
+    162: o recorte da fotografia é outro no ecrã real; o aparelho manda.
+- **Não verificado:** o owner no iPhone; o modo escuro do macOS, "Reduzir transparência" e outros ecrãs/perfis de cor (o +8 medido em modo claro, neste MacBook); outras alturas de
+  janela no Safari (medido a 1728 × 1062; em headless 1280 × 590 a 2560 × 1305 as cores das cenas).

@@ -752,15 +752,20 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
   let roomImg: HTMLImageElement | null = null
   let roomAt = ''
   let roomTone: ReturnType<typeof bandColour> = null
-  // the studio's top: its room as cover-drawn in the studio's box, and the hour's light (.m-key) over it at the top's middle
+  // On a desktop the studio's top across the whole width, as the About's: desktop Safari's bar spans the window. The middle alone was the
+  // lit part: at 10 h the top runs 216 … 178 from the light's side to the other, 205 on average, and the middle said 213 (on screen, 23 Nov)
+  const wide = () => kind === 'desk' && !lift
+  // where along the top line the hour's light is read: the middle, or eight points across the width
+  const ACROSS = [0.0625, 0.1875, 0.3125, 0.4375, 0.5625, 0.6875, 0.8125, 0.9375]
+  // the studio's top: its room as cover-drawn in the studio's box, and the hour's light (.m-key) over it at the top's middle (or across it)
   const studioTop = (ph: Phase) => {
     const cs = getComputedStyle(section)
     const fallback = cs.getPropertyValue('--m-edge').trim()
     // the room's own colour there: read from its picture once per size (a canvas drawn and read back), not again at every frame of a follow
-    const size = `${W}x${stage.offsetHeight - lift}`
+    const size = `${W}x${stage.offsetHeight - lift}x${wide()}`
     if (roomImg && roomAt !== size) {
       roomAt = size
-      roomTone = bandColour(roomImg, { w: W, h: stage.offsetHeight - lift }, band(0, 0))
+      roomTone = bandColour(roomImg, { w: W, h: stage.offsetHeight - lift }, wide() ? { x0: 0, x1: W, y0: 0, y1: 4 } : band(0, 0))
     }
     const room = roomImg ? roomTone : null
     if (!room) return fallback
@@ -769,33 +774,55 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     const k = KEY_K[ph]
     const { side, high } = keyBase()
     const grow = (0.92 + 0.35 * k) / 0.92
-    let d: number
+    // closest-side, the light's colour to transparent at 72 %: its share at a distance d (in its radii)
+    const fall = (d: number) => Math.max(0, 1 - d / 0.72)
+    let share: number
     if (kind === 'phone') {
       const kx = Math.min(80, Math.max(20, side))
       const r = ((1.5 * 0.92 * F) / 2) * grow
       const cx = ox + (kx * F) / 100 + (((50 - kx) * k * 0.55) / 100) * F
       const cy = 0.22 * H + 0.3 * k * H
-      d = Math.hypot(W / 2 - cx, (lift ? lift / 2 : 8) - cy) / r
+      share = fall(Math.hypot(W / 2 - cx, (lift ? lift / 2 : 8) - cy) / r)
     } else {
       const rx = ((1.1 * 0.92 * W) / 2) * grow
       const ry = ((1.4 * 0.92 * H) / 2) * grow
       const cx = (side * W) / 100 + (((50 - side) * k * 0.6) / 100) * W
       const cy = (high * H) / 100 + (12.8 * k * H) / 100
-      d = Math.hypot((W / 2 - cx) / rx, ((lift ? lift / 2 : 8) - cy) / ry)
+      const at = (x: number) => fall(Math.hypot((x * W - cx) / rx, ((lift ? lift / 2 : 8) - cy) / ry))
+      // across the width the shares averaged: the colour is linear in it
+      share = wide() ? ACROSS.reduce((sum, x) => sum + at(x), 0) / ACROSS.length : at(0.5)
     }
-    // closest-side, the light's colour to transparent at 72 %; at the light's own opacity now (it goes out at 11, comes back from it)
-    const a = kc[3] * Math.max(0, 1 - d / 0.72) * (parseFloat(getComputedStyle(key).opacity) || 0)
+    // at the light's own opacity now (it goes out at 11, comes back from it)
+    const a = kc[3] * share * (parseFloat(getComputedStyle(key).opacity) || 0)
     return hex(over(room, [kc[0], kc[1], kc[2]], a))
   }
   // the dark of 11 (.m-end and its .m-dark) over the studio, at its opacity now: it comes in over 1.8 s and goes in 0.7 s back, and the
   // edge set to it at once was dark over the still-lit studio for a second and a half (audit, 390 × 844, 4 Nov)
   const DARK_11: [number, number, number] = [23, 24, 22]
+  // its one calm round light (method.css .m-dark: circle 46vw at 50% 44% of the dark, rgba(255, 236, 206) 0.15 → 0.05 at 60 % → none at
+  // its rim) reaches the top on a desktop: there 23 … 36 across, 29 on average, where the flat dark said 23 (Chrome, 1728 × 1000, 23 Nov).
+  // Across the whole width there; a phone's is narrower (62vw) and centred lower: it never reaches the top, the flat dark stays
+  const darkEl = end.querySelector<HTMLElement>('.m-dark')
+  const ROUND: [number, number, number] = [255, 236, 206]
+  const darkTop = (): [number, number, number] => {
+    if (!wide() || !darkEl) return DARK_11
+    // where it is seen it fills the screen (held with the stage: [0, 0, W, H] at 10 and 11, 1280 × 590 to 2560 × 1305): read in place,
+    // its colour taken where the page was elsewhere (a jump to the end, the dark far above) stayed the flat dark on the way back to 11
+    const { width, height } = darkEl.getBoundingClientRect()
+    const at = (x: number) => {
+      const t = Math.hypot((x - 0.5) * width, 2 - 0.44 * height) / (0.46 * innerWidth)
+      return t >= 1 ? 0 : t <= 0.6 ? 0.15 - (0.1 * t) / 0.6 : (0.05 * (1 - t)) / 0.4
+    }
+    const a = ACROSS.reduce((sum, x) => sum + at(x), 0) / ACROSS.length
+    return over(DARK_11, ROUND, a) as [number, number, number]
+  }
   const studioOrDark = (ph: Phase) => {
     const base = studioTop(ph)
     const a = parseFloat(getComputedStyle(end).opacity) || 0
-    if (a >= 0.99) return hex(DARK_11)
+    const dark = darkTop()
+    if (a >= 0.99) return hex(dark)
     const b = parseColour(base)
-    return a <= 0.01 || !b ? base : hex(over([b[0], b[1], b[2]], DARK_11, a))
+    return a <= 0.01 || !b ? base : hex(over([b[0], b[1], b[2]], dark, a))
   }
   // 9 on a phone: the featured screen to the edges — its own photograph at the top, or its ground where it has none
   const featuredTop = () => {

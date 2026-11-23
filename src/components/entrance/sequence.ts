@@ -166,13 +166,38 @@ export function entranceSequence(c: EntranceConfig) {
   // or the Method's light crossing the top as drawn (feedLit)
   let feedEl: HTMLElement | null = null
   let feedLit: string | null = null
+  // Desktop Safari's bar, once the page is off its top, is the colour painted 8 levels lighter (lib/top-colour.ts SAFARI_BAR_LIFT, measured
+  // there; this script cannot import it; owner, 22 Nov: "a cor do topo poderia dar um match melhor com cada instância do site, especialmente
+  // nas mais escuras"): there body and the strip are painted that much darker, so the bar is the scene's colour. html keeps the scene's own
+  // (the overscroll; glideTo reads it back)
+  // Without the conductor's strip (the site without ?cenas) the glass shows the page itself above the viewport: at the Questions that is the
+  // About's dark under the paper, which takes the lift away by itself — bar − page ΔE2000 0.7 painted as it is, 2.7 painted darker (on
+  // screen, 23 Nov); everywhere else the same as with the strip
+  const BAR_LIFT = 8
+  let offTop = scrollY > 0
+  const barInk = (c: string) => {
+    if (!tinted || !offTop || (!feedEl && root.dataset.section === 'questions')) return c
+    const v = rgbIn(c)
+    return v ? rgbOut(v.map((x) => Math.max(0, Math.round(x) - BAR_LIFT))) : c
+  }
   const writeEdges = (colour: string) => {
+    if (!feedEl?.isConnected) feedEl = document.getElementById('c1-feed')
     // written on the two elements: as a custom property on <html> every change restyled the whole page, on the phone's chapter change
     root.style.backgroundColor = colour
-    document.body.style.backgroundColor = colour
-    if (!feedEl?.isConnected) feedEl = document.getElementById('c1-feed')
-    if (feedEl) feedEl.style.background = feedLit ?? colour
+    document.body.style.backgroundColor = barInk(colour)
+    if (feedEl) feedEl.style.background = feedLit ?? barInk(colour)
   }
+  // the page leaving its top, or coming back to it: Safari's bar goes from body's colour as it is to the lifted one, and back
+  if (tinted)
+    addEventListener(
+      'scroll',
+      () => {
+        if (scrollY > 0 === offTop) return
+        offTop = scrollY > 0
+        if (root.style.backgroundColor) writeEdges(root.style.backgroundColor)
+      },
+      { passive: true },
+    )
   const step = (now: number) => {
     // the Contact's passage draws the page's colour itself, a frame at a time (contact-client.tsx edges): a glide under way gives way
     if (root.dataset.cRun !== undefined) {
@@ -305,8 +330,16 @@ export function entranceSequence(c: EntranceConfig) {
       const methodEdge = document.getElementById('method')?.dataset.edge ?? ''
       const aboutEdge = document.getElementById('about')?.dataset.edge ?? ''
       // the scene left behind says nothing for a jump: only the one it lands on
+      // and the other way: back in the Method, the About's stage still leaving over its 11 says its own top while it does (a desktop,
+      // about-stage.ts leaving), then lets go
       const edge =
-        sec === 'about' ? aboutEdge || (jumpTo ? '' : methodEdge) : sec === 'method' || (sec === 'work' && !jumpTo) ? methodEdge : ''
+        sec === 'about'
+          ? aboutEdge || (jumpTo ? '' : methodEdge)
+          : sec === 'method' && aboutEdge && !jumpTo
+            ? aboutEdge
+            : sec === 'method' || (sec === 'work' && !jumpTo)
+              ? methodEdge
+              : ''
 
       // in the Method and the About the edges cross-fade (0.3 s, as the light's edge passes the island), and so does the change that ends
       // it; elsewhere they change at once, as before
@@ -347,7 +380,7 @@ export function entranceSequence(c: EntranceConfig) {
       const band = lit !== edge ? document.getElementById('method')?.dataset.lit?.split(',').map(Number) : undefined
       const beam =
         band && band.length === 2 && band.every(Number.isFinite)
-          ? `linear-gradient(90deg, ${workTone} ${(band[0] * 100 - 2.5).toFixed(2)}%, ${methodEdge} ${(band[0] * 100 + 2.5).toFixed(2)}%, ${methodEdge} ${(band[1] * 100 - 2.5).toFixed(2)}%, ${workTone} ${(band[1] * 100 + 2.5).toFixed(2)}%)`
+          ? `linear-gradient(90deg, ${barInk(workTone)} ${(band[0] * 100 - 2.5).toFixed(2)}%, ${barInk(methodEdge)} ${(band[0] * 100 + 2.5).toFixed(2)}%, ${barInk(methodEdge)} ${(band[1] * 100 - 2.5).toFixed(2)}%, ${barInk(workTone)} ${(band[1] * 100 + 2.5).toFixed(2)}%)`
           : null
       // the Questions: their paper's top (questions.css .q-paper), so the island and the band under Safari's bar are the stone's; the
       // charcoal once the light is down

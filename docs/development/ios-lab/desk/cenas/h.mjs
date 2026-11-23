@@ -4,7 +4,8 @@ export const PORT = process.env.PORT || 9333
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const STROKES = `${process.env.HOME}/.local/share/v5-lab/strokes`
 
-export async function open(url, { w = 1440, h = 900 } = {}) {
+// the window: 1440 × 900 unless W and H say otherwise (the battery at other sizes, 23 Nov)
+export async function open(url, { w = Number(process.env.W || 1440), h = Number(process.env.H || 900) } = {}) {
   const t = await (await fetch(`http://localhost:${PORT}/json/new?${encodeURIComponent('about:blank')}`, { method: 'PUT' })).json()
   const ws = new WebSocket(t.webSocketDebuggerUrl)
   await new Promise((r) => (ws.onopen = r))
@@ -64,14 +65,14 @@ export const key = (p, k, code = k) =>
   )
 
 export const STATE = `const R=document.documentElement, w=document.getElementById('work'), m=document.getElementById('method'), a=document.getElementById('about');
-  return {y:Math.round(scrollY), cur: window.__cenas?.current?.() ?? null, gl: !!window.__cenas?.gliding?.(), pass:R.dataset.pass||'', ch:w?.dataset.ch, mp:m?.dataset.phase, ap:a?.dataset.phase, ent:R.dataset.entrance||'', jump: R.dataset.jump ?? null}`
+  return {y:Math.round(scrollY), cur: window.__cenas?.current?.() ?? null, gl: !!window.__cenas?.gliding?.(), pass:R.dataset.pass||'', ch:w?.dataset.ch, mp:m?.dataset.phase, ap:a?.dataset.phase, dk: R.classList.contains('c-dusk'), run: 'cRun' in R.dataset, ent:R.dataset.entrance||'', jump: R.dataset.jump ?? null}`
 export const state = (p) => p.ev(STATE)
 // animations left paused halfway (a scene stuck): finite, paused, neither at their start nor their end
 export const STUCK = `return document.getAnimations().filter(a=>{const t=a.effect?.getComputedTiming?.(); if(!t||!isFinite(t.endTime)||a.playState!=='paused')return false; const c=Number(a.currentTime??0); return c>1 && c<t.endTime-1}).map(a=>(a.effect.target?.className||a.effect.target?.tagName||'?')+'@'+Math.round(a.currentTime)+'/'+Math.round(a.effect.getComputedTiming().endTime))`
 export const stuck = (p) => p.ev(STUCK)
 // at rest: the page still and no finite animation running for `quiet` ms (or `max` ms in all)
 export const rest = (p, quiet = 400, max = 9000) =>
-  p.ev(`return new Promise((ok)=>{const t0=performance.now();let y=scrollY,since=performance.now();const f=()=>{const now=performance.now();const run=document.getAnimations().some(a=>a.playState==='running'&&isFinite(a.effect?.getComputedTiming?.().endTime));if(Math.abs(scrollY-y)>0.5||run||window.__cenas?.gliding?.()){since=now;y=scrollY}if(now-since>${quiet}||now-t0>${max})ok(Math.round(now-t0));else requestAnimationFrame(f)};f()})`)
+  p.ev(`return new Promise((ok)=>{const t0=performance.now();let y=scrollY,since=performance.now();const f=()=>{const now=performance.now();const run='cRun' in document.documentElement.dataset||document.getAnimations().some(a=>a.playState==='running'&&isFinite(a.effect?.getComputedTiming?.().endTime));if(Math.abs(scrollY-y)>0.5||run||window.__cenas?.gliding?.()){since=now;y=scrollY}if(now-since>${quiet}||now-t0>${max})ok(Math.round(now-t0));else requestAnimationFrame(f)};f()})`)
 export const notes = (p, from = 0) => p.ev(`return window.__notes.slice(${from})`)
 // what the stop should show (the scenes' states)
 export const expected = (stop) => {
@@ -80,11 +81,13 @@ export const expected = (stop) => {
   // the About (step 3, 21 Nov): its own phase at 12–14, 14 below them (the Questions' paper rises over it), unseen above
   const about = ['12', '13', '14']
   const i = work.indexOf(stop)
-  if (i === 0) return { pass: '', ch: '0', mp: 'pre', ap: 'pre' }
-  if (i > 0) return { pass: 'done', ch: String(i - 1), mp: 'pre', ap: 'pre' }
-  if (method.includes(stop)) return { pass: 'done', ch: '2', mp: stop, ap: 'pre' }
-  if (about.includes(stop)) return { pass: 'done', ch: '2', mp: '11', ap: stop }
-  return { pass: 'done', ch: '2', mp: '11', ap: '14' }
+  // the Contact (step 4, 22 Nov): the light down at its stop and below, up above; never still running at rest
+  const dk = stop === 'contact' || stop === 'end'
+  if (i === 0) return { pass: '', ch: '0', mp: 'pre', ap: 'pre', dk, run: false }
+  if (i > 0) return { pass: 'done', ch: String(i - 1), mp: 'pre', ap: 'pre', dk, run: false }
+  if (method.includes(stop)) return { pass: 'done', ch: '2', mp: stop, ap: 'pre', dk, run: false }
+  if (about.includes(stop)) return { pass: 'done', ch: '2', mp: '11', ap: stop, dk, run: false }
+  return { pass: 'done', ch: '2', mp: '11', ap: '14', dk, run: false }
 }
 export const check = (s) => {
   const e = expected(s.cur)

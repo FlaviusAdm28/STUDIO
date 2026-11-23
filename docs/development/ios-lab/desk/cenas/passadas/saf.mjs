@@ -33,7 +33,7 @@ console.log('page', JSON.stringify(await run(REC)))
 const T = await run('return Math.round(performance.now())')
 const t0 = Date.now()
 const log = []
-const PROF = { d: 'gentle300', u: 'gentle300-up', D: 'swipe800', U: 'swipe800-up', s: 'swipe300', S: 'swipe300-up', n: 'swipe300-nomom', N: 'swipe300-nomom-up' }
+const PROF = { d: 'gentle300', u: 'gentle300-up', D: 'swipe800', U: 'swipe800-up', s: 'swipe300', S: 'swipe300-up', C: 'owner-chain-chrome', c: 'owner-chain-chrome-up', n: 'swipe300-nomom', N: 'swipe300-nomom-up' }
 for (const st of plan.split(/\s+/).filter(Boolean)) {
   if (st[0] === 'J') { const [stop, ms] = st.slice(1).split(':'); await run(`window.__cenas.go('${stop}','jump')`); log.push([T + Date.now() - t0, 'J' + stop]); await sleep(Number(ms) || 1500); continue }
   if (st[0] === 'P') { const [name, ms] = st.slice(1).split(':'); log.push([T + Date.now() - t0, 'P' + name]); stroke(name); await sleep(Number(ms) || 0); continue }

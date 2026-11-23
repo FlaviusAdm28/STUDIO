@@ -537,8 +537,10 @@
       height: var(--screen);
     }
     /* centred in the first screen, and held there: over both rows, as the paper (a grid item sticks only inside its own area: in the
-       first row alone it went on up 105 px before it had faded, Chrome 1440, 10 Nov) */
-    :root[data-js] .q-box {
+       first row alone it went on up 105 px before it had faded, Chrome 1440, 10 Nov). As specific as the rule of the held box above (its
+       top, iOS's lift, had taken over this one: where the screen goes over the frame the box went up by its margin as the light went
+       down, 64 px at 1024 × 768, 69 at 900 × 700, 22 Nov) */
+    :root[data-js] .questions .q-box {
       grid-area: 1 / 1 / 3 / 2;
       align-self: start;
       margin-top: calc((100svh - 62.5 * var(--u)) / 2);

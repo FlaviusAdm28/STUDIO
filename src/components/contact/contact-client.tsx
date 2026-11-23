@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect } from 'react'
+import { cenasOn, registerScene, type How } from '@/lib/conductor'
 import { fingerDown, onWheelStroke, watchFinger } from '@/lib/finger'
-import { bandColour, hex, over, type Rgb } from '@/lib/top-colour'
+import { bandColour, hex, over, SAFARI_BAR_LIFT, underSafariBar, type Rgb } from '@/lib/top-colour'
 
 // the room's own dark (contact.css .contact, .c-veil)
 const ROOM_RGB: Rgb = [27, 28, 26]
@@ -36,6 +37,9 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
     const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection
     const filmOk = !!video && !reduce && !connection?.saveData
+    // driven by the conductor (lib/conductor.ts, `?cenas`; step 4, 22 Nov): told which stop the page is on, never reading the scroll for the
+    // passage (below, registerScene)
+    const driven = cenasOn()
     const c1 = () => (window as Window & { __c1?: { arrival?: { time: number }; name?: string } }).__c1
 
     const pad = (n: number) => String(n).padStart(2, '0')
@@ -156,20 +160,50 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
     const PAPER = [220, 213, 200]
     const DIM = [20, 20, 18]
     const ROOM = [27, 28, 26]
+    // the room at the screen's top: the poster through the veil (contact.css). A phone's Chrome across the top's middle; desktop Safari
+    // across the whole width, in eight parts — its tab bar spans the window (see the edge read where the page settles, below)
+    const poster = section.querySelector<HTMLImageElement>('.c-poster img')
+    const veil = section.querySelector<HTMLElement>('.c-veil')
+    const roomTop = (): Rgb | null => {
+      if (!poster || !veil) return null
+      const r = poster.getBoundingClientRect()
+      const v = veil.getBoundingClientRect()
+      if (r.top > 0 || r.bottom < 4) return null
+      const parts = tinted ? 8 : 1
+      const sum = [0, 0, 0]
+      for (let i = 0; i < parts; i++) {
+        const x0 = tinted ? (innerWidth * i) / parts : innerWidth * 0.3
+        const x1 = tinted ? (innerWidth * (i + 1)) / parts : innerWidth * 0.7
+        const c = bandColour(poster, { w: r.width, h: r.height }, { x0: x0 - r.left, x1: x1 - r.left, y0: -r.top, y1: 4 - r.top })
+        if (!c) return null
+        // the veil's dark there: radial-gradient(70% 60% at 50% 45%), 0.72 at its centre to 0.9 at its rim (contact.css)
+        const d = Math.hypot(((x0 + x1) / 2 - v.left - 0.5 * v.width) / (0.7 * v.width), (-v.top - 0.45 * v.height) / (0.6 * v.height))
+        over(c, ROOM_RGB, 0.72 + 0.18 * Math.min(1, d)).forEach((x, k) => (sum[k] += x / parts))
+      }
+      return [sum[0], sum[1], sum[2]]
+    }
+    // desktop Safari: the room as it is at the top, across the width (roomTop), where its passage ends — the flat room was ~10
+    // levels under the top there, the film's sky through the veil (on screen, 23 Nov)
+    let deskRoom: Rgb | null = null
     const edges = (d: number, r: number) => {
       const s = root.dataset.section
       if (!(ios || tinted) || (s !== 'questions' && s !== 'contact')) return
-      const c = PAPER.map((p, i) => Math.round((p + (DIM[i] - p) * d) * (1 - r) + ROOM[i] * r))
-      const colour = `#${c.map((v) => v.toString(16).padStart(2, '0')).join('')}`
+      const end = (tinted && deskRoom) || ROOM
+      const c = PAPER.map((p, i) => Math.round((p + (DIM[i] - p) * d) * (1 - r) + end[i] * r))
+      const css = (v: number[]) => `#${v.map((x) => x.toString(16).padStart(2, '0')).join('')}`
+      const colour = css(c)
+      // the strip of the page above the viewport that desktop Safari's glass shows (lib/conductor.ts feed): painted here too, or the bar
+      // kept the colour the passage began with — 61 over the Contact's 36, and 185 over the Questions' paper on the way back (on screen)
+      const feed = document.getElementById('c1-feed')
+      // desktop Safari: body and the strip 8 levels darker, so its bar is the colour itself (lib/top-colour.ts underSafariBar, sequence.ts);
+      // without the strip none at the Questions (the About's dark above the viewport does it there, sequence.ts barInk), in with the room
+      const ink = tinted ? css(underSafariBar(c, feed ? SAFARI_BAR_LIFT : SAFARI_BAR_LIFT * r)) : colour
       root.style.transition = 'none'
       document.body.style.transition = 'none'
       root.style.backgroundColor = colour
-      document.body.style.backgroundColor = colour
+      document.body.style.backgroundColor = ink
       themeMeta?.setAttribute('content', colour)
-      // and the strip of the page above the viewport that desktop Safari's glass shows (lib/conductor.ts feed): painted here too, or the bar
-      // kept the colour the passage began with — 61 over the Contact's 36, and 185 over the Questions' paper on the way back (on screen)
-      const feed = document.getElementById('c1-feed')
-      if (feed) feed.style.background = colour
+      if (feed) feed.style.background = ink
     }
     // the storyboard's E (saida-mascara render, 'e'), at progress x
     const draw = (x: number) => {
@@ -299,12 +333,12 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
       if (onward) endOn()
       if (holding) letGo()
     })
-    const go = (to: number) => {
+    const go = (to: number, now = false) => {
       target = to
-      // reduced motion, and a jump of the site's own (the menu, an address: data-jump): the light is down, or up, at once — a jump lands on
-      // the scene as it rests (owner, 13 Nov: "deve apenas navegar para a zona da página sem mais nada a construir"; the menu to 05 Contact
-      // played the light going down and the question 1.3–2 s after it had gone)
-      if (reduce || root.dataset.jump !== undefined) {
+      // reduced motion, and a jump of the site's own (the menu, an address: data-jump; or one the conductor says): the light is down, or up,
+      // at once — a jump lands on the scene as it rests (owner, 13 Nov: "deve apenas navegar para a zona da página sem mais nada a
+      // construir"; the menu to 05 Contact played the light going down and the question 1.3–2 s after it had gone)
+      if (reduce || now || root.dataset.jump !== undefined) {
         cancelAnimationFrame(runRaf)
         runRaf = 0
         last = 0
@@ -316,13 +350,17 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
         settle()
         return
       }
-      if (to && x < 1 && !onward && !jumping()) {
+      // the holds are the browser's snapping's (the conductor's page has none: it holds the strokes itself, busyUntil below)
+      if (driven) {
+        // nothing to hold
+      } else if (to && x < 1 && !onward && !jumping()) {
         onward = true
         root.dataset.cOn = ''
         if (!onRaf) onRaf = requestAnimationFrame(watchOn)
       } else if (!to && onward) endOn()
-      if (!to && x > 0 && !holding && !jumping()) startHold()
+      if (!driven && !to && x > 0 && !holding && !jumping()) startHold()
       if (!runRaf && x !== target) {
+        if (tinted) deskRoom = roomTop() ?? deskRoom
         // sequence.ts leaves the edges to the passage while this is set (not in its watched attributes: setting it changes nothing there)
         root.dataset.cRun = ''
         draw(x)
@@ -377,7 +415,8 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
     const place = () => {
       raf = 0
       watchIn()
-      if (!start || !questions) return
+      // with the conductor the passage is told (registerScene): only the colophon follows the page, which the conductor glides to the end
+      if (driven || !start || !questions) return
       const top = start.getBoundingClientRect().top
       const span = top - (questions.getBoundingClientRect().top + qLift)
       const f = span > 0 ? 1 - top / span : 1
@@ -415,7 +454,10 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
       movedAt = performance.now()
       if (!raf) raf = requestAnimationFrame(place)
     }
-    place()
+    // with the conductor, it says where the page is once it has laid out its stops (a reload down the page: a jump there); the colophon
+    // reads its place now (a reload at the page's end: the conductor need not move the page, and no scroll would come)
+    if (driven) watchIn()
+    else place()
     if (questions) questions.dataset.lum = root.classList.contains('c-dusk') ? '0.1' : '0.8'
     root.classList.add('c-live')
     // The page's end as Safari brings its bar out: the screen 40 px shorter, the page has 40 px more to go. The page's last stop follows
@@ -431,32 +473,85 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
     addEventListener('scroll', onScroll, { passive: true })
     addEventListener('resize', onResize)
 
+    // Driven by the conductor (step 4, 22 Nov), as the About: the light is down at the Contact's stop and below (the page's end), up above
+    // it — played, or at once for a jump. The page goes from the Questions' stop to the Contact's at once, unseen (conductor.ts HELD): the
+    // paper, the questions and the Contact's room and scene are held on the screen between the two (measured at 26 viewports, 22 Nov), so
+    // the passage answers the stroke itself instead of a 0.6–1 s glide of nothing moving. It says how long its passage must still play:
+    // on the way in, a stroke on to the colophon waits until the line and Talk to us are seen (SEEN, as the Method's phase changes: owner,
+    // 22 Nov, "no 10 espera pelas 3"); on the way back, a stroke on up waits until the questions are back. A stroke the other way turns the
+    // passage back from where it is (it was made so). Its barriers (the Questions, the Contact) are the conductor's
+    const SEEN = 0.95
+    // the passage's x at which a layer is seen (its value SEEN): the words (b, 0.72–0.98, settleIn) on the way in, the box (1 − its fade,
+    // 0–0.2, ease) on the way back
+    const solve = (f: (t: number) => number, v: number) => {
+      let lo = 0
+      let hi = 1
+      for (let i = 0; i < 24; i++) {
+        const mid = (lo + hi) / 2
+        if (f(mid) < v) lo = mid
+        else hi = mid
+      }
+      return (lo + hi) / 2
+    }
+    const IN_SEEN = 0.72 + 0.26 * solve(settleIn, SEEN)
+    const BACK_SEEN = 0.2 * solve(ease, 1 - SEEN)
+    // ms from x down to `to` on the way back: the empty stretch (0.2–0.56) three times as fast (run)
+    const backMs = (from: number, to: number) => {
+      const fast = Math.max(0, Math.min(from, 0.56) - Math.max(to, 0.2))
+      return BACK_MS * (from - to - fast + fast / 3)
+    }
+    const belowContact = (stop: string) => stop === 'contact' || stop === 'end'
+    const unregister = driven
+      ? registerScene({
+          name: 'contact',
+          to: (stop: string, how: How) => {
+            const dusk = belowContact(stop)
+            // The box of questions where it was at the Questions' stop while it fades: put on the Contact's stop at once, it was pushed up
+            // by its section's end where the closed list is taller than the screen (a window under 900 px: 22 px at 375 × 667, 37 at
+            // 320 × 640), where the screen goes over its frame (64 px at 1024 × 768 before questions.css held it). At the Questions' stop it
+            // rests on its sticky top; at rest at the Contact it is gone (settle clears this)
+            if (box) {
+              box.style.removeProperty('translate')
+              if (dusk && how === 'play' && x < 0.2) {
+                const dy = parseFloat(getComputedStyle(box).top) - box.getBoundingClientRect().top
+                if (dy > 0.5) box.style.translate = `0 ${dy.toFixed(1)}px`
+              }
+            }
+            if (dusk === root.classList.contains('c-dusk')) return
+            root.classList.toggle('c-dusk', dusk)
+            go(dusk ? 1 : 0, how === 'jump')
+          },
+          busyUntil: (next: string) => {
+            if (!runRaf) return 0
+            const now = performance.now()
+            if (target === 1 && next === 'end' && x < IN_SEEN) return now + (IN_SEEN - x) * ON_MS
+            if (target === 0 && !belowContact(next) && x > BACK_SEEN) return now + backMs(x, BACK_SEEN)
+            return 0
+          },
+        })
+      : () => {}
+
     // The colour at the screen's top for Chrome's bar on Android (theme-color, entrance/sequence.ts: data-edge): the poster through the
     // veil, where the page has settled. The room's flat #1b1c1a was 13–23 levels darker than what is there — the film's sky lets ~15 %
     // through at the top (Xiaomi, 13 Nov: the bar #1b1c1a over #2a2a25 at the stop, #222521 at the end). Not on an iPhone: there the
     // same colour is also the band under Safari's bar, over the colophon's own #1b1c1a. The film moves over its poster; the poster is
-    // its frame, read once per stop. The warm light (.c-veil's first gradient) is low in the room and never reaches the top
-    const poster = section.querySelector<HTMLImageElement>('.c-poster img')
-    const veil = section.querySelector<HTMLElement>('.c-veil')
+    // its frame, read once per stop. The warm light (.c-veil's first gradient) is low in the room and never reaches the top.
+    // Desktop Safari too, across the whole width in eight parts: its tab bar spans the window (the flat room was ~10 levels under the top's
+    // 31 … 37 there, on screen, 23 Nov); a phone's Chrome across the top's middle
     let edgeLater = 0
     const readEdge = () => {
-      if (!poster || !veil || root.dataset.section !== 'contact') return
-      const r = poster.getBoundingClientRect()
-      const v = veil.getBoundingClientRect()
-      if (r.top > 0 || r.bottom < 4) return
-      const c = bandColour(poster, { w: r.width, h: r.height }, { x0: innerWidth * 0.3 - r.left, x1: innerWidth * 0.7 - r.left, y0: -r.top, y1: 4 - r.top })
+      if (root.dataset.section !== 'contact') return
+      const c = roomTop()
       if (!c) return
-      // the veil's dark at the top's middle: radial-gradient(70% 60% at 50% 45%), 0.72 at its centre to 0.9 at its rim (contact.css)
-      const d = Math.hypot((innerWidth / 2 - v.left - 0.5 * v.width) / (0.7 * v.width), (-v.top - 0.45 * v.height) / (0.6 * v.height))
-      const dark = 0.72 + 0.18 * Math.min(1, d)
-      section.dataset.edge = hex(over(c, ROOM_RGB, dark))
+      if (tinted) deskRoom = c
+      section.dataset.edge = hex(c)
     }
     const onSettle = () => {
       clearTimeout(edgeLater)
       edgeLater = window.setTimeout(readEdge, 150)
     }
-    // only where theme-color is seen: a phone's Chrome (the desktop's toolbar never takes it)
-    if (!ios && matchMedia('(hover: none) and (pointer: coarse)').matches) {
+    // only where the colour is seen: a phone's Chrome (theme-color) and desktop Safari (its tab bar); Chrome's desktop toolbar never takes it
+    if (!ios && (tinted || matchMedia('(hover: none) and (pointer: coarse)').matches)) {
       addEventListener('scroll', onSettle, { passive: true })
       poster?.addEventListener('load', onSettle)
       onSettle()
@@ -492,6 +587,8 @@ export function ContactClient({ film, time, cta, ctaNamed, signature, signatureN
       cancelAnimationFrame(holdRaf)
       cancelAnimationFrame(cinRaf)
       offWheel()
+      unregister()
+      box?.style.removeProperty('translate')
       section.style.removeProperty('--c-in')
       endOn()
       settle()

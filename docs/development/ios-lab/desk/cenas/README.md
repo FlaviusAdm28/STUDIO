@@ -15,6 +15,14 @@ Run against `next start -p 3100` (`../rebuild.sh`). A separate headless Chrome f
   Prints the conductor's path, strokes kept/dropped, and the state where the hand stopped.
 - `cases.mjs` — turning back mid-passage, keys (PageDown, arrows, Space, End, Home), the menu then a stroke at once (#7), someone else's
   scroll (scrollTo), a chapter's title, a resize mid-passage, the name field focused, a reload at 8b, an address arrived with.
+- `cases-method.mjs`, `cases-about.mjs` — the Method's phase changes (A, 22 Nov) and the About (step 3) under the conductor.
+- `cases-contact.mjs` (step 4, 22 Nov; `W=375 H=667` for another window) — the Questions' stop to the Contact's at once (no frame between,
+  the questions' box held where it was while it fades), a stroke on during the passage (0.5 s dropped, 2.3 s kept, 2.9 s goes), turned back
+  and turned again, a stroke up during the way back (the barrier), the colophon in and out, a jump, Space and Home, a reload at the end.
+  `walk1` and the rest check the Contact too (`h.mjs` `expected`: `dk`, the light down at the Contact and the end; `run`, never at rest).
+- `held.mjs [WxH,…]` — the stops from the About's 14 to the end at each size, and which elements move on the screen between each two
+  (a scroll every 40 px): where the page may go at once, unseen (`conductor.ts` HELD). `contact-old.mjs [WxH]` — the Contact without the
+  conductor (`?cenas=0`): the light down on the way to its stop, up on the way back.
 - `smoke.mjs` — both modes (`?cenas=0` / `=1`): console errors and five PageDowns.
 - `film.mjs <name>` — the owner's film: Chrome's own frames (CDP screencast, ~45 fps) with a caption per part → `<name>.mp4` (ffmpeg).
 - `strokes-sim.mjs` — the stroke detector run offline over every profile (each single stroke must count once).

@@ -1,6 +1,93 @@
 # Chapter One V5 — handoff
 
-## ▶ COMEÇAR AQUI · 22 de novembro de 2026, fim da noite — a barra do Safari no desktop acompanha a página (por aprovar, sem commit)
+## ▶ COMEÇAR AQUI · 23 de novembro de 2026 — as cores da barra do Safari no desktop acertadas por números (aprovado; em commit no `v5`, push do owner)
+
+**Estado numa frase.** Por cima do passo 4 (aprovado pelo owner no desktop a 23/11, sem commit), a barra do Safari no desktop iguala a
+página: ΔE2000 barra contra o topo 0,0–1,5 em todas as paragens com a página fora do topo (era 1,0–3,6), Experiences 2,3 (era 3,3), de dia
+e de noite, nos dois sentidos, com e sem condutor; entrada → Work sem o degrau de +6; 11 ↔ 12 a acompanhar a página. Tudo em `v5-tests.md`,
+"As cores da barra do Safari no desktop, medidas por números"; o laboratório em `desk/cenas/tint/` (README, secção de 23/11).
+
+**O que se descobriu.** (1) O Safari 27 mostra na barra a cor pintada **+8 níveis por canal**, com a página fora do topo; ~85 % vem do
+fundo do body, o resto da faixa acima do ecrã. Body e faixa pintados 8 abaixo → barra = página (o body nunca se vê: auditado em 4
+tamanhos, com e sem condutor). (2) **Defeito em produção, anterior:** o minificador escreve `--m-key` como `#ffc48c42` e o `parseColour`
+não o lia — a cor do topo do Method nunca levou a luz da hora, também no iPhone e no Android (corrigido em `lib/top-colour.ts`).
+(3) As cenas diziam mal o seu topo no desktop: o estúdio (só o meio), o 11 (sem a sua luz redonda), o About (sem o grão e sem a luz que
+leva), o Contact (o quarto liso, ~10 abaixo).
+
+### Em commit (owner, 23/11: "podemos fazer commit e push") — um só commit no `v5`, o passo 4 e as cores; o push pelo GitHub Desktop do owner
+- O passo 4 (a secção abaixo): `contact-client.tsx`, `conductor.ts`, `questions.css`, o laboratório e os docs.
+- As cores da barra: `src/lib/top-colour.ts` (`parseColour` com #rgb/#rgba/#rrggbbaa; `SAFARI_BAR_LIFT`, `underSafariBar`),
+  `src/components/entrance/sequence.ts` (`barInk`: body e faixa 8 abaixo fora do topo, nada nas Questions sem a faixa; o About que sai
+  diz o topo no Method), `method/method-stage.ts` (`wide`, a luz em 8 pontos, `darkTop`), `about/about-stage.ts` (`GRAIN`, `glowOver`,
+  `leaving`), `contact/contact-client.tsx` (`roomTop` na largura toda no Safari do desktop, `deskRoom`, a compensação na passagem).
+- Laboratório: `tint/` `calib.html`/`.sh`/`.py`, `which.sh`, `walkbar4.sh` (`CEN=0`), `barstops.py` (médias verdadeiras), `barcols.py`,
+  `barstops_lab.py`, `edgeprobe.mjs`/`.py`, `edgecurve.mjs`, `bodyshow.mjs`/`.py`, `tinyproxy.mjs` (`hour=`, `nocomp`); `h.mjs` (`W`/`H`).
+
+**Owner, 23/11:** "parece-me bem em desktop" — as cores da barra aprovadas no desktop. **Xiaomi verificado** (ΔE ≤ 1,1 no Method e no
+About às 10 h e às 22 h; o 7 à noite 2,2 → 1,1 com o `parseColour`). **iPhone:** no simulador (iOS 27.3) a cor pintada não se vê à volta
+da ilha nem sob a barra — o Safari mostra a própria página — logo nada muda à vista; falta o owner no seu iPhone (`http://192.168.1.5:3100/`,
+gravações por `http://192.168.1.5:3130/__diag/enviar`; o proxy 3130 reiniciado a 23/11: o de 17/11 tinha comandos velhos na fila que
+deixavam em branco cada página nova).
+
+### O que o owner deve experimentar (Safari, `http://localhost:3100/?cenas` e `?cenas=0`, de dia e de noite se possível)
+A linha entre a barra do Safari e a página em cada paragem — sobretudo as escuras (o Work, o Method de noite, o 11, o About, o Contact) e a
+passagem da entrada para o Work. Os números estão no `v5-tests.md` (o owner é daltónico: os números contam mais do que o olho).
+
+### Por fazer, por esta ordem
+1. ~~**O owner experimenta.**~~ Aprovado (desktop, Xiaomi); em commit. Falta o owner no seu iPhone, se quiser.
+2. **Ligar o condutor para os visitantes no desktop** (decisão do owner); antes, a validação completa no ecrã.
+3. **Passo 5 — limpar o scroll antigo do desktop** (com ele sai também o caso "sem a faixa" do `barInk`).
+4. **Avisar o owner antes do passo 6, o telemóvel.** Em aberto: bug A, C, M8; o Safari fica com a cor do filme no topo depois do caminho de volta do Work (antigo).
+   Não medido: o modo escuro do macOS e "Reduzir transparência" (o +8 é do modo claro).
+
+## (antes) COMEÇAR AQUI · 23 de novembro de 2026 — passo 4 do condutor aprovado pelo owner no desktop (Questions e Contact; sem commit)
+
+**Estado numa frase.** Commit `55a11b7` no `v5` (B, três bugs, a barra do Safari, o espelho; push do owner). Por cima, sem commit, o
+**passo 4**: o Contact regista-se no condutor; Questions ↔ Contact muda de uma vez, sem se ver, e a passagem toca pelo relógio desde a
+passada; 14 → Questions e Contact → fim deslizam; a caixa das perguntas segura no centro (`questions.css`). Medido headless e no ecrã
+(Chrome e Safari, trackpad real) — `v5-tests.md` "Passo 4 do condutor". Ferramenta nova: `desk/cenas/cases-contact.mjs`.
+
+**Owner, 23/11:** "teste desktop safari e chrome parece-me bem" — o passo 4 aprovado no desktop (Chrome e Safari). Sem commit até o
+owner o pedir. A seguir: o acerto das cores da barra do Safari (ponto 2 abaixo).
+
+### Por gravar (sem commit; o owner pede o commit)
+- `src/components/contact/contact-client.tsx` — `registerScene` (o `to`, o `busyUntil` com `IN_SEEN`/`BACK_SEEN`, a caixa segura com
+  `translate`), `driven = cenasOn()`, `go(to, now)`, as retenções e o `place()` da passagem só sem condutor, `watchIn()` ao montar.
+- `src/lib/conductor.ts` — `HELD` em grupos + `heldBetween`; `legacyBusy` só a entrada; o cabeçalho.
+- `src/components/questions/questions.css` — `:root[data-js] .questions .q-box` no bloco ≥ 900 px (a caixa segura no centro).
+- Laboratório: `desk/cenas/cases-contact.mjs` (novo), `held.mjs` e `contact-old.mjs` (novos), `h.mjs` (`dk`, `run` no estado e no
+  `expected`; o `rest` espera pelo `cRun`), `passadas/saf.mjs` (a cadeia do owner `C`/`c`), o README do laboratório.
+- Docs: `v5-tests.md` "Passo 4 do condutor", este handoff.
+- Fora de propósito, como sempre: a alteração do `.gitignore` do owner e `cenas/.back-frame.png`.
+
+### O que o owner deve experimentar (`http://localhost:3100/?cenas`, Chrome e Safari, trackpad)
+1. Do About (14) às Questions: o papel sobe (deslize, como antes).
+2. Uma passada nas Questions: a página fica, as perguntas desaparecem no lugar, a luz desce, o filme, a pergunta, a linha e *Talk to us*
+   — começa logo na passada. Passadas durante isto não levam ao colofão até o *Talk to us* estar visto (~2,6 s).
+3. Uma passada para cima a meio: a passagem volta de onde está; as perguntas voltam.
+4. No Contact, uma passada: o colofão entra (deslize); para cima volta ao Contact.
+5. Do Contact para cima: as perguntas voltam (~0,9 s); só depois uma passada leva ao About.
+6. O menu para 05 Contact e de volta: lá de uma vez, sem animação. `?cenas=0` volta ao site atual.
+Se algo não estiver bem: o que fez, em que browser, em que paragem (uma gravação do ecrã ajuda).
+
+### O laboratório (para retomar)
+- `next start` na 3100 com o código do passo 4 (`zsh docs/development/ios-lab/desk/rebuild.sh` reconstrói). Chrome headless na 9333, Chrome do
+  laboratório na 9223 (`~/.local/share/v5-lab/chrome.pid`). O proxy do Safari (3146) e o proxy simples (3147) desligados: ligam-se por corrida
+  (`node docs/development/ios-lab/proxy.mjs 3146 3100`; `desk/cenas/tint/tinyproxy.mjs`). Se o Mac reiniciou, voltar a ligar o 3100 e os Chromes.
+- Bateria depois de qualquer mudança: `walk1`, `cases`, `cases-method`, `cases-about`, `cases-contact` (também `W=375 H=667` e `W=1024 H=768`),
+  `smoke`; no ecrã `passadas/rec.mjs` e `saf.mjs` com `PX=0.15 PY=0.85` (o diálogo do FortiClient no meio do ecrã).
+
+### Por fazer, por esta ordem
+1. ~~**O owner experimenta** (acima).~~ Aprovado no desktop (23/11). Commit quando pedir.
+2. **O acerto das cores da barra do Safari** (owner, 22/11: as escuras, e a passagem entrada → Work) — medido por números (ΔE por cena;
+   o owner é daltónico), não a olho.
+3. **Ligar o condutor para os visitantes no desktop** (`cenasOn()` só em `localhost` hoje): decisão do owner; antes, a validação completa
+   no ecrã (Chrome e Safari, as resoluções mais usadas, teclado, reduced motion, sem JS).
+4. **Passo 5 — limpar o scroll antigo do desktop** (`finger.ts` governWheel, `hold.ts`, `motor.ts`, as retenções `cHold`/`cOn` do Contact,
+   as regras de encaixe do desktop); o telemóvel e o reduced motion ficam com o scroll do browser.
+5. **Avisar o owner antes do passo 6, o telemóvel.** Em aberto de antes: bug A, C, M8, a entrada do Safari depois do caminho de volta.
+
+## (antes) COMEÇAR AQUI · 22 de novembro de 2026, fim da noite — a barra do Safari no desktop acompanha a página
 
 **Estado numa frase.** Por cima do B e dos três bugs (tudo sem commit desde `77b435b`), a barra do Safari no desktop muda de cor suave e
 no tempo de cada cena, nos dois sentidos: `sequence.ts` (a cor movida frame a frame), `method-stage.ts` (o feixe do 7: a parte do topo
@@ -15,7 +102,9 @@ do Method com os cartões do 11. Possível: um elemento do próprio documento po
 rebordo do feixe), e a barra mostra-o — o "ecrã inteiro" do iPhone, esbatido pelo vidro. No topo da página (scroll 0) não há onde o pôr.
 Por decidir pelo owner (proposta na conversa de 22/11). **Feito a seguir** (owner: "bora fazer isso com o condutor"): o espelho
 (`#c1-feed`, `lib/conductor.ts` + `sequence.ts` + `method-stage.ts` + `contact-client.tsx`), medido — `v5-tests.md` "O espelho acima do
-ecrã". **Falta o topo da página** (scroll 0): 120 px acima da entrada com o condutor — por decidir pelo owner (muda a geometria).
+ecrã". **O topo da página** (scroll 0): owner, 22/11: "eu não metia nada na entrada, acho que o Safari está a escolher bem a cor… a transição
+para o Work é que se nota… a cor do topo poderia dar um match melhor com cada instância do site, especialmente nas mais escuras" (o owner é
+daltónico: medir, não confiar no olho). Por fazer depois do passo 4: o acerto das cores (sobretudo as escuras) e a passagem entrada → Work.
 
 ### Por fazer, por esta ordem
 1. **O owner experimenta** no Safari (`http://localhost:3100/?cenas`, a página carregada de novo): o B, os três bugs e a barra. Commit quando pedir.

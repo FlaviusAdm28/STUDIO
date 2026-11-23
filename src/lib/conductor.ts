@@ -6,9 +6,9 @@
   What is new: **the scenes no longer read the scroll.** A scene registers here (registerScene) and is told where the page is — "you are on
   stop 8b; played, or at once" — and shows what belongs there; it says how long a passage of its own must still play whole (busyUntil).
   Between the stops of those scenes (the entrance, the Work, the Method, the About: from the top to the About's 14, every one under a stage
-  held on screen) the page is not scrolled at all: it is put on the next stop at once, unseen, and the scene plays its change by its clock.
-  Further down (the Questions, the Contact, still reading the scroll) the page glides from stop to stop, as with the motor — and from the
-  About's 14 to the Questions, whose paper rises over it.
+  held on screen; and the Questions' stop and the Contact's, since step 4) the page is not scrolled at all: it is put on the next stop at
+  once, unseen, and the scene plays its change by its clock. The page glides where something really goes up with it: from the About's 14
+  to the Questions, whose paper rises over it, and from the Contact to the page's end, the colophon coming in.
 
   The rules (owner, 16 Nov):
   - one stroke, one stop; a stroke during a passage that must play whole (the Work's blade growing into the arch, the Method's light, and
@@ -39,9 +39,14 @@ export type Scene = {
 }
 
 const BARRIERS = new Set(['top', 'weddings', '7', '11', '14', 'questions', 'contact'])
-// the stops of the scenes that no longer read the scroll, all under a stage held on screen: the page goes from one to another at once
-// (the About's 12–14 since step 3, 21 Nov: its stage is held over them)
-const HELD = new Set(['top', 'weddings', 'artists', 'experiences', '7', '8a', '8b', '8c', '9', '10', '11', '12', '13', '14'])
+// the stops between which the page goes at once, unseen: from the top to the About's 14 (the About's 12–14 since step 3, 21 Nov: its stage is
+// held over them), and the Questions' stop and the Contact's (step 4, 22 Nov: the paper, the questions, the Contact's room and scene are
+// held on the screen between them; measured at 26 viewports, contact-client.tsx). Never from one group to the other: the paper rises
+const HELD = [
+  new Set(['top', 'weddings', 'artists', 'experiences', '7', '8a', '8b', '8c', '9', '10', '11', '12', '13', '14']),
+  new Set(['questions', 'contact']),
+]
+const heldBetween = (a: string, b: string) => HELD.some((g) => g.has(a) && g.has(b))
 // a stroke kept for after a passage only in its last stretch
 const QUEUE = 450
 const BARRIER_MS = 1200
@@ -142,12 +147,9 @@ const arrive = (s: Stop, how: How, way = 0) => {
   note(`at ${s.id} ${how}${held ? ' held' : ''}`)
 }
 
-// the sections that still read the scroll (the Questions, the Contact, the entrance running): busy without saying until when. The About says
-// its own since step 3 (about-stage.ts busyUntil): read here as well, its passage held strokes BUSY_MAX
-const legacyBusy = () => {
-  const root = document.documentElement
-  return root.dataset.entrance === 'run' || 'cRun' in root.dataset
-}
+// the entrance running: busy without saying until when. The About says its own since step 3 (about-stage.ts busyUntil), the Contact since
+// step 4 (contact-client.tsx: read here as well, its passage held strokes BUSY_MAX)
+const legacyBusy = () => document.documentElement.dataset.entrance === 'run'
 let legacySince = 0
 const busyUntil = (next: string, way: number, now: number) => {
   // turned back at a barrier: the rest was for strokes carrying on (lab, 16 Nov: a stroke back 0.4 s into the Work's passage was dropped)
@@ -192,7 +194,7 @@ let unjump = 0
 /** go to a stop: at once and unseen between the held scenes, or for a jump; gliding otherwise */
 const moveTo = (s: Stop, how: How, again = false) => {
   const at = current && Math.abs(current.y - scrollY) < 3 ? current : null
-  const unseen = how === 'jump' || (!!at && HELD.has(at.id) && HELD.has(s.id))
+  const unseen = how === 'jump' || (!!at && heldBetween(at.id, s.id))
   target = s
   if (unseen) {
     stopGlide()

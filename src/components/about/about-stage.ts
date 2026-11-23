@@ -504,6 +504,8 @@ export function runStage(about: HTMLElement, release: () => void) {
   // charcoal of the sections after the About, an artificial colour over the portrait's sky at 13 (owner, iPhone, 4 Nov) ----
   let edgeLater = 0
   const DARK_RGB: Rgb = [23, 24, 22] // the dark of 12 as seen (--a-dark and the grain), the Method's 11
+  // the grain's share of white: 2.2 levels over the dark's 21 (about.css)
+  const GRAIN = 2.2 / (255 - 21)
   // the section's own dark, once the stage has gone up with the page
   const GONE: Rgb = [27, 28, 26]
   // the band the island sees: on iOS the 70 px above the screen (the lift), elsewhere the screen's top; across its middle
@@ -555,14 +557,38 @@ export function runStage(about: HTMLElement, release: () => void) {
       roomAt = at
       roomBand = bandColour(im, { w: r.width, h: r.height }, band(r), 'fill', posOf(im))
     }
-    const c = roomBand
+    // seen through the grain (about.css .a-grain: white noise that adds 2.2 levels on average over the dark, so about.css's --a-dark 21
+    // is seen as DARK_RGB's 23): read from the picture alone the lit room at 13 said 45 over a top of 48 (Chrome, 1728 × 1000, 23 Nov)
+    const c = roomBand && over(roomBand, [255, 255, 255], GRAIN)
     return c ? over(DARK_RGB, c, parseFloat(getComputedStyle(lit).opacity) || 0) : null
   }
+  // On a desktop the light that was the Method's 11 (.a-glow: circle 46vw, rgba(255, 236, 206) 0.15 → 0.05 at 60 % → none at its rim,
+  // method.css .m-dark's own) reaches the top, and leaves it as it moves at 12: read where it is now (its box, transform and all), at its
+  // opacity, across the width. Without it the colour said the dark of 12 from the passage's first frame: Safari's bar went dark 0.4 s
+  // before the page, and on the way back jumped to the 11's light a second before it (on screen, 23 Nov). A phone's never reaches the top
+  const ACROSS = [0.0625, 0.1875, 0.3125, 0.4375, 0.5625, 0.6875, 0.8125, 0.9375]
+  const ROUND: Rgb = [255, 236, 206]
+  const glowOver = (ground: Rgb): Rgb => {
+    if (kind !== 'desk' || lift() || !glow) return ground
+    let a = 1
+    for (let el: HTMLElement | null = glow; el && el !== about; el = el.parentElement) a *= parseFloat(getComputedStyle(el).opacity) || 0
+    if (a <= 0.001) return ground
+    const r = glow.getBoundingClientRect()
+    const at = (x: number) => {
+      const t = Math.hypot(x * innerWidth - (r.left + r.width / 2), 2 - (r.top + r.height / 2)) / (r.width / 2)
+      return t >= 1 ? 0 : t <= 0.6 ? 0.15 - (0.1 * t) / 0.6 : (0.05 * (1 - t)) / 0.4
+    }
+    return over(ground, ROUND, (a * ACROSS.reduce((sum, x) => sum + at(x), 0)) / ACROSS.length)
+  }
+  // On a desktop, going back to the Method, the stage leaves over the Method's 11 for a while: its top is said until it has gone (the
+  // light back in the 11's place, the 11's own colour then), not the 11's at once (leaving: when that ends)
+  let leaving = 0
   const edgeOf = (ph: Phase) => {
-    if (ph === 'pre') return ''
-    const ground = roomTop() ?? (ph === '12' ? DARK_RGB : GONE)
+    if (ph === 'pre' && performance.now() >= leaving) return ''
+    const ground = roomTop() ?? (ph === '12' || ph === 'pre' ? DARK_RGB : GONE)
     const p = portraitTop()
-    return hex(p ? over(ground, p[0], p[1]) : ground)
+    const g = glowOver(ground)
+    return hex(p ? over(g, p[0], p[1]) : g)
   }
   // set after a delay, then read again every 100 ms for a while where the top changes slowly
   let edgeFollow = 0
@@ -652,8 +678,10 @@ export function runStage(about: HTMLElement, release: () => void) {
       !instant && (((to === '13' || to === '14') && (was === '12' || was === 'pre')) || (to === '12' && (was === '13' || was === '14' || was === 'pre')))
     // put in place at once (a jump, a refresh): read once this has run whatever way it ends (12 returns early). Read here, before its
     // flights, it was the phase it left — from 14 the lit portrait's grey over 12's dark, after the menu from the Contact (Simulator, 13 Nov)
+    // a desktop's way back from 12: the glow goes back in 1.5 s (below), the stage's top said until then
+    leaving = kind === 'desk' && !lift() && to === 'pre' && was === '12' && !instant ? performance.now() + 1500 : 0
     if (instant) queueMicrotask(() => phase === to && setEdge(to))
-    else setEdge(to, 0, moving ? 1800 : 0)
+    else setEdge(to, 0, moving ? 1800 : leaving ? 1600 : 0)
 
     if (to === 'pre') {
       release()

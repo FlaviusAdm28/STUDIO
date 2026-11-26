@@ -294,8 +294,15 @@ const onWheel = (e: WheelEvent) => {
 const KEYS: Record<string, number> = { PageDown: 1, PageUp: -1, ArrowDown: 1, ArrowUp: -1, ' ': 1, End: 9, Home: -9 }
 const editable = (t: EventTarget | null) =>
   t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || !!t.closest('dialog[open]'))
+// Space on a focused control presses it (a question, a moment, the portrait): the browser's, never a stroke. Taken as one, a question
+// stayed closed and the page went on to the Contact, a moment stayed as it was and the page went to Artists, the portrait took its
+// colour and the page went to the Questions (lab, headless Chrome 1440 × 900, 26 Nov)
+const control = (t: EventTarget | null) =>
+  t instanceof Element && !!t.closest('button, summary, [role="button"], [role="checkbox"], [role="switch"], [role="tab"], [role="radio"]')
 const onKey = (e: KeyboardEvent) => {
-  if (!(e.key in KEYS) || e.metaKey || e.ctrlKey || e.altKey || editable(e.target) || document.documentElement.dataset.menu) return
+  if (!(e.key in KEYS) || e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || editable(e.target) || document.documentElement.dataset.menu)
+    return
+  if (e.key === ' ' && control(e.target)) return
   e.preventDefault()
   let way = KEYS[e.key]
   if (e.key === ' ' && e.shiftKey) way = -1

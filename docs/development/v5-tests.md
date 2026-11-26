@@ -4410,3 +4410,96 @@ imagem dentro dele.
 - **No commit:** `public/media/v5/` está no `.gitignore` e os derivados publicados entram por `git add -f`. Os 16 ficheiros
   `artists-moment-photo-mono-*` e `experiences-during-photo-mono-*` entraram assim (sem eles o site publicado ficava com as lâminas
   vazias). Ficaram sem uso os derivados de IA `artists-always-mono-*` e `experiences-during-mono-*`: saíram a 23/11 (ver abaixo).
+
+### A ronda de testes ponta a ponta (26/11; owner: "uma run de testes end to end desde o início ao fim do site em safari, chrome, xiaomi e iphone no emulador… usos reais e casos edge… as resoluções principais… se os bugs forem simples e não perigosos podes corrigir") — correções feitas, por aprovar, sem commit
+Primeiro a leitura do código (todo o `src/` e `content/`), depois os testes. Build de produção (`next start -p 3100`), typecheck, lint
+(sem avisos) e build passam antes e depois das correções. Gravações e capturas em `~/.local/share/v5-lab/e2e-26nov/` e
+`~/.local/share/v5-lab/rec/screen/2026-11-26-*` (fora do repositório).
+
+**Encontrado e corrigido** (cada um medido antes e depois):
+1. **O Talk to us do 11 não respondia ao rato nem ao dedo** (todos os aparelhos). `.m-screens` (os ecrãs, `inset: 0`, z-index 2) ficava
+   por cima de `.m-end` (z-index 1) e apanhava o clique/toque: no desktop o alvo era `.m-screens` a 1024 × 768, 1366 × 633, 1440 × 900 e
+   2560 × 1305; no telemóvel um título de cartão já invisível (`s-h`) a 390 × 844 e 360 × 800. Os ecrãs não têm nada que se carregue:
+   `pointer-events: none` (`method.css`). Depois: o alvo é `.m-cta` em todos esses tamanhos, no Xiaomi (CDP, hit-test no aparelho) e no
+   Simulador iOS 27.3 (um toque de dedo real: o clique chegou a `m-cta`).
+2. **Espaço num controlo focado movia a página** (desktop, o condutor): numa pergunta a resposta não abria e a página ia para o Contact;
+   num momento do Work nada mudava e a página ia para Artists; no retrato a cor mudava *e* a página ia para as Questions. O condutor deixa
+   o Espaço ao botão focado (`button`, `summary`, `[role=button]`…) e respeita `defaultPrevented` (`conductor.ts`). Depois: a pergunta abre e
+   a página fica; o momento muda (III) e a página fica; o retrato muda de cor e a página fica 14.
+3. **O Tab passava por seis controlos invisíveis do Work** (desktop): depois das lâminas, os nomes e os momentos de Weddings recebiam o foco
+   com a página na entrada, por baixo dela (opacidade 0); e com Shift+Tab do campo do Method, os do Experiences por baixo do estúdio. Agora
+   o foco do teclado num capítulo fora de cena leva a página a esse capítulo (`work-client.tsx`, como o campo do Method e o retrato do About
+   já faziam). Depois: os 36 passos do Tab em 1440 × 900, todos vistos e não tapados, exceto o ponto 5 abaixo; Shift+Tab do campo → Experiences,
+   visto.
+4. **As marcas do Method no telemóvel tinham o nome trocado** (`data-stop`): `Object.values` dá as chaves numéricas primeiro ('7', '9',
+   '10', '11', depois '8a'–'8c'), e a marca no lugar do 9 dizia 8a. As posições estavam certas (nada se via); os nomes agora pela ordem das
+   fases (`method-stage.ts`). Depois: 390 × 844, cada marca leva à sua fase (7, 8a, 8b, 8c, 9, 10, 11).
+5. **O nome em Make it yours cortado a meio de um emoji**: o corte a 18 era por unidades UTF-16 e deixava um "�"; agora por caracteres
+   (`method-client.tsx`). Depois: "Ana Maria Joaquin😀😀" → 18 caracteres, inteiro.
+
+**Testes e números:**
+- **As 18 resoluções** (`fit/pprobe`, `wprobe`, `mprobe`, Chrome headless, 3 em paralelo): 2560 × 1305, 1920 × 953, 1728 × 1000, 1536 × 730,
+  1512 × 860, 1440 × 790, 1366 × 633, 1280 × 590, 1024 × 768, 820 × 1180, 430 × 932, 375 × 667, 360 × 800, 1920 × 1080, 1440 × 900, 768 × 1024,
+  390 × 844, 320 × 640. Sem overflow horizontal em nenhuma; nenhum texto cortado ou sobreposto à vista. Os sinais da sonda vistos nas
+  capturas são da classe já conhecida (o texto do Work acima do ecrã por baixo do estúdio; "03 About" por baixo do escuro do 11; caixas de
+  linha que se tocam — a contagem do Weddings, CHAPTER/ONE a 320). O mais apertado: Weddings · Before a 1280 × 590, a última linha a 12 px
+  do fundo (1366 × 633: 22 px). O Method: o campo ≥ 20 px acima dos cartões e ≥ 44 px no fundo em todos os desktops.
+- **Sem JavaScript e com movimento reduzido** (1440 × 900 e 390 × 844, folhas de contacto vistas): a página inteira legível, as 8 respostas
+  abertas sem JS, nenhuma imagem partida, sem overflow.
+- **Teclado** (1440 × 900): Tab pela página inteira (36 passos) antes e depois; Espaço e Enter nos controlos; Shift+Tab.
+- **A bateria do condutor** (headless, depois das correções): `smoke`, `walk1` (17 paragens, para baixo e para cima, 0 falhas, 2 fotogramas
+  longos), `cases` 28/28, `cases-method` 9/9, `cases-about` 8/8, `cases-contact` 15/15.
+- **Chrome real no ecrã** (janela de laboratório 1440 × 900, passadas reais do trackpad, ecrã gravado a 120 fps): 32 passadas normais, 32/32
+  na paragem certa; 22 passadas fortes com viragens (cadeias, viragem a meio da passagem, uma sem inércia e a sua volta, vaivém 8c ↔ 8b), o
+  condutor lido a cada 30 ms: 22/22, uma paragem por passada, 130–160 ms depois da passada.
+- **Safari real no ecrã** (o mesmo plano; o condutor lido pela consola do proxy 3131): 32/32 e 22/22, igual ao Chrome. `glitch.mjs`: só os
+  movimentos de desenho (a luz, o papel das Questions, as curvas rápidas no início) e um fotograma de 108–117 ms em 9 ↔ 10 (o "C" de 22/11).
+- **Xiaomi** (Chrome, CDP, passadas de toque): normais 1 paragem por passada nas duas direções, por todas as paragens; o menu → cada secção,
+  fecha; sem erros. Fotogramas > 50 ms: 42 das ~105 passadas com um (pior 177–188 ms ao entrar no 7; 332 ms na primeira entrada no 7 depois
+  de um build novo), a faixa de 23/11 (pior 199 ms). Passadas muito fortes (750 px a 6000 px/s) saltam fases (7 → 8b, 9 → 11, 12 → 14): o
+  scroll do browser no telemóvel, README #128.
+- **Simulador iOS 27.3** (`v5-iphone`, dedo real `simtouch`, consola 3130): normais e fortes, 1 paragem por passada nas duas direções até ao
+  fim e de volta ao topo; o toque no Talk to us do 11; o menu → About, Questions, Work, fecha; 0 erros.
+
+**Encontrado e não corrigido** (lista completa por gravidade na resposta ao owner de 26/11): o Talk to us do Contact fica fora da ordem do
+Tab (`.c-now` com `visibility: hidden` até a luz descer — de propósito, "out of the keyboard's way" — e nada o traz quando o teclado avança:
+do "05 Contact ↓" o Tab salta para o colofão); o fotograma longo do Xiaomi ao entrar no 7; o do Safari em 9 ↔ 10; o ano do colofão fixado no
+build (`page.tsx`); 9 `preload` de imagens `-aura` no `<head>` (React, ~5 KB); apóstrofos retos na cópia (`I'm`, `It's`).
+**Medido e descartado:** o `resize` da entrada que fica ligado depois dela (`sequence.ts` origin) não reescreve nada (o SVG está em
+`display: none` e a função sai: 0 escritas em 12 mudanças de altura); o "corte" do Weddings aos 3,6 s na primeira gravação do Chrome foi
+um buraco do gravador (38 fotogramas nesse segundo; a sonda a 120 fps mostra 13 fotogramas em ~110 ms, a curva desenhada).
+**Não verificado:** o iPhone real do owner; leitores de ecrã. (O Xiaomi e os modos claro e escuro: na secção seguinte.)
+
+### A ronda nos modos claro e escuro, e o Xiaomi de novo (26/11, noite; owner: "liguei o xiaomi, quero que documentes isso e voltes a fazer uma ronda inclui modo escuro e modo claro")
+O site não muda com o modo: declara só `color-scheme: dark` (`globals.css`, e a meta do `layout.tsx`) e nenhuma regra
+`prefers-color-scheme`. O que muda é o que cada browser desenha à volta da página — medido em cada aparelho, nos dois modos, com o build
+das correções da secção anterior. Os modos foram repostos no fim como estavam (Mac claro, Xiaomi claro, Simulador claro).
+
+- **Xiaomi** (ligado pelo owner; Chrome 158, CDP + `adb screencap`; `xiaomi-mode.mjs` no scratchpad): em cada uma das 17 paragens o
+  `theme-color` pedido, a barra de endereço e a barra de estado lidas do ecrã e a primeira linha da página, ΔE2000; e o percurso por toques.
+  - **Claro:** a barra é o `theme-color` exatamente nas 17; barra − página ΔE 0–1,1 (como a 23/11). Percurso 17/17 para baixo e para cima.
+  - **Escuro** (`cmd uimode night yes`): o Chrome **ignora o `theme-color`** — barra de endereço e de estado sempre `#181308` (a cor do
+    próprio Chrome). Barra − página ΔE 4–12 nas cenas escuras, **58 no 9, 63 no About 13/14, 76 nas Questions**. Seis variantes sem efeito
+    (o valor do site, `#ff00ff`, a cor do papel, uma meta `media="(prefers-color-scheme: dark)"`, `color-scheme` "light dark" e "light"):
+    sempre `#181308`. Limitação do Chrome, fora do alcance do site. A página em si não é escurecida (as primeiras linhas iguais às do
+    modo claro; capturas lado a lado vistas). Percurso 17/17 nos dois sentidos, sem erros.
+  - Visto de passagem: na hidratação (~300 ms) o React acrescenta uma segunda meta `theme-color` (`#1E1D1A`, a do `layout.tsx`) por a
+    primeira já ter sido mudada pelo script da entrada. O Chrome usa a primeira (a que o site muda), por isso funciona — medido acima — mas
+    é frágil se a ordem mudar.
+- **Simulador iOS 27.3** (`xcrun simctl ui v5-iphone appearance light|dark`; dedo real, captura do ecrã inteiro em cada paragem): nos dois
+  modos o percurso 17/17 até ao fim e 17/17 de volta, 0 erros; a zona da ilha mostra a página nos dois (as mesmas cores; só o instante da luz
+  no 7 e no Contact difere); muda só a pílula do endereço do Safari em baixo (clara em claro, escura em escuro), do próprio Safari.
+- **Mac, Safari** (janela 1440 × 900; `walkbar4.sh` com uma salvaguarda — a janela de cima verificada antes de cada tecla — e um clique na
+  página antes, a nova janela tinha o foco no endereço; `barstops.py` com o recorte da barra fora do campo de endereço, que nesta largura
+  caía dentro dele e dava +2,5 falsos):
+  - **Claro:** barra − página ΔE 0,0–0,8 em todas as paragens, exceto o topo (9,9: a escolha do próprio Safari no scroll 0) e Experiences
+    (2,3) — os valores de 23/11. A correção de −8 está ativa (body e faixa 8 abaixo do html, lidos na página).
+  - **Escuro:** o mesmo em todas as paragens escuras; **nas Questions a barra fica cinzento-escura (63) sobre o papel (215): ΔE 54**. Numa
+    página mínima à parte (fundo liso, scroll 600): em modo escuro o Safari não leva para a barra nenhuma cor clara — o papel dá 76, `#c8c8c8`
+    71, `#8a8a8a` 60, `#1e1d1a` 37 — com `color-scheme` escuro, claro, ambos ou nenhum. Comportamento do Safari, fora do alcance do site.
+  - Percurso por passadas reais do trackpad (condutor lido pela consola do proxy 3131): 32/32 em escuro, como em claro.
+- **Mac, Chrome** (passadas reais do trackpad, condutor lido a cada 30 ms): 32/32 em escuro, como em claro; a página igual (folha de
+  contacto vista). A barra do Chrome no desktop não toma a cor da página em nenhum modo.
+
+**Não verificado:** o iPhone real em modo escuro; "Reduzir transparência" e "Aumentar contraste" do macOS; o Chrome do Android com
+"Escurecer sites" ligado nas definições do Chrome (aqui só o modo escuro do sistema).

@@ -1,6 +1,24 @@
 # Chapter One V5 — handoff
 
-## ▶ COMEÇAR AQUI · 23 de novembro de 2026, noite — as lâminas de Artists e Experiences com as fotografias do Work (aprovado; no `v5` e no `master`)
+## ▶ COMEÇAR AQUI · 26 de novembro de 2026 — a ronda de testes ponta a ponta e a ronda nos modos claro e escuro (em commit no `v5` e no `master`)
+
+**Estado.** O owner pediu uma ronda de testes ponta a ponta (código lido primeiro; Chrome, Safari, Xiaomi, Simulador iOS; as resoluções
+mais usadas; usos reais e casos-limite) e depois uma ronda nos modos claro e escuro. Correções simples feitas e medidas; o owner pediu
+commit e push do `v5` e do `master` para atualizar a produção (26/11: "podes fazer commit e push v5 e master para atualizar prod").
+Tudo em `v5-tests.md`, as duas últimas secções.
+
+- **Corrigido:** o Talk to us do 11 não respondia ao rato nem ao dedo (`.m-screens` por cima; `method.css`); Espaço num controlo focado
+  movia a página no desktop (`conductor.ts`); o Tab passava por controlos invisíveis do Work (o foco traz o capítulo; `work-client.tsx`);
+  os nomes trocados das marcas do Method no telemóvel (`method-stage.ts`); o nome cortado a meio de um emoji (`method-client.tsx`).
+- **Por decidir (owner):** o Talk to us do Contact fora da ordem do Tab; o fotograma longo do Xiaomi ao entrar no 7 (177–332 ms) e o do
+  Safari em 9 ↔ 10 (108–117 ms); o ano do colofão fixado no build; a segunda meta `theme-color` que o React acrescenta na hidratação;
+  9 `preload` de imagens `-aura`; apóstrofos retos na cópia.
+- **Do browser, fora do alcance do site:** em modo escuro o Chrome do Android ignora o `theme-color` (barra sempre `#181308`) e o Safari do
+  Mac não leva cores claras para a barra (as Questions ΔE 54).
+- **Laboratório:** o Safari do owner tinha a janela noutro Space e as passadas caíram no WebStorm (só scroll): verificar a janela de cima
+  (CGWindowList) antes de cada passada; numa janela nova do Safari o foco fica no endereço (clicar na página antes das teclas).
+
+## (antes) COMEÇAR AQUI · 23 de novembro de 2026, noite — as lâminas de Artists e Experiences com as fotografias do Work (aprovado; no `v5` e no `master`)
 
 **Estado.** Aprovado pelo owner depois dos testes no Mac (23/11: "parece-me bem podemos fazer commit e push e atualizar para master também"): o `master` avança até ao `v5` (o push é do owner, no GitHub Desktop). Antes, em commit e com push no `v5` (owner, 23/11: "preciso comitar e dar push porque quero abrir no mac para fazer testes"): as lâminas da entrada
 de **Artists** e **Experiences** passam das imagens de IA de 1024 px (moles no telemóvel) para o P&B derivado das fotografias que o Work

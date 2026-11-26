@@ -812,6 +812,10 @@
   margin: 0;
   padding: 0;
   display: block;
+  /* the screens are pictures, nothing in them is pressed: over the whole stage, above the 11 (.m-end), they took every click and tap on
+     its Talk to us — the screens gone aside or faded, but still there (lab, 26 Nov: the click landed on .m-screens at 1366 × 633, 1440 ×
+     900 and 2560 × 1305, on a card's heading at 390 × 844) */
+  pointer-events: none;
 }
 :root[data-js] .method .m-card {
   position: absolute;

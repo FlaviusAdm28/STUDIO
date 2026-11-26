@@ -1186,7 +1186,9 @@ export function runStage(section: HTMLElement, chosen: () => string, lumOf: (pha
     // there stayed on 7 — a stroke during the light's passage, or a slow one, came to rest on 8a's mark with 7 still on stage, and the
     // next went on to 8b (Chrome and Safari, real trackpad, 3 of 3, 12 Nov: the "7 → 7 → 8b" of 11 Nov)
     const DESK_MARKS = [0.45, 1.3, 1.825, 2.325, 2.9, 3.5, 4.1].map((s) => s / DESK_SCENE)
-    const shares = kind === 'phone' ? Object.values(at).map((share) => share + BAND * 1.6) : DESK_MARKS
+    // in the phases' order: Object.values gives the numbered keys first ('7', '9', '10', '11', then '8a'–'8c'), and each mark was named for
+    // another phase (the mark at 9's place said 8a; lab, 390 × 844, 26 Nov) — the places were right, the names wrong
+    const shares = kind === 'phone' ? IN_SCENE.map((ph) => at[ph as Exclude<Phase, 'pre'>] + BAND * 1.6) : DESK_MARKS
     // Experiences' mark on a desktop just before the scene (0.05 screen), the same picture as at 0.3 (the stage is held through the lead:
     // screenshots identical): 7 comes in a stroke's first 50 px, while the finger is still on. At 0.3 it came 285 px on, where a stroke
     // of 300–360 px ends, and Safari, laying out the change between the finger's end and the momentum, put the page back on the mark the

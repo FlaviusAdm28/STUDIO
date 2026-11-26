@@ -1712,6 +1712,19 @@ export function WorkClient({ moment, photo, demos, chapters }: Props) {
           },
         }),
       )
+      // The keyboard reaching a chapter that is not on stage (the entrance still over it at the top, or the Method's light over it): the page
+      // goes there at once, as the Method's field and the About's portrait bring their phase. Without it the Tab went through Weddings' names
+      // and moments under the entrance, six focus rings never seen, and from the Method's field back into Experiences under the studio
+      // (lab, headless Chrome 1440 × 900, 26 Nov)
+      if (stage)
+        listen(stage, 'focusin', (e) => {
+          const el = e.target as Element
+          if (!el.matches(':focus-visible')) return
+          const k = articles.findIndex((a) => a.contains(el))
+          const over = !!methodEl?.dataset.phase && methodEl.dataset.phase !== 'pre'
+          if (k < 0 || (root.dataset.pass === 'done' && k === ch && !over)) return
+          goTo(STOPS[k + 1], 'jump')
+        })
     }
 
     // ---- a chapter's address (#44): the blades, the title and the menu land on that chapter's step ----

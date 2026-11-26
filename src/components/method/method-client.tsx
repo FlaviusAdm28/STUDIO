@@ -97,7 +97,8 @@ export function MethodClient() {
     // everything the name shapes
     const menuHello = document.querySelector<HTMLElement>('.menu-hello')
     const compose = (raw: string) => {
-      const name = raw.trim().replace(/\s+/g, ' ').slice(0, 18)
+      // 18 characters as they are read (Array.from: by code point): cut by UTF-16 units, an emoji at the end was split in two, a "�"
+      const name = Array.from(raw.trim().replace(/\s+/g, ' ')).slice(0, 18).join('')
       c1.name = name || undefined
       fill('template-title', name || method.template.title)
       fill('wedding-title', name ? fillIn(s.wedding.named, name) : fillIn(s.wedding.title))
